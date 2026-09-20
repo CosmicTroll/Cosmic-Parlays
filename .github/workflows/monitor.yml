@@ -2,8 +2,8 @@ name: Market Monitor Bot
 
 on:
   schedule:
-    - cron: '0 * * * *'
-  workflow_dispatch:
+    - cron: '0 * * * *'  # Runs every hour
+  workflow_dispatch:      # Manual trigger button
 
 jobs:
   run-monitor:
@@ -21,11 +21,15 @@ jobs:
           python-version: '3.11'
 
       - name: Install dependencies
-        run: pip install requests
+        run: pip install requests cryptography
 
       - name: Run Market Monitor
         env:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          KALSHI_API_KEY_ID: ${{ secrets.KALSHI_API_KEY_ID }}
+          KALSHI_PRIVATE_KEY: ${{ secrets.KALSHI_PRIVATE_KEY }}
+          POLYMARKET_API_KEY: ${{ secrets.POLYMARKET_API_KEY }}
+          POLYMARKET_SECRET: ${{ secrets.POLYMARKET_SECRET }}
         run: python monitor.py
 
       - name: Commit and push updates to website
@@ -33,4 +37,4 @@ jobs:
           git config --global user.name "CosmicBot"
           git config --global user.email "bot@cosmicparlay.com"
           git add index.html
-          git diff --quiet && git diff --staged --quiet || (git commit -m "🤖 Auto-update scouting lines [skip ci]" && git push)
+          git diff --quiet && git diff --staged --quiet || (git commit -m "🤖 Auto-sync portfolio slates and radar [skip ci]" && git push)
