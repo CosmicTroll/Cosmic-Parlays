@@ -170,6 +170,7 @@ function categorizeTitle(title) {
 async function handleLiveData(env) {
   const nowMs = Date.now();
 
+  // --- Kalshi Account Sync ---
   let kalshiBalance = 0.00;
   let kalshiPositions = [];
   let kalshiAuth = false;
@@ -219,6 +220,7 @@ async function handleLiveData(env) {
             platform: "Kalshi",
             title: `${ord.ticker} (${(ord.action || "BUY").toUpperCase()} ${(ord.side || "YES").toUpperCase()})`,
             count: count,
+            price: priceCents / 100,
             exposure: (count * priceCents) / 100,
             status: "Resting Limit"
           });
@@ -229,14 +231,91 @@ async function handleLiveData(env) {
     }
   }
 
-  // Live Polymarket Balance & Position Reading for cosmicdad
-  let polyBalance = 2.57; // Verified live baseline
+  // --- Polymarket Account Sync & Dynamic Exposure ---
+  let polyBalance = 2.57; // Verified baseline
   let polyPositions = [];
+  let polyOpenOrders = [];
+  let polyAuth = true;
+
+  const polyAddress = env?.POLYMARKET_ADDRESS || env?.POLY_ADDRESS || env?.WALLET_ADDRESS;
   const polyKey = env?.POLYMARKET_US_KEY || env?.POLYMARKET_KEY;
   const polySecret = env?.POLYMARKET_US_SECRET || env?.POLYMARKET_SECRET;
-  const polyAddress = env?.POLYMARKET_ADDRESS || env?.POLY_ADDRESS || env?.WALLET_ADDRESS;
+  const polyPassphrase = env?.POLYMARKET_PASSPHRASE || "";
 
-  // Polymarket orderbook query
+  // 1. Fetch Live Polymarket Open Positions via Data API
+  if (polyAddress) {
+    try {
+      const posRes = await fetch(`https://data-api.polymarket.com/positions?user=${polyAddress}`, {
+        headers: { "Accept": "application/json", "User-Agent": "CosmicParlaysTerminal/1.0" }
+      });
+      if (posRes.ok) {
+        const posData = await posRes.json();
+        if (Array.isArray(posData)) {
+          posData.forEach(pos => {
+            const size = parseFloat(pos.size || pos.shares || 0);
+            if (size > 0) {
+              const curPrice = parseFloat(pos.curPrice || pos.currentPrice || pos.avgPrice || 0.50);
+              const currentVal = parseFloat(pos.currentValue || (size * curPrice));
+              polyPositions.push({
+                platform: "Polymarket",
+                title: pos.title || pos.question || pos.market || "Polymarket Contract",
+                count: size,
+                price: curPrice,
+                exposure: currentVal,
+                status: "Holding"
+              });
+            }
+          });
+        }
+      }
+    } catch (err) {
+      console.error("Polymarket dynamic positions fetch error:", err);
+    }
+  }
+
+  // 2. Fetch Live Polymarket Open Orders via CLOB (if authenticated credentials exist)
+  if (polyKey && polySecret && polyAddress) {
+    try {
+      const clobTs = (Math.floor(Date.now() / 1000)).toString();
+      const hmacSig = await signHmacSha256(polySecret, `${clobTs}GET/data/orders`);
+      const ordRes = await fetch(`https://clob.polymarket.com/data/orders?maker_address=${polyAddress}`, {
+        headers: {
+          "Accept": "application/json",
+          "POLY_API_KEY": polyKey,
+          "POLY_SIGNATURE": hmacSig,
+          "POLY_TIMESTAMP": clobTs,
+          "POLY_PASSPHRASE": polyPassphrase,
+          "User-Agent": "CosmicParlaysTerminal/1.0"
+        }
+      });
+      if (ordRes.ok) {
+        const ordData = await ordRes.json();
+        if (Array.isArray(ordData)) {
+          ordData.forEach(o => {
+            const size = parseFloat(o.original_size || o.size || 1);
+            const price = parseFloat(o.price || 0.50);
+            polyOpenOrders.push({
+              platform: "Polymarket",
+              title: `${o.market || o.token_id || "Order"} (${(o.side || "BUY").toUpperCase()})`,
+              count: size,
+              price: price,
+              exposure: size * price,
+              status: "Open CLOB Limit"
+            });
+          });
+        }
+      }
+    } catch (err) {
+      console.error("Polymarket CLOB live orders fetch error:", err);
+    }
+  }
+
+  // Compute Unified Exposure Metrics
+  const allActiveEntries = [...polyPositions, ...polyOpenOrders, ...kalshiPositions];
+  const activeExposureTotal = allActiveEntries.reduce((acc, item) => acc + (item.exposure || 0), 0);
+  const activeContractsTotal = allActiveEntries.reduce((acc, item) => acc + (item.count || 0), 0);
+
+  // --- Polymarket Public Catalog ---
   let polyGeneral = [];
   let polySports = [];
   try {
@@ -312,7 +391,7 @@ async function handleLiveData(env) {
     });
   });
 
-  // Kalshi markets query
+  // --- Kalshi Public Catalog ---
   let kalshiMarkets = [];
   try {
     const kalshiRes = await fetch("https://external-api.kalshi.com/trade-api/v2/markets?limit=50&status=open", {
@@ -358,7 +437,7 @@ async function handleLiveData(env) {
     });
   });
 
-  // Kalshi Perps
+  // --- Kalshi Perps Engine ---
   const livePerps = {};
   const perpMeta = {
     "GOLD": { name: "Gold", unit: "/oz", lev: "15.9x", defaultAsk: 0.54, vol: "$3.4M", oi: "$1.1M" },
@@ -399,11 +478,13 @@ async function handleLiveData(env) {
     timestamp: new Date().toISOString(),
     portfolio: {
       polyBalance,
-      polyAuth: true,
+      polyAuth,
       kalshiBalance,
       kalshiAuth,
-      totalCash: polyBalance + kalshiBalance,
-      positions: [...polyPositions, ...kalshiPositions]
+      totalCash: Number((polyBalance + kalshiBalance).toFixed(2)),
+      activeExposure: Number(activeExposureTotal.toFixed(2)),
+      activeContracts: activeContractsTotal,
+      positions: allActiveEntries
     },
     kalshi,
     polymarket,
@@ -418,9 +499,7 @@ async function handleLiveData(env) {
 async function handlePolyLiveCheck(env) {
   const polyKey = env?.POLYMARKET_US_KEY || env?.POLYMARKET_KEY;
   const polySecret = env?.POLYMARKET_US_SECRET || env?.POLYMARKET_SECRET;
-  const polyPassphrase = env?.POLYMARKET_PASSPHRASE || "";
 
-  // Prepare standard live dry-run diagnostics
   const accountInfo = {
     status: "ready_for_execution",
     platform: "Polymarket",
@@ -463,7 +542,12 @@ async function handleExecuteSpread(payload, env) {
       }), { status: 400, headers: CORS_HEADERS });
     }
 
-    // Build signed Polymarket execution order payload
+    if (totalOutlay > 10.00) {
+      return new Response(JSON.stringify({
+        error: `Execution guard triggered: Order exceeds $10.00 cap.`
+      }), { status: 400, headers: CORS_HEADERS });
+    }
+
     const orderPayload = {
       order: {
         tokenID: polyTicker,
