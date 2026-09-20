@@ -10,9 +10,10 @@
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
     body { background-color: #0B0D17; color: #F8FAFC; padding: 20px 14px 40px; padding-top: max(20px, env(safe-area-inset-top)); }
-    .header { margin-bottom: 12px; border-bottom: 1px solid #1F2438; padding-bottom: 10px; }
-    .header h1 { font-size: 20px; font-weight: 800; color: #E0E7FF; letter-spacing: 0.5px; }
-    .header p { color: #818CF8; font-size: 12px; margin-top: 2px; }
+    .header { margin-bottom: 12px; border-bottom: 1px solid #1F2438; padding-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+    .header h1 { font-size: 19px; font-weight: 800; color: #E0E7FF; letter-spacing: 0.5px; }
+    .header p { color: #818CF8; font-size: 11px; margin-top: 2px; }
+    .copilot-badge { background: linear-gradient(135deg, #4F46E5, #9333EA); color: white; font-size: 10px; font-weight: 800; padding: 4px 9px; border-radius: 20px; box-shadow: 0 0 10px rgba(99,102,241,0.5); display: flex; align-items: center; gap: 4px; }
     
     .tab-scroll { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 12px; scrollbar-width: none; }
     .tab-scroll::-webkit-scrollbar { display: none; }
@@ -40,16 +41,6 @@
     .analysis { margin-top: 10px; padding-top: 8px; border-top: 1px solid #242C48; }
     .analysis-title { font-size: 11px; font-weight: 700; color: #A5B4FC; margin-bottom: 2px; }
     .analysis-text { font-size: 12px; line-height: 16px; color: #94A3B8; }
-    
-    .tip { border-bottom: 1px dashed #818CF8; color: #A5B4FC; cursor: pointer; display: inline-flex; align-items: center; gap: 3px; font-weight: 600; }
-    .tip::after { content: 'ℹ️'; font-size: 9px; opacity: 0.8; }
-
-    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(2px); z-index: 100; align-items: flex-end; justify-content: center; }
-    .modal-sheet { background: #151928; border: 1px solid #4338CA; border-radius: 16px 16px 0 0; padding: 20px; width: 100%; max-width: 500px; box-shadow: 0 -4px 20px rgba(0,0,0,0.6); animation: slideUp 0.2s ease-out; }
-    @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
-    .modal-title { font-size: 15px; font-weight: 800; color: #EEF2FF; margin-bottom: 8px; }
-    .modal-desc { font-size: 13px; line-height: 18px; color: #CBD5E1; margin-bottom: 14px; }
-    .modal-btn { width: 100%; padding: 10px; background: #3730A3; border: none; border-radius: 8px; color: white; font-weight: 700; font-size: 13px; cursor: pointer; }
 
     .tab-content { display: none; }
     .tab-content.active { display: block; }
@@ -57,164 +48,86 @@
 </head>
 <body>
   <div class="header">
-    <h1>Cosmic Parlay Theorem</h1>
-    <p>Prediction Market Companion Terminal</p>
+    <div>
+      <h1>Cosmic Parlay Theorem</h1>
+      <p>Tactical Prediction Market Terminal</p>
+    </div>
+    <div class="copilot-badge">✨ Gemini Co-Pilot</div>
   </div>
 
   <div class="tab-scroll">
-    <button class="tab-btn active" onclick="switchTab('active', this)">Active Slates</button>
+    <button class="tab-btn active" onclick="switchTab('active', this)">Active Slates 🎯</button>
     <button class="tab-btn" onclick="switchTab('sports', this)">Single-Leg Props ⚡</button>
-    <button class="tab-btn" onclick="switchTab('macro', this)">Macro Events 🪐</button>
-    <button class="tab-btn" onclick="switchTab('perps', this)">Perps & Allocation 📈</button>
+    <button class="tab-btn" onclick="switchTab('macro', this)">Basis & Radar 🪐</button>
+    <button class="tab-btn" onclick="switchTab('perps', this)">Perps & Tax Engine 📈</button>
   </div>
 
   <div class="disclaimer">
     ⚠️ For entertainment, analysis, and educational purposes only. Does not facilitate real-money wagering or betting transactions.
   </div>
 
-  <!-- TAB 1: ACTIVE SLATES AUTOGEN -->
+  <!-- TAB 1: ACTIVE SLATES -->
   <div id="tab-active" class="tab-content active">
     <!-- AUTOGEN_ACTIVE_START -->
-
-    <div class="card">
-      <div class="card-head">
-        <div class="card-title">Kalshi Live Slates</div>
-        <div class="badge up">Sync Active</div>
-      </div>
-      <div class="tier">Active Combo Tickets & Fills</div>
-      
-      <div class="leg">
-        <div class="leg-info">
-          <div class="leg-matchup">Open Ticket • <span style="color: #86EFAC;">Active</span></div>
-          <div class="leg-pick">9 Market Combo<br><span style="font-size: 11px; color: #94A3B8; line-height: 15px;">Buffalo • Carolina • Cincinnati • Tampa Bay ... (+5 more)</span></div>
-        </div>
-        <div class="leg-odds">+0¢</div>
-      </div>
-      <div class="analysis">
-        <div class="analysis-title">Portfolio Status:</div>
-        <div class="analysis-text">Synchronized with Kalshi portfolio fills and active multi-market combinations.</div>
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="card-head">
-        <div class="card-title">Polymarket Live Portfolio</div>
-        <div class="badge up">Sync Active</div>
-      </div>
-      <div class="tier">Active Tickets & Open Slates (cosmicdad)</div>
-      
-      <div class="leg">
-        <div class="leg-info">
-          <div class="leg-matchup">Polymarket US • <span style="color: #86EFAC;">Active</span></div>
-          <div class="leg-pick">4-Pick Combo (SF, BAL, CHI, GB)<br><span style="font-size: 11px; color: #94A3B8; line-height: 15px;">BAL Ravens • SF 49ers • CHI Bears • GB Packers</span></div>
-        </div>
-        <div class="leg-odds">$0.73 → $2.31 (3.16x)</div>
-      </div>
-      <div class="leg">
-        <div class="leg-info">
-          <div class="leg-matchup">Polymarket US • <span style="color: #86EFAC;">Active</span></div>
-          <div class="leg-pick">CIN Bengals vs HOU Texans<br><span style="font-size: 11px; color: #94A3B8; line-height: 15px;">Cincinnati Bengals To Win • Cost $0.58</span></div>
-        </div>
-        <div class="leg-odds">42% (Entry 41%)</div>
-      </div>
-      <div class="leg">
-        <div class="leg-info">
-          <div class="leg-matchup">Polymarket US • <span style="color: #86EFAC;">Active</span></div>
-          <div class="leg-pick">GB Packers vs NY Jets 1st Half<br><span style="font-size: 11px; color: #94A3B8; line-height: 15px;">Under 21.5 First Half Points • Cost $0.57</span></div>
-        </div>
-        <div class="leg-odds">70% (Entry 50%)</div>
-      </div>
-      <div class="analysis">
-        <div class="analysis-title">Portfolio Status:</div>
-        <div class="analysis-text">Position units and multi-leg combinations synchronized from your Polymarket account.</div>
-      </div>
-    </div>
     <!-- AUTOGEN_ACTIVE_END -->
   </div>
 
-  <!-- TAB 2: SINGLE-LEG SCOUTED PROPS -->
+  <!-- TAB 2: SINGLE-LEG PROPS -->
   <div id="tab-sports" class="tab-content">
     <!-- AUTOGEN_SPORTS_START -->
-
-    <div class="card">
-      <div class="card-head">
-        <div class="card-title">Single-Leg Props & Game Radar</div>
-        <div class="badge scout">Scouted Add-on</div>
-      </div>
-      <div class="tier">Scouted Add-on Legs (Zero Pre-Packs)</div>
-      <div style="padding: 10px 0; color: #94A3B8; font-size: 12px;">Active markets scanned. No isolated single lines matching threshold on this pass.</div>
-      <div class="analysis">
-        <div class="analysis-title">Cosmic Matchup Thesis:</div>
-        <div class="analysis-text">Filtered for isolated single lines with defensive mismatches. Add to custom tickets as anchor or multiplier legs.</div>
-      </div>
-    </div>
     <!-- AUTOGEN_SPORTS_END -->
   </div>
 
-  <!-- TAB 3: MACRO HORIZON & TIMELINES -->
+  <!-- TAB 3: BASIS & ARBITRAGE RADAR -->
   <div id="tab-macro" class="tab-content">
-    <div class="card" style="border-left: 3px solid #F59E0B;">
-      <div class="card-title" style="font-size: 13px; color: #FDE68A;">⚠️ Understanding Prediction Horoscopes</div>
+    <div class="card" style="border-left: 3px solid #6366F1;">
+      <div class="card-title" style="font-size: 13px; color: #EEF2FF;">✨ Gemini Market Scanner: Basis & Discrepancies</div>
       <div style="font-size: 11px; color: #94A3B8; margin-top: 4px; line-height: 15px;">
-        These are <strong>event likelihood markets</strong>, not stock recommendations. A 0% odds value means the crowd consensus anticipates this event will NOT occur before the deadline.
+        Tracking spread differentials between Kalshi and Polymarket order books. If the combined cost of Yes on Platform A and No on Platform B is under $1.00, mathematical arbitrage exists.
       </div>
     </div>
     <!-- AUTOGEN_MACRO_START -->
-
-    <div class="card">
-      <div class="card-head">
-        <div class="card-title">Macro Horizon: Event Milestones</div>
-        <div class="badge macro">Milestones</div>
-      </div>
-      <div class="tier">Event Probability Tracker (Not Stock Recommendations)</div>
-      
-      <div class="leg">
-        <div class="leg-info">
-          <div class="leg-matchup">Kraken IPO by ___ ?</div>
-          <div class="leg-pick">December 31</div>
-        </div>
-        <div class="leg-odds">0%</div>
-      </div>
-      <div class="leg">
-        <div class="leg-info">
-          <div class="leg-matchup">Macron out by...?</div>
-          <div class="leg-pick">December 31, 2025</div>
-        </div>
-        <div class="leg-odds">0%</div>
-      </div>
-      <div class="leg">
-        <div class="leg-info">
-          <div class="leg-matchup">UK election called by...?</div>
-          <div class="leg-pick">March 31</div>
-        </div>
-        <div class="leg-odds">0%</div>
-      </div>
-      <div class="leg">
-        <div class="leg-info">
-          <div class="leg-matchup">China x India military clash by...?</div>
-          <div class="leg-pick">June 30</div>
-        </div>
-        <div class="leg-odds">0%</div>
-      </div>
-      <div class="analysis">
-        <div class="analysis-title">Cosmic Matchup Thesis:</div>
-        <div class="analysis-text">Consensus odds for timeline projections, regulatory events, and rate paths.</div>
-      </div>
-    </div>
     <!-- AUTOGEN_MACRO_END -->
   </div>
 
-  <!-- TAB 4: PERPS & STRATEGIC ALLOCATION -->
+  <!-- TAB 4: PERPS ALLOCATION & IRC 1256 TAX FRAMEWORK -->
   <div id="tab-perps" class="tab-content">
-    
+
+    <!-- CFTC IRC 1256 TAX SHIELD MODULE -->
     <div class="card" style="border-left: 3px solid #10B981;">
       <div class="card-head">
-        <div class="card-title">Kalshi American Perps Allocation</div>
-        <div class="badge perp">CFTC Regulated</div>
+        <div class="card-title">IRC Section 1256 Derivatives Advantage</div>
+        <div class="badge scout">CFTC Tax Framework</div>
       </div>
-      <div class="tier">Perpetual Futures • Continuous Spot • No Expiry</div>
-      <div class="analysis-text" style="font-size: 11px; color: #94A3B8; margin-top: 4px;">
-        Perps run 24/7 with continuous settlement. Target conservative leverage (2x–3x) for long-duration holds to protect against liquidation spikes.
+      <div class="tier">Regulated Futures Exchange Classification (Kalshi & Polymarket US)</div>
+      
+      <div class="leg">
+        <div class="leg-info">
+          <div class="leg-matchup">The 60 / 40 Blended Rate Rule</div>
+          <div class="leg-pick"><strong>60% Long-Term / 40% Short-Term Capital Gains</strong></div>
+        </div>
+        <div class="leg-odds">Max ~28%</div>
+      </div>
+
+      <div class="leg">
+        <div class="leg-info">
+          <div class="leg-matchup">Holding Period Exemption</div>
+          <div class="leg-pick">Applies even if contracts are held for 1 hour or 1 day</div>
+        </div>
+        <div class="leg-odds">No 1-Yr Wait</div>
+      </div>
+
+      <div class="leg">
+        <div class="leg-info">
+          <div class="leg-matchup">Loss Deductibility Advantage</div>
+          <div class="leg-pick">Offsets capital gains dollar-for-dollar + up to $3k ordinary income</div>
+        </div>
+        <div class="leg-odds">Full Offset</div>
+      </div>
+
+      <div class="analysis">
+        <div class="analysis-title">✨ Gemini Navigator Tax Brief:</div>
+        <div class="analysis-text">Unlike traditional sportsbooks where winnings are taxed at ordinary income rates up to 37% and deductions are strictly limited, CFTC-regulated event contracts trade under derivatives rules. Always reconcile via Form 6781.</div>
       </div>
     </div>
 
@@ -243,10 +156,8 @@
       </div>
 
       <div class="analysis">
-        <div class="analysis-title">Re-evaluation Trigger:</div>
-        <div class="analysis-text">
-          Hold structurally through rate cuts and central bank reserve expansion. Re-evaluate if real Treasury yields spike aggressively or spot drops below the 200-day trend.
-        </div>
+        <div class="analysis-title">✨ Gemini Navigator Intel:</div>
+        <div class="analysis-text">Gold remains our primary portfolio anchor. Central bank reserve accumulation insulates against drawdown. Re-evaluate if spot violates the 200-day EMA.</div>
       </div>
     </div>
 
@@ -275,10 +186,8 @@
       </div>
 
       <div class="analysis">
-        <div class="analysis-title">Re-evaluation Trigger:</div>
-        <div class="analysis-text">
-          Review at the close of each calendar quarter. Trim position if the 8-hour funding rate becomes excessively positive (overheated long positioning).
-        </div>
+        <div class="analysis-title">✨ Gemini Navigator Intel:</div>
+        <div class="analysis-text">Review quarterly. If long funding rates turn heavily positive (bulls overpaying to maintain leverage), trim contract exposure to avoid bleed.</div>
       </div>
     </div>
 
@@ -299,31 +208,14 @@
       </div>
 
       <div class="analysis">
-        <div class="analysis-title">Re-evaluation Trigger:</div>
-        <div class="analysis-text">
-          Target down-moves when altcoin funding is rich, or leave this 15% in cash earning Kalshi’s 3.25% annual margin yield until market rotation is confirmed.
-        </div>
+        <div class="analysis-title">✨ Gemini Navigator Intel:</div>
+        <div class="analysis-text">Leave this 15% in cash earning Kalshi’s 3.25% annual margin yield, or selectively fade speculative out-of-the-money altcoin spikes.</div>
       </div>
     </div>
 
   </div>
 
-  <!-- Interactive Educational Modal -->
-  <div id="tipModal" class="modal-overlay" onclick="closeTip()">
-    <div class="modal-sheet" onclick="event.stopPropagation()">
-      <div class="modal-title"><span id="tipTitle">Term Definition</span></div>
-      <div id="tipBody" class="modal-desc">Details here.</div>
-      <button class="modal-btn" onclick="closeTip()">Got it</button>
-    </div>
-  </div>
-
   <script>
-    function showTip(title, desc) {
-      document.getElementById('tipTitle').innerText = title;
-      document.getElementById('tipBody').innerText = desc;
-      document.getElementById('tipModal').style.display = 'flex';
-    }
-    function closeTip() { document.getElementById('tipModal').style.display = 'none'; }
     function switchTab(tab, el) {
       document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
       document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
