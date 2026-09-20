@@ -76,7 +76,6 @@
     .consensus-badge { padding: 0.2rem 0.5rem; border-radius: 5px; font-size: 0.72rem; font-weight: 800; text-transform: uppercase; white-space: nowrap; }
     .consensus-strong-buy { background: rgba(0, 208, 132, 0.2); color: var(--green); border: 1px solid rgba(0, 208, 132, 0.4); }
     .consensus-value-buy { background: rgba(245, 158, 11, 0.2); color: var(--gold); border: 1px solid rgba(245, 158, 11, 0.4); }
-    .consensus-neutral { background: rgba(148, 163, 184, 0.15); color: var(--muted); border: 1px solid var(--border); }
 
     .opp-body { display: grid; grid-template-columns: 1.5fr 1fr; gap: 0.5rem; background: rgba(0,0,0,0.25); border-radius: 6px; padding: 0.6rem 0.75rem; align-items: center; }
     .rec-action { font-size: 0.8rem; font-weight: 700; color: #fff; }
@@ -187,7 +186,7 @@
           <span style="font-size: 0.75rem; color: var(--gold);">Live Model Edge</span>
         </div>
         <div class="item-list" id="props-container">
-          <div class="empty">Filtering live book for sports & prop anchors...</div>
+          <div class="empty">Filtering live book for active props and sports lines...</div>
         </div>
       </div>
     </section>
@@ -268,7 +267,7 @@
           <span style="font-size: 0.75rem; color: var(--cyan);">Ranked by Edge</span>
         </div>
         <div class="item-list" id="value-container">
-          <div class="empty">Scanning order books for value opportunities...</div>
+          <div class="empty">Scanning active order books for edge opportunities...</div>
         </div>
       </div>
     </section>
@@ -547,13 +546,19 @@
       `;
     }
 
-    // Explicit Candidate/Prop Recommendation Engine
+    // Recommendation Engine: Filters out dead odds and stale deadlines
     function evaluateMarketRecommendation(m) {
       const yesAsk = m.yesAsk || 0.50;
       const noAsk = m.noAsk || (1.00 - yesAsk);
       const targetEntity = m.candidate && m.candidate !== "Consensus Leg" ? ` [${m.candidate}]` : "";
 
-      if (yesAsk >= 0.68) {
+      // Reject non-tradable or fully settled lines (< $0.05 or > $0.94)
+      if (yesAsk >= 0.94 || noAsk >= 0.94 || yesAsk <= 0.05 || noAsk <= 0.05) {
+        return null;
+      }
+
+      // Strong Buy Anchor (High Probability with Edge)
+      if (yesAsk >= 0.65 && yesAsk < 0.92) {
         const roi = Math.round(((1.00 - yesAsk) / yesAsk) * 100);
         return {
           badgeClass: "consensus-strong-buy",
@@ -562,9 +567,9 @@
           target: "High Probability Anchor",
           roi: `+${roi}% ROI`,
           prob: `${Math.round(yesAsk * 100)}% Implied`,
-          score: 85 + roi
+          score: 80 + roi
         };
-      } else if (noAsk >= 0.68) {
+      } else if (noAsk >= 0.65 && noAsk < 0.92) {
         const roi = Math.round(((1.00 - noAsk) / noAsk) * 100);
         return {
           badgeClass: "consensus-strong-buy",
@@ -573,9 +578,11 @@
           target: "High Probability Anchor",
           roi: `+${roi}% ROI`,
           prob: `${Math.round(noAsk * 100)}% Implied`,
-          score: 85 + roi
+          score: 80 + roi
         };
-      } else if (yesAsk <= 0.28 && yesAsk >= 0.08) {
+      } 
+      // Value Buy (Asymmetric Edge)
+      else if (yesAsk <= 0.35 && yesAsk >= 0.08) {
         const roi = Math.round(((1.00 - yesAsk) / yesAsk) * 100);
         return {
           badgeClass: "consensus-value-buy",
@@ -584,9 +591,9 @@
           target: "Asymmetric Longshot Edge",
           roi: `+${roi}% ROI`,
           prob: `${Math.round(yesAsk * 100)}% Implied`,
-          score: 60 + Math.min(roi / 10, 40)
+          score: 55 + Math.min(roi / 5, 45)
         };
-      } else if (noAsk <= 0.28 && noAsk >= 0.08) {
+      } else if (noAsk <= 0.35 && noAsk >= 0.08) {
         const roi = Math.round(((1.00 - noAsk) / noAsk) * 100);
         return {
           badgeClass: "consensus-value-buy",
@@ -595,19 +602,11 @@
           target: "Asymmetric Longshot Edge",
           roi: `+${roi}% ROI`,
           prob: `${Math.round(noAsk * 100)}% Implied`,
-          score: 60 + Math.min(roi / 10, 40)
-        };
-      } else {
-        return {
-          badgeClass: "consensus-neutral",
-          badgeText: "Neutral / Fair",
-          action: `YES $${yesAsk.toFixed(2)} / NO $${noAsk.toFixed(2)}`,
-          target: "Order Book Balanced",
-          roi: "Balanced",
-          prob: "50/50 Coin-Flip",
-          score: 30
+          score: 55 + Math.min(roi / 5, 45)
         };
       }
+
+      return null;
     }
 
     async function fetchLiveData() {
@@ -635,14 +634,13 @@
 
     function renderBestBuys(containerId, markets, platform) {
       const container = document.getElementById(containerId);
-      if (markets.length === 0) {
-        container.innerHTML = `<div class="empty">No active ${platform} lines returned.</div>`;
-        return;
-      }
+      const validCards = [];
 
-      container.innerHTML = markets.map(m => {
+      markets.forEach(m => {
         const rec = evaluateMarketRecommendation(m);
-        return `
+        if (!rec) return;
+
+        validCards.push(`
           <div class="opp-card">
             <div class="opp-top">
               <div class="opp-title">${m.title}</div>
@@ -659,8 +657,12 @@
               </div>
             </div>
           </div>
-        `;
-      }).join('');
+        `);
+      });
+
+      container.innerHTML = validCards.length > 0 
+        ? validCards.join('') 
+        : `<div class="empty">No tradable asymmetric lines in current active batch.</div>`;
     }
 
     function renderValueHunter(poly, kalshi) {
@@ -671,11 +673,11 @@
         ...m,
         rec: evaluateMarketRecommendation(m)
       }))
-      .filter(m => m.rec.badgeText !== "Neutral / Fair")
+      .filter(m => m.rec !== null)
       .sort((a, b) => b.rec.score - a.rec.score);
 
       if (ranked.length === 0) {
-        container.innerHTML = `<div class="empty">Scanning for edge opportunities...</div>`;
+        container.innerHTML = `<div class="empty">Scanning active order books for edge opportunities...</div>`;
         return;
       }
 
@@ -711,7 +713,7 @@
         const isSports = sportsKeywords.some(w => item.title.toLowerCase().includes(w));
         if (isSports) {
           const rec = evaluateMarketRecommendation(item);
-          if (rec.badgeText.includes("Strong Buy") || rec.badgeText.includes("Value Buy")) {
+          if (rec) {
             candidates.push({
               title: item.title,
               side: item.yesAsk >= 0.65 ? "YES" : "NO",
