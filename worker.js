@@ -1,5 +1,5 @@
 // Cloudflare Worker: worker.js
-// Dynamic Aggregator: Kalshi RSA-PSS & Polymarket.us Live Synthesis
+// Clean Segregation Engine: True Reciprocal Kalshi Pricing & Polymarket
 
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",
@@ -43,7 +43,7 @@ async function signKalshiRequest(privateKey, timestamp, method, path, body = "")
 }
 
 // -------------------------------------------------------------
-// 2. Category Classifier
+// 2. Strict Category Classifier
 // -------------------------------------------------------------
 
 function categorizeTitle(title) {
@@ -51,7 +51,7 @@ function categorizeTitle(title) {
   if (/house|senate|congress|election|nominee|president|governor|democrat|republican|gop|dnc|rnc|vance|trump|harris|newsom|biden|putin|ukraine|war|cabinet|veto|supreme court/i.test(t)) {
     return "POLITICS";
   }
-  if (/fed|rate|inflation|cpi|interest|gdp|recession|treasury|yield|cuts|debt|unemployment|jobs|payroll/i.test(t)) {
+  if (/fed|rate|inflation|cpi|interest|gdp|recession|treasury|yield|cuts|debt|unemployment|jobs|payroll|temperature|high/i.test(t)) {
     return "MACRO";
   }
   if (/vs\.?|game|spread|over\/under|total points|yards|touchdown|td|nfl|nba|mlb|nhl|fifa|uefa|mls|premier league|champions league|quarterback|receptions|goals|puck|score/i.test(t)) {
@@ -155,7 +155,7 @@ async function handleLiveData(env) {
   let polyBalance = 2.57;
   let polyPositions = [];
 
-  // --- Kalshi Authenticated Balances & Positions ---
+  // --- Kalshi Authenticated Account Sync ---
   let kalshiBalance = 0.00;
   let kalshiPositions = [];
   let kalshiAuth = false;
@@ -167,7 +167,7 @@ async function handleLiveData(env) {
     try {
       const privKey = await importKalshiRsaKey(kalshiPrivateKey);
 
-      // 1. Balance
+      // 1. Portfolio Balance
       const bPath = "/trade-api/v2/portfolio/balance";
       const bTs = Date.now().toString();
       const bSig = await signKalshiRequest(privKey, bTs, "GET", bPath, "");
@@ -188,7 +188,7 @@ async function handleLiveData(env) {
         kalshiAuth = true;
       }
 
-      // 2. Resting Limit Orders
+      // 2. Portfolio Resting Orders
       const oPath = "/trade-api/v2/portfolio/orders?status=resting";
       const oTs = Date.now().toString();
       const oSig = await signKalshiRequest(privKey, oTs, "GET", oPath, "");
@@ -219,7 +219,7 @@ async function handleLiveData(env) {
         });
       }
     } catch (e) {
-      console.error("Kalshi balance/orders sync error:", e);
+      console.error("Kalshi live sync error:", e);
     }
   }
 
@@ -227,7 +227,7 @@ async function handleLiveData(env) {
   const activeExposure = allPositions.reduce((acc, p) => acc + (p.exposure || 0), 0);
   const activeContracts = allPositions.reduce((acc, p) => acc + (p.count || 0), 0);
 
-  // --- Polymarket Public Catalog ---
+  // --- Polymarket Public Catalog (Exclude Multi-Leg Accumulators) ---
   let polymarket = [];
   try {
     const [genRes, sportsRes] = await Promise.all([
@@ -248,8 +248,9 @@ async function handleLiveData(env) {
       if (!e || seenEvent.has(e.id)) return;
       seenEvent.add(e.id);
 
-      // Cleanly skip messy multi-leg comma accumulators
-      if ((e.title || "").includes(",") && (e.title || "").split(",").length > 2) return;
+      // Filter out long combo parlay strings entirely from the source
+      const title = e.title || "";
+      if (title.includes(",") && title.split(",").length > 2) return;
 
       const endDate = e.endDate || e.end_date || (e.markets && e.markets[0] && e.markets[0].endDate) || null;
 
@@ -266,9 +267,9 @@ async function handleLiveData(env) {
 
         polymarket.push({
           ticker: m.id || e.slug,
-          title: e.title || m.question,
+          title: title || m.question,
           candidate: m.groupItemTitle || "Consensus",
-          category: categorizeTitle(e.title || m.question),
+          category: categorizeTitle(title || m.question),
           yesAsk: Number(yes.toFixed(2)),
           noAsk: Number(no.toFixed(2)),
           volume: m.volume || e.volume || 0,
@@ -281,7 +282,7 @@ async function handleLiveData(env) {
     console.error("Polymarket catalog fetch error:", err);
   }
 
-  // --- Kalshi Live Market Pricing ---
+  // --- Kalshi Live Market Catalog (True Reciprocal Bid/Ask Calculation) ---
   let kalshi = [];
   try {
     const basePath = "/trade-api/v2/markets";
@@ -313,46 +314,76 @@ async function handleLiveData(env) {
       rawMarkets.forEach(m => {
         if (m.status && m.status !== "open" && m.status !== "active") return;
 
-        let yesVal = null;
-        let noVal = null;
-
-        // 1. Explicit asks
-        if (m.yes_ask && m.yes_ask > 0) yesVal = m.yes_ask > 1 ? m.yes_ask / 100 : m.yes_ask;
-        if (m.no_ask && m.no_ask > 0) noVal = m.no_ask > 1 ? m.no_ask / 100 : m.no_ask;
-
-        // 2. Reciprocal bids
-        if (yesVal === null && m.no_bid && m.no_bid > 0) {
-          const nb = m.no_bid > 1 ? m.no_bid / 100 : m.no_bid;
-          yesVal = 1.00 - nb;
-        }
-        if (noVal === null && m.yes_bid && m.yes_bid > 0) {
-          const yb = m.yes_bid > 1 ? m.yes_bid / 100 : m.yes_bid;
-          noVal = 1.00 - yb;
-        }
-
-        // 3. Last trade price
-        if (yesVal === null && m.last_price && m.last_price > 0) {
-          yesVal = m.last_price > 1 ? m.last_price / 100 : m.last_price;
-        }
-
-        // 4. Previous close
-        if (yesVal === null && m.previous_yes_ask && m.previous_yes_ask > 0) {
-          yesVal = m.previous_yes_ask > 1 ? m.previous_yes_ask / 100 : m.previous_yes_ask;
-        } else if (yesVal === null && m.previous_price && m.previous_price > 0) {
-          yesVal = m.previous_price > 1 ? m.previous_price / 100 : m.previous_price;
-        }
-
-        if (yesVal !== null && noVal === null) noVal = 1.00 - yesVal;
-        if (noVal !== null && yesVal === null) yesVal = 1.00 - noVal;
-
-        // Mark unquoted contracts so spreads do not execute phantom trades
-        const isQuoted = yesVal !== null;
-        if (!isQuoted) {
-          yesVal = 0.50;
-          noVal = 0.50;
-        }
-
+        // Skip combo multi-leg accumulator titles
         const fullTitle = m.title || m.ticker;
+        if (fullTitle.includes(",") && fullTitle.split(",").length > 2) return;
+
+        let yesAsk = null;
+        let noAsk = null;
+        let isLiveQuoted = false;
+
+        // 1. Direct Asks
+        if (m.yes_ask_dollars !== undefined && parseFloat(m.yes_ask_dollars) > 0) {
+          yesAsk = parseFloat(m.yes_ask_dollars);
+          isLiveQuoted = true;
+        } else if (m.yes_ask && m.yes_ask > 0) {
+          yesAsk = m.yes_ask > 1 ? m.yes_ask / 100 : m.yes_ask;
+          isLiveQuoted = true;
+        }
+
+        if (m.no_ask_dollars !== undefined && parseFloat(m.no_ask_dollars) > 0) {
+          noAsk = parseFloat(m.no_ask_dollars);
+          isLiveQuoted = true;
+        } else if (m.no_ask && m.no_ask > 0) {
+          noAsk = m.no_ask > 1 ? m.no_ask / 100 : m.no_ask;
+          isLiveQuoted = true;
+        }
+
+        // 2. Kalshi Reciprocal Orderbook Math: Yes Ask = 1 - No Bid | No Ask = 1 - Yes Bid
+        if (yesAsk === null) {
+          if (m.no_bid_dollars !== undefined && parseFloat(m.no_bid_dollars) > 0) {
+            yesAsk = 1.00 - parseFloat(m.no_bid_dollars);
+            isLiveQuoted = true;
+          } else if (m.no_bid && m.no_bid > 0) {
+            const nb = m.no_bid > 1 ? m.no_bid / 100 : m.no_bid;
+            yesAsk = 1.00 - nb;
+            isLiveQuoted = true;
+          }
+        }
+
+        if (noAsk === null) {
+          if (m.yes_bid_dollars !== undefined && parseFloat(m.yes_bid_dollars) > 0) {
+            noAsk = 1.00 - parseFloat(m.yes_bid_dollars);
+            isLiveQuoted = true;
+          } else if (m.yes_bid && m.yes_bid > 0) {
+            const yb = m.yes_bid > 1 ? m.yes_bid / 100 : m.yes_bid;
+            noAsk = 1.00 - yb;
+            isLiveQuoted = true;
+          }
+        }
+
+        // 3. Last Executed Trade Price
+        if (yesAsk === null) {
+          if (m.last_price_dollars !== undefined && parseFloat(m.last_price_dollars) > 0) {
+            yesAsk = parseFloat(m.last_price_dollars);
+            isLiveQuoted = true;
+          } else if (m.last_price && m.last_price > 0) {
+            yesAsk = m.last_price > 1 ? m.last_price / 100 : m.last_price;
+            isLiveQuoted = true;
+          }
+        }
+
+        // Derive complements
+        if (yesAsk !== null && noAsk === null) noAsk = 1.00 - yesAsk;
+        if (noAsk !== null && yesAsk === null) yesAsk = 1.00 - noAsk;
+
+        // If completely unquoted, assign market midpoint (flagged as unquoted)
+        if (yesAsk === null) {
+          yesAsk = 0.50;
+          noAsk = 0.50;
+          isLiveQuoted = false;
+        }
+
         const candidate = m.subtitle || m.sub_title || m.yes_sub_title || m.ticker;
 
         kalshi.push({
@@ -360,9 +391,9 @@ async function handleLiveData(env) {
           title: fullTitle,
           candidate: candidate,
           category: categorizeTitle(fullTitle),
-          yesAsk: Number(Number(yesVal).toFixed(2)),
-          noAsk: Number(Number(noVal).toFixed(2)),
-          isQuoted: isQuoted,
+          yesAsk: Number(Number(yesAsk).toFixed(2)),
+          noAsk: Number(Number(noAsk).toFixed(2)),
+          isLiveQuoted: isLiveQuoted,
           volume: m.volume || m.volume_24h || 0,
           endDate: m.close_time || m.expiration_time || null,
           platform: "Kalshi"
@@ -370,7 +401,7 @@ async function handleLiveData(env) {
       });
     }
   } catch (err) {
-    console.error("Kalshi live markets error:", err);
+    console.error("Kalshi public markets error:", err);
   }
 
   return new Response(JSON.stringify({
