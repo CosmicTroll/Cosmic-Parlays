@@ -42,21 +42,11 @@
     .analysis-title { font-size: 11px; font-weight: 700; color: #A5B4FC; margin-bottom: 2px; }
     .analysis-text { font-size: 12px; line-height: 16px; color: #94A3B8; }
 
-    /* Interactive Cash-Out Button & Badges */
-    .cashout-btn { background: #DC2626; color: #FEE2E2; border: none; font-size: 10px; font-weight: 800; padding: 3px 8px; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; box-shadow: 0 0 8px rgba(220,38,38,0.5); transition: 0.2s; }
-    .cashout-btn:active { transform: scale(0.95); }
+    /* Read-Only Status Badges */
+    .badge-cashout-tag { background: #B91C1C; color: #FEE2E2; font-size: 9px; font-weight: 800; padding: 2px 6px; border-radius: 4px; }
     .badge-auto-sell { background: #059669; color: #D1FAE5; font-size: 9px; font-weight: 800; padding: 2px 6px; border-radius: 4px; }
     .badge-hold { background: #065F46; color: #A7F3D0; font-size: 9px; font-weight: 700; padding: 2px 5px; border-radius: 4px; }
     .badge-stop-loss { background: #991B1B; color: #FEE2E2; font-size: 9px; font-weight: 800; padding: 2px 6px; border-radius: 4px; }
-
-    /* Modal Sheet */
-    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.75); backdrop-filter: blur(3px); z-index: 100; align-items: flex-end; justify-content: center; }
-    .modal-sheet { background: #151928; border: 1px solid #4338CA; border-radius: 16px 16px 0 0; padding: 20px; width: 100%; max-width: 500px; box-shadow: 0 -4px 20px rgba(0,0,0,0.6); }
-    .modal-title { font-size: 16px; font-weight: 800; color: #EEF2FF; margin-bottom: 8px; }
-    .modal-desc { font-size: 13px; line-height: 18px; color: #CBD5E1; margin-bottom: 16px; }
-    .modal-actions { display: flex; gap: 8px; }
-    .modal-btn-confirm { flex: 1; padding: 12px; background: #DC2626; border: none; border-radius: 8px; color: white; font-weight: 800; font-size: 13px; cursor: pointer; }
-    .modal-btn-cancel { flex: 1; padding: 12px; background: #242C48; border: none; border-radius: 8px; color: #94A3B8; font-weight: 700; font-size: 13px; cursor: pointer; }
 
     .tab-content { display: none; }
     .tab-content.active { display: block; }
@@ -230,32 +220,7 @@
 
   </div>
 
-  <!-- TACTICAL CASH-OUT CONFIRMATION MODAL -->
-  <div id="cashoutModal" class="modal-overlay">
-    <div class="modal-sheet">
-      <div class="modal-title">🔥 Confirm Tactical Cash-Out</div>
-      <div id="modalSlateText" class="modal-desc">Are you sure you want to execute a market sell on this slate to lock realized gains?</div>
-      <div class="modal-actions">
-        <button class="modal-btn-confirm" onclick="confirmCashOut()">Slide to Cash Out</button>
-        <button class="modal-btn-cancel" onclick="closeCashoutModal()">Cancel</button>
-      </div>
-    </div>
-  </div>
-
   <script>
-    let pendingTicker = "";
-    function executeManualCashOut(ticker) {
-      pendingTicker = ticker;
-      document.getElementById('modalSlateText').innerText = "Execute immediate market sell on [" + ticker + "] to lock in +80% profit?";
-      document.getElementById('cashoutModal').style.display = 'flex';
-    }
-    function closeCashoutModal() {
-      document.getElementById('cashoutModal').style.display = 'none';
-    }
-    function confirmCashOut() {
-      closeCashoutModal();
-      alert("⚡ Cash-out command sent for " + pendingTicker + ". Execution order submitted to exchange order book.");
-    }
     function switchTab(tab, el) {
       document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
       document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
