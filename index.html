@@ -547,16 +547,18 @@
       `;
     }
 
+    // Explicit Candidate/Prop Recommendation Engine
     function evaluateMarketRecommendation(m) {
       const yesAsk = m.yesAsk || 0.50;
       const noAsk = m.noAsk || (1.00 - yesAsk);
+      const targetEntity = m.candidate && m.candidate !== "Consensus Leg" ? ` [${m.candidate}]` : "";
 
       if (yesAsk >= 0.68) {
         const roi = Math.round(((1.00 - yesAsk) / yesAsk) * 100);
         return {
           badgeClass: "consensus-strong-buy",
           badgeText: "Strong Buy YES",
-          action: `BUY YES @ $${yesAsk.toFixed(2)}`,
+          action: `BUY YES${targetEntity} @ $${yesAsk.toFixed(2)}`,
           target: "High Probability Anchor",
           roi: `+${roi}% ROI`,
           prob: `${Math.round(yesAsk * 100)}% Implied`,
@@ -567,7 +569,7 @@
         return {
           badgeClass: "consensus-strong-buy",
           badgeText: "Strong Buy NO",
-          action: `BUY NO @ $${noAsk.toFixed(2)}`,
+          action: `BUY NO${targetEntity} @ $${noAsk.toFixed(2)}`,
           target: "High Probability Anchor",
           roi: `+${roi}% ROI`,
           prob: `${Math.round(noAsk * 100)}% Implied`,
@@ -578,7 +580,7 @@
         return {
           badgeClass: "consensus-value-buy",
           badgeText: "Value Buy YES",
-          action: `BUY YES @ $${yesAsk.toFixed(2)}`,
+          action: `BUY YES${targetEntity} @ $${yesAsk.toFixed(2)}`,
           target: "Asymmetric Longshot Edge",
           roi: `+${roi}% ROI`,
           prob: `${Math.round(yesAsk * 100)}% Implied`,
@@ -589,7 +591,7 @@
         return {
           badgeClass: "consensus-value-buy",
           badgeText: "Value Buy NO",
-          action: `BUY NO @ $${noAsk.toFixed(2)}`,
+          action: `BUY NO${targetEntity} @ $${noAsk.toFixed(2)}`,
           target: "Asymmetric Longshot Edge",
           roi: `+${roi}% ROI`,
           prob: `${Math.round(noAsk * 100)}% Implied`,
@@ -708,19 +710,26 @@
       [...poly, ...kalshi].forEach(item => {
         const isSports = sportsKeywords.some(w => item.title.toLowerCase().includes(w));
         if (isSports) {
-          if (item.yesAsk >= 0.65 && item.yesAsk < 0.95) {
-            candidates.push({ title: item.title, side: "YES", price: item.yesAsk, prob: Math.round(item.yesAsk * 100), platform: item.platform || "Polymarket", type: "Anchor Leg" });
-          } else if (item.noAsk >= 0.65 && item.noAsk < 0.95) {
-            candidates.push({ title: item.title, side: "NO", price: item.noAsk, prob: Math.round(item.noAsk * 100), platform: item.platform || "Polymarket", type: "Anchor Leg" });
+          const rec = evaluateMarketRecommendation(item);
+          if (rec.badgeText.includes("Strong Buy") || rec.badgeText.includes("Value Buy")) {
+            candidates.push({
+              title: item.title,
+              side: item.yesAsk >= 0.65 ? "YES" : "NO",
+              price: item.yesAsk >= 0.65 ? item.yesAsk : item.noAsk,
+              prob: Math.round((item.yesAsk >= 0.65 ? item.yesAsk : item.noAsk) * 100),
+              platform: item.platform || "Polymarket",
+              type: item.yesAsk >= 0.65 || item.noAsk >= 0.65 ? "Anchor Leg" : "Value Add-On",
+              candidate: item.candidate
+            });
           }
         }
       });
 
       if (candidates.length === 0) {
         candidates.push(
-          { title: "Patrick Mahomes: Over 245.5 Passing Yards", side: "YES", price: 0.54, prob: 54, platform: "Kalshi", type: "Anchor Leg" },
-          { title: "Travis Kelce: Any Time Touchdown Scorer", side: "YES", price: 0.48, prob: 48, platform: "Polymarket", type: "Value Add-On" },
-          { title: "Josh Allen: Over 1.5 Passing TDs", side: "YES", price: 0.62, prob: 62, platform: "Kalshi", type: "Anchor Leg" }
+          { title: "Patrick Mahomes: Over 245.5 Passing Yards", side: "YES", price: 0.54, prob: 54, platform: "Kalshi", type: "Anchor Leg", candidate: "Over 245.5" },
+          { title: "Travis Kelce: Any Time Touchdown Scorer", side: "YES", price: 0.48, prob: 48, platform: "Polymarket", type: "Value Add-On", candidate: "Kelce Anytime TD" },
+          { title: "Josh Allen: Over 1.5 Passing TDs", side: "YES", price: 0.62, prob: 62, platform: "Kalshi", type: "Anchor Leg", candidate: "Over 1.5 TDs" }
         );
       }
 
@@ -731,7 +740,7 @@
             <span class="tag ${p.type === 'Anchor Leg' ? 'tag-settled' : 'tag-closed'}">${p.type}</span>
           </div>
           <div class="item-meta">
-            <span>Side: <b style="color: #fff;">${p.side}</b> @ $${p.price.toFixed(2)}</span>
+            <span>Side: <b style="color: #fff;">${p.side} [${p.candidate}]</b> @ $${p.price.toFixed(2)}</span>
             <span style="color: var(--green); font-weight: 700;">${p.prob}% Implied</span>
             <span class="tag-platform">${p.platform}</span>
           </div>
