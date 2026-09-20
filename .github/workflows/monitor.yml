@@ -2,7 +2,7 @@ name: Market Monitor Bot
 
 on:
   schedule:
-    - cron: '0 * * * *'  # Runs every hour
+    - cron: '*/5 * * * *'  # Runs every hour
   workflow_dispatch:      # Manual trigger button
 
 jobs:
