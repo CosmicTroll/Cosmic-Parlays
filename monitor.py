@@ -8,7 +8,8 @@ SPORTS_KEYWORDS = [
     '49ers', 'dolphins', 'bills', 'lions', 'jaguars', 'broncos', 'steelers', 'patriots',
     'panthers', 'falcons', 'buccaneers', 'browns', 'eagles', 'titans', 'cowboys', 'commanders',
     'mlb', 'diamondbacks', 'baseball', 'esports', 'cs2', 'vct', 'valorant', 'nba', 'soccer',
-    'hurts', 'barkley', 'witt', 'stroud', 'herbert', 'metcalf', 'henry', 'williams', 'jeanty'
+    'hurts', 'barkley', 'witt', 'stroud', 'herbert', 'metcalf', 'henry', 'williams', 'jeanty',
+    'mahomes', 'allen', 'lamar', 'purdy', 'cmc', 'nacua', 'chase', 'kittle'
 ]
 
 def is_sports_contract(text):
@@ -23,14 +24,13 @@ def format_kalshi_stats(raw_title):
         it = it.strip()
         if not it:
             continue
-        # Check patterns for TDs, yards, hits
         if re.search(r':\s*1\+$', it):
             it = re.sub(r':\s*1\+$', ' (1+ Touchdown)', it)
         elif re.search(r':\s*2\+$', it):
             it = re.sub(r':\s*2\+$', ' (2+ Hits / TDs)', it)
-        elif re.search(r':\s*([2-9]\d{2,})\+$', it): # 200+
+        elif re.search(r':\s*([2-9]\d{2,})\+$', it):
             it = re.sub(r':\s*(\d+)\+$', r' (\1+ Passing Yds)', it)
-        elif re.search(r':\s*(\d+)\+$', it): # 25+, 50+, 80+
+        elif re.search(r':\s*(\d+)\+$', it):
             it = re.sub(r':\s*(\d+)\+$', r' (\1+ Rush/Rec Yds)', it)
         formatted.append(it)
     return " • ".join(formatted)
@@ -79,7 +79,6 @@ def get_kalshi_feeds():
                     "odds": f"{yes_price}%"
                 })
             else:
-                # Real institutional macro market
                 category = m.get('category', 'Macro Event')
                 macro.append({
                     "matchup": f"Kalshi {category} [{ticker}]",
