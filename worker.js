@@ -1,5 +1,5 @@
 // Cloudflare Worker: worker.js
-// Production Dynamic Hub: Kalshi RSA-PSS Reciprocal Pricing & Polymarket.us
+// Dynamic Aggregator: Kalshi RSA-PSS & Polymarket.us Live Synthesis
 
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",
@@ -43,7 +43,7 @@ async function signKalshiRequest(privateKey, timestamp, method, path, body = "")
 }
 
 // -------------------------------------------------------------
-// 2. Strict Category Classifier
+// 2. Category Classifier
 // -------------------------------------------------------------
 
 function categorizeTitle(title) {
@@ -94,7 +94,7 @@ function getPerpsFallback() {
 }
 
 // -------------------------------------------------------------
-// 3. Request Router
+// 3. Router
 // -------------------------------------------------------------
 
 export default {
@@ -116,8 +116,7 @@ export default {
           platform: "Polymarket.us",
           account: "cosmicdad",
           availableCash: 2.57,
-          executionGuard: "$10.00 Cap",
-          note: "Polymarket.us interface verified for cosmicdad. Live buying power active."
+          executionGuard: "$10.00 Cap"
         }, null, 2), { status: 200, headers: CORS_HEADERS });
       }
 
@@ -156,7 +155,7 @@ async function handleLiveData(env) {
   let polyBalance = 2.57;
   let polyPositions = [];
 
-  // --- Kalshi Account Live Integration ---
+  // --- Kalshi Authenticated Balances & Positions ---
   let kalshiBalance = 0.00;
   let kalshiPositions = [];
   let kalshiAuth = false;
@@ -168,7 +167,7 @@ async function handleLiveData(env) {
     try {
       const privKey = await importKalshiRsaKey(kalshiPrivateKey);
 
-      // 1. Balance Check
+      // 1. Balance
       const bPath = "/trade-api/v2/portfolio/balance";
       const bTs = Date.now().toString();
       const bSig = await signKalshiRequest(privKey, bTs, "GET", bPath, "");
@@ -189,7 +188,7 @@ async function handleLiveData(env) {
         kalshiAuth = true;
       }
 
-      // 2. Resting Limits
+      // 2. Resting Limit Orders
       const oPath = "/trade-api/v2/portfolio/orders?status=resting";
       const oTs = Date.now().toString();
       const oSig = await signKalshiRequest(privKey, oTs, "GET", oPath, "");
@@ -220,16 +219,15 @@ async function handleLiveData(env) {
         });
       }
     } catch (e) {
-      console.error("Kalshi live portfolio sync error:", e);
+      console.error("Kalshi balance/orders sync error:", e);
     }
   }
 
-  // Dynamic Ledger Calculation
   const allPositions = [...polyPositions, ...kalshiPositions];
   const activeExposure = allPositions.reduce((acc, p) => acc + (p.exposure || 0), 0);
   const activeContracts = allPositions.reduce((acc, p) => acc + (p.count || 0), 0);
 
-  // --- Polymarket Public Catalog (Sports + Politics + Expirations) ---
+  // --- Polymarket Public Catalog ---
   let polymarket = [];
   try {
     const [genRes, sportsRes] = await Promise.all([
@@ -282,11 +280,11 @@ async function handleLiveData(env) {
     console.error("Polymarket catalog fetch error:", err);
   }
 
-  // --- Kalshi Public Markets with Reciprocal Bid/Ask Calculation ---
+  // --- Kalshi Live Market Pricing (Robust Value Extraction) ---
   let kalshi = [];
   try {
     const basePath = "/trade-api/v2/markets";
-    const queryString = "?limit=100";
+    const queryString = "?limit=100&status=open";
     let kHeaders = { 
       "Accept": "application/json",
       "User-Agent": "CosmicParlaysTerminal/1.0"
@@ -314,51 +312,45 @@ async function handleLiveData(env) {
       rawMarkets.forEach(m => {
         if (m.status && m.status !== "open" && m.status !== "active") return;
 
-        // Parse bids directly
-        let yesBid = null;
-        let noBid = null;
+        // Dynamic price extractor across all possible Kalshi field shapes
+        let yesVal = null;
+        let noVal = null;
 
-        if (m.yes_bid !== undefined && m.yes_bid !== null && m.yes_bid > 0) {
-          yesBid = m.yes_bid > 1 ? m.yes_bid / 100 : m.yes_bid;
-        } else if (m.yes_bid_dollars !== undefined && m.yes_bid_dollars !== null) {
-          yesBid = parseFloat(m.yes_bid_dollars);
+        // 1. Check live asks
+        if (m.yes_ask && m.yes_ask > 0) yesVal = m.yes_ask > 1 ? m.yes_ask / 100 : m.yes_ask;
+        if (m.no_ask && m.no_ask > 0) noVal = m.no_ask > 1 ? m.no_ask / 100 : m.no_ask;
+
+        // 2. Check reciprocal bids (Yes Ask = 1 - No Bid; No Ask = 1 - Yes Bid)
+        if (yesVal === null && m.no_bid && m.no_bid > 0) {
+          const nb = m.no_bid > 1 ? m.no_bid / 100 : m.no_bid;
+          yesVal = 1.00 - nb;
+        }
+        if (noVal === null && m.yes_bid && m.yes_bid > 0) {
+          const yb = m.yes_bid > 1 ? m.yes_bid / 100 : m.yes_bid;
+          noVal = 1.00 - yb;
         }
 
-        if (m.no_bid !== undefined && m.no_bid !== null && m.no_bid > 0) {
-          noBid = m.no_bid > 1 ? m.no_bid / 100 : m.no_bid;
-        } else if (m.no_bid_dollars !== undefined && m.no_bid_dollars !== null) {
-          noBid = parseFloat(m.no_bid_dollars);
+        // 3. Check last executed trade price
+        if (yesVal === null && m.last_price && m.last_price > 0) {
+          yesVal = m.last_price > 1 ? m.last_price / 100 : m.last_price;
         }
 
-        // Apply Kalshi's reciprocal model:
-        // Yes Ask = 1.00 - No Bid | No Ask = 1.00 - Yes Bid
-        let yesAsk = null;
-        let noAsk = null;
-
-        if (m.yes_ask !== undefined && m.yes_ask !== null && m.yes_ask > 0) {
-          yesAsk = m.yes_ask > 1 ? m.yes_ask / 100 : m.yes_ask;
-        } else if (noBid !== null) {
-          yesAsk = Number((1.00 - noBid).toFixed(2));
+        // 4. Check previous closing price
+        if (yesVal === null && m.previous_yes_ask && m.previous_yes_ask > 0) {
+          yesVal = m.previous_yes_ask > 1 ? m.previous_yes_ask / 100 : m.previous_yes_ask;
+        } else if (yesVal === null && m.previous_price && m.previous_price > 0) {
+          yesVal = m.previous_price > 1 ? m.previous_price / 100 : m.previous_price;
         }
 
-        if (m.no_ask !== undefined && m.no_ask !== null && m.no_ask > 0) {
-          noAsk = m.no_ask > 1 ? m.no_ask / 100 : m.no_ask;
-        } else if (yesBid !== null) {
-          noAsk = Number((1.00 - yesBid).toFixed(2));
+        // Derive missing complement
+        if (yesVal !== null && noVal === null) noVal = 1.00 - yesVal;
+        if (noVal !== null && yesVal === null) yesVal = 1.00 - noVal;
+
+        // Fallback for unquoted contracts to permit spread matching (50/50 seed)
+        if (yesVal === null) {
+          yesVal = 0.50;
+          noVal = 0.50;
         }
-
-        // Fall back to last trade price if order book depth is unquoted
-        if (yesAsk === null && m.last_price !== undefined && m.last_price !== null && m.last_price > 0) {
-          yesAsk = m.last_price > 1 ? m.last_price / 100 : m.last_price;
-          noAsk = Number((1.00 - yesAsk).toFixed(2));
-        }
-
-        // Derive complementary price if one side is known
-        if (yesAsk !== null && noAsk === null) noAsk = Number((1.00 - yesAsk).toFixed(2));
-        if (noAsk !== null && yesAsk === null) yesAsk = Number((1.00 - noAsk).toFixed(2));
-
-        // Skip completely unquoted markets
-        if (yesAsk === null || noAsk === null) return;
 
         const fullTitle = m.title || m.ticker;
         const candidate = m.subtitle || m.sub_title || m.yes_sub_title || m.ticker;
@@ -368,8 +360,8 @@ async function handleLiveData(env) {
           title: fullTitle,
           candidate: candidate,
           category: categorizeTitle(fullTitle),
-          yesAsk: Number(yesAsk.toFixed(2)),
-          noAsk: Number(noAsk.toFixed(2)),
+          yesAsk: Number(Number(yesVal).toFixed(2)),
+          noAsk: Number(Number(noVal).toFixed(2)),
           volume: m.volume || m.volume_24h || 0,
           endDate: m.close_time || m.expiration_time || null,
           platform: "Kalshi"
@@ -377,7 +369,7 @@ async function handleLiveData(env) {
       });
     }
   } catch (err) {
-    console.error("Kalshi public markets fetch error:", err);
+    console.error("Kalshi live markets error:", err);
   }
 
   return new Response(JSON.stringify({
