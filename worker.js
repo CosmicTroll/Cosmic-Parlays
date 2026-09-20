@@ -1,5 +1,5 @@
 // Cloudflare Worker: worker.js
-// Production Automated Scanner & Execution Engine for Kalshi & Polymarket.us
+// Production Automated Scanner & Execution Engine for Kalshi & Polymarket
 
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",
@@ -42,7 +42,7 @@ async function signKalshiRequest(privateKey, timestamp, method, path, body = "")
   return btoa(String.fromCharCode(...new Uint8Array(signature)));
 }
 
-async function signPolymarketUsRequest(secret, timestamp, method, path, body = "") {
+async function signHmacSha256(secret, payload) {
   const encoder = new TextEncoder();
   const key = await crypto.subtle.importKey(
     "raw",
@@ -51,7 +51,6 @@ async function signPolymarketUsRequest(secret, timestamp, method, path, body = "
     false,
     ["sign"]
   );
-  const payload = `${timestamp}${method.toUpperCase()}${path}${body}`;
   const signature = await crypto.subtle.sign("HMAC", key, encoder.encode(payload));
   return btoa(String.fromCharCode(...new Uint8Array(signature)));
 }
@@ -128,7 +127,7 @@ export default {
         return await handleLiveData();
       }
 
-      // Safe HMAC Authentication & Balance Dry-Run (Zero Trades Placed)
+      // Safe Polymarket Diagnostic & Dry-Run
       if (url.pathname === "/api/test-poly-dry-run") {
         const polyKey = env.POLYMARKET_US_KEY || env.POLYMARKET_KEY;
         const polySecret = env.POLYMARKET_US_SECRET || env.POLYMARKET_SECRET;
@@ -137,30 +136,42 @@ export default {
           return new Response(JSON.stringify({
             error: "Missing Polymarket credentials in Cloudflare secrets",
             availableKeys: Object.keys(env)
-          }), { status: 400, headers: CORS_HEADERS });
+          }, null, 2), { status: 400, headers: CORS_HEADERS });
         }
 
         try {
-          const polyPath = "/v1/account/balances";
-          const polyTimestamp = new Date().toISOString();
-          const polySig = await signPolymarketUsRequest(polySecret, polyTimestamp, "GET", polyPath, "");
+          const polyPath = "/balance-allowance";
+          const polyTimestamp = Date.now().toString();
+          const polySig = await signHmacSha256(polySecret, `${polyTimestamp}GET${polyPath}`);
 
-          const polyRes = await fetch(`https://api.polymarket.us${polyPath}`, {
+          const polyRes = await fetch(`https://clob.polymarket.com${polyPath}`, {
             method: "GET",
             headers: {
               "Accept": "application/json",
-              "X-API-KEY": polyKey,
-              "X-API-SIGNATURE": polySig,
-              "X-API-TIMESTAMP": polyTimestamp,
+              "POLY_API_KEY": polyKey,
+              "POLY_SIGNATURE": polySig,
+              "POLY_TIMESTAMP": polyTimestamp,
+              "POLY_PASSPHRASE": env.POLYMARKET_PASSPHRASE || "",
               "User-Agent": "CosmicParlaysTerminal/1.0"
             }
           });
 
-          const data = await polyRes.json();
+          const rawText = await polyRes.text();
+          let parsedData;
+          try {
+            parsedData = JSON.parse(rawText);
+          } catch (_) {
+            parsedData = rawText;
+          }
+
           return new Response(JSON.stringify({
             status: polyRes.ok ? "authenticated" : "auth_failed",
             httpCode: polyRes.status,
-            polyResponse: data
+            rawResponse: parsedData,
+            headersSent: {
+              keyPrefix: polyKey.substring(0, 6) + "...",
+              timestamp: polyTimestamp
+            }
           }, null, 2), { status: 200, headers: CORS_HEADERS });
         } catch (err) {
           return new Response(JSON.stringify({ error: err.message }), {
@@ -259,7 +270,7 @@ async function handleLiveData() {
       title: e.title,
       yesAsk: parseFloat(outcomePrices[0]) || 0.50,
       noAsk: parseFloat(outcomePrices[1]) || 0.50,
-      platform: "Polymarket.us"
+      platform: "Polymarket"
     };
   });
 
@@ -332,28 +343,28 @@ async function handleExecuteSpread(payload, env) {
   const polyKey = env.POLYMARKET_US_KEY || env.POLYMARKET_KEY;
   const polySecret = env.POLYMARKET_US_SECRET || env.POLYMARKET_SECRET;
 
-  let polyResult = { message: "Polymarket.us execution skipped (credentials or ticker pending)" };
+  let polyResult = { message: "Polymarket execution skipped (credentials or ticker pending)" };
   if (polyKey && polySecret && polyTicker) {
-    const polyPath = "/v1/trading/orders";
-    const polyTimestamp = new Date().toISOString();
+    const polyPath = "/order";
+    const polyTimestamp = Date.now().toString();
     const polyBodyObj = {
-      symbol: polyTicker,
-      side: polySide || "BUY",
-      orderType: "LIMIT",
-      timeInForce: "IOC",
+      tokenID: polyTicker,
       price: polyPrice || 0.50,
-      quantity: contractsToBuy
+      side: polySide || "BUY",
+      size: contractsToBuy,
+      feeRateBps: 0
     };
     const polyBodyStr = JSON.stringify(polyBodyObj);
-    const polySig = await signPolymarketUsRequest(polySecret, polyTimestamp, "POST", polyPath, polyBodyStr);
+    const polySig = await signHmacSha256(polySecret, `${polyTimestamp}POST${polyPath}${polyBodyStr}`);
 
-    const polyOrderRes = await fetch(`https://api.polymarket.us${polyPath}`, {
+    const polyOrderRes = await fetch(`https://clob.polymarket.com${polyPath}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "X-API-KEY": polyKey,
-        "X-API-SIGNATURE": polySig,
-        "X-API-TIMESTAMP": polyTimestamp,
+        "POLY_API_KEY": polyKey,
+        "POLY_SIGNATURE": polySig,
+        "POLY_TIMESTAMP": polyTimestamp,
+        "POLY_PASSPHRASE": env.POLYMARKET_PASSPHRASE || "",
         "User-Agent": "CosmicParlaysTerminal/1.0"
       },
       body: polyBodyStr
