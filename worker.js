@@ -203,13 +203,15 @@ export default {
 };
 
 // -------------------------------------------------------------
-// 4. Live Data Synthesis & Specific Candidate Parsing Engine
+// 4. Live Data Synthesis, Trimming & Candidate Specificity
 // -------------------------------------------------------------
 
 async function handleLiveData() {
+  const nowMs = Date.now();
+
   let kalshiMarkets = [];
   try {
-    const kalshiRes = await fetch("https://external-api.kalshi.com/trade-api/v2/markets?limit=25&status=open", {
+    const kalshiRes = await fetch("https://external-api.kalshi.com/trade-api/v2/markets?limit=40&status=open", {
       headers: { "Accept": "application/json", "User-Agent": "CosmicParlaysTerminal/1.0" }
     });
 
@@ -217,7 +219,7 @@ async function handleLiveData() {
       const kJson = await kalshiRes.json();
       kalshiMarkets = kJson.markets || [];
     } else {
-      const backupRes = await fetch("https://api.elections.kalshi.com/trade-api/v2/markets?limit=25&status=open", {
+      const backupRes = await fetch("https://api.elections.kalshi.com/trade-api/v2/markets?limit=40&status=open", {
         headers: { "Accept": "application/json", "User-Agent": "CosmicParlaysTerminal/1.0" }
       });
       if (backupRes.ok) {
@@ -231,7 +233,7 @@ async function handleLiveData() {
 
   let polyData = [];
   try {
-    const polyRes = await fetch("https://gamma-api.polymarket.com/events?closed=false&limit=25", {
+    const polyRes = await fetch("https://gamma-api.polymarket.com/events?closed=false&active=true&limit=40", {
       headers: { "Accept": "application/json", "User-Agent": "CosmicParlaysTerminal/1.0" }
     });
     if (polyRes.ok) {
@@ -241,13 +243,16 @@ async function handleLiveData() {
     console.error("Polymarket fetch error:", err);
   }
 
-  // Parse Polymarket with full candidate/outcome specificity
+  // Parse Polymarket: Trims expired dates, resolves specific candidates, and removes dead odds
   const polymarket = [];
   (Array.isArray(polyData) ? polyData : []).forEach(e => {
-    const markets = e.markets || [];
+    if (e.endDate && new Date(e.endDate).getTime() < nowMs) return;
 
-    // Loop through individual candidate/option contracts under each overarching event
-    markets.slice(0, 4).forEach(m => {
+    const markets = e.markets || [];
+    markets.slice(0, 5).forEach(m => {
+      if (m.closed === true) return;
+      if (m.endDate && new Date(m.endDate).getTime() < nowMs) return;
+
       let yesPrice = 0.50;
       let noPrice = 0.50;
 
@@ -264,8 +269,15 @@ async function handleLiveData() {
         }
       } catch (_) {}
 
-      // Explicitly extract candidate / option title
+      // Filter out dead/already settled odds (< $0.04 or > $0.94)
+      if (yesPrice <= 0.04 || yesPrice >= 0.95) return;
+      if (noPrice <= 0.04 || noPrice >= 0.95) return;
+
       const optionName = m.groupItemTitle || m.question || m.title || "";
+
+      // Trim past dates/years explicitly mentioned in sub-titles
+      if (/202[0-5]/.test(optionName) || /June\s+30,\s+2026/i.test(optionName)) return;
+
       const displayTitle = optionName && !optionName.includes(e.title)
         ? `${e.title}: ${optionName}`
         : (m.question || e.title);
@@ -283,22 +295,35 @@ async function handleLiveData() {
     });
   });
 
-  // Parse Kalshi Markets with full specificity
-  const kalshi = kalshiMarkets.map(m => {
+  // Parse Kalshi: Filters dead odds, extracts subtitles, and trims expired markets
+  const kalshi = [];
+  kalshiMarkets.forEach(m => {
+    if (m.close_time && new Date(m.close_time).getTime() < nowMs) return;
+    if (m.status && m.status !== "open") return;
+
+    const yesPrice = m.yes_ask ? m.yes_ask / 100 : 0.50;
+    const noPrice = m.no_ask ? m.no_ask / 100 : 0.50;
+
+    // Filter out settled/dead items
+    if (yesPrice <= 0.04 || yesPrice >= 0.95) return;
+    if (noPrice <= 0.04 || noPrice >= 0.95) return;
+
     const candidateName = m.subtitle || m.sub_title || m.ticker;
     const fullTitle = m.title && m.subtitle && !m.title.includes(m.subtitle)
       ? `${m.title}: ${m.subtitle}`
       : (m.title || m.ticker);
 
-    return {
+    if (/202[0-5]/.test(fullTitle)) return;
+
+    kalshi.push({
       ticker: m.ticker,
       title: fullTitle,
       candidate: candidateName,
-      yesAsk: m.yes_ask ? m.yes_ask / 100 : 0.50,
-      noAsk: m.no_ask ? m.no_ask / 100 : 0.50,
+      yesAsk: yesPrice,
+      noAsk: noPrice,
       volume: m.volume || 0,
       platform: "Kalshi"
-    };
+    });
   });
 
   // Dynamic Kalshi Leveraged Perpetuals (Metals & Crypto)
