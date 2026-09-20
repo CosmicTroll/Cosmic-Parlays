@@ -7,18 +7,33 @@ SPORTS_KEYWORDS = [
     'nfl', 'football', 'bengals', 'packers', 'vikings', 'bears', 'ravens', 'saints',
     '49ers', 'dolphins', 'bills', 'lions', 'jaguars', 'broncos', 'steelers', 'patriots',
     'panthers', 'falcons', 'buccaneers', 'browns', 'eagles', 'titans', 'cowboys', 'commanders',
-    'mlb', 'diamondbacks', 'baseball', 'esports', 'cs2', 'vct', 'valorant', 'nba', 'soccer'
+    'mlb', 'diamondbacks', 'baseball', 'esports', 'cs2', 'vct', 'valorant', 'nba', 'soccer',
+    'hurts', 'barkley', 'witt', 'stroud', 'herbert', 'metcalf', 'henry', 'williams', 'jeanty'
 ]
 
 def is_sports_contract(text):
     t = text.lower()
     return any(k in t for k in SPORTS_KEYWORDS)
 
-def format_kalshi_text(raw_text):
-    # Clean up multi-market lists like "yes TeamA,yes TeamB" into cleaner readable lines
-    clean = raw_text.replace("yes ", "").replace("no ", "")
-    clean = clean.replace(",", " • ")
-    return clean
+def format_kalshi_stats(raw_title):
+    # Cleans raw combo texts and adds explicit statistical indicators
+    items = raw_title.replace("yes ", "").replace("no ", "").split(",")
+    formatted = []
+    for it in items:
+        it = it.strip()
+        if not it:
+            continue
+        # Check patterns for TDs, yards, hits
+        if re.search(r':\s*1\+$', it):
+            it = re.sub(r':\s*1\+$', ' (1+ Touchdown)', it)
+        elif re.search(r':\s*2\+$', it):
+            it = re.sub(r':\s*2\+$', ' (2+ Hits / TDs)', it)
+        elif re.search(r':\s*([2-9]\d{2,})\+$', it): # 200+
+            it = re.sub(r':\s*(\d+)\+$', r' (\1+ Passing Yds)', it)
+        elif re.search(r':\s*(\d+)\+$', it): # 25+, 50+, 80+
+            it = re.sub(r':\s*(\d+)\+$', r' (\1+ Rush/Rec Yds)', it)
+        formatted.append(it)
+    return " • ".join(formatted)
 
 def get_polymarket_feeds():
     sports, macro = [], []
@@ -32,17 +47,10 @@ def get_polymarket_feeds():
                 continue
             m = markets[0]
             question = (m.get('groupItemTitle') or m.get('question') or title).strip()
-            
             outcomes = json.loads(m.get('outcomePrices', '["0","0"]'))
             prob = f"{int(float(outcomes[0])*100)}%" if outcomes else "N/A"
             
-            # Full text without slicing
-            item = {
-                "matchup": title,
-                "pick": question,
-                "odds": prob
-            }
-            
+            item = {"matchup": title, "pick": question, "odds": prob}
             if is_sports_contract(title) or is_sports_contract(question):
                 sports.append(item)
             else:
@@ -54,29 +62,30 @@ def get_polymarket_feeds():
 def get_kalshi_feeds():
     sports, macro = [], []
     try:
-        url = "https://external-api.kalshi.com/trade-api/v2/markets?limit=50&status=open"
+        url = "https://external-api.kalshi.com/trade-api/v2/markets?limit=60&status=open"
         res = requests.get(url, timeout=10).json()
         for m in res.get('markets', []):
             ticker = m.get('ticker', 'KALSHI')
-            # Kalshi user-friendly titles
-            title = m.get('title') or m.get('subtitle') or ticker
-            title = format_kalshi_text(title)
-            
+            raw_title = m.get('title') or m.get('subtitle') or ticker
             yes_price = m.get('yes_ask', m.get('last_price', 50))
             
-            # Format ticker label cleanly
-            display_tag = f"Kalshi [{ticker}]" if len(ticker) < 18 else "Kalshi Event Market"
-
-            item = {
-                "matchup": display_tag,
-                "pick": title,
-                "odds": f"{yes_price}%"
-            }
+            is_sport = is_sports_contract(ticker) or is_sports_contract(raw_title) or 'KXMVE' in ticker
             
-            if is_sports_contract(ticker) or is_sports_contract(title):
-                sports.append(item)
+            if is_sport:
+                clean_title = format_kalshi_stats(raw_title)
+                sports.append({
+                    "matchup": f"Kalshi Player Prop Ticket [{ticker[:10]}]",
+                    "pick": clean_title,
+                    "odds": f"{yes_price}%"
+                })
             else:
-                macro.append(item)
+                # Real institutional macro market
+                category = m.get('category', 'Macro Event')
+                macro.append({
+                    "matchup": f"Kalshi {category} [{ticker}]",
+                    "pick": raw_title,
+                    "odds": f"{yes_price}%"
+                })
     except Exception as e:
         print(f"Kalshi fetch error: {e}")
     return sports[:4], macro[:4]
@@ -93,7 +102,7 @@ def build_card(title, tier, badge_text, badge_class, items, notes):
         <div class="leg-odds">{it['odds']}</div>
       </div>"""
     if not items:
-        legs = '<div style="padding: 10px 0; color: #64748B; font-size: 12px;">No active liquid lines matching filter criteria.</div>'
+        legs = '<div style="padding: 10px 0; color: #64748B; font-size: 12px;">Scanning for liquid lines matching current parameters...</div>'
     return f"""
     <div class="card">
       <div class="card-head">
@@ -117,7 +126,7 @@ def send_discord(sports_count, macro_count):
         "avatar_url": "https://img.icons8.com/isometric/512/telescope.png",
         "embeds": [{
             "title": "🌌 Terminal Refreshed: Sports & Macro Boards",
-            "description": f"Processed **{sports_count} Sports & Esports lines** and **{macro_count} Macro Horizon contracts** without text truncation.",
+            "description": f"Processed **{sports_count} Prop & Sports lines** and **{macro_count} Pure Macro contracts** with full stat labeling.",
             "color": 4156648,
             "footer": {"text": "Cosmic Parlay Companion Engine"}
         }]
@@ -134,14 +143,14 @@ def main():
         "Live Sports", 
         "scout", 
         poly_sports, 
-        "Filtered orderbooks tracking high-volume game lines and esports map pools."
+        "Live event volumes and moneyline flow tracked across liquid game markets."
     ) + "\n" + build_card(
-        "Sports & Esports Radar: Kalshi", 
-        "Scouted Horizon: Regulated Contracts", 
+        "Sports & Esports Radar: Kalshi Props", 
+        "Scouted Horizon: Player Milestones (Labeled)", 
         "Live Sports", 
         "scout", 
         kalshi_sports, 
-        "CFTC-compliant game moneylines, spreads, and prop pricing."
+        "CFTC-compliant touchdown, yardage, and hit milestones with unit clarifications."
     )
 
     macro_html = build_card(
@@ -150,14 +159,14 @@ def main():
         "Horizon", 
         "macro", 
         poly_macro, 
-        "Monitoring long-duration narrative and milestone contracts."
+        "Monitoring tech IPO timelines and geopolitical milestone contracts."
     ) + "\n" + build_card(
-        "Macro Horizon: Long-Range Kalshi", 
-        "Macro Predictions: Institutional Events", 
+        "Macro Horizon: Institutional Kalshi", 
+        "Macro Predictions: Fed, Inflation & Policy", 
         "Horizon", 
         "macro", 
         kalshi_macro, 
-        "Macroeconomic and regulatory milestone contract flows."
+        "Institutional rates, CPI indices, and regulated macroeconomic forecasts."
     )
 
     if os.path.exists("index.html"):
@@ -171,7 +180,7 @@ def main():
 
         with open("index.html", "w") as f:
             f.write(c)
-        print("Updated index.html without truncation.")
+        print("Updated index.html successfully.")
 
     send_discord(len(poly_sports) + len(kalshi_sports), len(poly_macro) + len(kalshi_macro))
 
