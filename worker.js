@@ -49,16 +49,13 @@ async function signKalshiRequest(privateKey, timestamp, method, path, body = "")
 function categorizeTitle(title) {
   const t = (title || "").toLowerCase();
   
-  // Politics & Elections
   if (/house|senate|congress|election|nominee|president|governor|democrat|republican|gop|dnc|rnc|vance|trump|harris|newsom|biden|putin|ukraine|war|cabinet|veto|supreme court/i.test(t)) {
     return "POLITICS";
   }
-  // Macro & Finance
-  if (/fed|rate|inflation|cpi|interest|gdp|recession|treasury|yield|cuts|debt|unemployment|jobs report/i.test(t)) {
+  if (/fed|rate|inflation|cpi|interest|gdp|recession|treasury|yield|cuts|debt|unemployment|jobs/i.test(t)) {
     return "MACRO";
   }
-  // Sports Exclusively
-  if (/vs\.?|game|spread|over\/under|total points|yards|touchdown|td|nfl|nba|mlb|nhl|fifa|uefa|mls|premier league|champions league|fc |quarterback|receptions|goals|puck|score/i.test(t)) {
+  if (/vs\.?|game|spread|over\/under|total points|yards|touchdown|td|nfl|nba|mlb|nhl|fifa|uefa|mls|premier league|champions league|quarterback|receptions|goals|puck|score/i.test(t)) {
     return "SPORTS";
   }
   return "CULTURE";
@@ -123,11 +120,6 @@ export default {
           executionGuard: "$10.00 Cap",
           note: "Polymarket.us interface verified for cosmicdad. Live buying power active."
         }, null, 2), { status: 200, headers: CORS_HEADERS });
-      }
-
-      if (url.pathname === "/api/execute-order" || url.pathname === "/api/execute-spread") {
-        const payload = await request.json();
-        return await handleExecuteSpread(payload, env);
       }
 
       return new Response(JSON.stringify({ error: "Endpoint not found" }), {
@@ -238,14 +230,14 @@ async function handleLiveData(env) {
   const activeExposure = allPositions.reduce((acc, p) => acc + (p.exposure || 0), 0);
   const activeContracts = allPositions.reduce((acc, p) => acc + (p.count || 0), 0);
 
-  // --- Polymarket Public Catalog (Sports + Politics) ---
+  // --- Polymarket Public Catalog (Sports + Politics + EndDates) ---
   let polymarket = [];
   try {
     const [genRes, sportsRes] = await Promise.all([
-      fetch("https://gamma-api.polymarket.com/events?closed=false&active=true&limit=50", {
+      fetch("https://gamma-api.polymarket.com/events?closed=false&active=true&limit=60", {
         headers: { "Accept": "application/json", "User-Agent": "CosmicParlaysTerminal/1.0" }
       }),
-      fetch("https://gamma-api.polymarket.com/events?closed=false&active=true&tag_id=100639&limit=50", {
+      fetch("https://gamma-api.polymarket.com/events?closed=false&active=true&tag_id=100639&limit=60", {
         headers: { "Accept": "application/json", "User-Agent": "CosmicParlaysTerminal/1.0" }
       })
     ]);
@@ -259,8 +251,9 @@ async function handleLiveData(env) {
       if (!e || seenEvent.has(e.id)) return;
       seenEvent.add(e.id);
 
-      // Skip multi-leg accumulator parlays
       if ((e.title || "").includes(",") && (e.title || "").split(",").length > 2) return;
+
+      const endDate = e.endDate || e.end_date || (e.markets && e.markets[0] && e.markets[0].endDate) || null;
 
       (e.markets || []).slice(0, 3).forEach(m => {
         if (!m || m.closed) return;
@@ -281,6 +274,7 @@ async function handleLiveData(env) {
           yesAsk: Number(yes.toFixed(2)),
           noAsk: Number(no.toFixed(2)),
           volume: m.volume || e.volume || 0,
+          endDate: endDate,
           platform: "Polymarket.us"
         });
       });
@@ -289,11 +283,11 @@ async function handleLiveData(env) {
     console.error("Polymarket catalog fetch error:", err);
   }
 
-  // --- Kalshi Public Catalog (Comprehensive Price Extraction) ---
+  // --- Kalshi Public Catalog (Exhaustive Price Field Mapping) ---
   let kalshi = [];
   try {
     const basePath = "/trade-api/v2/markets";
-    const queryString = "?limit=100";
+    const queryString = "?limit=100&status=open";
     let kHeaders = { 
       "Accept": "application/json",
       "User-Agent": "CosmicParlaysTerminal/1.0"
@@ -320,26 +314,25 @@ async function handleLiveData(env) {
       const kData = await kRes.json();
       const rawMarkets = kData.markets || [];
       rawMarkets.forEach(m => {
-        if (m.status && m.status !== "open" && m.status !== "active") return;
-
-        // Exhaustive parsing across Kalshi API formats (dollars & cents)
+        // Robust price parsing across all Kalshi schemas
         let yesPrice = null;
         let noPrice = null;
 
-        if (m.yes_ask_dollars !== undefined) yesPrice = parseFloat(m.yes_ask_dollars);
-        else if (m.yes_ask !== undefined && m.yes_ask > 0) yesPrice = m.yes_ask > 1 ? m.yes_ask / 100 : m.yes_ask;
-        else if (m.last_price_dollars !== undefined) yesPrice = parseFloat(m.last_price_dollars);
+        if (m.yes_ask !== undefined && m.yes_ask > 0) yesPrice = m.yes_ask > 1 ? m.yes_ask / 100 : m.yes_ask;
+        else if (m.yes_ask_dollars !== undefined) yesPrice = parseFloat(m.yes_ask_dollars);
         else if (m.last_price !== undefined && m.last_price > 0) yesPrice = m.last_price > 1 ? m.last_price / 100 : m.last_price;
-        else if (m.yes_bid_dollars !== undefined) yesPrice = parseFloat(m.yes_bid_dollars);
+        else if (m.last_price_dollars !== undefined) yesPrice = parseFloat(m.last_price_dollars);
         else if (m.yes_bid !== undefined && m.yes_bid > 0) yesPrice = m.yes_bid > 1 ? m.yes_bid / 100 : m.yes_bid;
-        else if (m.no_bid_dollars !== undefined) yesPrice = 1.00 - parseFloat(m.no_bid_dollars);
         else if (m.no_bid !== undefined && m.no_bid > 0) yesPrice = 1.00 - (m.no_bid > 1 ? m.no_bid / 100 : m.no_bid);
 
-        if (m.no_ask_dollars !== undefined) noPrice = parseFloat(m.no_ask_dollars);
-        else if (m.no_ask !== undefined && m.no_ask > 0) noPrice = m.no_ask > 1 ? m.no_ask / 100 : m.no_ask;
+        if (m.no_ask !== undefined && m.no_ask > 0) noPrice = m.no_ask > 1 ? m.no_ask / 100 : m.no_ask;
+        else if (m.no_ask_dollars !== undefined) noPrice = parseFloat(m.no_ask_dollars);
+
+        if (yesPrice === null && noPrice !== null) yesPrice = Number((1.00 - noPrice).toFixed(2));
+        if (noPrice === null && yesPrice !== null) noPrice = Number((1.00 - yesPrice).toFixed(2));
 
         if (yesPrice === null) yesPrice = 0.50;
-        if (noPrice === null) noPrice = Number((1.00 - yesPrice).toFixed(2));
+        if (noPrice === null) noPrice = 0.50;
 
         kalshi.push({
           ticker: m.ticker,
@@ -349,6 +342,7 @@ async function handleLiveData(env) {
           yesAsk: Number(yesPrice.toFixed(2)),
           noAsk: Number(noPrice.toFixed(2)),
           volume: m.volume || m.volume_24h || 0,
+          endDate: m.close_time || m.expiration_time || null,
           platform: "Kalshi"
         });
       });
@@ -374,65 +368,4 @@ async function handleLiveData(env) {
     kalshi,
     perps: getPerpsFallback()
   }, null, 2), { headers: CORS_HEADERS });
-}
-
-// -------------------------------------------------------------
-// 5. Trade Execution Dispatcher
-// -------------------------------------------------------------
-
-async function handleExecuteSpread(payload, env) {
-  const { kalshiTicker, kalshiSide, kalshiCount, kalshiMaxPrice } = payload;
-  const results = { timestamp: new Date().toISOString() };
-
-  if (kalshiTicker && env?.KALSHI_KEY_ID && env?.KALSHI_PRIVATE_KEY) {
-    const contracts = kalshiCount || 1;
-    const maxPrice = kalshiMaxPrice || 0.50;
-    const outlay = contracts * maxPrice;
-
-    if (outlay > 10.00) {
-      return new Response(JSON.stringify({
-        error: "Execution guard triggered: Total outlay exceeds $10.00 cap."
-      }), { status: 400, headers: CORS_HEADERS });
-    }
-
-    try {
-      const kalshiPath = "/trade-api/v2/portfolio/orders";
-      const timestamp = Date.now().toString();
-      const bodyObj = {
-        action: "buy",
-        count: contracts,
-        type: "limit",
-        side: kalshiSide || "yes",
-        ticker: kalshiTicker,
-        yes_price: Math.round(maxPrice * 100)
-      };
-      const bodyStr = JSON.stringify(bodyObj);
-
-      const privKey = await importKalshiRsaKey(env.KALSHI_PRIVATE_KEY);
-      const sig = await signKalshiRequest(privKey, timestamp, "POST", kalshiPath, bodyStr);
-
-      const res = await fetch(`https://external-api.kalshi.com${kalshiPath}`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "KALSHI-ACCESS-KEY": env.KALSHI_KEY_ID,
-          "KALSHI-ACCESS-SIGNATURE": sig,
-          "KALSHI-ACCESS-TIMESTAMP": timestamp,
-          "User-Agent": "CosmicParlaysTerminal/1.0"
-        },
-        body: bodyStr
-      });
-
-      results.kalshi = await res.json();
-    } catch (err) {
-      return new Response(JSON.stringify({ status: "error", error: err.message }), {
-        status: 500,
-        headers: CORS_HEADERS
-      });
-    }
-  }
-
-  return new Response(JSON.stringify({ status: "executed", summary: results }, null, 2), {
-    headers: CORS_HEADERS
-  });
 }
