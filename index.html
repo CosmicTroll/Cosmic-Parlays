@@ -34,8 +34,9 @@
     .nav-btn { background: rgba(255,255,255,0.03); border: 1px solid var(--border); color: var(--muted); padding: 0.45rem 0.85rem; border-radius: 8px; font-size: 0.8rem; font-weight: 600; cursor: pointer; white-space: nowrap; transition: all 0.15s ease; }
     .nav-btn.active { background: rgba(99, 102, 241, 0.2); border-color: var(--accent); color: #fff; }
 
-    /* Universal Sort Filter Bar */
-    .sort-bar { max-width: 900px; margin: 0 auto 0.85rem; display: flex; align-items: center; gap: 0.4rem; overflow-x: auto; scrollbar-width: none; }
+    /* Universal Interactive Filter / Sort Bar */
+    .sort-bar { max-width: 900px; margin: 0 auto 0.85rem; display: flex; align-items: center; gap: 0.4rem; overflow-x: auto; scrollbar-width: none; padding-bottom: 0.2rem; }
+    .sort-bar::-webkit-scrollbar { display: none; }
     .sort-label { font-size: 0.7rem; color: var(--muted); white-space: nowrap; text-transform: uppercase; font-weight: 700; }
     .sort-chip { background: var(--card-inner); border: 1px solid var(--border); color: var(--muted); font-size: 0.7rem; font-weight: 600; padding: 0.25rem 0.6rem; border-radius: 6px; cursor: pointer; white-space: nowrap; }
     .sort-chip.active { background: rgba(99, 102, 241, 0.25); border-color: var(--accent); color: #fff; }
@@ -136,7 +137,7 @@
     <button class="nav-btn" onclick="switchView('vault')">💼 Vault</button>
   </div>
 
-  <!-- Quick Filter/Sort Bar -->
+  <!-- Interactive Filter & Sort Bar -->
   <div class="sort-bar">
     <span class="sort-label">Sort:</span>
     <button class="sort-chip active" onclick="setSortOrder('roi-desc')">🔥 Top ROI</button>
@@ -178,7 +179,7 @@
           <span style="font-size: 0.75rem; color: var(--cyan);">Live Consensus</span>
         </div>
         <p style="font-size: 0.75rem; color: var(--muted); margin-bottom: 0.85rem;">
-          Real-time order book analysis ranked by chosen filter.
+          Real-time order book analysis dynamically ranked across political & cultural lines.
         </p>
         <div class="item-list" id="macro-container">
           <div class="empty">Scanning live order books for political & cultural lines...</div>
@@ -522,12 +523,13 @@
       const noAsk = m.noAsk || (1.00 - yesAsk);
       const targetEntity = m.candidate && m.candidate !== "Consensus Leg" ? ` [${m.candidate}]` : "";
 
-      if (yesAsk >= 0.98 || noAsk >= 0.98 || yesAsk <= 0.02 || noAsk <= 0.02) {
+      // Eliminate totally unquoted contracts or resolved endpoints
+      if (yesAsk >= 0.99 || noAsk >= 0.99 || yesAsk <= 0.01 || noAsk <= 0.01) {
         return null;
       }
 
-      // Strong Probability Anchors (53%+ probability)
-      if (yesAsk >= 0.53 && yesAsk < 0.96) {
+      // 1. High Probability Directional Anchors (51%+)
+      if (yesAsk >= 0.51) {
         const roi = Math.round(((1.00 - yesAsk) / yesAsk) * 100);
         return {
           badgeClass: "consensus-strong-buy",
@@ -539,7 +541,7 @@
           roi: `+${roi}% ROI`,
           prob: `${Math.round(yesAsk * 100)}% Implied`
         };
-      } else if (noAsk >= 0.53 && noAsk < 0.96) {
+      } else if (noAsk >= 0.51) {
         const roi = Math.round(((1.00 - noAsk) / noAsk) * 100);
         return {
           badgeClass: "consensus-strong-buy",
@@ -552,8 +554,8 @@
           prob: `${Math.round(noAsk * 100)}% Implied`
         };
       } 
-      // Asymmetric Value Plays (Under 47¢)
-      else if (yesAsk <= 0.47 && yesAsk >= 0.05) {
+      // 2. Asymmetric Value Plays (Sub-50¢ Asks)
+      else if (yesAsk < 0.50 && yesAsk > 0.01) {
         const roi = Math.round(((1.00 - yesAsk) / yesAsk) * 100);
         return {
           badgeClass: "consensus-value-buy",
@@ -564,18 +566,6 @@
           probVal: Math.round(yesAsk * 100),
           roi: `+${roi}% ROI`,
           prob: `${Math.round(yesAsk * 100)}% Implied`
-        };
-      } else if (noAsk <= 0.47 && noAsk >= 0.05) {
-        const roi = Math.round(((1.00 - noAsk) / noAsk) * 100);
-        return {
-          badgeClass: "consensus-value-buy",
-          badgeText: "Value Buy NO",
-          action: `BUY NO${targetEntity} @ $${noAsk.toFixed(2)}`,
-          target: "Asymmetric Value",
-          roiVal: roi,
-          probVal: Math.round(noAsk * 100),
-          roi: `+${roi}% ROI`,
-          prob: `${Math.round(noAsk * 100)}% Implied`
         };
       }
 
@@ -663,9 +653,9 @@
           candidates.push({
             ...item,
             rec,
-            side: item.yesAsk >= 0.53 ? "YES" : "NO",
-            price: item.yesAsk >= 0.53 ? item.yesAsk : item.noAsk,
-            type: item.yesAsk >= 0.53 || item.noAsk >= 0.53 ? "Anchor Leg" : "Value Add-On"
+            side: item.yesAsk >= 0.51 ? "YES" : "NO",
+            price: item.yesAsk >= 0.51 ? item.yesAsk : item.noAsk,
+            type: item.yesAsk >= 0.51 || item.noAsk >= 0.51 ? "Anchor Leg" : "Value Add-On"
           });
         }
       });
@@ -792,7 +782,7 @@
         poly.forEach(p => {
           if (!p.noAsk || p.noAsk <= 0.05 || p.noAsk >= 0.95) return;
 
-          const kWords = (k.title || "").toLowerCase().split(/\s+/).filter(w => w.length >= 4 && !['match', 'game', 'total', 'points', 'versus', 'will'].includes(w));
+          const kWords = (k.title || "").toLowerCase().split(/\s+/).filter(w => w.length >= 4 && !['match', 'game', 'total', 'points', 'versus', 'will', 'with'].includes(w));
           const pLower = (p.title || "").toLowerCase();
 
           const isDirectMatch = kWords.some(w => pLower.includes(w));
