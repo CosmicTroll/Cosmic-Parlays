@@ -2,314 +2,255 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-  <meta http-equiv="Pragma" content="no-cache">
-  <meta http-equiv="Expires" content="0">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="Cosmic Parlay">
-  <title>Cosmic Parlay Theorem</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cosmic Parlay Theorem | Tactical Prediction Terminal</title>
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
-    body { background-color: #0B0D17; color: #F8FAFC; padding: 20px 14px 40px; padding-top: max(20px, env(safe-area-inset-top)); }
-    .header { margin-bottom: 12px; border-bottom: 1px solid #1F2438; padding-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
-    .header h1 { font-size: 19px; font-weight: 800; color: #E0E7FF; letter-spacing: 0.5px; }
-    .header p { color: #818CF8; font-size: 11px; margin-top: 2px; }
-    .copilot-badge { background: linear-gradient(135deg, #4F46E5, #9333EA); color: white; font-size: 10px; font-weight: 800; padding: 4px 9px; border-radius: 20px; box-shadow: 0 0 10px rgba(99,102,241,0.5); display: flex; align-items: center; gap: 4px; }
+    :root {
+      --bg: #07090e;
+      --card-bg: #0e131f;
+      --border: #1e293b;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --accent: #6366f1;
+      --green: #10b981;
+      --red: #ef4444;
+      --gold: #f59e0b;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, monospace; }
+    body { background: var(--bg); color: var(--text-main); padding: 24px; line-height: 1.5; }
+    .container { max-width: 1200px; margin: 0 auto; }
     
-    .tab-scroll { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 12px; scrollbar-width: none; }
-    .tab-scroll::-webkit-scrollbar { display: none; }
-    .tab-btn { flex: 0 0 auto; padding: 8px 12px; border: 1px solid #242C48; background-color: #151928; color: #94A3B8; font-size: 12px; font-weight: 700; border-radius: 8px; cursor: pointer; white-space: nowrap; }
-    .tab-btn.active { background-color: #3730A3; color: #EEF2FF; border-color: #4F46E5; box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
-
-    .disclaimer { background-color: #1E1B4B; border: 1px solid #4338CA; border-radius: 8px; padding: 8px 10px; margin-bottom: 16px; font-size: 11px; line-height: 14px; color: #C7D2FE; }
-    .card { background-color: #151928; border: 1px solid #242C48; border-radius: 14px; padding: 14px; margin-bottom: 14px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
-    .card-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; margin-bottom: 4px; }
-    .card-title { font-size: 15px; font-weight: 700; color: #F8FAFC; flex: 1; }
-    .badge { background-color: #3730A3; color: #EEF2FF; font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 6px; white-space: nowrap; }
-    .badge.scout { background-color: #065F46; color: #A7F3D0; }
-    .badge.perp { background-color: #831843; color: #FBCFE8; }
-    .badge.macro { background-color: #78350F; color: #FDE68A; }
-    .badge.up { background-color: #14532D; color: #86EFAC; }
-    .badge.down { background-color: #7F1D1D; color: #FCA5A5; }
-    .tier { color: #38BDF8; font-size: 11px; font-weight: 600; margin-bottom: 10px; }
+    /* Header */
+    header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 16px; margin-bottom: 20px; }
+    h1 { font-size: 1.5rem; letter-spacing: -0.5px; }
+    .badge { background: #1e1b4b; color: #a5b4fc; padding: 4px 10px; border-radius: 9999px; font-size: 0.75rem; border: 1px solid #4338ca; }
+    .disclaimer { background: rgba(245, 158, 11, 0.08); border-left: 3px solid var(--gold); padding: 10px 14px; font-size: 0.8rem; color: #fcd34d; margin-bottom: 24px; }
     
-    .leg { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; padding: 9px 0; border-bottom: 1px solid #1A2035; }
-    .leg-info { flex: 1; min-width: 0; }
-    .leg-matchup { font-size: 11px; color: #94A3B8; line-height: 15px; word-wrap: break-word; display: flex; align-items: center; flex-wrap: wrap; gap: 4px; }
-    .leg-pick { font-size: 13px; font-weight: 600; color: #F1F5F9; margin-top: 2px; line-height: 17px; word-wrap: break-word; }
-    .leg-odds { font-size: 12px; font-weight: 700; color: #38BDF8; white-space: nowrap; text-align: right; padding-top: 2px; }
+    /* Grid */
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 20px; margin-bottom: 24px; }
+    .card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 8px; padding: 18px; }
+    .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+    .card-title { font-size: 0.95rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+    .status-dot { height: 8px; width: 8px; border-radius: 50%; display: inline-block; margin-right: 6px; }
+    .status-online { background: var(--green); box-shadow: 0 0 8px var(--green); }
+    .status-alert { background: var(--gold); box-shadow: 0 0 8px var(--gold); }
     
-    .analysis { margin-top: 10px; padding-top: 8px; border-top: 1px solid #242C48; }
-    .analysis-title { font-size: 11px; font-weight: 700; color: #A5B4FC; margin-bottom: 2px; }
-    .analysis-text { font-size: 12px; line-height: 16px; color: #94A3B8; }
-
-    /* Informational Status Tags */
-    .badge-cashout-tag { background: #B91C1C; color: #FEE2E2; font-size: 9px; font-weight: 800; padding: 2px 6px; border-radius: 4px; }
-    .badge-auto-sell { background: #059669; color: #D1FAE5; font-size: 9px; font-weight: 800; padding: 2px 6px; border-radius: 4px; }
-    .badge-hold { background: #065F46; color: #A7F3D0; font-size: 9px; font-weight: 700; padding: 2px 5px; border-radius: 4px; }
-    .badge-stop-loss { background: #991B1B; color: #FEE2E2; font-size: 9px; font-weight: 800; padding: 2px 6px; border-radius: 4px; }
-
-    .tab-content { display: none; }
-    .tab-content.active { display: block; }
+    /* Market Items */
+    .market-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+    .market-row:last-child { border-bottom: none; }
+    .leg-title { font-size: 0.85rem; max-width: 240px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .price-tag { font-family: monospace; font-size: 0.9rem; font-weight: 700; }
+    .green { color: var(--green); }
+    .red { color: var(--red); }
+    
+    /* Interactive Tools */
+    .calc-input { width: 100%; background: #07090e; border: 1px solid var(--border); color: #fff; padding: 8px 10px; border-radius: 4px; margin-top: 4px; margin-bottom: 10px; }
+    .result-box { background: rgba(99, 102, 241, 0.1); border: 1px dashed var(--accent); border-radius: 6px; padding: 12px; margin-top: 12px; font-size: 0.85rem; }
+    
+    button { background: var(--accent); color: #fff; border: none; border-radius: 4px; padding: 8px 14px; font-weight: 600; cursor: pointer; }
+    button:hover { opacity: 0.9; }
   </style>
 </head>
 <body>
-  <div class="header">
+
+<div class="container">
+  <header>
     <div>
       <h1>Cosmic Parlay Theorem</h1>
-      <p>Tactical Prediction Market Terminal</p>
+      <p style="font-size: 0.85rem; color: var(--text-muted);">Tactical Prediction Market & Arbitrage Terminal</p>
     </div>
-    <div class="copilot-badge">✨ Gemini Co-Pilot</div>
-  </div>
-
-  <div class="tab-scroll">
-    <button class="tab-btn active" onclick="switchTab('active', this)">Active Slates 🎯</button>
-    <button class="tab-btn" onclick="switchTab('sports', this)">Single-Leg Props ⚡</button>
-    <button class="tab-btn" onclick="switchTab('macro', this)">Basis & Radar 🪐</button>
-    <button class="tab-btn" onclick="switchTab('perps', this)">Perps & Tax Engine 📈</button>
-  </div>
+    <div style="display: flex; gap: 8px; align-items: center;">
+      <span class="badge" id="feed-status"><span class="status-dot status-online"></span>Live Polling Active</span>
+      <button onclick="fetchFeeds()">Sync Books</button>
+    </div>
+  </header>
 
   <div class="disclaimer">
-    ⚠️ For entertainment, analysis, and educational purposes only. Does not facilitate real-money wagering or betting transactions.
+    ⚠️ <strong>CFTC Compliance Notice:</strong> Terminal runs on educational simulation data & order book feeds. Prediction market event contracts carry capital risk.
   </div>
 
-  <!-- TAB 1: ACTIVE SLATES -->
-  <div id="tab-active" class="tab-content active">
-    <!-- AUTOGEN_ACTIVE_START -->
-
+  <div class="grid">
+    <!-- Live Kalshi Slates -->
     <div class="card">
-      <div class="card-head">
-        <div class="card-title">Kalshi Live Slates</div>
-        <div class="badge up">Sync Active</div>
+      <div class="card-header">
+        <span class="card-title">Kalshi Real-Time Slates</span>
+        <span class="badge" id="kalshi-count">Scanning...</span>
       </div>
-      <div class="tier">Active Dynamic Positions (Zero Historical Clutter)</div>
-      
-      <div class="leg">
-        <div class="leg-info">
-          <div class="leg-matchup">Live Combo (9 Legs) • <span style="color: #86EFAC;">Active</span> <span class="badge-cashout-tag">🔥 CASH OUT TARGET (+400%)</span></div>
-          <div class="leg-pick">9 Market Combo<br><span style="font-size: 11px; color: #94A3B8; line-height: 15px;">Buffalo • Carolina • Cincinnati • Tampa Bay ... (+5 more legs)</span></div>
-        </div>
-        <div class="leg-odds">+0¢</div>
-      </div>
-      <div class="analysis">
-        <div class="analysis-title">✨ Gemini Navigator Intel:</div>
-        <div class="analysis-text">Dynamic balance and market pricing live. Finished single lines pruned automatically.</div>
+      <div id="kalshi-feed">
+        <div style="color: var(--text-muted); font-size: 0.85rem;">Connecting to order books...</div>
       </div>
     </div>
-    <!-- AUTOGEN_ACTIVE_END -->
+
+    <!-- Live Polymarket Slates -->
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">Polymarket Gamma Slates</span>
+        <span class="badge" id="poly-count">Scanning...</span>
+      </div>
+      <div id="poly-feed">
+        <div style="color: var(--text-muted); font-size: 0.85rem;">Connecting to order books...</div>
+      </div>
+    </div>
   </div>
 
-  <!-- TAB 2: SINGLE-LEG PROPS -->
-  <div id="tab-sports" class="tab-content">
-    <!-- AUTOGEN_SPORTS_START -->
-
+  <div class="grid">
+    <!-- Cross-Market Arbitrage Calculator -->
     <div class="card">
-      <div class="card-head">
-        <div class="card-title">Single-Leg Props & Game Radar</div>
-        <div class="badge scout">Target Add-on</div>
+      <div class="card-header">
+        <span class="card-title">Spread & Arbitrage Calculator</span>
+        <span class="badge">Basis Scanner</span>
       </div>
-      <div class="tier">Scouted Add-on Legs (No Pre-Packs)</div>
-      <div style="padding: 10px 0; color: #94A3B8; font-size: 12px;">Monitoring order books for discrepancy windows...</div>
-      <div class="analysis">
-        <div class="analysis-title">✨ Gemini Navigator Intel:</div>
-        <div class="analysis-text">Isolated single-player and pace props. Pair defensive discrepancies as multipliers—skip the multi-leg traps.</div>
+      <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 12px;">
+        Arbitrage exists if <code>Cost(Yes on A) + Cost(No on B) + Taker Fees &lt; $1.00</code>.
+      </p>
+
+      <label style="font-size: 0.75rem; color: var(--text-muted);">Kalshi "Yes" Price ($):</label>
+      <input type="number" id="arb-yes" class="calc-input" step="0.01" value="0.48" oninput="calculateArb()">
+
+      <label style="font-size: 0.75rem; color: var(--text-muted);">Polymarket "No" Price ($):</label>
+      <input type="number" id="arb-no" class="calc-input" step="0.01" value="0.46" oninput="calculateArb()">
+
+      <label style="font-size: 0.75rem; color: var(--text-muted);">Total Combined Taker Fees ($):</label>
+      <input type="number" id="arb-fee" class="calc-input" step="0.005" value="0.02" oninput="calculateArb()">
+
+      <div class="result-box" id="arb-result">
+        Calculating...
       </div>
     </div>
-    <!-- AUTOGEN_SPORTS_END -->
+
+    <!-- IRC Section 1256 Tax Simulator -->
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">IRC §1256 Tax Shield Analyzer</span>
+        <span class="badge">60/40 Rule</span>
+      </div>
+      <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 12px;">
+        Compare CFTC-regulated binary event contracts (Form 6781) against ordinary sportsbook winnings (W-2G).
+      </p>
+
+      <label style="font-size: 0.75rem; color: var(--text-muted);">Total Annual Net Gains ($):</label>
+      <input type="number" id="tax-profit" class="calc-input" step="500" value="10000" oninput="calculateTax()">
+
+      <label style="font-size: 0.75rem; color: var(--text-muted);">Your Ordinary Marginal Tax Rate (%):</label>
+      <input type="number" id="tax-rate" class="calc-input" step="1" value="35" oninput="calculateTax()">
+
+      <div class="result-box" id="tax-result">
+        Calculating...
+      </div>
+    </div>
   </div>
+</div>
 
-  <!-- TAB 3: BASIS & ARBITRAGE RADAR -->
-  <div id="tab-macro" class="tab-content">
-    <div class="card" style="border-left: 3px solid #6366F1;">
-      <div class="card-title" style="font-size: 13px; color: #EEF2FF;">✨ Gemini Market Scanner: Basis & Discrepancies</div>
-      <div style="font-size: 11px; color: #94A3B8; margin-top: 4px; line-height: 15px;">
-        Tracking spread differentials between Kalshi and Polymarket order books. If the combined cost of Yes on Platform A and No on Platform B is under $1.00, mathematical arbitrage exists.
-      </div>
-    </div>
-    <!-- AUTOGEN_MACRO_START -->
+<script>
+  // Pointed to your Cloudflare Worker endpoint
+  const WORKER_URL = "https://cosmic-parlays.cosmictrollgaming.workers.dev/api/live-data"; 
 
-    <div class="card">
-      <div class="card-head">
-        <div class="card-title">Cross-Platform Basis & Arbitrage Scanner</div>
-        <div class="badge perp">Arbitrage</div>
-      </div>
-      <div class="tier">Kalshi vs. Polymarket Spread Opportunities</div>
-      <div style="padding: 10px 0; color: #94A3B8; font-size: 12px;">Monitoring order books for discrepancy windows...</div>
-      <div class="analysis">
-        <div class="analysis-title">✨ Gemini Navigator Intel:</div>
-        <div class="analysis-text">When Kalshi and Polymarket diverge on identical events by ≥3%, taking opposing Yes/No sides locks in structural risk-free alpha.</div>
-      </div>
-    </div>
+  const mockKalshi = [
+    { title: "Fed Interest Rate Cut in Q4?", yesAsk: 0.62, noAsk: 0.39 },
+    { title: "US GDP Growth > 2.2%?", yesAsk: 0.54, noAsk: 0.48 },
+    { title: "Brent Crude Closes > $85?", yesAsk: 0.31, noAsk: 0.71 },
+    { title: "Gold Spot All-Time High This Month?", yesAsk: 0.44, noAsk: 0.58 }
+  ];
 
-    <div class="card">
-      <div class="card-head">
-        <div class="card-title">Macro Horizon: Event Milestones</div>
-        <div class="badge macro">Milestones</div>
-      </div>
-      <div class="tier">Event Probability Tracker (Not Stock Advice)</div>
-      
-      <div class="leg">
-        <div class="leg-info">
-          <div class="leg-matchup">Kraken IPO by ___ ?</div>
-          <div class="leg-pick">December 31</div>
-        </div>
-        <div class="leg-odds">0%</div>
-      </div>
-      <div class="leg">
-        <div class="leg-info">
-          <div class="leg-matchup">Macron out by...?</div>
-          <div class="leg-pick">December 31, 2025</div>
-        </div>
-        <div class="leg-odds">0%</div>
-      </div>
-      <div class="leg">
-        <div class="leg-info">
-          <div class="leg-matchup">UK election called by...?</div>
-          <div class="leg-pick">March 31</div>
-        </div>
-        <div class="leg-odds">0%</div>
-      </div>
-      <div class="analysis">
-        <div class="analysis-title">✨ Gemini Navigator Intel:</div>
-        <div class="analysis-text">Crowd-implied probabilities for corporate milestones, Federal Reserve rate trajectories, and election roadmaps.</div>
-      </div>
-    </div>
-    <!-- AUTOGEN_MACRO_END -->
-  </div>
+  const mockPoly = [
+    { title: "Fed Interest Rate Cut in Q4?", yesAsk: 0.60, noAsk: 0.41 },
+    { title: "US GDP Growth > 2.2%?", yesAsk: 0.51, noAsk: 0.50 },
+    { title: "SpaceX Orbital Launch Success?", yesAsk: 0.88, noAsk: 0.14 },
+    { title: "Bitcoin Breaks Key Milestone?", yesAsk: 0.42, noAsk: 0.59 }
+  ];
 
-  <!-- TAB 4: PERPS ALLOCATION & IRC 1256 TAX FRAMEWORK -->
-  <div id="tab-perps" class="tab-content">
+  async function fetchFeeds() {
+    let kalshiItems = mockKalshi;
+    let polyItems = mockPoly;
 
-    <div class="card" style="border-left: 3px solid #10B981;">
-      <div class="card-head">
-        <div class="card-title">IRC Section 1256 Derivatives Advantage</div>
-        <div class="badge scout">CFTC Tax Framework</div>
-      </div>
-      <div class="tier">Regulated Futures Exchange Classification (Kalshi & Polymarket US)</div>
-      
-      <div class="leg">
-        <div class="leg-info">
-          <div class="leg-matchup">The 60 / 40 Blended Rate Rule</div>
-          <div class="leg-pick"><strong>60% Long-Term / 40% Short-Term Capital Gains</strong></div>
-        </div>
-        <div class="leg-odds">Max ~28%</div>
-      </div>
-
-      <div class="leg">
-        <div class="leg-info">
-          <div class="leg-matchup">Holding Period Exemption</div>
-          <div class="leg-pick">Applies even if contracts are held for 1 hour or 1 day</div>
-        </div>
-        <div class="leg-odds">No 1-Yr Wait</div>
-      </div>
-
-      <div class="leg">
-        <div class="leg-info">
-          <div class="leg-matchup">Loss Deductibility Advantage</div>
-          <div class="leg-pick">Offsets capital gains dollar-for-dollar + up to $3k ordinary income</div>
-        </div>
-        <div class="leg-odds">Full Offset</div>
-      </div>
-
-      <div class="analysis">
-        <div class="analysis-title">✨ Gemini Navigator Tax Brief:</div>
-        <div class="analysis-text">Unlike traditional sportsbooks where winnings are taxed at ordinary income rates up to 37% and deductions are strictly limited, CFTC-regulated event contracts trade under derivatives rules. Reconcile via Form 6781.</div>
-      </div>
-    </div>
-
-    <!-- 60% Gold Anchor -->
-    <div class="card">
-      <div class="card-head">
-        <div class="card-title">Metals Anchor: Gold Perp (~$4,376)</div>
-        <div class="badge up">UP (60% Weight)</div>
-      </div>
-      <div class="tier">Hold Window: 90 – 180 Days • 2x–3x Leverage</div>
-
-      <div class="leg">
-        <div class="leg-info">
-          <div class="leg-matchup">Kalshi Order Direction</div>
-          <div class="leg-pick">Tap <strong style="color: #86EFAC;">[ UP ]</strong> (Long Spot Index)</div>
-        </div>
-        <div class="leg-odds">Bullish</div>
-      </div>
-
-      <div class="leg">
-        <div class="leg-info">
-          <div class="leg-matchup">Funding Cycle & Cost of Carry</div>
-          <div class="leg-pick">Settles 1x Daily (10:00 AM ET) • Zero Term Roll Fees</div>
-        </div>
-        <div class="leg-odds">Low Drag</div>
-      </div>
-
-      <div class="analysis">
-        <div class="analysis-title">✨ Gemini Navigator Intel:</div>
-        <div class="analysis-text">Gold remains our primary portfolio anchor. Central bank reserve accumulation insulates against drawdown. Re-evaluate if spot violates the 200-day EMA.</div>
-      </div>
-    </div>
-
-    <!-- 25% Bitcoin Core -->
-    <div class="card">
-      <div class="card-head">
-        <div class="card-title">Crypto Core: Bitcoin (BTC) Perp</div>
-        <div class="badge up">UP (25% Weight)</div>
-      </div>
-      <div class="tier">Hold Window: 60 – 90 Days • 2x–3x Leverage</div>
-
-      <div class="leg">
-        <div class="leg-info">
-          <div class="leg-matchup">Kalshi Order Direction</div>
-          <div class="leg-pick">Tap <strong style="color: #86EFAC;">[ UP ]</strong> (Accumulation Hold)</div>
-        </div>
-        <div class="leg-odds">Bullish</div>
-      </div>
-
-      <div class="leg">
-        <div class="leg-info">
-          <div class="leg-matchup">Funding Settlement Window</div>
-          <div class="leg-pick">Resets Every 8 Hours (12 AM, 8 AM, 4 PM ET)</div>
-        </div>
-        <div class="leg-odds">8h Reset</div>
-      </div>
-
-      <div class="analysis">
-        <div class="analysis-title">✨ Gemini Navigator Intel:</div>
-        <div class="analysis-text">Review quarterly. If long funding rates turn heavily positive (bulls overpaying to maintain leverage), trim contract exposure to avoid bleed.</div>
-      </div>
-    </div>
-
-    <!-- 15% Altcoin Tactical Fade -->
-    <div class="card">
-      <div class="card-head">
-        <div class="card-title">Altcoins: High-Beta / Selective Fade</div>
-        <div class="badge down">DOWN (15% Weight)</div>
-      </div>
-      <div class="tier">Hold Window: 30 – 45 Days • 1x–2x Leverage</div>
-
-      <div class="leg">
-        <div class="leg-info">
-          <div class="leg-matchup">Kalshi Order Direction</div>
-          <div class="leg-pick">Tap <strong style="color: #FCA5A5;">[ DOWN ]</strong> or Keep Unallocated Cash</div>
-        </div>
-        <div class="leg-odds">Bearish / Cash</div>
-      </div>
-
-      <div class="analysis">
-        <div class="analysis-title">✨ Gemini Navigator Intel:</div>
-        <div class="analysis-text">Leave this 15% in cash earning Kalshi’s 3.25% annual margin yield, or selectively fade speculative out-of-the-money altcoin spikes.</div>
-      </div>
-    </div>
-
-  </div>
-
-  <script>
-    function switchTab(tab, el) {
-      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-      el.classList.add('active');
-      document.getElementById('tab-' + tab).classList.add('active');
+    if (WORKER_URL) {
+      try {
+        const res = await fetch(WORKER_URL);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.kalshi && data.kalshi.length > 0) kalshiItems = data.kalshi;
+          if (data.polymarket && data.polymarket.length > 0) polyItems = data.polymarket;
+          document.getElementById("feed-status").innerHTML = `<span class="status-dot status-online"></span>Live Stream Connected`;
+        } else {
+          document.getElementById("feed-status").innerHTML = `<span class="status-dot status-alert"></span>Fallback Mode`;
+        }
+      } catch (e) {
+        console.warn("Worker feed unavailable, using local reserve.", e);
+        document.getElementById("feed-status").innerHTML = `<span class="status-dot status-alert"></span>Fallback Mode`;
+      }
     }
-  </script>
+
+    renderFeed("kalshi-feed", "kalshi-count", kalshiItems);
+    renderFeed("poly-feed", "poly-count", polyItems);
+  }
+
+  function renderFeed(elementId, countId, items) {
+    const container = document.getElementById(elementId);
+    document.getElementById(countId).innerText = `${items.length} Active`;
+    container.innerHTML = "";
+
+    items.forEach(item => {
+      const row = document.createElement("div");
+      row.className = "market-row";
+      row.innerHTML = `
+        <div>
+          <div class="leg-title" title="${item.title}">${item.title}</div>
+          <div style="font-size: 0.7rem; color: var(--text-muted);">Yes: $${Number(item.yesAsk).toFixed(2)} | No: $${Number(item.noAsk).toFixed(2)}</div>
+        </div>
+        <div class="price-tag ${item.yesAsk > 0.5 ? 'green' : 'red'}">
+          ${Math.round(item.yesAsk * 100)}% Implied
+        </div>
+      `;
+      container.appendChild(row);
+    });
+  }
+
+  function calculateArb() {
+    const yes = parseFloat(document.getElementById("arb-yes").value) || 0;
+    const no = parseFloat(document.getElementById("arb-no").value) || 0;
+    const fee = parseFloat(document.getElementById("arb-fee").value) || 0;
+
+    const totalCost = yes + no + fee;
+    const netEdge = 1.00 - totalCost;
+    const resBox = document.getElementById("arb-result");
+
+    if (netEdge > 0) {
+      resBox.innerHTML = `
+        <span class="green" style="font-weight: bold;">⚡ Structural Arbitrage Found</span><br>
+        Combined Basis: <strong>$${totalCost.toFixed(3)}</strong> / $1.00<br>
+        Net Profit: <strong>+$${(netEdge * 100).toFixed(1)}¢</strong> per contract pair (${((netEdge / totalCost) * 100).toFixed(2)}% ROI).
+      `;
+    } else {
+      resBox.innerHTML = `
+        <span style="color: var(--text-muted);">No Arbitrage Available</span><br>
+        Combined Basis: $${totalCost.toFixed(3)} / $1.00 (Loss: -$${Math.abs(netEdge * 100).toFixed(1)}¢/contract after fees).
+      `;
+    }
+  }
+
+  function calculateTax() {
+    const profit = parseFloat(document.getElementById("tax-profit").value) || 0;
+    const ordinaryRate = (parseFloat(document.getElementById("tax-rate").value) || 0) / 100;
+    
+    // §1256: 60% Long-Term (15%), 40% Short-Term (ordinary rate)
+    const ltRate = 0.15;
+    const blendedRate = (0.60 * ltRate) + (0.40 * ordinaryRate);
+
+    const sportsbookTax = profit * ordinaryRate;
+    const cftcTax = profit * blendedRate;
+    const savings = sportsbookTax - cftcTax;
+
+    document.getElementById("tax-result").innerHTML = `
+      Sportsbook (W-2G) Tax: <strong>$${sportsbookTax.toLocaleString(undefined, {maximumFractionDigits: 0})}</strong> (${(ordinaryRate * 100).toFixed(0)}%)<br>
+      CFTC §1256 Blended Tax: <strong>$${cftcTax.toLocaleString(undefined, {maximumFractionDigits: 0})}</strong> (${(blendedRate * 100).toFixed(1)}%)<br>
+      <span class="green" style="font-weight: bold;">Tax Saved via Regulated Terminal: $${savings.toLocaleString(undefined, {maximumFractionDigits: 0})}</span>
+    `;
+  }
+
+  // Auto-init
+  fetchFeeds();
+  calculateArb();
+  calculateTax();
+</script>
 </body>
 </html>
