@@ -105,19 +105,53 @@ export default {
 // -------------------------------------------------------------
 
 async function handleLiveData() {
-  // 1. Kalshi Public Markets
-  const kalshiRes = await fetch("https://api.elections.kalshi.com/trade-api/v2/markets?limit=10&status=open", {
-    headers: { Accept: "application/json" }
-  });
-  const kalshiData = kalshiRes.ok ? await kalshiRes.json() : { markets: [] };
+  // 1. Kalshi Public Markets (Targeting updated external API endpoint with required User-Agent)
+  let kalshiMarkets = [];
+  try {
+    const kalshiRes = await fetch("https://external-api.kalshi.com/trade-api/v2/markets?limit=10&status=open", {
+      headers: {
+        "Accept": "application/json",
+        "User-Agent": "CosmicParlaysTerminal/1.0"
+      }
+    });
+
+    if (kalshiRes.ok) {
+      const kJson = await kalshiRes.json();
+      kalshiMarkets = kJson.markets || [];
+    } else {
+      // Secondary fallback to standard trade-api path
+      const backupRes = await fetch("https://api.elections.kalshi.com/trade-api/v2/markets?limit=10&status=open", {
+        headers: {
+          "Accept": "application/json",
+          "User-Agent": "CosmicParlaysTerminal/1.0"
+        }
+      });
+      if (backupRes.ok) {
+        const bJson = await backupRes.json();
+        kalshiMarkets = bJson.markets || [];
+      }
+    }
+  } catch (err) {
+    console.error("Kalshi public fetch error:", err);
+  }
 
   // 2. Polymarket Public Events
-  const polyRes = await fetch("https://gamma-api.polymarket.com/events?closed=false&limit=10", {
-    headers: { Accept: "application/json" }
-  });
-  const polyData = polyRes.ok ? await polyRes.json() : [];
+  let polyData = [];
+  try {
+    const polyRes = await fetch("https://gamma-api.polymarket.com/events?closed=false&limit=10", {
+      headers: {
+        "Accept": "application/json",
+        "User-Agent": "CosmicParlaysTerminal/1.0"
+      }
+    });
+    if (polyRes.ok) {
+      polyData = await polyRes.json();
+    }
+  } catch (err) {
+    console.error("Polymarket public fetch error:", err);
+  }
 
-  const kalshi = (kalshiData.markets || []).map(m => ({
+  const kalshi = kalshiMarkets.map(m => ({
     ticker: m.ticker,
     title: m.title || m.subtitle || m.ticker,
     yesAsk: m.yes_ask ? m.yes_ask / 100 : 0.50,
@@ -146,28 +180,40 @@ async function handleLiveData() {
 }
 
 async function handleExecuteSpread(payload, env) {
-  // Verify secrets exist in environment
-  if (!env.KALSHI_KEY_ID || !env.KALSHI_PRIVATE_KEY) {
+  // Check Kalshi credentials
+  const kalshiKeyId = env.KALSHI_KEY_ID || env.KALSHI_API_KEY;
+  const kalshiPrivateKey = env.KALSHI_PRIVATE_KEY;
+
+  if (!kalshiKeyId || !kalshiPrivateKey) {
     return new Response(JSON.stringify({ error: "Missing Kalshi credentials in Cloudflare secrets" }), {
       status: 400,
       headers: CORS_HEADERS
     });
   }
 
-  const { kalshiTicker, kalshiSide, kalshiCount, kalshiMaxPrice, polyTicker, polySide, polyCount, polyPrice } = payload;
+  const {
+    kalshiTicker,
+    kalshiSide,
+    kalshiCount,
+    kalshiMaxPrice,
+    polyTicker,
+    polySide,
+    polyCount,
+    polyPrice
+  } = payload;
 
-  // STRICT SAFETY GUARD: Prevent trades exceeding $10 while testing
+  // Safety Guard: Stop execution if exceeding $10 test cap
   const contractsToBuy = kalshiCount || 1;
   const maxPriceCents = Math.round((kalshiMaxPrice || 0.50) * 100);
   const totalOutlay = (contractsToBuy * maxPriceCents) / 100;
   if (totalOutlay > 10.00) {
-    return new Response(JSON.stringify({ error: "Risk guard: Test order exceeds $10.00 max outlay." }), {
+    return new Response(JSON.stringify({ error: "Risk guard: Order exceeds maximum allowed test cap of $10.00." }), {
       status: 400,
       headers: CORS_HEADERS
     });
   }
 
-  // --- EXECUTE LEG 1: KALSHI ---
+  // --- LEG 1: KALSHI EXECUTION ---
   const kalshiPath = "/trade-api/v2/portfolio/orders";
   const kalshiTimestamp = Date.now().toString();
   const kalshiBodyObj = {
@@ -180,45 +226,50 @@ async function handleExecuteSpread(payload, env) {
   };
   const kalshiBodyStr = JSON.stringify(kalshiBodyObj);
 
-  const kalshiKey = await importKalshiRsaKey(env.KALSHI_PRIVATE_KEY);
+  const kalshiKey = await importKalshiRsaKey(kalshiPrivateKey);
   const kalshiSig = await signKalshiRequest(kalshiKey, kalshiTimestamp, "POST", kalshiPath, kalshiBodyStr);
 
-  const kalshiOrderRes = await fetch(`https://api.elections.kalshi.com${kalshiPath}`, {
+  const kalshiOrderRes = await fetch(`https://external-api.kalshi.com${kalshiPath}`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      "KALSHI-ACCESS-KEY": env.KALSHI_KEY_ID,
+      "KALSHI-ACCESS-KEY": kalshiKeyId,
       "KALSHI-ACCESS-SIGNATURE": kalshiSig,
-      "KALSHI-ACCESS-TIMESTAMP": kalshiTimestamp
+      "KALSHI-ACCESS-TIMESTAMP": kalshiTimestamp,
+      "User-Agent": "CosmicParlaysTerminal/1.0"
     },
     body: kalshiBodyStr
   });
 
   const kalshiResult = await kalshiOrderRes.json();
 
-  // --- EXECUTE LEG 2: POLYMARKET.US ---
+  // --- LEG 2: POLYMARKET.US EXECUTION ---
+  const polyKey = env.POLYMARKET_US_KEY || env.POLYMARKET_KEY;
+  const polySecret = env.POLYMARKET_US_SECRET || env.POLYMARKET_SECRET;
+
   let polyResult = { message: "Polymarket.us execution skipped (credentials or ticker pending)" };
-  if (env.POLYMARKET_US_KEY && env.POLYMARKET_US_SECRET && polyTicker) {
+  if (polyKey && polySecret && polyTicker) {
     const polyPath = "/v1/trading/orders";
     const polyTimestamp = new Date().toISOString();
     const polyBodyObj = {
       symbol: polyTicker,
       side: polySide || "BUY",
       orderType: "LIMIT",
-      timeInForce: "IOC", // Immediate-or-Cancel to prevent hanging unhedged exposure
+      timeInForce: "IOC",
       price: polyPrice || 0.50,
       quantity: contractsToBuy
     };
     const polyBodyStr = JSON.stringify(polyBodyObj);
-    const polySig = await signPolymarketUsRequest(env.POLYMARKET_US_SECRET, polyTimestamp, "POST", polyPath, polyBodyStr);
+    const polySig = await signPolymarketUsRequest(polySecret, polyTimestamp, "POST", polyPath, polyBodyStr);
 
     const polyOrderRes = await fetch(`https://api.polymarket.us${polyPath}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "X-API-KEY": env.POLYMARKET_US_KEY,
+        "X-API-KEY": polyKey,
         "X-API-SIGNATURE": polySig,
-        "X-API-TIMESTAMP": polyTimestamp
+        "X-API-TIMESTAMP": polyTimestamp,
+        "User-Agent": "CosmicParlaysTerminal/1.0"
       },
       body: polyBodyStr
     });
@@ -231,3 +282,4 @@ async function handleExecuteSpread(payload, env) {
     polymarket: polyResult
   }), { headers: CORS_HEADERS });
 }
+
