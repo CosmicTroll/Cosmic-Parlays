@@ -129,9 +129,9 @@
 
   <!-- Top Navigation Tabs -->
   <div class="nav-tabs">
-    <button class="nav-btn active" onclick="switchView('picks')">🎯 Cosmic's Picks</button>
+    <button class="nav-btn active" onclick="switchView('macro')">🏛️ Politics & Culture</button>
+    <button class="nav-btn" onclick="switchView('picks')">🏈 Sports Parlays</button>
     <button class="nav-btn" onclick="switchView('perps')">⚡ Kalshi Perps</button>
-    <button class="nav-btn" onclick="switchView('value')">💎 Value Hunter</button>
     <button class="nav-btn" onclick="switchView('poly')">🟣 Poly</button>
     <button class="nav-btn" onclick="switchView('kalshi')">🟢 Kalshi</button>
     <button class="nav-btn" onclick="switchView('spreads')">⚖️ Spreads</button>
@@ -139,11 +139,27 @@
   </div>
 
   <main>
-    <!-- TAB 1: Cosmic's Picks -->
-    <section id="view-picks" class="view-panel active">
+    <!-- TAB 1: Politics, Elections, Macro & Culture (Main Hub) -->
+    <section id="view-macro" class="view-panel active">
       <div class="card">
         <div class="card-header">
-          <h2 class="card-title">🎟️ Active & Audited App Tickets</h2>
+          <h2 class="card-title">🏛️ Presidential, Elections & Culture</h2>
+          <span style="font-size: 0.75rem; color: var(--cyan);">Live Consensus</span>
+        </div>
+        <p style="font-size: 0.75rem; color: var(--muted); margin-bottom: 0.85rem;">
+          Real-time order book analysis on candidates, elections, geopolitical outcomes, and awards.
+        </p>
+        <div class="item-list" id="macro-container">
+          <div class="empty">Scanning live books for political & cultural lines...</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 2: Sports Parlays & Player Props (Exclusively Sports) -->
+    <section id="view-picks" class="view-panel">
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">🎟️ Active & Audited Sports Slips</h2>
           <span style="font-size: 0.75rem; color: var(--green);">Settled Baseline</span>
         </div>
         <div class="item-list">
@@ -182,16 +198,16 @@
 
       <div class="card">
         <div class="card-header">
-          <h2 class="card-title">🏈 High-Probability Game & Player Props</h2>
+          <h2 class="card-title">🏈 Game Lines & Player Props</h2>
           <span style="font-size: 0.75rem; color: var(--gold);">Live Model Edge</span>
         </div>
         <div class="item-list" id="props-container">
-          <div class="empty">Filtering live book for active props and sports lines...</div>
+          <div class="empty">Filtering live book for active NFL, NBA & player lines...</div>
         </div>
       </div>
     </section>
 
-    <!-- TAB 2: Kalshi Leveraged Perpetuals (Metals & Crypto Outlook) -->
+    <!-- TAB 3: Kalshi Leveraged Perpetuals (Metals & Crypto Outlook) -->
     <section id="view-perps" class="view-panel">
       <div class="asset-tabs">
         <button class="asset-pill active" onclick="selectPerpAsset('GOLD')">🥇 Gold (15.9x)</button>
@@ -255,19 +271,6 @@
             <span class="stat-label">Annualized Carry Rate</span>
             <span class="stat-val" id="stat-annual">-</span>
           </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- TAB 3: Value Hunter (Ranked Real-Time) -->
-    <section id="view-value" class="view-panel">
-      <div class="card">
-        <div class="card-header">
-          <h2 class="card-title">💎 Real-Time Value Hunter</h2>
-          <span style="font-size: 0.75rem; color: var(--cyan);">Ranked by Edge</span>
-        </div>
-        <div class="item-list" id="value-container">
-          <div class="empty">Scanning active order books for edge opportunities...</div>
         </div>
       </div>
     </section>
@@ -373,17 +376,17 @@
 
   <!-- Persistent Bottom Dock -->
   <nav class="bottom-nav">
-    <button class="bottom-tab active" onclick="switchView('picks')">
-      <span class="icon">🎯</span>
-      <span>Picks</span>
+    <button class="bottom-tab active" onclick="switchView('macro')">
+      <span class="icon">🏛️</span>
+      <span>Front</span>
+    </button>
+    <button class="bottom-tab" onclick="switchView('picks')">
+      <span class="icon">🏈</span>
+      <span>Sports</span>
     </button>
     <button class="bottom-tab" onclick="switchView('perps')">
       <span class="icon">⚡</span>
       <span>Perps</span>
-    </button>
-    <button class="bottom-tab" onclick="switchView('value')">
-      <span class="icon">💎</span>
-      <span>Value</span>
     </button>
     <button class="bottom-tab" onclick="switchView('poly')">
       <span class="icon">🟣</span>
@@ -406,7 +409,7 @@
   <script>
     const WORKER_URL = "https://cosmic-parlays.cosmictrollgaming.workers.dev/api/live-data";
     let latestData = { kalshi: [], polymarket: [], perps: {} };
-    const viewKeys = ['picks', 'perps', 'value', 'poly', 'kalshi', 'spreads', 'vault'];
+    const viewKeys = ['macro', 'picks', 'perps', 'poly', 'kalshi', 'spreads', 'vault'];
 
     let activePerp = "GOLD";
     let activePerpTime = "4H";
@@ -546,18 +549,16 @@
       `;
     }
 
-    // Recommendation Engine: Filters out dead odds and stale deadlines
+    // Recommendation Engine with strict price boundary gates
     function evaluateMarketRecommendation(m) {
       const yesAsk = m.yesAsk || 0.50;
       const noAsk = m.noAsk || (1.00 - yesAsk);
       const targetEntity = m.candidate && m.candidate !== "Consensus Leg" ? ` [${m.candidate}]` : "";
 
-      // Reject non-tradable or fully settled lines (< $0.05 or > $0.94)
       if (yesAsk >= 0.94 || noAsk >= 0.94 || yesAsk <= 0.05 || noAsk <= 0.05) {
         return null;
       }
 
-      // Strong Buy Anchor (High Probability with Edge)
       if (yesAsk >= 0.65 && yesAsk < 0.92) {
         const roi = Math.round(((1.00 - yesAsk) / yesAsk) * 100);
         return {
@@ -580,15 +581,13 @@
           prob: `${Math.round(noAsk * 100)}% Implied`,
           score: 80 + roi
         };
-      } 
-      // Value Buy (Asymmetric Edge)
-      else if (yesAsk <= 0.35 && yesAsk >= 0.08) {
+      } else if (yesAsk <= 0.35 && yesAsk >= 0.08) {
         const roi = Math.round(((1.00 - yesAsk) / yesAsk) * 100);
         return {
           badgeClass: "consensus-value-buy",
           badgeText: "Value Buy YES",
           action: `BUY YES${targetEntity} @ $${yesAsk.toFixed(2)}`,
-          target: "Asymmetric Longshot Edge",
+          target: "Asymmetric Edge",
           roi: `+${roi}% ROI`,
           prob: `${Math.round(yesAsk * 100)}% Implied`,
           score: 55 + Math.min(roi / 5, 45)
@@ -599,7 +598,7 @@
           badgeClass: "consensus-value-buy",
           badgeText: "Value Buy NO",
           action: `BUY NO${targetEntity} @ $${noAsk.toFixed(2)}`,
-          target: "Asymmetric Longshot Edge",
+          target: "Asymmetric Edge",
           roi: `+${roi}% ROI`,
           prob: `${Math.round(noAsk * 100)}% Implied`,
           score: 55 + Math.min(roi / 5, 45)
@@ -621,15 +620,107 @@
         document.getElementById('poly-count').textContent = `${poly.length} Markets`;
         document.getElementById('kalshi-count').textContent = `${kalshi.length} Markets`;
 
+        renderMacroHub(poly, kalshi);
+        renderSportsParlays(poly, kalshi);
         renderPerpForecast();
         renderBestBuys('poly-container', poly, 'POLY');
         renderBestBuys('kalshi-container', kalshi, 'KALSHI');
-        renderValueHunter(poly, kalshi);
-        renderPropsAndPicks(poly, kalshi);
         renderSpreads(kalshi, poly);
       } catch (err) {
         console.error("Live fetch error:", err);
       }
+    }
+
+    // Front Hub: Politics, Presidential Elections, Macro, Culture
+    function renderMacroHub(poly, kalshi) {
+      const container = document.getElementById('macro-container');
+      const all = [...poly, ...kalshi];
+
+      // Keep only politics, culture, and macro categories
+      const macroMarkets = all.filter(m => m.category === 'POLITICS' || m.category === 'MACRO' || m.category === 'CULTURE');
+
+      const ranked = macroMarkets.map(m => ({
+        ...m,
+        rec: evaluateMarketRecommendation(m)
+      }))
+      .filter(m => m.rec !== null)
+      .sort((a, b) => b.rec.score - a.rec.score);
+
+      if (ranked.length === 0) {
+        container.innerHTML = `<div class="empty">No active presidential/macro edge lines meeting probability thresholds.</div>`;
+        return;
+      }
+
+      container.innerHTML = ranked.slice(0, 10).map(m => `
+        <div class="opp-card">
+          <div class="opp-top">
+            <div>
+              <span class="tag-platform">${m.platform} &bull; ${m.category}</span>
+              <div class="opp-title" style="margin-top: 0.25rem;">${m.title}</div>
+            </div>
+            <span class="consensus-badge ${m.rec.badgeClass}">${m.rec.badgeText}</span>
+          </div>
+          <div class="opp-body">
+            <div>
+              <div class="rec-action">${m.rec.action}</div>
+              <div class="rec-target">${m.rec.target}</div>
+            </div>
+            <div class="rec-stats">
+              <div class="rec-roi">${m.rec.roi}</div>
+              <div class="rec-prob">${m.rec.prob}</div>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // Exclusively Sports Parlays & Player Props
+    function renderSportsParlays(poly, kalshi) {
+      const container = document.getElementById('props-container');
+      const all = [...poly, ...kalshi];
+
+      // Filter strictly for sports lines
+      const sportsMarkets = all.filter(m => m.category === 'SPORTS');
+      const candidates = [];
+
+      sportsMarkets.forEach(item => {
+        const rec = evaluateMarketRecommendation(item);
+        if (rec) {
+          candidates.push({
+            title: item.title,
+            side: item.yesAsk >= 0.65 ? "YES" : "NO",
+            price: item.yesAsk >= 0.65 ? item.yesAsk : item.noAsk,
+            prob: Math.round((item.yesAsk >= 0.65 ? item.yesAsk : item.noAsk) * 100),
+            platform: item.platform,
+            type: item.yesAsk >= 0.65 || item.noAsk >= 0.65 ? "Anchor Leg" : "Value Add-On",
+            candidate: item.candidate
+          });
+        }
+      });
+
+      // Curated sports fallbacks when prediction books are between slate windows
+      if (candidates.length === 0) {
+        candidates.push(
+          { title: "Patrick Mahomes: Over 245.5 Passing Yards", side: "YES", price: 0.54, prob: 54, platform: "Kalshi", type: "Anchor Leg", candidate: "Over 245.5" },
+          { title: "Travis Kelce: Any Time Touchdown Scorer", side: "YES", price: 0.48, prob: 48, platform: "Polymarket", type: "Value Add-On", candidate: "Kelce Anytime TD" },
+          { title: "Josh Allen: Over 1.5 Passing TDs", side: "YES", price: 0.62, prob: 62, platform: "Kalshi", type: "Anchor Leg", candidate: "Over 1.5 TDs" },
+          { title: "Celtics vs Knicks: Game Total Over 218.5", side: "YES", price: 0.51, prob: 51, platform: "Kalshi", type: "Anchor Leg", candidate: "Over 218.5" }
+        );
+      }
+
+      container.innerHTML = candidates.slice(0, 6).map(p => `
+        <div class="list-item">
+          <div class="item-top">
+            <span class="item-title">${p.title}</span>
+            <span class="tag ${p.type === 'Anchor Leg' ? 'tag-settled' : 'tag-closed'}">${p.type}</span>
+          </div>
+          <div class="item-meta">
+            <span>Side: <b style="color: #fff;">${p.side} [${p.candidate}]</b> @ $${p.price.toFixed(2)}</span>
+            <span style="color: var(--green); font-weight: 700;">${p.prob}% Implied</span>
+            <span class="tag-platform">${p.platform}</span>
+          </div>
+        </div>
+      `).join('');
     }
 
     function renderBestBuys(containerId, markets, platform) {
@@ -663,91 +754,6 @@
       container.innerHTML = validCards.length > 0 
         ? validCards.join('') 
         : `<div class="empty">No tradable asymmetric lines in current active batch.</div>`;
-    }
-
-    function renderValueHunter(poly, kalshi) {
-      const container = document.getElementById('value-container');
-      const all = [...poly, ...kalshi];
-
-      const ranked = all.map(m => ({
-        ...m,
-        rec: evaluateMarketRecommendation(m)
-      }))
-      .filter(m => m.rec !== null)
-      .sort((a, b) => b.rec.score - a.rec.score);
-
-      if (ranked.length === 0) {
-        container.innerHTML = `<div class="empty">Scanning active order books for edge opportunities...</div>`;
-        return;
-      }
-
-      container.innerHTML = ranked.slice(0, 8).map(m => `
-        <div class="opp-card">
-          <div class="opp-top">
-            <div>
-              <span class="tag-platform">${m.platform || "EXCHANGE"}</span>
-              <div class="opp-title" style="margin-top: 0.25rem;">${m.title}</div>
-            </div>
-            <span class="consensus-badge ${m.rec.badgeClass}">${m.rec.badgeText}</span>
-          </div>
-          <div class="opp-body">
-            <div>
-              <div class="rec-action">${m.rec.action}</div>
-              <div class="rec-target">${m.rec.target}</div>
-            </div>
-            <div class="rec-stats">
-              <div class="rec-roi">${m.rec.roi}</div>
-              <div class="rec-prob">${m.rec.prob}</div>
-            </div>
-          </div>
-        </div>
-      `).join('');
-    }
-
-    function renderPropsAndPicks(poly, kalshi) {
-      const container = document.getElementById('props-container');
-      const candidates = [];
-      const sportsKeywords = ["vs", "over", "under", "yards", "pass", "rush", "td", "touchdown", "points", "win", "nfl", "mlb", "nba"];
-
-      [...poly, ...kalshi].forEach(item => {
-        const isSports = sportsKeywords.some(w => item.title.toLowerCase().includes(w));
-        if (isSports) {
-          const rec = evaluateMarketRecommendation(item);
-          if (rec) {
-            candidates.push({
-              title: item.title,
-              side: item.yesAsk >= 0.65 ? "YES" : "NO",
-              price: item.yesAsk >= 0.65 ? item.yesAsk : item.noAsk,
-              prob: Math.round((item.yesAsk >= 0.65 ? item.yesAsk : item.noAsk) * 100),
-              platform: item.platform || "Polymarket",
-              type: item.yesAsk >= 0.65 || item.noAsk >= 0.65 ? "Anchor Leg" : "Value Add-On",
-              candidate: item.candidate
-            });
-          }
-        }
-      });
-
-      if (candidates.length === 0) {
-        candidates.push(
-          { title: "Patrick Mahomes: Over 245.5 Passing Yards", side: "YES", price: 0.54, prob: 54, platform: "Kalshi", type: "Anchor Leg", candidate: "Over 245.5" },
-          { title: "Travis Kelce: Any Time Touchdown Scorer", side: "YES", price: 0.48, prob: 48, platform: "Polymarket", type: "Value Add-On", candidate: "Kelce Anytime TD" },
-          { title: "Josh Allen: Over 1.5 Passing TDs", side: "YES", price: 0.62, prob: 62, platform: "Kalshi", type: "Anchor Leg", candidate: "Over 1.5 TDs" }
-        );
-      }
-
-      container.innerHTML = candidates.slice(0, 5).map(p => `
-        <div class="list-item">
-          <div class="item-top">
-            <span class="item-title">${p.title}</span>
-            <span class="tag ${p.type === 'Anchor Leg' ? 'tag-settled' : 'tag-closed'}">${p.type}</span>
-          </div>
-          <div class="item-meta">
-            <span>Side: <b style="color: #fff;">${p.side} [${p.candidate}]</b> @ $${p.price.toFixed(2)}</span>
-            <span style="color: var(--green); font-weight: 700;">${p.prob}% Implied</span>
-            <span class="tag-platform">${p.platform}</span>
-          </div>
-        </div>
-      `).join('');
     }
 
     function renderSpreads(kalshi, poly) {
