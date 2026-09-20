@@ -549,7 +549,6 @@
       }
     }
 
-    // Dynamic Active Exchange Positions / Resting Orders with safe defaults
     function renderTickets(positions) {
       const container = document.getElementById('tickets-container');
       if (!positions || positions.length === 0) {
@@ -575,7 +574,6 @@
       }).join('');
     }
 
-    // Pure Sports Slips & Props (No Politics)
     function renderSportsParlays(poly, kalshi) {
       const container = document.getElementById('props-container');
       const all = [...poly, ...kalshi];
@@ -622,7 +620,6 @@
       `).join('');
     }
 
-    // Politics & Culture Hub
     function renderMacroHub(poly, kalshi) {
       const container = document.getElementById('macro-container');
       const all = [...poly, ...kalshi];
@@ -726,7 +723,6 @@
       container.innerHTML = found ? html : `<div class="empty">No direct cross-exchange spreads found in active order books right now.</div>`;
     }
 
-    // Live Vault Balances
     function renderVaultLive() {
       const portfolio = latestData.portfolio || {};
       const polyBal = portfolio.polyBalance || 2.57;
