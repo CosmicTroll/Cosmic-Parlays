@@ -248,6 +248,7 @@ async function handleLiveData(env) {
       if (!e || seenEvent.has(e.id)) return;
       seenEvent.add(e.id);
 
+      // Cleanly skip messy multi-leg comma accumulators
       if ((e.title || "").includes(",") && (e.title || "").split(",").length > 2) return;
 
       const endDate = e.endDate || e.end_date || (e.markets && e.markets[0] && e.markets[0].endDate) || null;
@@ -280,7 +281,7 @@ async function handleLiveData(env) {
     console.error("Polymarket catalog fetch error:", err);
   }
 
-  // --- Kalshi Live Market Pricing (Robust Value Extraction) ---
+  // --- Kalshi Live Market Pricing ---
   let kalshi = [];
   try {
     const basePath = "/trade-api/v2/markets";
@@ -312,15 +313,14 @@ async function handleLiveData(env) {
       rawMarkets.forEach(m => {
         if (m.status && m.status !== "open" && m.status !== "active") return;
 
-        // Dynamic price extractor across all possible Kalshi field shapes
         let yesVal = null;
         let noVal = null;
 
-        // 1. Check live asks
+        // 1. Explicit asks
         if (m.yes_ask && m.yes_ask > 0) yesVal = m.yes_ask > 1 ? m.yes_ask / 100 : m.yes_ask;
         if (m.no_ask && m.no_ask > 0) noVal = m.no_ask > 1 ? m.no_ask / 100 : m.no_ask;
 
-        // 2. Check reciprocal bids (Yes Ask = 1 - No Bid; No Ask = 1 - Yes Bid)
+        // 2. Reciprocal bids
         if (yesVal === null && m.no_bid && m.no_bid > 0) {
           const nb = m.no_bid > 1 ? m.no_bid / 100 : m.no_bid;
           yesVal = 1.00 - nb;
@@ -330,24 +330,24 @@ async function handleLiveData(env) {
           noVal = 1.00 - yb;
         }
 
-        // 3. Check last executed trade price
+        // 3. Last trade price
         if (yesVal === null && m.last_price && m.last_price > 0) {
           yesVal = m.last_price > 1 ? m.last_price / 100 : m.last_price;
         }
 
-        // 4. Check previous closing price
+        // 4. Previous close
         if (yesVal === null && m.previous_yes_ask && m.previous_yes_ask > 0) {
           yesVal = m.previous_yes_ask > 1 ? m.previous_yes_ask / 100 : m.previous_yes_ask;
         } else if (yesVal === null && m.previous_price && m.previous_price > 0) {
           yesVal = m.previous_price > 1 ? m.previous_price / 100 : m.previous_price;
         }
 
-        // Derive missing complement
         if (yesVal !== null && noVal === null) noVal = 1.00 - yesVal;
         if (noVal !== null && yesVal === null) yesVal = 1.00 - noVal;
 
-        // Fallback for unquoted contracts to permit spread matching (50/50 seed)
-        if (yesVal === null) {
+        // Mark unquoted contracts so spreads do not execute phantom trades
+        const isQuoted = yesVal !== null;
+        if (!isQuoted) {
           yesVal = 0.50;
           noVal = 0.50;
         }
@@ -362,6 +362,7 @@ async function handleLiveData(env) {
           category: categorizeTitle(fullTitle),
           yesAsk: Number(Number(yesVal).toFixed(2)),
           noAsk: Number(Number(noVal).toFixed(2)),
+          isQuoted: isQuoted,
           volume: m.volume || m.volume_24h || 0,
           endDate: m.close_time || m.expiration_time || null,
           platform: "Kalshi"
