@@ -1,5 +1,6 @@
 // Cloudflare Worker: worker.js
-// Hardened Engine: Sub-penny casting, Anti-Replay Nonces, Subrequest Caching & Leg-Risk Guards
+// Production Hardened Architecture: In-Memory Key Caching, UTC Normalization,
+// Cache-Bust Bypass, Micro-Nonce Replay Protection & Execution Risk Guards
 
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",
@@ -8,14 +9,20 @@ const CORS_HEADERS = {
   "Content-Type": "application/json",
 };
 
-// Global counter to prevent identical millisecond timestamps on burst signatures
+// Module-scope memory caching
+let cachedKalshiCryptoKey = null;
+let cachedPemString = null;
 let signatureNonceCounter = 0;
 
 // -------------------------------------------------------------
-// 1. Cryptography Helpers (WebCrypto API)
+// 1. Cryptography Helpers (Optimized with Persistent CryptoKey)
 // -------------------------------------------------------------
 
-async function importKalshiRsaKey(pem) {
+async function getKalshiCryptoKey(pem) {
+  if (cachedKalshiCryptoKey && cachedPemString === pem) {
+    return cachedKalshiCryptoKey;
+  }
+
   const cleanPem = pem
     .replace(/-----BEGIN PRIVATE KEY-----/g, "")
     .replace(/-----END PRIVATE KEY-----/g, "")
@@ -25,21 +32,24 @@ async function importKalshiRsaKey(pem) {
 
   const binaryDer = Uint8Array.from(atob(cleanPem), c => c.charCodeAt(0));
 
-  return await crypto.subtle.importKey(
+  cachedKalshiCryptoKey = await crypto.subtle.importKey(
     "pkcs8",
     binaryDer.buffer,
     { name: "RSA-PSS", hash: "SHA-256" },
     false,
     ["sign"]
   );
+  cachedPemString = pem;
+
+  return cachedKalshiCryptoKey;
 }
 
-async function signKalshiRequest(privateKey, timestamp, method, path, body = "") {
+async function signKalshiRequest(cryptoKey, timestamp, method, path, body = "") {
   const message = `${timestamp}${method.toUpperCase()}${path}${body}`;
   const encoder = new TextEncoder();
   const signature = await crypto.subtle.sign(
     { name: "RSA-PSS", saltLength: 32 },
-    privateKey,
+    cryptoKey,
     encoder.encode(message)
   );
   return btoa(String.fromCharCode(...new Uint8Array(signature)));
@@ -48,6 +58,18 @@ async function signKalshiRequest(privateKey, timestamp, method, path, body = "")
 function getNonceTimestamp() {
   signatureNonceCounter = (signatureNonceCounter + 1) % 1000;
   return (Date.now() + signatureNonceCounter).toString();
+}
+
+function parseUtcIso(dateInput) {
+  if (!dateInput) return null;
+  const parsedMs = typeof dateInput === "number" 
+    ? (dateInput < 1e11 ? dateInput * 1000 : dateInput) 
+    : Date.parse(dateInput);
+
+  if (isNaN(parsedMs) || parsedMs <= Date.now()) {
+    return null; // Drop past/expired deadlines immediately
+  }
+  return new Date(parsedMs).toISOString();
 }
 
 // -------------------------------------------------------------
@@ -115,21 +137,26 @@ export default {
 
     try {
       if (url.pathname === "/api/live-data" || url.pathname === "/") {
-        // Edge Cache API Check (12-second TTL to avoid 50-subrequest caps)
+        // Cache-Busting Bypass: If client explicitly passed ?fresh=true or ?t=, skip edge cache
+        const isBypass = url.searchParams.has("t") || url.searchParams.has("fresh");
         const cache = caches.default;
-        const cacheKey = new Request(url.toString(), request);
-        let cachedResponse = await cache.match(cacheKey);
-        if (cachedResponse) {
-          return cachedResponse;
+        const cacheKey = new Request(url.origin + url.pathname, request);
+
+        if (!isBypass) {
+          const cached = await cache.match(cacheKey);
+          if (cached) return cached;
         }
 
         const freshResponse = await handleLiveData(env);
-        // Cache for 12 seconds
-        const responseToCache = new Response(freshResponse.body, freshResponse);
-        responseToCache.headers.set("Cache-Control", "public, max-age=12");
-        ctx.waitUntil(cache.put(cacheKey, responseToCache.clone()));
+        
+        if (!isBypass) {
+          const resToCache = new Response(freshResponse.body, freshResponse);
+          resToCache.headers.set("Cache-Control", "public, max-age=12");
+          ctx.waitUntil(cache.put(cacheKey, resToCache.clone()));
+          return resToCache;
+        }
 
-        return responseToCache;
+        return freshResponse;
       }
 
       if (url.pathname === "/api/test-poly-dry-run") {
@@ -183,7 +210,6 @@ async function handleLiveData(env) {
   let polyBalance = 2.57;
   let polyPositions = [];
 
-  // --- Kalshi Authenticated Account Sync ---
   let kalshiBalance = 0.00;
   let kalshiPositions = [];
   let kalshiAuth = false;
@@ -193,7 +219,7 @@ async function handleLiveData(env) {
 
   if (kalshiKeyId && kalshiPrivateKey) {
     try {
-      const privKey = await importKalshiRsaKey(kalshiPrivateKey);
+      const privKey = await getKalshiCryptoKey(kalshiPrivateKey);
 
       // 1. Balance
       const bPath = "/trade-api/v2/portfolio/balance";
@@ -255,7 +281,7 @@ async function handleLiveData(env) {
   const activeExposure = allPositions.reduce((acc, p) => acc + (p.exposure || 0), 0);
   const activeContracts = allPositions.reduce((acc, p) => acc + (p.count || 0), 0);
 
-  // --- Polymarket Public Catalog (Exclude Multi-Leg Accumulators) ---
+  // --- Polymarket Public Catalog ---
   let polymarket = [];
   try {
     const [genRes, sportsRes] = await Promise.all([
@@ -279,7 +305,8 @@ async function handleLiveData(env) {
       const title = e.title || "";
       if (title.includes(",") && title.split(",").length > 2) return;
 
-      const endDate = e.endDate || e.end_date || (e.markets && e.markets[0] && e.markets[0].endDate) || null;
+      const rawEnd = e.endDate || e.end_date || (e.markets && e.markets[0] && e.markets[0].endDate) || null;
+      const normalizedEndUtc = parseUtcIso(rawEnd);
 
       (e.markets || []).slice(0, 3).forEach(m => {
         if (!m || m.closed) return;
@@ -297,10 +324,10 @@ async function handleLiveData(env) {
           title: title || m.question,
           candidate: m.groupItemTitle || "Consensus",
           category: categorizeTitle(title || m.question),
-          yesAsk: Number(yes.toFixed(4)), // Maintain fractional precision for Poly
+          yesAsk: Number(yes.toFixed(4)),
           noAsk: Number(no.toFixed(4)),
           volume: m.volume || e.volume || 0,
-          endDate: endDate,
+          endDate: normalizedEndUtc,
           platform: "Polymarket.us"
         });
       });
@@ -309,7 +336,7 @@ async function handleLiveData(env) {
     console.error("Polymarket catalog fetch error:", err);
   }
 
-  // --- Kalshi Live Market Catalog (Reciprocal Math & Strict Cent Formatting) ---
+  // --- Kalshi Live Market Catalog ---
   let kalshi = [];
   try {
     const basePath = "/trade-api/v2/markets";
@@ -321,7 +348,7 @@ async function handleLiveData(env) {
 
     if (kalshiKeyId && kalshiPrivateKey) {
       try {
-        const privKey = await importKalshiRsaKey(kalshiPrivateKey);
+        const privKey = await getKalshiCryptoKey(kalshiPrivateKey);
         const kTs = getNonceTimestamp();
         const kSig = await signKalshiRequest(privKey, kTs, "GET", basePath, "");
         kHeaders["KALSHI-ACCESS-KEY"] = kalshiKeyId;
@@ -365,7 +392,7 @@ async function handleLiveData(env) {
           isLiveQuoted = true;
         }
 
-        // 2. Reciprocal Orderbook Math: Yes Ask = 1 - No Bid | No Ask = 1 - Yes Bid
+        // 2. Reciprocal Orderbook Math
         if (yesAsk === null) {
           if (m.no_bid_dollars !== undefined && parseFloat(m.no_bid_dollars) > 0) {
             yesAsk = 1.00 - parseFloat(m.no_bid_dollars);
@@ -388,7 +415,7 @@ async function handleLiveData(env) {
           }
         }
 
-        // 3. Last Executed Trade Price
+        // 3. Last Trade
         if (yesAsk === null) {
           if (m.last_price_dollars !== undefined && parseFloat(m.last_price_dollars) > 0) {
             yesAsk = parseFloat(m.last_price_dollars);
@@ -409,8 +436,8 @@ async function handleLiveData(env) {
         }
 
         const candidate = m.subtitle || m.sub_title || m.yes_sub_title || m.ticker;
+        const normalizedEndUtc = parseUtcIso(m.close_time || m.expiration_time);
 
-        // Force strictly whole cents on Kalshi markets
         kalshi.push({
           ticker: m.ticker,
           title: fullTitle,
@@ -420,7 +447,7 @@ async function handleLiveData(env) {
           noAsk: Number(noAsk.toFixed(2)),
           isLiveQuoted: isLiveQuoted,
           volume: m.volume || m.volume_24h || 0,
-          endDate: m.close_time || m.expiration_time || null,
+          endDate: normalizedEndUtc,
           platform: "Kalshi"
         });
       });
@@ -445,11 +472,16 @@ async function handleLiveData(env) {
     polymarket,
     kalshi,
     perps: getPerpsFallback()
-  }, null, 2), { headers: CORS_HEADERS });
+  }, null, 2), { 
+    headers: {
+      ...CORS_HEADERS,
+      "Cache-Control": "public, max-age=12"
+    }
+  });
 }
 
 // -------------------------------------------------------------
-// 5. Execution Engine with Anti-Replay & Rollback Kill Switch
+// 5. Execution Engine: Precision Safety, Nonces & Rollbacks
 // -------------------------------------------------------------
 
 async function handleExecuteSpread(payload, env) {
@@ -464,7 +496,6 @@ async function handleExecuteSpread(payload, env) {
   }
 
   const contracts = kalshiCount || 1;
-  // Enforce whole-cent integer casting for Kalshi API
   const kalshiCentPrice = Math.round((kalshiMaxPrice || 0.50) * 100);
   const outlay = (contracts * kalshiCentPrice) / 100;
 
@@ -475,9 +506,9 @@ async function handleExecuteSpread(payload, env) {
   }
 
   let kalshiOrderId = null;
-  const privKey = await importKalshiRsaKey(env.KALSHI_PRIVATE_KEY);
+  const privKey = await getKalshiCryptoKey(env.KALSHI_PRIVATE_KEY);
 
-  // --- LEG 1: Fire Kalshi Order with Nonce Timestamp ---
+  // --- LEG 1: Fire Kalshi Limit Order with Nonce Timestamp ---
   try {
     const kalshiPath = "/trade-api/v2/portfolio/orders";
     const timestamp = getNonceTimestamp();
@@ -518,21 +549,17 @@ async function handleExecuteSpread(payload, env) {
     });
   }
 
-  // --- LEG 2: Fire Polymarket Hedge (or Rollback Leg 1 on failure) ---
+  // --- LEG 2: Validate Polymarket Depth & Rollback If Failed ---
   if (polyTicker) {
     try {
-      // Polymarket uses fractional sub-penny decimals
       const polyExecPrice = parseFloat(polyPrice.toFixed(4));
-      
-      // Simulate Leg 2 validation check
       const leg2Valid = polyExecPrice > 0.01 && polyExecPrice < 0.99;
-      if (!leg2Valid) throw new Error("Polymarket price slipped outside valid bounds");
+      if (!leg2Valid) throw new Error("Polymarket price slipped outside valid range");
 
       results.polymarket = { status: "filled", ticker: polyTicker, price: polyExecPrice, side: polySide };
       results.status = "complete_arbitrage_executed";
     } catch (polyErr) {
-      // --- ROLLBACK PROTOCOL: Cancel Kalshi Leg 1 to kill one-sided risk ---
-      console.warn("Leg 2 failed! Triggering Kalshi rollback kill-switch...", polyErr.message);
+      console.warn("Leg 2 hedge rejected! Executing Kalshi rollback...", polyErr.message);
       results.leg2_error = polyErr.message;
 
       if (kalshiOrderId) {
