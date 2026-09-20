@@ -118,6 +118,11 @@ export default {
         return await handleDryRun(env);
       }
 
+      if (url.pathname === "/api/execute-spread" && request.method === "POST") {
+        const payload = await request.json();
+        return await handleExecuteSpread(payload, env);
+      }
+
       return new Response(JSON.stringify({ error: "Endpoint not found" }), {
         status: 404,
         headers: CORS_HEADERS,
@@ -137,14 +142,14 @@ export default {
 
 function categorizeTitle(title) {
   const t = title.toLowerCase();
-  if (/vs|game|over|under|yards|pass|rush|touchdown|td|points|nfl|nba|mlb|nhl|spread|score|win/i.test(t)) {
-    return "SPORTS";
-  }
   if (/president|election|nominee|democrat|republican|senate|governor|vance|trump|harris|newsom|putin|ukraine|war/i.test(t)) {
     return "POLITICS";
   }
   if (/fed|rate|inflation|cpi|interest|gdp|recession|treasury|yield|cuts/i.test(t)) {
     return "MACRO";
+  }
+  if (/vs|game|over|under|yards|pass|rush|touchdown|td|points|nfl|nba|mlb|nhl|spread|score|win/i.test(t)) {
+    return "SPORTS";
   }
   return "CULTURE";
 }
@@ -186,7 +191,7 @@ async function handleLiveData(env) {
         kalshiAuth = true;
       }
 
-      // Check both Market Positions & Resting Limit Orders
+      // Check Market Positions
       const pPath = "/trade-api/v2/portfolio/positions";
       const pSig = await signKalshiRequest(privKey, ts, "GET", pPath, "");
       const pRes = await fetch(`https://external-api.kalshi.com${pPath}`, {
@@ -201,19 +206,20 @@ async function handleLiveData(env) {
       if (pRes.ok) {
         const pData = await pRes.json();
         (pData.market_positions || []).forEach(pos => {
-          if (pos.position !== 0) {
+          const qty = pos.position !== undefined ? pos.position : (pos.user_position || 0);
+          if (qty !== 0) {
             kalshiPositions.push({
               platform: "Kalshi",
               title: pos.ticker,
-              count: Math.abs(pos.position),
-              exposure: (pos.market_exposure || 0) / 100,
-              status: pos.position > 0 ? "Active Long" : "Active Short"
+              count: Math.abs(qty),
+              exposure: (pos.market_exposure || (Math.abs(qty) * 0.50 * 100)) / 100,
+              status: qty > 0 ? "Active Long" : "Active Short"
             });
           }
         });
       }
 
-      // Query open/resting orders
+      // Query Resting Orders with comprehensive property resolution
       const oPath = "/trade-api/v2/portfolio/orders?status=resting";
       const oSig = await signKalshiRequest(privKey, ts, "GET", oPath, "");
       const oRes = await fetch(`https://external-api.kalshi.com${oPath}`, {
@@ -228,11 +234,13 @@ async function handleLiveData(env) {
       if (oRes.ok) {
         const oData = await oRes.json();
         (oData.orders || []).forEach(ord => {
+          const contractCount = ord.order_count || ord.remaining_count || ord.count || ord.quantity || 1;
+          const priceCents = ord.yes_price || ord.no_price || ord.price || 50;
           kalshiPositions.push({
             platform: "Kalshi",
-            title: `${ord.ticker} (${ord.action.toUpperCase()} ${ord.side.toUpperCase()})`,
-            count: ord.remaining_count || ord.count || 1,
-            exposure: ((ord.yes_price || 50) * (ord.remaining_count || 1)) / 100,
+            title: `${ord.ticker} (${(ord.action || "BUY").toUpperCase()} ${(ord.side || "YES").toUpperCase()})`,
+            count: contractCount,
+            exposure: (contractCount * priceCents) / 100,
             status: "Resting Limit"
           });
         });
@@ -242,7 +250,7 @@ async function handleLiveData(env) {
     }
   }
 
-  // 2. Live Polymarket Balance & On-Chain Wallet Balance Fetch
+  // 2. Live Polymarket Balance Fetch
   let polyBalance = 0.00;
   let polyPositions = [];
   let polyAuth = false;
@@ -251,7 +259,6 @@ async function handleLiveData(env) {
   const polySecret = env?.POLYMARKET_US_SECRET || env?.POLYMARKET_SECRET;
   const polyAddress = env?.POLYMARKET_ADDRESS || env?.POLY_ADDRESS || env?.WALLET_ADDRESS;
 
-  // Query Polymarket CLOB
   if (polyKey && polySecret) {
     try {
       const polyPath = "/balance-allowance";
@@ -279,7 +286,7 @@ async function handleLiveData(env) {
     }
   }
 
-  // Polygon RPC Balance Fallback (USDC.e: 0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174)
+  // Polygon RPC Balance Fallback (USDC.e)
   if (polyAddress && polyBalance === 0) {
     try {
       const rpcPayload = {
@@ -308,7 +315,6 @@ async function handleLiveData(env) {
     }
   }
 
-  // If Poly credentials exist, mark authenticated
   if (polyKey && polySecret) polyAuth = true;
 
   // 3. Kalshi Public Markets Fetch
@@ -322,7 +328,7 @@ async function handleLiveData(env) {
       kalshiMarkets = kJson.markets || [];
     }
   } catch (err) {
-    console.error("Kalshi fetch error:", err);
+    console.error("Kalshi public fetch error:", err);
   }
 
   // 4. Polymarket Public Markets Fetch (General & Sports Dedicated)
@@ -344,7 +350,6 @@ async function handleLiveData(env) {
     console.error("Polymarket fetch error:", err);
   }
 
-  // Combine and deduplicate Polymarket events
   const polyEventMap = new Map();
   [...(Array.isArray(polyGeneral) ? polyGeneral : []), ...(Array.isArray(polySports) ? polySports : [])].forEach(ev => {
     if (ev && ev.id) polyEventMap.set(ev.id, ev);
