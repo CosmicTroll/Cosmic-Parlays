@@ -14,7 +14,6 @@
     .header h1 { font-size: 20px; font-weight: 800; color: #E0E7FF; letter-spacing: 0.5px; }
     .header p { color: #818CF8; font-size: 12px; margin-top: 2px; }
     
-    /* Segment Bar */
     .tab-scroll { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 12px; scrollbar-width: none; }
     .tab-scroll::-webkit-scrollbar { display: none; }
     .tab-btn { flex: 0 0 auto; padding: 8px 12px; border: 1px solid #242C48; background-color: #151928; color: #94A3B8; font-size: 12px; font-weight: 700; border-radius: 8px; cursor: pointer; white-space: nowrap; }
@@ -28,9 +27,10 @@
     .badge.scout { background-color: #065F46; color: #A7F3D0; }
     .badge.perp { background-color: #831843; color: #FBCFE8; }
     .badge.macro { background-color: #78350F; color: #FDE68A; }
+    .badge.up { background-color: #14532D; color: #86EFAC; }
+    .badge.down { background-color: #7F1D1D; color: #FCA5A5; }
     .tier { color: #38BDF8; font-size: 11px; font-weight: 600; margin-bottom: 10px; }
     
-    /* Full Text Expansion Leg Rows */
     .leg { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; padding: 9px 0; border-bottom: 1px solid #1A2035; }
     .leg-info { flex: 1; min-width: 0; }
     .leg-matchup { font-size: 11px; color: #94A3B8; line-height: 15px; word-wrap: break-word; }
@@ -41,15 +41,13 @@
     .analysis-title { font-size: 11px; font-weight: 700; color: #A5B4FC; margin-bottom: 2px; }
     .analysis-text { font-size: 12px; line-height: 16px; color: #94A3B8; }
     
-    /* Interactive Educational Tooltips */
     .tip { border-bottom: 1px dashed #818CF8; color: #A5B4FC; cursor: pointer; display: inline-flex; align-items: center; gap: 3px; font-weight: 600; }
     .tip::after { content: 'ℹ️'; font-size: 9px; opacity: 0.8; }
 
-    /* Modal Tooltip Sheet */
     .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(2px); z-index: 100; align-items: flex-end; justify-content: center; }
     .modal-sheet { background: #151928; border: 1px solid #4338CA; border-radius: 16px 16px 0 0; padding: 20px; width: 100%; max-width: 500px; box-shadow: 0 -4px 20px rgba(0,0,0,0.6); animation: slideUp 0.2s ease-out; }
     @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
-    .modal-title { font-size: 15px; font-weight: 800; color: #EEF2FF; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+    .modal-title { font-size: 15px; font-weight: 800; color: #EEF2FF; margin-bottom: 8px; }
     .modal-desc { font-size: 13px; line-height: 18px; color: #CBD5E1; margin-bottom: 14px; }
     .modal-btn { width: 100%; padding: 10px; background: #3730A3; border: none; border-radius: 8px; color: white; font-weight: 700; font-size: 13px; cursor: pointer; }
 
@@ -60,14 +58,14 @@
 <body>
   <div class="header">
     <h1>Cosmic Parlay Theorem</h1>
-    <p>Daily Prediction Market Terminal</p>
+    <p>Prediction Market Companion Terminal</p>
   </div>
 
   <div class="tab-scroll">
     <button class="tab-btn active" onclick="switchTab('active', this)">Active Slates</button>
-    <button class="tab-btn" onclick="switchTab('sports', this)">Sports & Esports ⚡</button>
-    <button class="tab-btn" onclick="switchTab('macro', this)">Macro Horizon 🪐</button>
-    <button class="tab-btn" onclick="switchTab('perps', this)">Perps & Flows 📈</button>
+    <button class="tab-btn" onclick="switchTab('sports', this)">Single-Leg Props ⚡</button>
+    <button class="tab-btn" onclick="switchTab('macro', this)">Macro Events 🪐</button>
+    <button class="tab-btn" onclick="switchTab('perps', this)">Perps & Allocation 📈</button>
   </div>
 
   <div class="disclaimer">
@@ -119,169 +117,173 @@
     </div>
   </div>
 
-  <!-- TAB 2: SPORTS AUTOGEN -->
+  <!-- TAB 2: SINGLE-LEG SCOUTED PROPS -->
   <div id="tab-sports" class="tab-content">
     <!-- AUTOGEN_SPORTS_START -->
-
     <div class="card">
       <div class="card-head">
-        <div class="card-title">Single-Player Matchup Radar: Kalshi Props</div>
-        <div class="badge scout">Target Add-on</div>
+        <div class="card-title">Single-Player Matchup Add-ons</div>
+        <div class="badge scout">Scouted Legs</div>
       </div>
-      <div class="tier">Scouted Add-ons: Uneven Defensive Splits</div>
-      <div style="padding: 10px 0; color: #64748B; font-size: 12px;">Monitoring board for single-player mismatch opportunities...</div>
+      <div class="tier">Target Matchup Discrepancies (No Pre-Packs)</div>
+      <div class="leg">
+        <div class="leg-info">
+          <div class="leg-matchup">Passing Volume Split • <span style="color: #86EFAC;">Anchor Floor</span></div>
+          <div class="leg-pick">Joe Burrow (225+ Pass Yds)</div>
+        </div>
+        <div class="leg-odds">68%</div>
+      </div>
+      <div class="leg">
+        <div class="leg-info">
+          <div class="leg-matchup">Redzone Target Funnel • <span style="color: #A5B4FC;">Value Multiplier</span></div>
+          <div class="leg-pick">Ja'Marr Chase (1+ Any Time Touchdown)</div>
+        </div>
+        <div class="leg-odds">44%</div>
+      </div>
       <div class="analysis">
-        <div class="analysis-title">Cosmic Matchup Thesis:</div>
-        <div class="analysis-text">Isolated single-player props exhibiting script mismatches. Combine high-floor anchor lines (≥65%) with game totals, or sprinkle low-delta lines (≤45%) as ticket multipliers.</div>
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="card-head">
-        <div class="card-title">Game Script Radar: Polymarket</div>
-        <div class="badge scout">Game Flow</div>
-      </div>
-      <div class="tier">Game Environment: Moneyline & Outright Liquidity</div>
-      <div style="padding: 10px 0; color: #64748B; font-size: 12px;">Monitoring board for single-player mismatch opportunities...</div>
-      <div class="analysis">
-        <div class="analysis-title">Cosmic Matchup Thesis:</div>
-        <div class="analysis-text">Baseline game-pace metrics to pair with player usage anomalies.</div>
+        <div class="analysis-title">Cosmic Add-on Principle:</div>
+        <div class="analysis-text">Avoid 5-player Kalshi combo traps. Pick one high-floor anchor (≥65%) or one value target (≤45%) to bolt onto game totals.</div>
       </div>
     </div>
     <!-- AUTOGEN_SPORTS_END -->
   </div>
 
-  <!-- TAB 3: MACRO HORIZON AUTOGEN -->
+  <!-- TAB 3: MACRO HORIZON & TIMELINES -->
   <div id="tab-macro" class="tab-content">
-    <!-- AUTOGEN_MACRO_START -->
-
-    <div class="card">
-      <div class="card-head">
-        <div class="card-title">Macro Horizon: Long-Range Polymarket</div>
-        <div class="badge macro">Horizon</div>
-      </div>
-      <div class="tier">Macro Predictions: Tech & Geopolitics</div>
-      
-      <div class="leg">
-        <div class="leg-info">
-          <div class="leg-matchup">Kraken IPO by ___ ? • <span style="color: #A5B4FC; font-weight: 600;">Value Add-on</span></div>
-          <div class="leg-pick">December 31</div>
-        </div>
-        <div class="leg-odds">0%</div>
-      </div>
-      <div class="leg">
-        <div class="leg-info">
-          <div class="leg-matchup">Macron out by...? • <span style="color: #A5B4FC; font-weight: 600;">Value Add-on</span></div>
-          <div class="leg-pick">December 31, 2025</div>
-        </div>
-        <div class="leg-odds">0%</div>
-      </div>
-      <div class="leg">
-        <div class="leg-info">
-          <div class="leg-matchup">UK election called by...? • <span style="color: #A5B4FC; font-weight: 600;">Value Add-on</span></div>
-          <div class="leg-pick">March 31</div>
-        </div>
-        <div class="leg-odds">0%</div>
-      </div>
-      <div class="leg">
-        <div class="leg-info">
-          <div class="leg-matchup">China x India military clash by...? • <span style="color: #A5B4FC; font-weight: 600;">Value Add-on</span></div>
-          <div class="leg-pick">June 30</div>
-        </div>
-        <div class="leg-odds">0%</div>
-      </div>
-      <div class="analysis">
-        <div class="analysis-title">Cosmic Matchup Thesis:</div>
-        <div class="analysis-text">Long-duration narrative and milestone contracts.</div>
+    <div class="card" style="border-left: 3px solid #F59E0B;">
+      <div class="card-title" style="font-size: 13px; color: #FDE68A;">⚠️ Understanding Prediction Horoscopes</div>
+      <div style="font-size: 11px; color: #94A3B8; margin-top: 4px; line-height: 15px;">
+        These are <strong>event likelihood markets</strong>, not stock recommendations. A 0% odds value means the crowd consensus anticipates this company will NOT IPO by that date.
       </div>
     </div>
-
+    <!-- AUTOGEN_MACRO_START -->
     <div class="card">
       <div class="card-head">
-        <div class="card-title">Macro Horizon: Institutional Kalshi</div>
-        <div class="badge macro">Horizon</div>
+        <div class="card-title">Macro Horizon: Event Milestones</div>
+        <div class="badge macro">Timeline Consensus</div>
       </div>
-      <div class="tier">Macro Predictions: Rates & Indices</div>
-      <div style="padding: 10px 0; color: #64748B; font-size: 12px;">Monitoring board for single-player mismatch opportunities...</div>
+      <div class="tier">Corporate & Institutional Prediction Probability</div>
+      <div class="leg">
+        <div class="leg-info">
+          <div class="leg-matchup">Kraken IPO by Year End?</div>
+          <div class="leg-pick">Crowd Consensus: Event Occurrence Unlikely</div>
+        </div>
+        <div class="leg-odds">&lt; 1%</div>
+      </div>
+      <div class="leg">
+        <div class="leg-info">
+          <div class="leg-matchup">Federal Reserve Target Rate</div>
+          <div class="leg-pick">Target Cut Window Trajectory</div>
+        </div>
+        <div class="leg-odds">65%</div>
+      </div>
       <div class="analysis">
-        <div class="analysis-title">Cosmic Matchup Thesis:</div>
-        <div class="analysis-text">Regulated central bank interest rate trajectories and economic indexes.</div>
+        <div class="analysis-title">Macro Thesis:</div>
+        <div class="analysis-text">Tracking policy rate probabilities and corporate roadmap events via regulated contracts.</div>
       </div>
     </div>
     <!-- AUTOGEN_MACRO_END -->
   </div>
 
-  <!-- TAB 4: PERPS, FORECASTS & ALLOCATION -->
+  <!-- TAB 4: PERPS & STRATEGIC ALLOCATION -->
   <div id="tab-perps" class="tab-content">
     
-    <!-- Bucket Allocation Model -->
-    <div class="card">
+    <div class="card" style="border-left: 3px solid #10B981;">
       <div class="card-head">
-        <div class="card-title">Perps & Horizon Bucket Split</div>
-        <div class="badge perp">Strategy</div>
+        <div class="card-title">Kalshi American Perps Allocation</div>
+        <div class="badge perp">CFTC Regulated</div>
       </div>
-      <div class="tier">Kalshi / Polymarket Liquidity Portfolio</div>
-
-      <div class="leg">
-        <div class="leg-info">
-          <div class="leg-matchup">Hard Asset Anchor (60% Split)</div>
-          <div class="leg-pick"><span class="tip" onclick="showTip('gold_target')">Gold / Silver Year-End Target Contracts</span></div>
-        </div>
-        <div class="leg-odds">60% Target</div>
-      </div>
-
-      <div class="leg">
-        <div class="leg-info">
-          <div class="leg-matchup">High-Beta Liquidity (40% Split)</div>
-          <div class="leg-pick"><span class="tip" onclick="showTip('crypto_target')">BTC / ETH High-Strike Call Contracts</span></div>
-        </div>
-        <div class="leg-odds">40% Target</div>
-      </div>
-
-      <div class="analysis">
-        <div class="analysis-title">Strategic Allocation Thesis:</div>
-        <div class="analysis-text">
-          <strong>Metals (60%):</strong> Lower delta, structural hedge against currency debasement and central bank rate easing. Ideal for deep-in-the-money Yes contracts on Kalshi metals boards.<br><br>
-          <strong>Crypto (40%):</strong> Asymmetric convexity. Deployed into out-of-the-money long-range contracts on Polymarket to maximize payout multiples during market expansion phases.
-        </div>
+      <div class="tier">Perpetual Futures • Continuous Spot • No Expiry</div>
+      <div class="analysis-text" style="font-size: 11px; color: #94A3B8; margin-top: 4px;">
+        Unlike prediction markets with fixed expirations, Perps run 24/7 with leverage. Target low leverage (2x–3x) for long-duration holds to avoid liquidation traps.
       </div>
     </div>
 
-    <!-- Long-Term Tactical Outlooks -->
+    <!-- 60% Gold Anchor -->
     <div class="card">
       <div class="card-head">
-        <div class="card-title">Long-Term Contract Forecasts</div>
-        <div class="badge scout">Outlook</div>
+        <div class="card-title">Metals Anchor: Gold Perp (~$4,376)</div>
+        <div class="badge up">UP (60% Weight)</div>
       </div>
-      <div class="tier">Macro Regime Analysis</div>
+      <div class="tier">Hold Window: 90 – 180 Days • 2x–3x Leverage</div>
 
       <div class="leg">
         <div class="leg-info">
-          <div class="leg-matchup">Commodities: Kalshi Gold > $2,700/oz</div>
-          <div class="leg-pick">Structural Long-Term Yes Bias</div>
+          <div class="leg-matchup">Kalshi Order Direction</div>
+          <div class="leg-pick">Tap <strong style="color: #86EFAC;">[ UP ]</strong> (Long Spot Index)</div>
         </div>
         <div class="leg-odds">Bullish</div>
       </div>
 
       <div class="leg">
         <div class="leg-info">
-          <div class="leg-matchup">Digital Assets: BTC Year-End Expansion</div>
-          <div class="leg-pick">Consolidation Breakout Play</div>
+          <div class="leg-matchup">Funding Cycle & Cost of Carry</div>
+          <div class="leg-pick">Settles 1x Daily (10:00 AM ET) • Zero Term Roll Fees</div>
         </div>
-        <div class="leg-odds">Accumulate</div>
+        <div class="leg-odds">Low Drag</div>
+      </div>
+
+      <div class="analysis">
+        <div class="analysis-title">Re-evaluation Trigger:</div>
+        <div class="analysis-text">
+          Hold structurally through rate cuts and central bank reserve expansion. Re-evaluate if real Treasury yields spike aggressively or spot drops below the 200-day trend.
+        </div>
+      </div>
+    </div>
+
+    <!-- 25% Bitcoin Core -->
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title">Crypto Core: Bitcoin (BTC) Perp</div>
+        <div class="badge up">UP (25% Weight)</div>
+      </div>
+      <div class="tier">Hold Window: 60 – 90 Days • 2x–3x Leverage</div>
+
+      <div class="leg">
+        <div class="leg-info">
+          <div class="leg-matchup">Kalshi Order Direction</div>
+          <div class="leg-pick">Tap <strong style="color: #86EFAC;">[ UP ]</strong> (Accumulation Hold)</div>
+        </div>
+        <div class="leg-odds">Bullish</div>
       </div>
 
       <div class="leg">
         <div class="leg-info">
-          <div class="leg-matchup">Fed Policy: Target Rate Reductions</div>
-          <div class="leg-pick"><span class="tip" onclick="showTip('basis')">Basis Spread Convergence</span></div>
+          <div class="leg-matchup">Funding Settlement Window</div>
+          <div class="leg-pick">Resets Every 8 Hours (12 AM, 8 AM, 4 PM ET)</div>
         </div>
-        <div class="leg-odds">Neutral</div>
+        <div class="leg-odds">8h Reset</div>
       </div>
 
       <div class="analysis">
-        <div class="analysis-title">Cosmic Risk Model:</div>
-        <div class="analysis-text">Perp scalping and event contract allocations should remain ring-fenced from daily sports parlay units to ensure drawdown resilience.</div>
+        <div class="analysis-title">Re-evaluation Trigger:</div>
+        <div class="analysis-text">
+          Review at the end of each calendar quarter. Trim position if the 8-hour funding rate becomes excessively positive (overheated long positioning).
+        </div>
+      </div>
+    </div>
+
+    <!-- 15% Altcoin Tactical Fade -->
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title">Altcoins: High-Beta / Selective Fade</div>
+        <div class="badge down">DOWN (15% Weight)</div>
+      </div>
+      <div class="tier">Hold Window: 30 – 45 Days • 1x–2x Leverage</div>
+
+      <div class="leg">
+        <div class="leg-info">
+          <div class="leg-matchup">Kalshi Order Direction</div>
+          <div class="leg-pick">Tap <strong style="color: #FCA5A5;">[ DOWN ]</strong> or Keep Unallocated Cash</div>
+        </div>
+        <div class="leg-odds">Bearish / Cash</div>
+      </div>
+
+      <div class="analysis">
+        <div class="analysis-title">Re-evaluation Trigger:</div>
+        <div class="analysis-text">
+          Target down-moves when altcoin funding is rich, or leave this 15% in cash earning Kalshi’s 3.25% annual margin yield until market rotation is confirmed.
+        </div>
       </div>
     </div>
 
@@ -290,46 +292,19 @@
   <!-- Interactive Educational Modal -->
   <div id="tipModal" class="modal-overlay" onclick="closeTip()">
     <div class="modal-sheet" onclick="event.stopPropagation()">
-      <div class="modal-title">
-        <span id="tipTitle">Term Definition</span>
-      </div>
+      <div class="modal-title"><span id="tipTitle">Term Definition</span></div>
       <div id="tipBody" class="modal-desc">Details here.</div>
       <button class="modal-btn" onclick="closeTip()">Got it</button>
     </div>
   </div>
 
   <script>
-    const GLOSSARY = {
-      arb: {
-        title: "Arbitrage (Arb)",
-        desc: "A pricing inefficiency where an outcome is priced cheaper on one platform than another, allowing a trader to lock in spread value without taking outcome risk."
-      },
-      basis: {
-        title: "Basis Spread Convergence",
-        desc: "The price gap between regulated institutional exchanges (Kalshi) and decentralized liquidity pools (Polymarket). As contract maturity approaches, the spread narrows to zero."
-      },
-      gold_target: {
-        title: "Metals Bucket: Gold & Silver Anchors",
-        desc: "Allocating 60% of reserve contract capital into precious metals contracts on Kalshi. Acts as portfolio ballast with higher statistical probability and lower volatility."
-      },
-      crypto_target: {
-        title: "Crypto Bucket: High-Beta Convexity",
-        desc: "Allocating 40% into crypto event contracts on Polymarket. Structured for asymmetric upside where mispriced tail-risk yields high payout multiples."
-      }
-    };
-
-    function showTip(key) {
-      const item = GLOSSARY[key];
-      if (!item) return;
-      document.getElementById('tipTitle').innerText = item.title;
-      document.getElementById('tipBody').innerText = item.desc;
+    function showTip(title, desc) {
+      document.getElementById('tipTitle').innerText = title;
+      document.getElementById('tipBody').innerText = desc;
       document.getElementById('tipModal').style.display = 'flex';
     }
-
-    function closeTip() {
-      document.getElementById('tipModal').style.display = 'none';
-    }
-
+    function closeTip() { document.getElementById('tipModal').style.display = 'none'; }
     function switchTab(tab, el) {
       document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
       document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
