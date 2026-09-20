@@ -1,5 +1,5 @@
 // Cloudflare Worker: worker.js
-// Production Multi-Market Scanner, Execution Engine & Categorized Data Parser
+// Multi-Market Scanner, Automated Execution & Categorized Market Parser
 
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",
@@ -202,7 +202,6 @@ export default {
   }
 };
 
-// Helper to determine category accurately
 function categorizeTitle(title) {
   const t = title.toLowerCase();
   if (/nfl|nba|mlb|nhl|over|under|yards|touchdown|td|points|rebounds|assists|quarterback|goals|spread|vs/i.test(t)) {
@@ -258,7 +257,6 @@ async function handleLiveData() {
     console.error("Polymarket fetch error:", err);
   }
 
-  // Parse Polymarket with clean categories and specific candidate resolution
   const polymarket = [];
   (Array.isArray(polyData) ? polyData : []).forEach(e => {
     if (e.endDate && new Date(e.endDate).getTime() < nowMs) return;
@@ -284,7 +282,6 @@ async function handleLiveData() {
         }
       } catch (_) {}
 
-      // Discard dead odds (< $0.05 or > $0.94)
       if (yesPrice <= 0.04 || yesPrice >= 0.95) return;
       if (noPrice <= 0.04 || noPrice >= 0.95) return;
 
@@ -311,7 +308,6 @@ async function handleLiveData() {
     });
   });
 
-  // Parse Kalshi with clean categories
   const kalshi = [];
   kalshiMarkets.forEach(m => {
     if (m.close_time && new Date(m.close_time).getTime() < nowMs) return;
@@ -344,7 +340,6 @@ async function handleLiveData() {
     });
   });
 
-  // Dynamic Kalshi Leveraged Perpetuals (Metals & Crypto)
   const perps = {
     "GOLD": {
       name: "Gold",
