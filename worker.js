@@ -1,5 +1,5 @@
 // Cloudflare Worker: worker.js
-// Production Engine: Kalshi RSA-PSS & Polymarket.us Execution
+// Production Engine: Kalshi RSA-PSS & Polymarket.us Live Synthesis
 
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",
@@ -225,10 +225,12 @@ async function handleLiveData(env) {
   const activeExposure = allPositions.reduce((acc, p) => acc + (p.exposure || 0), 0);
   const activeContracts = allPositions.reduce((acc, p) => acc + (p.count || 0), 0);
 
-  // --- Public Markets Data Catalog ---
+  // --- Polymarket Public Catalog ---
   let polymarket = [];
   try {
-    const res = await fetch("https://gamma-api.polymarket.com/events?closed=false&active=true&limit=30");
+    const res = await fetch("https://gamma-api.polymarket.com/events?closed=false&active=true&limit=30", {
+      headers: { "Accept": "application/json", "User-Agent": "CosmicParlaysTerminal/1.0" }
+    });
     if (res.ok) {
       const data = await res.json();
       data.forEach(e => {
@@ -259,24 +261,60 @@ async function handleLiveData(env) {
     console.error("Polymarket catalog fetch error:", err);
   }
 
+  // --- Kalshi Public Catalog (Authenticated & Fallback Resilient) ---
   let kalshi = [];
   try {
-    const kRes = await fetch("https://external-api.kalshi.com/trade-api/v2/markets?limit=30&status=open", {
-      headers: { "Accept": "application/json" }
+    const kPath = "/trade-api/v2/markets?limit=50&status=open";
+    let kHeaders = { 
+      "Accept": "application/json",
+      "User-Agent": "CosmicParlaysTerminal/1.0"
+    };
+
+    if (kalshiKeyId && kalshiPrivateKey) {
+      try {
+        const privKey = await importKalshiRsaKey(kalshiPrivateKey);
+        const kTs = Date.now().toString();
+        const kSig = await signKalshiRequest(privKey, kTs, "GET", kPath, "");
+        kHeaders["KALSHI-ACCESS-KEY"] = kalshiKeyId;
+        kHeaders["KALSHI-ACCESS-SIGNATURE"] = kSig;
+        kHeaders["KALSHI-ACCESS-TIMESTAMP"] = kTs;
+      } catch (_) {}
+    }
+
+    const kRes = await fetch(`https://external-api.kalshi.com${kPath}`, {
+      headers: kHeaders
     });
+
     if (kRes.ok) {
       const kData = await kRes.json();
-      (kData.markets || []).forEach(m => {
-        const yesPrice = m.yes_ask ? m.yes_ask / 100 : 0.50;
-        const noPrice = m.no_ask ? m.no_ask / 100 : 0.50;
+      const rawMarkets = kData.markets || [];
+      rawMarkets.forEach(m => {
+        // Evaluate available pricing fields (dollars/cents)
+        let yesPrice = 0.50;
+        let noPrice = 0.50;
+
+        if (m.yes_ask !== undefined && m.yes_ask !== null) {
+          yesPrice = m.yes_ask > 1 ? m.yes_ask / 100 : m.yes_ask;
+        } else if (m.yes_bid !== undefined && m.yes_bid !== null) {
+          yesPrice = m.yes_bid > 1 ? m.yes_bid / 100 : m.yes_bid;
+        } else if (m.last_price !== undefined && m.last_price !== null) {
+          yesPrice = m.last_price > 1 ? m.last_price / 100 : m.last_price;
+        }
+
+        if (m.no_ask !== undefined && m.no_ask !== null) {
+          noPrice = m.no_ask > 1 ? m.no_ask / 100 : m.no_ask;
+        } else {
+          noPrice = 1.00 - yesPrice;
+        }
+
         kalshi.push({
           ticker: m.ticker,
           title: m.title || m.ticker,
-          candidate: m.subtitle || m.ticker,
+          candidate: m.subtitle || m.sub_title || m.ticker,
           category: categorizeTitle(m.title || ""),
-          yesAsk: yesPrice,
-          noAsk: noPrice,
-          volume: m.volume || 0,
+          yesAsk: Number(yesPrice.toFixed(2)),
+          noAsk: Number(noPrice.toFixed(2)),
+          volume: m.volume || m.volume_24h || 0,
           platform: "Kalshi"
         });
       });
