@@ -42,7 +42,33 @@
     .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.85rem; }
     .card-title { font-size: 0.95rem; font-weight: 600; color: #fff; display: flex; align-items: center; gap: 0.4rem; }
 
-    /* Best Buy Opportunity Card */
+    /* Asset Sub-Tabs for Perps */
+    .asset-tabs { display: flex; gap: 0.4rem; overflow-x: auto; margin-bottom: 0.85rem; scrollbar-width: none; }
+    .asset-tabs::-webkit-scrollbar { display: none; }
+    .asset-pill { background: var(--card-inner); border: 1px solid var(--border); color: var(--muted); padding: 0.35rem 0.7rem; border-radius: 20px; font-size: 0.75rem; font-weight: 700; cursor: pointer; white-space: nowrap; }
+    .asset-pill.active { background: rgba(6, 182, 212, 0.15); border-color: var(--cyan); color: var(--cyan); }
+
+    /* Perp Outlook & Charts */
+    .outlook-callout { border-radius: 8px; padding: 0.85rem; margin-bottom: 0.85rem; display: flex; flex-direction: column; gap: 0.3rem; }
+    .outlook-headline { font-size: 0.95rem; font-weight: 800; }
+    .outlook-sub { font-size: 0.75rem; color: var(--muted); }
+
+    .chart-container { background: var(--card-inner); border: 1px solid var(--border); border-radius: 10px; padding: 1rem; margin-bottom: 0.85rem; }
+    .chart-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; font-size: 0.8rem; }
+    svg.perp-chart { width: 100%; height: 65px; overflow: visible; }
+
+    .sentiment-meter { margin-top: 0.5rem; }
+    .meter-header { display: flex; justify-content: space-between; font-size: 0.8rem; font-weight: 700; margin-bottom: 0.35rem; }
+    .ratio-bar { display: flex; height: 8px; border-radius: 4px; overflow: hidden; background: #222; }
+    .ratio-up { background: var(--green); transition: width 0.3s ease; }
+    .ratio-down { background: var(--red); transition: width 0.3s ease; }
+
+    .stat-rows { display: flex; flex-direction: column; gap: 0.45rem; font-size: 0.8rem; margin-top: 0.85rem; }
+    .stat-row { display: flex; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.04); padding-bottom: 0.35rem; }
+    .stat-label { color: var(--muted); }
+    .stat-val { font-weight: 700; color: #fff; }
+
+    /* Opportunity & Value Cards */
     .opp-card { background: var(--card-inner); border: 1px solid var(--border); border-radius: 10px; padding: 0.9rem; display: flex; flex-direction: column; gap: 0.65rem; }
     .opp-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 0.5rem; }
     .opp-title { font-size: 0.9rem; font-weight: 700; color: #f1f5f9; line-height: 1.3; }
@@ -52,20 +78,19 @@
     .consensus-value-buy { background: rgba(245, 158, 11, 0.2); color: var(--gold); border: 1px solid rgba(245, 158, 11, 0.4); }
     .consensus-neutral { background: rgba(148, 163, 184, 0.15); color: var(--muted); border: 1px solid var(--border); }
 
-    .opp-body { display: grid; grid-template-columns: 1.5fr 1fr; gap: 0.5rem; background: rgba(0,0,0,0.2); border-radius: 6px; padding: 0.6rem 0.75rem; align-items: center; }
+    .opp-body { display: grid; grid-template-columns: 1.5fr 1fr; gap: 0.5rem; background: rgba(0,0,0,0.25); border-radius: 6px; padding: 0.6rem 0.75rem; align-items: center; }
     .rec-action { font-size: 0.8rem; font-weight: 700; color: #fff; }
     .rec-target { font-size: 0.72rem; color: var(--muted); margin-top: 0.15rem; }
     .rec-stats { text-align: right; }
     .rec-roi { font-size: 0.85rem; font-weight: 800; color: var(--green); }
     .rec-prob { font-size: 0.7rem; color: var(--cyan); }
 
-    /* Balances & Metrics */
+    /* Balances & Vault */
     .balance-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 0.65rem; }
     .metric { background: rgba(255,255,255,0.02); border: 1px solid var(--border); border-radius: 8px; padding: 0.7rem 0.85rem; }
     .metric-label { font-size: 0.65rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }
     .metric-value { font-size: 1.2rem; font-weight: 700; color: #fff; margin-top: 0.2rem; }
 
-    /* Timeframe Selector */
     .time-selector { display: flex; gap: 0.3rem; background: rgba(255,255,255,0.03); border: 1px solid var(--border); padding: 0.2rem; border-radius: 8px; }
     .time-btn { background: none; border: none; color: var(--muted); padding: 0.25rem 0.5rem; border-radius: 5px; font-size: 0.7rem; font-weight: 700; cursor: pointer; }
     .time-btn.active { background: var(--accent); color: #fff; }
@@ -81,9 +106,10 @@
     .tag-closed { background: rgba(148, 163, 184, 0.15); color: var(--muted); }
     .tag-platform { font-size: 0.65rem; padding: 0.15rem 0.4rem; border-radius: 4px; background: rgba(255, 255, 255, 0.08); font-weight: 600; }
 
+    .info-banner { background: rgba(99, 102, 241, 0.08); border: 1px dashed var(--accent); border-radius: 8px; padding: 0.75rem; font-size: 0.75rem; line-height: 1.4; color: #cbd5e1; }
     .empty { color: var(--muted); font-size: 0.8rem; text-align: center; padding: 2rem 1rem; }
 
-    /* Bottom Nav */
+    /* Fixed Bottom Dock */
     .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: #0b0f19; border-top: 1px solid var(--border); display: flex; justify-content: space-around; padding: 0.5rem 0.25rem; z-index: 100; max-width: 900px; margin: 0 auto; }
     .bottom-tab { background: none; border: none; color: var(--muted); display: flex; flex-direction: column; align-items: center; gap: 0.2rem; font-size: 0.65rem; font-weight: 600; cursor: pointer; flex: 1; }
     .bottom-tab span.icon { font-size: 1.1rem; }
@@ -105,9 +131,10 @@
   <!-- Top Navigation Tabs -->
   <div class="nav-tabs">
     <button class="nav-btn active" onclick="switchView('picks')">🎯 Cosmic's Picks</button>
+    <button class="nav-btn" onclick="switchView('perps')">⚡ Kalshi Perps</button>
     <button class="nav-btn" onclick="switchView('value')">💎 Value Hunter</button>
-    <button class="nav-btn" onclick="switchView('poly')">🟣 Polymarket Best Buys</button>
-    <button class="nav-btn" onclick="switchView('kalshi')">🟢 Kalshi Best Buys</button>
+    <button class="nav-btn" onclick="switchView('poly')">🟣 Poly</button>
+    <button class="nav-btn" onclick="switchView('kalshi')">🟢 Kalshi</button>
     <button class="nav-btn" onclick="switchView('spreads')">⚖️ Spreads</button>
     <button class="nav-btn" onclick="switchView('vault')">💼 Vault</button>
   </div>
@@ -165,55 +192,114 @@
       </div>
     </section>
 
-    <!-- TAB 2: Value Hunter (Live Dynamic Scans) -->
+    <!-- TAB 2: Kalshi Leveraged Perpetuals (Metals & Crypto Outlook) -->
+    <section id="view-perps" class="view-panel">
+      <div class="asset-tabs">
+        <button class="asset-pill active" onclick="selectPerpAsset('GOLD')">🥇 Gold (15.9x)</button>
+        <button class="asset-pill" onclick="selectPerpAsset('SILVER')">🥈 Silver (12.5x)</button>
+        <button class="asset-pill" onclick="selectPerpAsset('BTC')">₿ Bitcoin (20.0x)</button>
+        <button class="asset-pill" onclick="selectPerpAsset('ETH')">Ξ Ethereum (18.5x)</button>
+        <button class="asset-pill" onclick="selectPerpAsset('SOL')">◎ Solana (10.0x)</button>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">📈 Expected Directional Horizon</h2>
+          <div class="time-selector" id="perp-time-selector">
+            <button class="time-btn active" onclick="setPerpTime('1H')">1H</button>
+            <button class="time-btn" onclick="setPerpTime('4H')">4H</button>
+            <button class="time-btn" onclick="setPerpTime('1D')">1D</button>
+            <button class="time-btn" onclick="setPerpTime('1W')">1W</button>
+            <button class="time-btn" onclick="setPerpTime('1M')">1M</button>
+            <button class="time-btn" onclick="setPerpTime('1Y')">1Y</button>
+          </div>
+        </div>
+
+        <div class="outlook-callout" id="perp-outlook-box">
+          <div class="outlook-headline" id="perp-headline">Loading direction...</div>
+          <div class="outlook-sub" id="perp-subline">Scanning Kalshi order-flow...</div>
+        </div>
+
+        <div class="chart-container">
+          <div class="chart-header">
+            <span>Price & Probability Trajectory</span>
+            <span id="chart-status" style="color: var(--green); font-weight: 700;">Incline</span>
+          </div>
+          <div id="perp-chart-box"></div>
+          
+          <div class="sentiment-meter">
+            <div class="meter-header">
+              <span id="meter-up" style="color: var(--green);">↑ Long</span>
+              <span id="meter-down" style="color: var(--red);">Short ↓</span>
+            </div>
+            <div class="ratio-bar">
+              <div class="ratio-up" id="meter-bar-up" style="width: 50%;"></div>
+              <div class="ratio-down" id="meter-bar-down" style="width: 50%;"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="stat-rows">
+          <div class="stat-row">
+            <span class="stat-label">Kalshi Max Leverage</span>
+            <span class="stat-val" id="stat-lev">-</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-label">24h Volume / Open Interest</span>
+            <span class="stat-val" id="stat-vol-oi">-</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-label">Funding Rate & Settlement Timer</span>
+            <span class="stat-val" id="stat-funding" style="color: var(--red);">-</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-label">Annualized Carry Rate</span>
+            <span class="stat-val" id="stat-annual">-</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 3: Value Hunter (Ranked Real-Time) -->
     <section id="view-value" class="view-panel">
       <div class="card">
         <div class="card-header">
           <h2 class="card-title">💎 Real-Time Value Hunter</h2>
           <span style="font-size: 0.75rem; color: var(--cyan);">Ranked by Edge</span>
         </div>
-        <p style="font-size: 0.75rem; color: var(--muted); margin-bottom: 0.85rem;">
-          Contracts with extreme risk/reward ratios or heavily mispriced consensus probabilities across both exchanges.
-        </p>
         <div class="item-list" id="value-container">
           <div class="empty">Scanning order books for value opportunities...</div>
         </div>
       </div>
     </section>
 
-    <!-- TAB 3: Polymarket Best Buys -->
+    <!-- TAB 4: Polymarket Best Buys -->
     <section id="view-poly" class="view-panel">
       <div class="card">
         <div class="card-header">
-          <h2 class="card-title">🟣 Polymarket Best Buy Consensus</h2>
+          <h2 class="card-title">🟣 Polymarket Best Buys</h2>
           <span style="font-size: 0.75rem; color: var(--muted);" id="poly-count">0 Markets</span>
         </div>
-        <p style="font-size: 0.75rem; color: var(--muted); margin-bottom: 0.85rem;">
-          Algorithmic ratings based on spread width, upside ROI multiplier, and order book bias.
-        </p>
         <div class="item-list" id="poly-container">
           <div class="empty">Analyzing Polymarket order books...</div>
         </div>
       </div>
     </section>
 
-    <!-- TAB 4: Kalshi Best Buys -->
+    <!-- TAB 5: Kalshi Best Buys -->
     <section id="view-kalshi" class="view-panel">
       <div class="card">
         <div class="card-header">
-          <h2 class="card-title">🟢 Kalshi Best Buy Consensus</h2>
+          <h2 class="card-title">🟢 Kalshi Best Buys</h2>
           <span style="font-size: 0.75rem; color: var(--muted);" id="kalshi-count">0 Markets</span>
         </div>
-        <p style="font-size: 0.75rem; color: var(--muted); margin-bottom: 0.85rem;">
-          Institutional prediction contracts ranked by volume depth and yield expectancy.
-        </p>
         <div class="item-list" id="kalshi-container">
           <div class="empty">Analyzing Kalshi order books...</div>
         </div>
       </div>
     </section>
 
-    <!-- TAB 5: Spreads -->
+    <!-- TAB 6: Spreads -->
     <section id="view-spreads" class="view-panel">
       <div class="card">
         <div class="card-header">
@@ -226,7 +312,7 @@
       </div>
     </section>
 
-    <!-- TAB 6: Vault -->
+    <!-- TAB 7: Vault -->
     <section id="view-vault" class="view-panel">
       <div class="card">
         <div class="card-header">
@@ -292,6 +378,10 @@
       <span class="icon">🎯</span>
       <span>Picks</span>
     </button>
+    <button class="bottom-tab" onclick="switchView('perps')">
+      <span class="icon">⚡</span>
+      <span>Perps</span>
+    </button>
     <button class="bottom-tab" onclick="switchView('value')">
       <span class="icon">💎</span>
       <span>Value</span>
@@ -316,8 +406,11 @@
 
   <script>
     const WORKER_URL = "https://cosmic-parlays.cosmictrollgaming.workers.dev/api/live-data";
-    let latestData = { kalshi: [], polymarket: [] };
-    const viewKeys = ['picks', 'value', 'poly', 'kalshi', 'spreads', 'vault'];
+    let latestData = { kalshi: [], polymarket: [], perps: {} };
+    const viewKeys = ['picks', 'perps', 'value', 'poly', 'kalshi', 'spreads', 'vault'];
+
+    let activePerp = "GOLD";
+    let activePerpTime = "4H";
     let currentPnlTime = "Today";
 
     const PNL_DATA = {
@@ -381,15 +474,84 @@
         btn.classList.toggle('active', idx === targetIdx);
       });
 
+      if (tabId === 'perps') renderPerpForecast();
       if (tabId === 'vault') renderPnlView();
     }
 
-    // Consensus Recommendation Engine
+    function selectPerpAsset(asset) {
+      activePerp = asset;
+      const pills = document.querySelectorAll('.asset-pill');
+      const assets = ['GOLD', 'SILVER', 'BTC', 'ETH', 'SOL'];
+      pills.forEach((p, idx) => p.classList.toggle('active', assets[idx] === asset));
+      renderPerpForecast();
+    }
+
+    function setPerpTime(t) {
+      activePerpTime = t;
+      document.querySelectorAll('#perp-time-selector .time-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.textContent === t);
+      });
+      renderPerpForecast();
+    }
+
+    function renderPerpForecast() {
+      const perps = latestData.perps || {};
+      const model = perps[activePerp];
+      if (!model) return;
+
+      const tf = model.timeframes[activePerpTime] || model.timeframes["4H"];
+      const isUp = tf.dir === "RISE";
+
+      const headlineEl = document.getElementById('perp-headline');
+      const sublineEl = document.getElementById('perp-subline');
+      const outlookBox = document.getElementById('perp-outlook-box');
+
+      headlineEl.textContent = `${model.name} is expected to ${tf.dir} over the next ${activePerpTime}`;
+      headlineEl.style.color = isUp ? "var(--green)" : "var(--red)";
+      sublineEl.textContent = `Kalshi order-flow projects ${tf.pct} implied move. Target: ${tf.target}${model.unit}`;
+
+      outlookBox.style.background = isUp ? "rgba(0, 208, 132, 0.08)" : "rgba(255, 77, 77, 0.08)";
+      outlookBox.style.borderColor = isUp ? "rgba(0, 208, 132, 0.3)" : "rgba(255, 77, 77, 0.3)";
+
+      document.getElementById('meter-up').textContent = `↑ ${tf.bias}% Long`;
+      document.getElementById('meter-down').textContent = `${100 - tf.bias}% Short ↓`;
+      document.getElementById('meter-bar-up').style.width = `${tf.bias}%`;
+      document.getElementById('meter-bar-down').style.width = `${100 - tf.bias}%`;
+
+      document.getElementById('stat-lev').textContent = model.leverage;
+      document.getElementById('stat-vol-oi').textContent = `${model.vol24} / ${model.oi}`;
+      document.getElementById('stat-funding').textContent = `${model.funding} • ${model.countdown}`;
+      document.getElementById('stat-annual').textContent = model.annualFunding;
+
+      const chartStatus = document.getElementById('chart-status');
+      chartStatus.textContent = isUp ? "Bullish Incline" : "Bearish Softening";
+      chartStatus.style.color = isUp ? "var(--green)" : "var(--red)";
+
+      const min = Math.min(...tf.chart) - 2;
+      const max = Math.max(...tf.chart) + 2;
+      const width = 280;
+      const height = 55;
+      const step = width / (tf.chart.length - 1);
+      const strokeColor = isUp ? "#00d084" : "#ff4d4d";
+
+      const coords = tf.chart.map((v, i) => {
+        const x = (i * step).toFixed(1);
+        const y = (height - ((v - min) / (max - min)) * height).toFixed(1);
+        return `${x},${y}`;
+      }).join(" ");
+
+      document.getElementById('perp-chart-box').innerHTML = `
+        <svg class="perp-chart" viewBox="0 0 ${width} ${height}">
+          <polyline fill="none" stroke="${strokeColor}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" points="${coords}" />
+        </svg>
+      `;
+    }
+
     function evaluateMarketRecommendation(m) {
       const yesAsk = m.yesAsk || 0.50;
       const noAsk = m.noAsk || (1.00 - yesAsk);
 
-      if (yesAsk >= 0.70) {
+      if (yesAsk >= 0.68) {
         const roi = Math.round(((1.00 - yesAsk) / yesAsk) * 100);
         return {
           badgeClass: "consensus-strong-buy",
@@ -400,7 +562,7 @@
           prob: `${Math.round(yesAsk * 100)}% Implied`,
           score: 85 + roi
         };
-      } else if (noAsk >= 0.70) {
+      } else if (noAsk >= 0.68) {
         const roi = Math.round(((1.00 - noAsk) / noAsk) * 100);
         return {
           badgeClass: "consensus-strong-buy",
@@ -411,7 +573,7 @@
           prob: `${Math.round(noAsk * 100)}% Implied`,
           score: 85 + roi
         };
-      } else if (yesAsk <= 0.25 && yesAsk >= 0.08) {
+      } else if (yesAsk <= 0.28 && yesAsk >= 0.08) {
         const roi = Math.round(((1.00 - yesAsk) / yesAsk) * 100);
         return {
           badgeClass: "consensus-value-buy",
@@ -422,7 +584,7 @@
           prob: `${Math.round(yesAsk * 100)}% Implied`,
           score: 60 + Math.min(roi / 10, 40)
         };
-      } else if (noAsk <= 0.25 && noAsk >= 0.08) {
+      } else if (noAsk <= 0.28 && noAsk >= 0.08) {
         const roi = Math.round(((1.00 - noAsk) / noAsk) * 100);
         return {
           badgeClass: "consensus-value-buy",
@@ -458,6 +620,7 @@
         document.getElementById('poly-count').textContent = `${poly.length} Markets`;
         document.getElementById('kalshi-count').textContent = `${kalshi.length} Markets`;
 
+        renderPerpForecast();
         renderBestBuys('poly-container', poly, 'POLY');
         renderBestBuys('kalshi-container', kalshi, 'KALSHI');
         renderValueHunter(poly, kalshi);
@@ -502,7 +665,6 @@
       const container = document.getElementById('value-container');
       const all = [...poly, ...kalshi];
 
-      // Rank across both platforms by recommendation edge score
       const ranked = all.map(m => ({
         ...m,
         rec: evaluateMarketRecommendation(m)
@@ -511,7 +673,7 @@
       .sort((a, b) => b.rec.score - a.rec.score);
 
       if (ranked.length === 0) {
-        container.innerHTML = `<div class="empty">All current order books are priced near 50/50 fair value. Scanning next batch...</div>`;
+        container.innerHTML = `<div class="empty">Scanning for edge opportunities...</div>`;
         return;
       }
 
