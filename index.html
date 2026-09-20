@@ -28,7 +28,7 @@
     .status-badge { font-size: 0.7rem; padding: 0.2rem 0.5rem; border-radius: 9999px; background: rgba(0, 208, 132, 0.15); color: var(--green); border: 1px solid rgba(0, 208, 132, 0.3); white-space: nowrap; }
     .refresh-btn { background: var(--accent); color: #fff; border: none; padding: 0.35rem 0.75rem; border-radius: 6px; font-weight: 600; font-size: 0.75rem; cursor: pointer; }
 
-    /* Top Horizontal Navigation */
+    /* Top Navigation */
     .nav-tabs { max-width: 900px; margin: 0 auto 1rem; display: flex; gap: 0.5rem; overflow-x: auto; scrollbar-width: none; padding-bottom: 0.25rem; }
     .nav-tabs::-webkit-scrollbar { display: none; }
     .nav-btn { background: rgba(255,255,255,0.03); border: 1px solid var(--border); color: var(--muted); padding: 0.45rem 0.85rem; border-radius: 8px; font-size: 0.8rem; font-weight: 600; cursor: pointer; white-space: nowrap; transition: all 0.15s ease; }
@@ -559,28 +559,37 @@
         return;
       }
 
-      container.innerHTML = positions.map(pos => `
-        <div class="list-item">
-          <div class="item-top">
-            <span class="item-title">${pos.title}</span>
-            <span class="tag tag-settled">${pos.status}</span>
+      container.innerHTML = positions.map(pos => {
+        const contractCount = pos.count !== undefined && pos.count !== null ? pos.count : 1;
+        const capitalExposure = typeof pos.exposure === 'number' ? pos.exposure.toFixed(2) : '0.00';
+        return `
+          <div class="list-item">
+            <div class="item-top">
+              <span class="item-title">${pos.title}</span>
+              <span class="tag tag-settled">${pos.status}</span>
+            </div>
+            <div class="item-meta">
+              <span>Size: <b>${contractCount} contracts</b> &bull; Capital: $${capitalExposure}</span>
+              <span class="tag-platform">${pos.platform}</span>
+            </div>
           </div>
-          <div class="item-meta">
-            <span>Size: <b>${pos.count} contracts</b> &bull; Capital: $${pos.exposure.toFixed(2)}</span>
-            <span class="tag-platform">${pos.platform}</span>
-          </div>
-        </div>
-      `).join('');
+        `;
+      }).join('');
     }
 
-    // Pure Sports Slips & Props
+    // Strictly Sports Slips & Props (No Politics)
     function renderSportsParlays(poly, kalshi) {
       const container = document.getElementById('props-container');
       const all = [...poly, ...kalshi];
 
-      const sportsMarkets = all.filter(m => m.category === 'SPORTS');
-      const candidates = [];
+      // Exclude politics and non-sports keywords
+      const sportsMarkets = all.filter(m => {
+        const t = m.title.toLowerCase();
+        const isPolitical = /president|election|nominee|democrat|republican|senate|governor|vance|trump|harris|newsom|putin|ukraine|war/i.test(t);
+        return m.category === 'SPORTS' && !isPolitical;
+      });
 
+      const candidates = [];
       sportsMarkets.forEach(item => {
         const rec = evaluateMarketRecommendation(item);
         if (rec) {
@@ -597,7 +606,7 @@
       });
 
       if (candidates.length === 0) {
-        container.innerHTML = `<div class="empty">Scanning live order books for current sports lines...</div>`;
+        container.innerHTML = `<div class="empty">No live sports games meeting edge thresholds right now. Scanning books...</div>`;
         return;
       }
 
@@ -756,18 +765,22 @@
       if (positions.length === 0) {
         listContainer.innerHTML = `<div class="empty">0 open positions active on exchange order books.</div>`;
       } else {
-        listContainer.innerHTML = positions.map(pos => `
-          <div class="list-item">
-            <div class="item-top">
-              <span class="item-title">${pos.title}</span>
-              <span class="tag tag-settled">${pos.status}</span>
+        listContainer.innerHTML = positions.map(pos => {
+          const contractCount = pos.count !== undefined && pos.count !== null ? pos.count : 1;
+          const capitalExposure = typeof pos.exposure === 'number' ? pos.exposure.toFixed(2) : '0.00';
+          return `
+            <div class="list-item">
+              <div class="item-top">
+                <span class="item-title">${pos.title}</span>
+                <span class="tag tag-settled">${pos.status}</span>
+              </div>
+              <div class="item-meta">
+                <span>Size: ${contractCount} contracts &bull; Capital: $${capitalExposure}</span>
+                <span class="tag-platform">${pos.platform}</span>
+              </div>
             </div>
-            <div class="item-meta">
-              <span>Size: ${pos.count} contracts &bull; Capital: $${pos.exposure.toFixed(2)}</span>
-              <span class="tag-platform">${pos.platform}</span>
-            </div>
-          </div>
-        `).join('');
+          `;
+        }).join('');
       }
     }
 
