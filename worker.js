@@ -1,5 +1,5 @@
 // Cloudflare Worker: worker.js
-// Production Hardened Architecture: In-Memory Key Caching, UTC Normalization,
+// Production Hardened Architecture: In-Memory Key Caching, Resilient Date Parsing,
 // Cache-Bust Bypass, Micro-Nonce Replay Protection & Execution Risk Guards
 
 const CORS_HEADERS = {
@@ -62,13 +62,11 @@ function getNonceTimestamp() {
 
 function parseUtcIso(dateInput) {
   if (!dateInput) return null;
-  const parsedMs = typeof dateInput === "number" 
+  let parsedMs = typeof dateInput === "number" 
     ? (dateInput < 1e11 ? dateInput * 1000 : dateInput) 
     : Date.parse(dateInput);
 
-  if (isNaN(parsedMs) || parsedMs <= Date.now()) {
-    return null; // Drop past/expired deadlines immediately
-  }
+  if (isNaN(parsedMs)) return null;
   return new Date(parsedMs).toISOString();
 }
 
@@ -137,7 +135,6 @@ export default {
 
     try {
       if (url.pathname === "/api/live-data" || url.pathname === "/") {
-        // Cache-Busting Bypass: If client explicitly passed ?fresh=true or ?t=, skip edge cache
         const isBypass = url.searchParams.has("t") || url.searchParams.has("fresh");
         const cache = caches.default;
         const cacheKey = new Request(url.origin + url.pathname, request);
@@ -436,7 +433,7 @@ async function handleLiveData(env) {
         }
 
         const candidate = m.subtitle || m.sub_title || m.yes_sub_title || m.ticker;
-        const normalizedEndUtc = parseUtcIso(m.close_time || m.expiration_time);
+        const normalizedEndUtc = parseUtcIso(m.expected_expiration_time || m.expiration_time || m.close_time);
 
         kalshi.push({
           ticker: m.ticker,
@@ -508,7 +505,6 @@ async function handleExecuteSpread(payload, env) {
   let kalshiOrderId = null;
   const privKey = await getKalshiCryptoKey(env.KALSHI_PRIVATE_KEY);
 
-  // --- LEG 1: Fire Kalshi Limit Order with Nonce Timestamp ---
   try {
     const kalshiPath = "/trade-api/v2/portfolio/orders";
     const timestamp = getNonceTimestamp();
@@ -549,7 +545,6 @@ async function handleExecuteSpread(payload, env) {
     });
   }
 
-  // --- LEG 2: Validate Polymarket Depth & Rollback If Failed ---
   if (polyTicker) {
     try {
       const polyExecPrice = parseFloat(polyPrice.toFixed(4));
