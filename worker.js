@@ -1,5 +1,5 @@
 // Cloudflare Worker: worker.js
-// Production Dynamic Hub: Kalshi RSA-PSS Nested Feed & Polymarket.us
+// Production Dynamic Hub: Kalshi RSA-PSS Reciprocal Pricing & Polymarket.us
 
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",
@@ -224,7 +224,7 @@ async function handleLiveData(env) {
     }
   }
 
-  // --- Dynamic Ledger Computation ---
+  // Dynamic Ledger Calculation
   const allPositions = [...polyPositions, ...kalshiPositions];
   const activeExposure = allPositions.reduce((acc, p) => acc + (p.exposure || 0), 0);
   const activeContracts = allPositions.reduce((acc, p) => acc + (p.count || 0), 0);
@@ -282,11 +282,11 @@ async function handleLiveData(env) {
     console.error("Polymarket catalog fetch error:", err);
   }
 
-  // --- Kalshi Live Event Feed with True Market Pricing ---
+  // --- Kalshi Public Markets with Reciprocal Bid/Ask Calculation ---
   let kalshi = [];
   try {
-    const basePath = "/trade-api/v2/events";
-    const queryString = "?limit=40&status=open&with_nested_markets=true";
+    const basePath = "/trade-api/v2/markets";
+    const queryString = "?limit=100";
     let kHeaders = { 
       "Accept": "application/json",
       "User-Agent": "CosmicParlaysTerminal/1.0"
@@ -309,56 +309,75 @@ async function handleLiveData(env) {
 
     if (kRes.ok) {
       const kData = await kRes.json();
-      const events = kData.events || [];
+      const rawMarkets = kData.markets || [];
 
-      events.forEach(ev => {
-        const markets = ev.markets || [];
-        markets.forEach(m => {
-          let yesPrice = null;
-          let noPrice = null;
+      rawMarkets.forEach(m => {
+        if (m.status && m.status !== "open" && m.status !== "active") return;
 
-          // Priority 1: Yes Ask (live ask price)
-          if (m.yes_ask !== undefined && m.yes_ask !== null && m.yes_ask > 0) {
-            yesPrice = m.yes_ask > 1 ? m.yes_ask / 100 : m.yes_ask;
-          } else if (m.last_price !== undefined && m.last_price !== null && m.last_price > 0) {
-            yesPrice = m.last_price > 1 ? m.last_price / 100 : m.last_price;
-          } else if (m.yes_bid !== undefined && m.yes_bid !== null && m.yes_bid > 0) {
-            yesPrice = m.yes_bid > 1 ? m.yes_bid / 100 : m.yes_bid;
-          }
+        // Parse bids directly
+        let yesBid = null;
+        let noBid = null;
 
-          // Priority 2: No Ask
-          if (m.no_ask !== undefined && m.no_ask !== null && m.no_ask > 0) {
-            noPrice = m.no_ask > 1 ? m.no_ask / 100 : m.no_ask;
-          } else if (m.no_bid !== undefined && m.no_bid !== null && m.no_bid > 0) {
-            noPrice = m.no_bid > 1 ? m.no_bid / 100 : m.no_bid;
-          }
+        if (m.yes_bid !== undefined && m.yes_bid !== null && m.yes_bid > 0) {
+          yesBid = m.yes_bid > 1 ? m.yes_bid / 100 : m.yes_bid;
+        } else if (m.yes_bid_dollars !== undefined && m.yes_bid_dollars !== null) {
+          yesBid = parseFloat(m.yes_bid_dollars);
+        }
 
-          // Derive complementary pricing
-          if (yesPrice !== null && noPrice === null) noPrice = Number((1.00 - yesPrice).toFixed(2));
-          if (noPrice !== null && yesPrice === null) yesPrice = Number((1.00 - noPrice).toFixed(2));
+        if (m.no_bid !== undefined && m.no_bid !== null && m.no_bid > 0) {
+          noBid = m.no_bid > 1 ? m.no_bid / 100 : m.no_bid;
+        } else if (m.no_bid_dollars !== undefined && m.no_bid_dollars !== null) {
+          noBid = parseFloat(m.no_bid_dollars);
+        }
 
-          // Accept only contracts with verified live book pricing
-          if (yesPrice !== null && noPrice !== null) {
-            const fullTitle = ev.title || m.title || m.ticker;
-            const candidate = m.subtitle || m.sub_title || m.yes_sub_title || m.ticker;
+        // Apply Kalshi's reciprocal model:
+        // Yes Ask = 1.00 - No Bid | No Ask = 1.00 - Yes Bid
+        let yesAsk = null;
+        let noAsk = null;
 
-            kalshi.push({
-              ticker: m.ticker,
-              title: fullTitle,
-              candidate: candidate,
-              category: categorizeTitle(fullTitle),
-              yesAsk: Number(yesPrice.toFixed(2)),
-              noAsk: Number(noPrice.toFixed(2)),
-              volume: m.volume || m.volume_24h || 0,
-              endDate: m.close_time || m.expiration_time || null,
-              platform: "Kalshi"
-            });
-          }
+        if (m.yes_ask !== undefined && m.yes_ask !== null && m.yes_ask > 0) {
+          yesAsk = m.yes_ask > 1 ? m.yes_ask / 100 : m.yes_ask;
+        } else if (noBid !== null) {
+          yesAsk = Number((1.00 - noBid).toFixed(2));
+        }
+
+        if (m.no_ask !== undefined && m.no_ask !== null && m.no_ask > 0) {
+          noAsk = m.no_ask > 1 ? m.no_ask / 100 : m.no_ask;
+        } else if (yesBid !== null) {
+          noAsk = Number((1.00 - yesBid).toFixed(2));
+        }
+
+        // Fall back to last trade price if order book depth is unquoted
+        if (yesAsk === null && m.last_price !== undefined && m.last_price !== null && m.last_price > 0) {
+          yesAsk = m.last_price > 1 ? m.last_price / 100 : m.last_price;
+          noAsk = Number((1.00 - yesAsk).toFixed(2));
+        }
+
+        // Derive complementary price if one side is known
+        if (yesAsk !== null && noAsk === null) noAsk = Number((1.00 - yesAsk).toFixed(2));
+        if (noAsk !== null && yesAsk === null) yesAsk = Number((1.00 - noAsk).toFixed(2));
+
+        // Skip completely unquoted markets
+        if (yesAsk === null || noAsk === null) return;
+
+        const fullTitle = m.title || m.ticker;
+        const candidate = m.subtitle || m.sub_title || m.yes_sub_title || m.ticker;
+
+        kalshi.push({
+          ticker: m.ticker,
+          title: fullTitle,
+          candidate: candidate,
+          category: categorizeTitle(fullTitle),
+          yesAsk: Number(yesAsk.toFixed(2)),
+          noAsk: Number(noAsk.toFixed(2)),
+          volume: m.volume || m.volume_24h || 0,
+          endDate: m.close_time || m.expiration_time || null,
+          platform: "Kalshi"
         });
       });
     }
   } catch (err) {
-    console.error("Kalshi nested event feed error:", err);
+    console.error("Kalshi public markets fetch error:", err);
   }
 
   return new Response(JSON.stringify({
