@@ -70,23 +70,20 @@ async function runAutonomousScan(env) {
 
   for (const k of kalshi) {
     for (const p of polymarket) {
-      // Find events with matching keywords (e.g. Fed, GDP, Election)
       const kWords = k.title.toLowerCase().split(/\s+/);
       const isCandidate = kWords.some(w => w.length > 3 && p.title.toLowerCase().includes(w));
 
       if (isCandidate) {
         const totalCost = k.yesAsk + p.noAsk;
-        const feeBuffer = 0.02; // 2 cent taker fee buffer
+        const feeBuffer = 0.02;
         const netEdge = 1.00 - totalCost - feeBuffer;
 
-        // Spread condition: Positive yield greater than 2%
         if (netEdge > 0.02) {
           const alertMessage = `🚨 **Cosmic Arbitrage Detected!**\n` +
             `• Event: ${k.title}\n` +
             `• Kalshi Yes: $${k.yesAsk.toFixed(2)} | Polymarket No: $${p.noAsk.toFixed(2)}\n` +
             `• Net Edge: +${(netEdge * 100).toFixed(1)}¢ per contract (${((netEdge / totalCost) * 100).toFixed(1)}% ROI)`;
 
-          // Send Discord notification if DISCORD_WEBHOOK exists in secrets
           if (env.DISCORD_WEBHOOK) {
             await fetch(env.DISCORD_WEBHOOK, {
               method: "POST",
@@ -95,7 +92,6 @@ async function runAutonomousScan(env) {
             });
           }
 
-          // OPTIONAL: Auto-execute small test order if keys are set
           if (env.AUTO_TRADE_ENABLED === "true" && env.KALSHI_KEY_ID && env.KALSHI_PRIVATE_KEY) {
             await handleExecuteSpread({
               kalshiTicker: k.ticker,
@@ -115,11 +111,10 @@ async function runAutonomousScan(env) {
 }
 
 // -------------------------------------------------------------
-// 3. Main Request Router & Cron Scheduler
+// 3. Main Request Router & Handlers
 // -------------------------------------------------------------
 
 export default {
-  // HTTP Fetch Handler (for Terminal UI)
   async fetch(request, env, ctx) {
     if (request.method === "OPTIONS") {
       return new Response(null, { headers: CORS_HEADERS });
@@ -130,6 +125,28 @@ export default {
     try {
       if (url.pathname === "/api/live-data" || url.pathname === "/") {
         return await handleLiveData();
+      }
+
+      if (url.pathname === "/api/test-discord") {
+        if (!env.DISCORD_WEBHOOK) {
+          return new Response(JSON.stringify({ error: "DISCORD_WEBHOOK secret not found" }), {
+            status: 400,
+            headers: CORS_HEADERS
+          });
+        }
+
+        const pingRes = await fetch(env.DISCORD_WEBHOOK, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            content: "🚀 **Cosmic Parlays Terminal Online!** Webhook successfully connected to Cloudflare Edge Worker."
+          })
+        });
+
+        return new Response(JSON.stringify({ 
+          status: pingRes.ok ? "sent" : "failed",
+          discordStatusCode: pingRes.status 
+        }), { headers: CORS_HEADERS });
       }
 
       if (url.pathname === "/api/execute-spread" && request.method === "POST") {
@@ -149,7 +166,6 @@ export default {
     }
   },
 
-  // Cron Trigger Handler (Automated Background Execution)
   async scheduled(event, env, ctx) {
     ctx.waitUntil(runAutonomousScan(env));
   }
@@ -263,7 +279,6 @@ async function handleExecuteSpread(payload, env) {
     });
   }
 
-  // --- KALSHI EXECUTION ---
   const kalshiPath = "/trade-api/v2/portfolio/orders";
   const kalshiTimestamp = Date.now().toString();
   const kalshiBodyObj = {
@@ -293,7 +308,6 @@ async function handleExecuteSpread(payload, env) {
 
   const kalshiResult = await kalshiOrderRes.json();
 
-  // --- POLYMARKET.US EXECUTION ---
   const polyKey = env.POLYMARKET_US_KEY || env.POLYMARKET_KEY;
   const polySecret = env.POLYMARKET_US_SECRET || env.POLYMARKET_SECRET;
 
