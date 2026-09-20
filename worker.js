@@ -1,6 +1,6 @@
 // Cloudflare Worker: worker.js
 // Production Hardened Architecture: In-Memory Key Caching, Resilient Date Parsing,
-// Cache-Bust Bypass, Micro-Nonce Replay Protection & Execution Risk Guards
+// Comma-Safe Kalshi Parsing, Micro-Nonce Replay Protection & Execution Risk Guards
 
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",
@@ -278,7 +278,7 @@ async function handleLiveData(env) {
   const activeExposure = allPositions.reduce((acc, p) => acc + (p.exposure || 0), 0);
   const activeContracts = allPositions.reduce((acc, p) => acc + (p.count || 0), 0);
 
-  // --- Polymarket Public Catalog ---
+  // --- Polymarket Public Catalog (Exclude Multi-Leg Accumulators) ---
   let polymarket = [];
   try {
     const [genRes, sportsRes] = await Promise.all([
@@ -333,7 +333,7 @@ async function handleLiveData(env) {
     console.error("Polymarket catalog fetch error:", err);
   }
 
-  // --- Kalshi Live Market Catalog ---
+  // --- Kalshi Live Market Catalog (Preserve All Markets & Dates) ---
   let kalshi = [];
   try {
     const basePath = "/trade-api/v2/markets";
@@ -366,7 +366,6 @@ async function handleLiveData(env) {
         if (m.status && m.status !== "open" && m.status !== "active") return;
 
         const fullTitle = m.title || m.ticker;
-        if (fullTitle.includes(",") && fullTitle.split(",").length > 2) return;
 
         let yesAsk = null;
         let noAsk = null;
