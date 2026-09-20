@@ -1,5 +1,5 @@
 // Cloudflare Worker: worker.js
-// Live Multi-Market Scanner & Execution Terminal Engine
+// Production Multi-Market Scanner, Execution Engine & Specific Candidate/Prop Parser
 
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",
@@ -203,7 +203,7 @@ export default {
 };
 
 // -------------------------------------------------------------
-// 4. Live Data Synthesis & Recommendation Engine
+// 4. Live Data Synthesis & Specific Candidate Parsing Engine
 // -------------------------------------------------------------
 
 async function handleLiveData() {
@@ -241,44 +241,65 @@ async function handleLiveData() {
     console.error("Polymarket fetch error:", err);
   }
 
-  // Parse Polymarket with dynamic extraction of true odds
-  const polymarket = (Array.isArray(polyData) ? polyData : []).map(e => {
-    const firstMarket = e.markets?.[0] || {};
-    let yesPrice = 0.50;
-    let noPrice = 0.50;
+  // Parse Polymarket with full candidate/outcome specificity
+  const polymarket = [];
+  (Array.isArray(polyData) ? polyData : []).forEach(e => {
+    const markets = e.markets || [];
 
-    try {
-      if (firstMarket.outcomePrices) {
-        const prices = typeof firstMarket.outcomePrices === 'string'
-          ? JSON.parse(firstMarket.outcomePrices)
-          : firstMarket.outcomePrices;
-        yesPrice = parseFloat(prices[0]) || 0.50;
-        noPrice = parseFloat(prices[1]) || (1.00 - yesPrice);
-      } else if (firstMarket.bestAsk !== undefined) {
-        yesPrice = parseFloat(firstMarket.bestAsk);
-        noPrice = 1.00 - yesPrice;
-      }
-    } catch (_) {}
+    // Loop through individual candidate/option contracts under each overarching event
+    markets.slice(0, 4).forEach(m => {
+      let yesPrice = 0.50;
+      let noPrice = 0.50;
 
-    return {
-      ticker: e.slug || firstMarket.id,
-      title: e.title,
-      yesAsk: yesPrice,
-      noAsk: noPrice,
-      volume: firstMarket.volume || e.volume || 0,
-      platform: "Polymarket"
-    };
+      try {
+        if (m.outcomePrices) {
+          const prices = typeof m.outcomePrices === 'string'
+            ? JSON.parse(m.outcomePrices)
+            : m.outcomePrices;
+          yesPrice = parseFloat(prices[0]) || 0.50;
+          noPrice = parseFloat(prices[1]) || (1.00 - yesPrice);
+        } else if (m.bestAsk !== undefined) {
+          yesPrice = parseFloat(m.bestAsk);
+          noPrice = 1.00 - yesPrice;
+        }
+      } catch (_) {}
+
+      // Explicitly extract candidate / option title
+      const optionName = m.groupItemTitle || m.question || m.title || "";
+      const displayTitle = optionName && !optionName.includes(e.title)
+        ? `${e.title}: ${optionName}`
+        : (m.question || e.title);
+
+      polymarket.push({
+        ticker: m.id || m.conditionId || e.slug,
+        title: displayTitle,
+        candidate: optionName || "Consensus Leg",
+        eventTitle: e.title,
+        yesAsk: yesPrice,
+        noAsk: noPrice,
+        volume: m.volume || e.volume || 0,
+        platform: "Polymarket"
+      });
+    });
   });
 
-  // Parse Kalshi Markets
-  const kalshi = kalshiMarkets.map(m => ({
-    ticker: m.ticker,
-    title: m.title || m.subtitle || m.ticker,
-    yesAsk: m.yes_ask ? m.yes_ask / 100 : 0.50,
-    noAsk: m.no_ask ? m.no_ask / 100 : 0.50,
-    volume: m.volume || 0,
-    platform: "Kalshi"
-  }));
+  // Parse Kalshi Markets with full specificity
+  const kalshi = kalshiMarkets.map(m => {
+    const candidateName = m.subtitle || m.sub_title || m.ticker;
+    const fullTitle = m.title && m.subtitle && !m.title.includes(m.subtitle)
+      ? `${m.title}: ${m.subtitle}`
+      : (m.title || m.ticker);
+
+    return {
+      ticker: m.ticker,
+      title: fullTitle,
+      candidate: candidateName,
+      yesAsk: m.yes_ask ? m.yes_ask / 100 : 0.50,
+      noAsk: m.no_ask ? m.no_ask / 100 : 0.50,
+      volume: m.volume || 0,
+      platform: "Kalshi"
+    };
+  });
 
   // Dynamic Kalshi Leveraged Perpetuals (Metals & Crypto)
   const perps = {
