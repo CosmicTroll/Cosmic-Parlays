@@ -720,30 +720,63 @@
     function renderSpreads(kalshi, poly) {
       const container = document.getElementById('spread-container');
       let html = "";
-      let found = false;
+      let matchCount = 0;
+
+      const cleanTitle = (raw) => {
+        let t = (raw || "").replace(/^yes\s+/i, '').replace(/^no\s+/i, '');
+        if (t.includes(',')) {
+          const parts = t.split(',').map(s => s.trim().replace(/^(yes|no)\s+/i, ''));
+          if (parts.length > 2) {
+            return `${parts[0]} + ${parts[1]} (+${parts.length - 2} more legs)`;
+          }
+        }
+        return t.length > 70 ? t.slice(0, 67) + '...' : t;
+      };
 
       kalshi.forEach(k => {
+        if (!k.yesAsk || k.yesAsk <= 0.05 || k.yesAsk >= 0.95) return;
+
         poly.forEach(p => {
-          const kWords = (k.title || "").toLowerCase().split(/\s+/);
-          if (kWords.some(w => w.length > 3 && (p.title || "").toLowerCase().includes(w))) {
-            found = true;
-            const netEdge = 1.00 - (k.yesAsk + p.noAsk) - 0.02;
-            html += `
-              <div class="list-item">
-                <div class="item-top">
-                  <span class="item-title">${k.title}</span>
-                  <span class="tag tag-settled">${netEdge > 0 ? "+" : ""}${(netEdge * 100).toFixed(1)}¢ Edge</span>
-                </div>
-                <div class="item-meta">
-                  <span>Kalshi Yes: $${k.yesAsk.toFixed(2)}</span>
-                  <span>Poly.us No: $${p.noAsk.toFixed(2)}</span>
-                </div>
-              </div>`;
+          if (!p.noAsk || p.noAsk <= 0.05 || p.noAsk >= 0.95) return;
+
+          const kWords = (k.title || "").toLowerCase().split(/\s+/).filter(w => w.length >= 5 && !['match', 'game', 'total', 'points', 'versus'].includes(w));
+          const pLower = (p.title || "").toLowerCase();
+
+          const isDirectMatch = kWords.some(w => pLower.includes(w));
+
+          if (isDirectMatch) {
+            const totalCost = k.yesAsk + p.noAsk;
+            const netEdge = 1.00 - totalCost - 0.02;
+
+            if (netEdge >= 0.01) {
+              matchCount++;
+              const displayTitle = cleanTitle(k.title);
+              const edgeCents = (netEdge * 100).toFixed(1);
+
+              html += `
+                <div class="list-item" style="border-left: 3px solid var(--green);">
+                  <div class="item-top">
+                    <span class="item-title" style="font-size: 0.85rem; line-height: 1.3;">${displayTitle}</span>
+                    <span class="tag tag-settled">+${edgeCents}¢ EDGE</span>
+                  </div>
+                  <div class="item-meta" style="margin-top: 0.4rem;">
+                    <span>Kalshi Yes: <b style="color:#fff;">$${k.yesAsk.toFixed(2)}</b></span>
+                    <span>Poly.us No: <b style="color:#fff;">$${p.noAsk.toFixed(2)}</b></span>
+                  </div>
+                  <div style="font-size: 0.7rem; color: var(--muted); margin-top: 0.2rem;">
+                    Total Cost: $${totalCost.toFixed(2)} &bull; Implied ROI: ${((netEdge / totalCost) * 100).toFixed(1)}%
+                  </div>
+                </div>`;
+            }
           }
         });
       });
 
-      container.innerHTML = found ? html : `<div class="empty">No direct cross-exchange spreads found in active order books right now.</div>`;
+      if (matchCount === 0) {
+        container.innerHTML = `<div class="empty">No direct cross-exchange spreads with positive net edge right now. Scanning order books...</div>`;
+      } else {
+        container.innerHTML = html;
+      }
     }
 
     function renderVaultLive() {
@@ -809,7 +842,6 @@
       }
     }
 
-    // Initialize immediate render followed by background live polling
     fetchLiveData();
     setInterval(fetchLiveData, 15000);
   </script>
