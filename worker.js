@@ -128,30 +128,46 @@ export default {
         return await handleLiveData();
       }
 
-      if (url.pathname === "/api/test-discord") {
-        const webhookUrl = env.DISCORD_WEBHOOK || env.DISCORD_WEBHOOK_URL;
-        if (!webhookUrl) {
-          return new Response(JSON.stringify({ 
-            error: "DISCORD_WEBHOOK secret not found",
+      // Safe HMAC Authentication & Balance Dry-Run (Zero Trades Placed)
+      if (url.pathname === "/api/test-poly-dry-run") {
+        const polyKey = env.POLYMARKET_US_KEY || env.POLYMARKET_KEY;
+        const polySecret = env.POLYMARKET_US_SECRET || env.POLYMARKET_SECRET;
+
+        if (!polyKey || !polySecret) {
+          return new Response(JSON.stringify({
+            error: "Missing Polymarket credentials in Cloudflare secrets",
             availableKeys: Object.keys(env)
-          }), {
-            status: 400,
+          }), { status: 400, headers: CORS_HEADERS });
+        }
+
+        try {
+          const polyPath = "/v1/account/balances";
+          const polyTimestamp = new Date().toISOString();
+          const polySig = await signPolymarketUsRequest(polySecret, polyTimestamp, "GET", polyPath, "");
+
+          const polyRes = await fetch(`https://api.polymarket.us${polyPath}`, {
+            method: "GET",
+            headers: {
+              "Accept": "application/json",
+              "X-API-KEY": polyKey,
+              "X-API-SIGNATURE": polySig,
+              "X-API-TIMESTAMP": polyTimestamp,
+              "User-Agent": "CosmicParlaysTerminal/1.0"
+            }
+          });
+
+          const data = await polyRes.json();
+          return new Response(JSON.stringify({
+            status: polyRes.ok ? "authenticated" : "auth_failed",
+            httpCode: polyRes.status,
+            polyResponse: data
+          }, null, 2), { status: 200, headers: CORS_HEADERS });
+        } catch (err) {
+          return new Response(JSON.stringify({ error: err.message }), {
+            status: 500,
             headers: CORS_HEADERS
           });
         }
-
-        const pingRes = await fetch(webhookUrl, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            content: "🚀 **Cosmic Parlays Terminal Online!** Webhook successfully connected to Cloudflare Edge Worker."
-          })
-        });
-
-        return new Response(JSON.stringify({ 
-          status: pingRes.ok ? "sent" : "failed",
-          discordStatusCode: pingRes.status 
-        }), { headers: CORS_HEADERS });
       }
 
       if (url.pathname === "/api/execute-spread" && request.method === "POST") {
