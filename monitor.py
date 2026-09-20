@@ -95,10 +95,12 @@ def get_kalshi_holdings():
     seen_tickers = set()
 
     pos_data = kalshi_signed_request("GET", "/trade-api/v2/portfolio/positions")
-    if not pos_data:
+    if not pos_data or not isinstance(pos_data, dict):
         return []
 
     for p in pos_data.get("market_positions", []):
+        if not isinstance(p, dict):
+            continue
         ticker = p.get("ticker", "")
         cnt = p.get("position", 0)
         pnl = p.get('realized_pnl', 0)
@@ -201,19 +203,48 @@ def get_polymarket_portfolio_positions():
     # 1. Primary: Authenticated Polymarket US Portfolio API
     data = polymarket_us_signed_request("GET", "/v1/portfolio/positions")
     if data:
-        items = data if isinstance(data, list) else data.get("positions", [])
+        items = []
+        if isinstance(data, list):
+            items = data
+        elif isinstance(data, dict):
+            items = data.get("positions") or data.get("data") or data.get("results") or []
+
         for p in items:
-            net_qty = float(p.get("netPositionDecimal", p.get("size", 0)))
+            if not isinstance(p, dict):
+                continue
+
+            try:
+                raw_qty = p.get("netPositionDecimal")
+                if raw_qty is None:
+                    raw_qty = p.get("size", 0)
+                net_qty = float(raw_qty)
+            except (ValueError, TypeError):
+                continue
+
             if net_qty <= 0:
                 continue
 
             metadata = p.get("marketMetadata", {})
-            title = metadata.get("title") or p.get("marketSlug") or "Polymarket Position"
-            outcome = metadata.get("outcome", "YES")
+            if not isinstance(metadata, dict):
+                metadata = {}
 
-            # Exchange provides exact dynamic cash liquidation value and cost basis
-            cost = float(p.get("cost", {}).get("amount", p.get("costBasis", 0.50)))
-            cash_val = float(p.get("cashValue", {}).get("amount", p.get("curValue", cost)))
+            title = metadata.get("title") or p.get("marketSlug") or p.get("title") or "Polymarket Position"
+            outcome = metadata.get("outcome") or p.get("outcome") or "YES"
+
+            cost_dict = p.get("cost")
+            cost_val = cost_dict.get("amount") if isinstance(cost_dict, dict) else p.get("costBasis", 0.50)
+            try:
+                cost = float(cost_val)
+            except (ValueError, TypeError):
+                cost = 0.50
+
+            cash_dict = p.get("cashValue")
+            cash_val_raw = cash_dict.get("amount") if isinstance(cash_dict, dict) else p.get("curValue", cost)
+            try:
+                cash_val = float(cash_val_raw)
+            except (ValueError, TypeError):
+                cash_val = cost
+
             profit_pct = ((cash_val - cost) / cost) * 100 if cost > 0 else 0.0
             mult = round(cash_val / cost, 2) if cost > 0 else 1.0
 
@@ -226,7 +257,7 @@ def get_polymarket_portfolio_positions():
                 "platform": "polymarket"
             })
 
-    # 2. Public User Portfolio fallback (if key is not provided)
+    # 2. Public User Portfolio fallback (if key is not provided or authenticated returns empty)
     if not positions:
         username = "cosmicdad"
         try:
@@ -236,9 +267,15 @@ def get_polymarket_portfolio_positions():
                 data = res.json()
                 items = data if isinstance(data, list) else data.get("positions", [])
                 for p in items:
-                    shares = float(p.get("size", 1))
-                    cur_price = float(p.get("curPrice", 0.50))
-                    avg_cost = float(p.get("avgPrice", cur_price))
+                    if not isinstance(p, dict):
+                        continue
+                    try:
+                        shares = float(p.get("size", 1))
+                        cur_price = float(p.get("curPrice", 0.50))
+                        avg_cost = float(p.get("avgPrice", cur_price))
+                    except (ValueError, TypeError):
+                        continue
+
                     total_cost = shares * avg_cost
                     total_val = shares * cur_price
                     profit_pct = ((total_val - total_cost) / total_cost) * 100 if total_cost > 0 else 0.0
@@ -447,7 +484,7 @@ def send_discord(active_count, arb_count, cashout_candidates):
 
     desc = f"Greetings Captain. Audited active slates: **{active_count} Live Tickets**, **{arb_count} Arbitrage Spreads**."
     if cashout_candidates:
-        desc += "\n\n🔥 **ACTION ALERT (PROFIT $\ge 80\%$ TARGET HIT):**"
+        desc += "\n\n🔥 **ACTION ALERT (PROFIT >= 80% TARGET HIT):**"
         for c in cashout_candidates:
             desc += f"\n• **{c['title']}** is at **+{int(c['profit_pct'])}% profit**!"
             desc += f"\n  👉 [Open Polymarket App to Cash Out](https://polymarket.com/portfolio) | [Open Kalshi](https://kalshi.com/portfolio)"
