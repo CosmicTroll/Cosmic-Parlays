@@ -195,101 +195,123 @@ def polymarket_us_signed_request(method, path):
 
 def get_polymarket_portfolio_positions():
     """
-    Dynamically pulls live positions, cash-out values, and contracts
-    directly from Polymarket US authenticated endpoints. Zero mock fallbacks.
+    Dynamically pulls live positions, cash-out values, and contracts.
+    Handles US authenticated endpoints, lists/dicts, and public fallbacks seamlessly.
     """
     positions = []
 
     # 1. Primary: Authenticated Polymarket US Portfolio API
-    data = polymarket_us_signed_request("GET", "/v1/portfolio/positions")
-    if data:
-        items = []
-        if isinstance(data, list):
-            items = data
-        elif isinstance(data, dict):
-            items = data.get("positions") or data.get("data") or data.get("results") or []
+    try:
+        data = polymarket_us_signed_request("GET", "/v1/portfolio/positions")
+        if data:
+            if isinstance(data, dict):
+                items = (
+                    data.get("positions")
+                    or data.get("data")
+                    or data.get("results")
+                    or data.get("orders")
+                    or []
+                )
+            elif isinstance(data, list):
+                items = data
+            else:
+                items = []
 
-        for p in items:
-            if not isinstance(p, dict):
-                continue
+            for p in items:
+                if not isinstance(p, dict):
+                    continue
 
-            try:
-                raw_qty = p.get("netPositionDecimal")
-                if raw_qty is None:
-                    raw_qty = p.get("size", 0)
-                net_qty = float(raw_qty)
-            except (ValueError, TypeError):
-                continue
+                raw_qty = p.get("netPositionDecimal", p.get("size", p.get("currentPosition", 0)))
+                try:
+                    net_qty = float(raw_qty)
+                except (ValueError, TypeError):
+                    net_qty = 0.0
 
-            if net_qty <= 0:
-                continue
+                if net_qty <= 0:
+                    continue
 
-            metadata = p.get("marketMetadata", {})
-            if not isinstance(metadata, dict):
-                metadata = {}
+                metadata = p.get("marketMetadata", {}) if isinstance(p.get("marketMetadata"), dict) else {}
+                title = (
+                    metadata.get("title")
+                    or p.get("title")
+                    or p.get("marketSlug")
+                    or p.get("conditionId")
+                    or "Polymarket Position"
+                )
+                outcome = metadata.get("outcome") or p.get("outcome") or "YES"
 
-            title = metadata.get("title") or p.get("marketSlug") or p.get("title") or "Polymarket Position"
-            outcome = metadata.get("outcome") or p.get("outcome") or "YES"
+                cost_obj = p.get("cost")
+                cost_val = cost_obj.get("amount") if isinstance(cost_obj, dict) else p.get("costBasis", 0.50)
+                try:
+                    cost = float(cost_val)
+                except (ValueError, TypeError):
+                    cost = 0.50
 
-            cost_dict = p.get("cost")
-            cost_val = cost_dict.get("amount") if isinstance(cost_dict, dict) else p.get("costBasis", 0.50)
-            try:
-                cost = float(cost_val)
-            except (ValueError, TypeError):
-                cost = 0.50
+                cash_obj = p.get("cashValue")
+                cash_val_raw = cash_obj.get("amount") if isinstance(cash_obj, dict) else p.get("curValue", p.get("currentValue", cost))
+                try:
+                    cash_val = float(cash_val_raw)
+                except (ValueError, TypeError):
+                    cash_val = cost
 
-            cash_dict = p.get("cashValue")
-            cash_val_raw = cash_dict.get("amount") if isinstance(cash_dict, dict) else p.get("curValue", cost)
-            try:
-                cash_val = float(cash_val_raw)
-            except (ValueError, TypeError):
-                cash_val = cost
+                profit_pct = ((cash_val - cost) / cost) * 100 if cost > 0 else 0.0
+                mult = round(cash_val / cost, 2) if cost > 0 else 1.0
 
-            profit_pct = ((cash_val - cost) / cost) * 100 if cost > 0 else 0.0
-            mult = round(cash_val / cost, 2) if cost > 0 else 1.0
+                positions.append({
+                    "title": title,
+                    "details": f"{outcome} • {net_qty:g} Shares",
+                    "odds": f"${cash_val:.2f} Cash-Out ({mult}x)",
+                    "profit_pct": round(profit_pct, 1),
+                    "raw_title": title,
+                    "platform": "polymarket"
+                })
+    except Exception as e:
+        print(f"Polymarket US parsing exception: {e}")
 
-            positions.append({
-                "title": title,
-                "details": f"{outcome} • {net_qty} Shares",
-                "odds": f"${cash_val:.2f} Cash-Out ({mult}x)",
-                "profit_pct": round(profit_pct, 1),
-                "raw_title": title,
-                "platform": "polymarket"
-            })
-
-    # 2. Public User Portfolio fallback (if key is not provided or authenticated returns empty)
+    # 2. Public User Portfolio fallback (if authenticated returned nothing or failed)
     if not positions:
         username = "cosmicdad"
-        try:
-            url = f"https://data-api.polymarket.com/positions?user={username}&sizeThreshold=0.01"
-            res = requests.get(url, timeout=6)
-            if res.status_code == 200:
-                data = res.json()
-                items = data if isinstance(data, list) else data.get("positions", [])
-                for p in items:
-                    if not isinstance(p, dict):
+        for endpoint in [
+            f"https://data-api.polymarket.com/positions?user={username}&sizeThreshold=0.01",
+            f"https://gamma-api.polymarket.com/positions?user={username}"
+        ]:
+            try:
+                res = requests.get(endpoint, timeout=6)
+                if res.status_code == 200:
+                    data = res.json()
+                    items = data if isinstance(data, list) else data.get("positions", data.get("data", []))
+                    if not items or not isinstance(items, list):
                         continue
-                    try:
-                        shares = float(p.get("size", 1))
-                        cur_price = float(p.get("curPrice", 0.50))
+
+                    for p in items:
+                        if not isinstance(p, dict):
+                            continue
+
+                        shares = float(p.get("size", p.get("amount", 1)))
+                        if shares <= 0:
+                            continue
+
+                        cur_price = float(p.get("curPrice", p.get("price", 0.50)))
                         avg_cost = float(p.get("avgPrice", cur_price))
-                    except (ValueError, TypeError):
-                        continue
+                        total_cost = shares * avg_cost
+                        total_val = shares * cur_price
+                        profit_pct = ((total_val - total_cost) / total_cost) * 100 if total_cost > 0 else 0.0
 
-                    total_cost = shares * avg_cost
-                    total_val = shares * cur_price
-                    profit_pct = ((total_val - total_cost) / total_cost) * 100 if total_cost > 0 else 0.0
+                        title = p.get("title") or p.get("question") or p.get("asset") or "Polymarket Slate"
+                        outcome = p.get("outcome", "YES")
 
-                    positions.append({
-                        "title": p.get("title", "Polymarket Slate"),
-                        "details": f"{p.get('outcome', 'YES')} • {shares} Shares",
-                        "odds": f"${total_val:.2f} Cash-Out ({int(cur_price*100)}%)",
-                        "profit_pct": round(profit_pct, 1),
-                        "raw_title": p.get("title", "Polymarket"),
-                        "platform": "polymarket"
-                    })
-        except Exception as e:
-            print(f"Polymarket public stream error: {e}")
+                        positions.append({
+                            "title": title,
+                            "details": f"{outcome} • {shares:g} Shares",
+                            "odds": f"${total_val:.2f} Cash-Out ({int(cur_price * 100)}%)",
+                            "profit_pct": round(profit_pct, 1),
+                            "raw_title": title,
+                            "platform": "polymarket"
+                        })
+                    if positions:
+                        break
+            except Exception as e:
+                print(f"Polymarket fallback error on {endpoint}: {e}")
 
     return positions
 
