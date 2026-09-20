@@ -1,0 +1,38 @@
+name: Market Monitor Bot
+
+on:
+  schedule:
+    - cron: '0 * * * *'  # Runs every hour automatically
+  workflow_dispatch:      # Allows you to press a button on your phone to run it on-demand
+
+jobs:
+  run-monitor:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write  # Allows the bot to update index.html
+
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install requests
+
+      - name: Run Market Monitor
+        env:
+          AI_API_KEY: ${{ secrets.AI_API_KEY }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: python monitor.py
+
+      - name: Commit and push updates to website
+        run: |
+          git config --global user.name "CosmicBot"
+          git config --global user.email "bot@cosmicparlay.com"
+          git add index.html
+          git diff --quiet && git diff --staged --quiet || (git commit -m "🤖 Auto-update scouting lines [skip ci]" && git push)
