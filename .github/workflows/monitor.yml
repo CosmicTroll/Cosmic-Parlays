@@ -2,14 +2,14 @@ name: Market Monitor Bot
 
 on:
   schedule:
-    - cron: '0 * * * *'  # Runs every hour automatically
-  workflow_dispatch:      # Allows you to press a button on your phone to run it on-demand
+    - cron: '0 * * * *'  # Runs every hour
+  workflow_dispatch:      # Allows manual trigger button in GitHub
 
 jobs:
   run-monitor:
     runs-on: ubuntu-latest
     permissions:
-      contents: write  # Allows the bot to update index.html
+      contents: write
 
     steps:
       - name: Check out repo
@@ -25,9 +25,7 @@ jobs:
 
       - name: Run Market Monitor
         env:
-          AI_API_KEY: ${{ secrets.AI_API_KEY }}
-          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
         run: python monitor.py
 
       - name: Commit and push updates to website
