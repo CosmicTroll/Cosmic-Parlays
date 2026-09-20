@@ -7,31 +7,43 @@ SPORTS_KEYWORDS = [
     'nfl', 'football', 'bengals', 'packers', 'vikings', 'bears', 'ravens', 'saints',
     '49ers', 'dolphins', 'bills', 'lions', 'jaguars', 'broncos', 'steelers', 'patriots',
     'panthers', 'falcons', 'buccaneers', 'browns', 'eagles', 'titans', 'cowboys', 'commanders',
-    'mlb', 'diamondbacks', 'baseball', 'esports', 'cs2', 'vct', 'valorant', 'nba'
+    'mlb', 'diamondbacks', 'baseball', 'esports', 'cs2', 'vct', 'valorant', 'nba', 'soccer'
 ]
 
 def is_sports_contract(text):
     t = text.lower()
     return any(k in t for k in SPORTS_KEYWORDS)
 
+def format_kalshi_text(raw_text):
+    # Clean up multi-market lists like "yes TeamA,yes TeamB" into cleaner readable lines
+    clean = raw_text.replace("yes ", "").replace("no ", "")
+    clean = clean.replace(",", " • ")
+    return clean
+
 def get_polymarket_feeds():
-    sports = []
-    macro = []
+    sports, macro = [], []
     try:
-        url = "https://gamma-api.polymarket.com/events?limit=30&active=true&closed=false"
+        url = "https://gamma-api.polymarket.com/events?limit=40&active=true&closed=false"
         res = requests.get(url, timeout=10).json()
         for event in res:
-            title = event.get('title', 'Event')
+            title = event.get('title', 'Event').strip()
             markets = event.get('markets', [])
             if not markets:
                 continue
             m = markets[0]
-            q = m.get('groupItemTitle') or m.get('question') or title
+            question = (m.get('groupItemTitle') or m.get('question') or title).strip()
+            
             outcomes = json.loads(m.get('outcomePrices', '["0","0"]'))
             prob = f"{int(float(outcomes[0])*100)}%" if outcomes else "N/A"
-            item = {"matchup": title[:34], "pick": q[:40], "odds": prob}
             
-            if is_sports_contract(title) or is_sports_contract(q):
+            # Full text without slicing
+            item = {
+                "matchup": title,
+                "pick": question,
+                "odds": prob
+            }
+            
+            if is_sports_contract(title) or is_sports_contract(question):
                 sports.append(item)
             else:
                 macro.append(item)
@@ -40,16 +52,26 @@ def get_polymarket_feeds():
     return sports[:4], macro[:4]
 
 def get_kalshi_feeds():
-    sports = []
-    macro = []
+    sports, macro = [], []
     try:
-        url = "https://external-api.kalshi.com/trade-api/v2/markets?limit=40&status=open"
+        url = "https://external-api.kalshi.com/trade-api/v2/markets?limit=50&status=open"
         res = requests.get(url, timeout=10).json()
         for m in res.get('markets', []):
             ticker = m.get('ticker', 'KALSHI')
+            # Kalshi user-friendly titles
             title = m.get('title') or m.get('subtitle') or ticker
+            title = format_kalshi_text(title)
+            
             yes_price = m.get('yes_ask', m.get('last_price', 50))
-            item = {"matchup": f"Kalshi [{ticker[:16]}]", "pick": title[:40], "odds": f"{yes_price}%"}
+            
+            # Format ticker label cleanly
+            display_tag = f"Kalshi [{ticker}]" if len(ticker) < 18 else "Kalshi Event Market"
+
+            item = {
+                "matchup": display_tag,
+                "pick": title,
+                "odds": f"{yes_price}%"
+            }
             
             if is_sports_contract(ticker) or is_sports_contract(title):
                 sports.append(item)
@@ -64,7 +86,10 @@ def build_card(title, tier, badge_text, badge_class, items, notes):
     for it in items:
         legs += f"""
       <div class="leg">
-        <div><div class="leg-matchup">{it['matchup']}</div><div class="leg-pick">{it['pick']}</div></div>
+        <div class="leg-info">
+          <div class="leg-matchup">{it['matchup']}</div>
+          <div class="leg-pick">{it['pick']}</div>
+        </div>
         <div class="leg-odds">{it['odds']}</div>
       </div>"""
     if not items:
@@ -92,7 +117,7 @@ def send_discord(sports_count, macro_count):
         "avatar_url": "https://img.icons8.com/isometric/512/telescope.png",
         "embeds": [{
             "title": "🌌 Terminal Refreshed: Sports & Macro Boards",
-            "description": f"Processed **{sports_count} Sports & Esports lines** and **{macro_count} Macro Horizon contracts**.",
+            "description": f"Processed **{sports_count} Sports & Esports lines** and **{macro_count} Macro Horizon contracts** without text truncation.",
             "color": 4156648,
             "footer": {"text": "Cosmic Parlay Companion Engine"}
         }]
@@ -103,7 +128,6 @@ def main():
     poly_sports, poly_macro = get_polymarket_feeds()
     kalshi_sports, kalshi_macro = get_kalshi_feeds()
 
-    # Cards for Sports Tab
     sports_html = build_card(
         "Sports & Esports Radar: Polymarket", 
         "Scouted Horizon: Game Markets", 
@@ -120,7 +144,6 @@ def main():
         "CFTC-compliant game moneylines, spreads, and prop pricing."
     )
 
-    # Cards for Macro Tab
     macro_html = build_card(
         "Macro Horizon: Long-Range Polymarket", 
         "Macro Predictions: Tech & Geopolitics", 
@@ -148,7 +171,7 @@ def main():
 
         with open("index.html", "w") as f:
             f.write(c)
-        print("index.html multi-tabs updated.")
+        print("Updated index.html without truncation.")
 
     send_discord(len(poly_sports) + len(kalshi_sports), len(poly_macro) + len(kalshi_macro))
 
