@@ -122,7 +122,7 @@
     </div>
     <div class="controls">
       <span class="status-badge" id="bot-status">Edge Engine Active</span>
-      <button class="refresh-btn" onclick="fetchLiveData()">Refresh</button>
+      <button class="refresh-btn" onclick="fetchLiveData(true)">Refresh</button>
     </div>
   </header>
 
@@ -421,6 +421,7 @@
       renderAllViews();
     }
 
+    // Mathematical Comparator: Kelly/EV Adjusted Sort to Prevent Longshot Distortions
     function sortCandidates(list) {
       return list.slice().sort((a, b) => {
         const roiA = (a.rec && a.rec.roiVal !== undefined) ? a.rec.roiVal : (a.roiVal !== undefined ? a.roiVal : 0);
@@ -428,20 +429,24 @@
         const probA = (a.rec && a.rec.probVal !== undefined) ? a.rec.probVal : (a.probVal !== undefined ? a.probVal : 0);
         const probB = (b.rec && b.rec.probVal !== undefined) ? b.rec.probVal : (b.probVal !== undefined ? b.probVal : 0);
 
-        if (currentSort === 'roi-desc') return roiB - roiA;
-        if (currentSort === 'roi-asc') return roiA - roiB;
+        // Kelly/EV Score: Prioritize realistic probability anchors over extreme flyers
+        const evScoreA = (probA * roiA) / 100;
+        const evScoreB = (probB * roiB) / 100;
+
+        if (currentSort === 'roi-desc') return evScoreB - evScoreA;
+        if (currentSort === 'roi-asc') return evScoreA - evScoreB;
         if (currentSort === 'prob-desc') return probB - probA;
         if (currentSort === 'time-asc') {
-          const tA = a.endDate ? new Date(a.endDate).getTime() : 9999999999999;
-          const tB = b.endDate ? new Date(b.endDate).getTime() : 9999999999999;
+          const tA = a.endDate ? Date.parse(a.endDate) : 9999999999999;
+          const tB = b.endDate ? Date.parse(b.endDate) : 9999999999999;
           return tA - tB;
         }
         if (currentSort === 'time-desc') {
-          const tA = a.endDate ? new Date(a.endDate).getTime() : 0;
-          const tB = b.endDate ? new Date(b.endDate).getTime() : 0;
+          const tA = a.endDate ? Date.parse(a.endDate) : 0;
+          const tB = b.endDate ? Date.parse(b.endDate) : 0;
           return tB - tA;
         }
-        return roiB - roiA;
+        return evScoreB - evScoreA;
       });
     }
 
@@ -534,6 +539,7 @@
       `;
     }
 
+    // Evaluator with 3-Tier Edge Logic: Prevents Sub-10¢ Flyer Distortions
     function evaluateMarketRecommendation(m) {
       const yesAsk = (typeof m.yesAsk === 'number') ? m.yesAsk : 0.50;
       const noAsk = (typeof m.noAsk === 'number') ? m.noAsk : (1.00 - yesAsk);
@@ -544,7 +550,8 @@
         return null;
       }
 
-      if (yesAsk >= 0.50) {
+      // Tier 1: Strong Buy Anchors (52% to 95% Probability)
+      if (yesAsk >= 0.52 && yesAsk <= 0.95) {
         const roi = Math.round(((1.00 - yesAsk) / yesAsk) * 100);
         return {
           badgeClass: "consensus-strong-buy",
@@ -556,7 +563,7 @@
           roi: `+${roi}% ROI`,
           prob: `${Math.round(yesAsk * 100)}% Implied`
         };
-      } else {
+      } else if (noAsk >= 0.52 && noAsk <= 0.95) {
         const roi = Math.round(((1.00 - noAsk) / noAsk) * 100);
         return {
           badgeClass: "consensus-strong-buy",
@@ -568,12 +575,58 @@
           roi: `+${roi}% ROI`,
           prob: `${Math.round(noAsk * 100)}% Implied`
         };
+      } 
+      // Tier 2: Real Asymmetric Value (25¢ to 48¢)
+      else if (yesAsk <= 0.48 && yesAsk >= 0.25) {
+        const roi = Math.round(((1.00 - yesAsk) / yesAsk) * 100);
+        return {
+          badgeClass: "consensus-value-buy",
+          badgeText: "Value Buy YES",
+          action: `BUY YES${targetEntity} @ $${yesAsk.toFixed(2)}`,
+          target: "Asymmetric Value",
+          roiVal: roi,
+          probVal: Math.round(yesAsk * 100),
+          roi: `+${roi}% ROI`,
+          prob: `${Math.round(yesAsk * 100)}% Implied`
+        };
+      } else if (noAsk <= 0.48 && noAsk >= 0.25) {
+        const roi = Math.round(((1.00 - noAsk) / noAsk) * 100);
+        return {
+          badgeClass: "consensus-value-buy",
+          badgeText: "Value Buy NO",
+          action: `BUY NO${targetEntity} @ $${noAsk.toFixed(2)}`,
+          target: "Asymmetric Value",
+          roiVal: roi,
+          probVal: Math.round(noAsk * 100),
+          roi: `+${roi}% ROI`,
+          prob: `${Math.round(noAsk * 100)}% Implied`
+        };
       }
+      // Tier 3: Asymmetric Flyer (< 25¢)
+      else if (yesAsk < 0.25 && yesAsk >= 0.04) {
+        const roi = Math.round(((1.00 - yesAsk) / yesAsk) * 100);
+        return {
+          badgeClass: "consensus-value-buy",
+          badgeText: "Flyer YES",
+          action: `BUY YES${targetEntity} @ $${yesAsk.toFixed(2)}`,
+          target: "High Convexity",
+          roiVal: roi,
+          probVal: Math.round(yesAsk * 100),
+          roi: `+${roi}% ROI`,
+          prob: `${Math.round(yesAsk * 100)}% Implied`
+        };
+      }
+
+      return null;
     }
 
-    async function fetchLiveData() {
+    async function fetchLiveData(isManualBypass = false) {
       try {
-        const res = await fetch(WORKER_URL);
+        const targetUrl = isManualBypass 
+          ? `${WORKER_URL}?t=${Date.now()}` 
+          : WORKER_URL;
+
+        const res = await fetch(targetUrl);
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
         
@@ -584,7 +637,7 @@
           if (data.portfolio) latestData.portfolio = data.portfolio;
         }
       } catch (err) {
-        console.warn("Live fetch fallback to client baseline:", err);
+        console.warn("Live fetch fallback:", err);
       }
 
       renderAllViews();
@@ -638,7 +691,6 @@
       const container = document.getElementById('props-container');
       const all = [...poly, ...kalshi];
 
-      // Strictly Sports (Zero Politics)
       const sportsMarkets = all.filter(m => {
         const t = (m.title + " " + (m.candidate || "")).toLowerCase();
         const isPolitical = /house|senate|congress|election|nominee|president|governor|democrat|republican|vance|trump|harris|newsom|putin|war/i.test(t);
@@ -765,14 +817,12 @@
       const spreadList = [];
 
       kalshi.forEach(k => {
-        // Enforce genuine live quotes (skip unquoted midpoint seeds)
         if (!k.isLiveQuoted) return;
         if (!k.yesAsk || k.yesAsk <= 0.05 || k.yesAsk >= 0.95) return;
 
         poly.forEach(p => {
           if (!p.noAsk || p.noAsk <= 0.05 || p.noAsk >= 0.95) return;
 
-          // Require significant token matching on real underlying asset/event
           const kWords = (k.title || "").toLowerCase().split(/\s+/).filter(w => w.length >= 4 && !['match', 'game', 'total', 'points', 'versus', 'will', 'with'].includes(w));
           const pLower = (p.title || "").toLowerCase();
 
@@ -780,8 +830,7 @@
 
           if (isDirectMatch) {
             const totalCost = k.yesAsk + p.noAsk;
-            // Strict 3.5¢ slippage and fee clearance buffer
-            const feeBuffer = 0.035;
+            const feeBuffer = 0.035; // 3.5¢ Slippage and Taker Buffer
             const netEdge = 1.00 - totalCost - feeBuffer;
 
             if (netEdge >= 0.01) {
@@ -887,7 +936,7 @@
     }
 
     fetchLiveData();
-    setInterval(fetchLiveData, 15000);
+    setInterval(() => fetchLiveData(false), 15000);
   </script>
 </body>
 </html>
