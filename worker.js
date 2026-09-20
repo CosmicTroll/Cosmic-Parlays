@@ -1,5 +1,5 @@
 // Cloudflare Worker: worker.js
-// Production Multi-Market Scanner, Execution Engine & Specific Candidate/Prop Parser
+// Production Multi-Market Scanner, Execution Engine & Categorized Data Parser
 
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",
@@ -202,8 +202,23 @@ export default {
   }
 };
 
+// Helper to determine category accurately
+function categorizeTitle(title) {
+  const t = title.toLowerCase();
+  if (/nfl|nba|mlb|nhl|over|under|yards|touchdown|td|points|rebounds|assists|quarterback|goals|spread|vs/i.test(t)) {
+    return "SPORTS";
+  }
+  if (/president|election|nominee|democrat|republican|senate|governor|vance|trump|harris|newsom|putin|ukraine|war|clash/i.test(t)) {
+    return "POLITICS";
+  }
+  if (/fed|rate|inflation|cpi|interest|gdp|recession|treasury|yield|cuts|hikes/i.test(t)) {
+    return "MACRO";
+  }
+  return "CULTURE";
+}
+
 // -------------------------------------------------------------
-// 4. Live Data Synthesis, Trimming & Candidate Specificity
+// 4. Live Data Synthesis, Trimming & Categorization Engine
 // -------------------------------------------------------------
 
 async function handleLiveData() {
@@ -243,7 +258,7 @@ async function handleLiveData() {
     console.error("Polymarket fetch error:", err);
   }
 
-  // Parse Polymarket: Trims expired dates, resolves specific candidates, and removes dead odds
+  // Parse Polymarket with clean categories and specific candidate resolution
   const polymarket = [];
   (Array.isArray(polyData) ? polyData : []).forEach(e => {
     if (e.endDate && new Date(e.endDate).getTime() < nowMs) return;
@@ -269,24 +284,25 @@ async function handleLiveData() {
         }
       } catch (_) {}
 
-      // Filter out dead/already settled odds (< $0.04 or > $0.94)
+      // Discard dead odds (< $0.05 or > $0.94)
       if (yesPrice <= 0.04 || yesPrice >= 0.95) return;
       if (noPrice <= 0.04 || noPrice >= 0.95) return;
 
       const optionName = m.groupItemTitle || m.question || m.title || "";
-
-      // Trim past dates/years explicitly mentioned in sub-titles
       if (/202[0-5]/.test(optionName) || /June\s+30,\s+2026/i.test(optionName)) return;
 
       const displayTitle = optionName && !optionName.includes(e.title)
         ? `${e.title}: ${optionName}`
         : (m.question || e.title);
 
+      const category = categorizeTitle(`${e.title} ${optionName}`);
+
       polymarket.push({
         ticker: m.id || m.conditionId || e.slug,
         title: displayTitle,
         candidate: optionName || "Consensus Leg",
         eventTitle: e.title,
+        category,
         yesAsk: yesPrice,
         noAsk: noPrice,
         volume: m.volume || e.volume || 0,
@@ -295,7 +311,7 @@ async function handleLiveData() {
     });
   });
 
-  // Parse Kalshi: Filters dead odds, extracts subtitles, and trims expired markets
+  // Parse Kalshi with clean categories
   const kalshi = [];
   kalshiMarkets.forEach(m => {
     if (m.close_time && new Date(m.close_time).getTime() < nowMs) return;
@@ -304,7 +320,6 @@ async function handleLiveData() {
     const yesPrice = m.yes_ask ? m.yes_ask / 100 : 0.50;
     const noPrice = m.no_ask ? m.no_ask / 100 : 0.50;
 
-    // Filter out settled/dead items
     if (yesPrice <= 0.04 || yesPrice >= 0.95) return;
     if (noPrice <= 0.04 || noPrice >= 0.95) return;
 
@@ -315,10 +330,13 @@ async function handleLiveData() {
 
     if (/202[0-5]/.test(fullTitle)) return;
 
+    const category = categorizeTitle(fullTitle);
+
     kalshi.push({
       ticker: m.ticker,
       title: fullTitle,
       candidate: candidateName,
+      category,
       yesAsk: yesPrice,
       noAsk: noPrice,
       volume: m.volume || 0,
