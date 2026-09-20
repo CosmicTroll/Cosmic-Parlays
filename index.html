@@ -34,6 +34,21 @@
     .badge-gold { background: rgba(245, 158, 11, 0.15); color: #fcd34d; border-color: rgba(245, 158, 11, 0.4); }
     .badge-green { background: rgba(16, 185, 129, 0.15); color: #6ee7b7; border-color: rgba(16, 185, 129, 0.4); }
     
+    /* Pulsing Badges & Dots */
+    @keyframes pulse-glow {
+      0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.6); }
+      70% { transform: scale(1.02); box-shadow: 0 0 0 8px rgba(245, 158, 11, 0); }
+      100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(245, 158, 11, 0); }
+    }
+    .pulse-target {
+      display: inline-block;
+      animation: pulse-glow 2s infinite;
+      border: 1px solid rgba(245, 158, 11, 0.6);
+      background: rgba(245, 158, 11, 0.18);
+      border-radius: 4px;
+      padding: 2px 6px;
+    }
+    
     .status-dot { height: 8px; width: 8px; border-radius: 50%; display: inline-block; }
     .status-online { background: var(--green); box-shadow: 0 0 8px var(--green); }
     .status-alert { background: var(--gold); box-shadow: 0 0 8px var(--gold); }
@@ -52,7 +67,9 @@
     
     /* Internal Market Blocks */
     .market-box { background: var(--card-inner); border: 1px solid var(--border-light); border-radius: 6px; padding: 12px; margin-bottom: 10px; }
-    .market-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--border-light); }
+    .market-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 6px; border-bottom: 1px solid var(--border-light); border-radius: 4px; transition: background 0.15s; }
+    .clickable-row { cursor: pointer; }
+    .clickable-row:hover { background: rgba(99, 102, 241, 0.12); }
     .market-row:last-child { border-bottom: none; }
     .leg-title { font-size: 0.84rem; font-weight: 500; max-width: 230px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .leg-desc { font-size: 0.72rem; color: var(--text-muted); }
@@ -82,7 +99,7 @@
     <div class="controls">
       <span class="badge" id="feed-status"><span class="status-dot status-online"></span>Sync Active</span>
       <span class="badge badge-gold">✨ Gemini Co-Pilot</span>
-      <button onclick="fetchFeeds()">Sync Books</button>
+      <button onclick="fetchFeeds(true)" id="sync-btn">Sync Books (30s)</button>
     </div>
   </header>
 
@@ -98,13 +115,15 @@
         <span class="card-title">Kalshi Live Slates</span>
         <span class="badge badge-green">Sync Active</span>
       </div>
-      <div class="card-subtitle">Active Dynamic Positions (Zero Historical Clutter)</div>
+      <div class="card-subtitle">Active Dynamic Positions • Tap line to send to Calc</div>
 
       <div class="market-box">
         <div style="display: flex; justify-content: space-between; align-items: flex-start;">
           <div>
             <div style="font-size: 0.85rem; font-weight: 700;">Live Combo (9 Legs) • <span class="green">Active</span></div>
-            <div style="font-size: 0.7rem; color: #fcd34d; font-weight: 600; margin: 2px 0;">🔥 CASH OUT TARGET (+400%)</div>
+            <div style="margin: 4px 0;">
+              <span class="pulse-target" style="font-size: 0.72rem; color: #fcd34d; font-weight: 700;">🔥 CASH OUT TARGET (+400%)</span>
+            </div>
             <div class="leg-desc">Buffalo • Carolina • Cincinnati • Tampa Bay ... (+5 more legs)</div>
           </div>
           <div class="price-tag green">+392¢</div>
@@ -127,7 +146,7 @@
         <span class="card-title">Single-Leg Props & Game Radar</span>
         <span class="badge">Target Add-on</span>
       </div>
-      <div class="card-subtitle">Scouted Add-on Legs (No Pre-Packs)</div>
+      <div class="card-subtitle">Polymarket Gamma Legs • Tap line to send to Calc</div>
 
       <div id="poly-live-list">
         <div style="font-size: 0.8rem; color: var(--text-muted); padding: 8px 0;">Scanning Polymarket order books...</div>
@@ -143,21 +162,21 @@
   <!-- ROW 2: SPREAD SCANNER & MACRO HORIZON -->
   <div class="grid">
     <!-- Arbitrage Scanner & Calculator -->
-    <div class="card">
+    <div class="card" id="arb-calculator-card">
       <div class="card-header">
         <span class="card-title">Cross-Platform Basis & Arbitrage</span>
-        <span class="badge badge-gold">Arbitrage</span>
+        <span class="badge badge-gold">Interactive Engine</span>
       </div>
-      <div class="card-subtitle">Kalshi vs. Polymarket Spread Discrepancies</div>
+      <div class="card-subtitle">Auto-filled from clicks or manual input</div>
 
       <p style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 10px;">
         Arbitrage exists if <code>Cost(Yes on A) + Cost(No on B) + Taker Fees &lt; $1.00</code>.
       </p>
 
-      <label style="font-size: 0.72rem; color: var(--text-muted);">Kalshi "Yes" Price ($):</label>
+      <label style="font-size: 0.72rem; color: var(--text-muted);">Leg A "Yes" Price ($):</label>
       <input type="number" id="arb-yes" class="calc-input" step="0.01" value="0.48" oninput="calculateArb()">
 
-      <label style="font-size: 0.72rem; color: var(--text-muted);">Polymarket "No" Price ($):</label>
+      <label style="font-size: 0.72rem; color: var(--text-muted);">Leg B "No" Price ($):</label>
       <input type="number" id="arb-no" class="calc-input" step="0.01" value="0.46" oninput="calculateArb()">
 
       <label style="font-size: 0.72rem; color: var(--text-muted);">Combined Taker Fees ($):</label>
@@ -179,7 +198,7 @@
       </div>
       <div class="card-subtitle">Event Probability Tracker (CFTC Regulated Markets)</div>
 
-      <div class="market-row">
+      <div class="market-row clickable-row" onclick="populateArb(0.64, 0.36, 'Fed Rate Cut 2026')">
         <div>
           <div class="leg-title">Federal Reserve Rate Cut in 2026?</div>
           <div class="leg-desc">FOMC Rate Policy Outcome</div>
@@ -187,7 +206,7 @@
         <div class="price-tag green">64%</div>
       </div>
 
-      <div class="market-row">
+      <div class="market-row clickable-row" onclick="populateArb(0.78, 0.22, 'SpaceX Landing')">
         <div>
           <div class="leg-title">SpaceX Starship Orbital Landing?</div>
           <div class="leg-desc">FAA / Mission Milestone Target</div>
@@ -195,7 +214,7 @@
         <div class="price-tag green">78%</div>
       </div>
 
-      <div class="market-row">
+      <div class="market-row clickable-row" onclick="populateArb(0.41, 0.59, 'US GDP > 2.5%')">
         <div>
           <div class="leg-title">US GDP Growth &gt; 2.5% Annualized?</div>
           <div class="leg-desc">BEA Advance Settlement Release</div>
@@ -268,7 +287,7 @@
       </div>
       <div class="card-subtitle">Basis Spreads & Macro Hedges</div>
 
-      <div class="market-box">
+      <div class="market-box clickable-row" onclick="populateArb(0.60, 0.40, 'Gold Spot Index')">
         <div style="display: flex; justify-content: space-between; align-items: center;">
           <div>
             <div style="font-size: 0.85rem; font-weight: 700;">Metals Anchor: Gold Index</div>
@@ -279,7 +298,7 @@
         <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px;">Zero Term Roll Fees • Central bank accumulation hedge</div>
       </div>
 
-      <div class="market-box">
+      <div class="market-box clickable-row" onclick="populateArb(0.55, 0.45, 'Bitcoin Spot Range')">
         <div style="display: flex; justify-content: space-between; align-items: center;">
           <div>
             <div style="font-size: 0.85rem; font-weight: 700;">Crypto Core: Bitcoin Spot Range</div>
@@ -305,7 +324,6 @@
 </div>
 
 <script>
-  // Pointing to your deployed Cloudflare Worker
   const WORKER_URL = "https://cosmic-parlays.cosmictrollgaming.workers.dev/api/live-data";
 
   const fallbackKalshi = [
@@ -322,7 +340,10 @@
     { title: "Bitcoin Breaks Key All-Time Milestone", yesAsk: 0.43, noAsk: 0.58 }
   ];
 
-  async function fetchFeeds() {
+  let countdown = 30;
+
+  async function fetchFeeds(manual = false) {
+    if (manual) countdown = 30;
     let kalshiData = fallbackKalshi;
     let polyData = fallbackPoly;
 
@@ -339,21 +360,31 @@
       document.getElementById("feed-status").innerHTML = `<span class="status-dot status-alert"></span>Reserve Mode`;
     }
 
-    renderFeed("kalshi-live-list", kalshiData);
-    renderFeed("poly-live-list", polyData);
+    renderFeed("kalshi-live-list", kalshiData, "kalshi");
+    renderFeed("poly-live-list", polyData, "poly");
   }
 
-  function renderFeed(elementId, items) {
+  function renderFeed(elementId, items, source) {
     const container = document.getElementById(elementId);
     container.innerHTML = "";
 
     items.slice(0, 5).forEach(item => {
       const row = document.createElement("div");
-      row.className = "market-row";
+      row.className = "market-row clickable-row";
+      row.onclick = () => {
+        if (source === "kalshi") {
+          document.getElementById("arb-yes").value = Number(item.yesAsk).toFixed(2);
+        } else {
+          document.getElementById("arb-no").value = Number(item.noAsk).toFixed(2);
+        }
+        calculateArb();
+        document.getElementById("arb-calculator-card").scrollIntoView({ behavior: 'smooth' });
+      };
+
       row.innerHTML = `
         <div>
           <div class="leg-title" title="${item.title}">${item.title}</div>
-          <div class="leg-desc">Yes: $${Number(item.yesAsk).toFixed(2)} | No: $${Number(item.noAsk).toFixed(2)}</div>
+          <div class="leg-desc">Yes: $${Number(item.yesAsk).toFixed(2)} | No: $${Number(item.noAsk).toFixed(2)} • <em>Tap to Load</em></div>
         </div>
         <div class="price-tag ${item.yesAsk >= 0.5 ? 'green' : 'red'}">
           ${Math.round(item.yesAsk * 100)}% Implied
@@ -361,6 +392,13 @@
       `;
       container.appendChild(row);
     });
+  }
+
+  function populateArb(yes, no, title) {
+    document.getElementById("arb-yes").value = Number(yes).toFixed(2);
+    document.getElementById("arb-no").value = Number(no).toFixed(2);
+    calculateArb();
+    document.getElementById("arb-calculator-card").scrollIntoView({ behavior: 'smooth' });
   }
 
   function calculateArb() {
@@ -390,7 +428,6 @@
     const gain = parseFloat(document.getElementById("tax-gain").value) || 0;
     const ordinaryRate = (parseFloat(document.getElementById("tax-bracket").value) || 0) / 100;
     
-    // §1256 blended calculation: 60% @ long-term (15%), 40% @ ordinary rate
     const ltRate = 0.15;
     const blendedRate = (0.60 * ltRate) + (0.40 * ordinaryRate);
 
@@ -405,7 +442,18 @@
     `;
   }
 
-  // Init
+  // Auto-polling 30-second interval ticker
+  setInterval(() => {
+    countdown--;
+    const btn = document.getElementById("sync-btn");
+    if (btn) btn.innerText = `Sync Books (${countdown}s)`;
+    if (countdown <= 0) {
+      countdown = 30;
+      fetchFeeds();
+    }
+  }, 1000);
+
+  // Initial runs
   fetchFeeds();
   calculateArb();
   calculateTax();
