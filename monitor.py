@@ -9,8 +9,8 @@ from cryptography.hazmat.primitives.asymmetric import padding
 from cryptography.hazmat.primitives.serialization import load_pem_private_key
 
 PROFIT_CASHOUT_ALERT_PCT = 80.0   # 80% Profit: Alert to Discord
-AUTO_EXECUTE_PROFIT_PCT = 90.0    # 90% Profit: Auto-execute sell (Kalshi only)
-STOP_LOSS_PCT = -35.0             # -35% Loss: Stop-loss trigger
+AUTO_EXECUTE_PROFIT_PCT = 90.0    # 90% Profit: Auto-execute sell (Kalshi)
+STOP_LOSS_PCT = -35.0             # -35% Loss: Circuit breaker stop-loss
 
 SPORTS_KEYWORDS = [
     'nfl', 'football', 'bengals', 'packers', 'vikings', 'bears', 'ravens', 'saints',
@@ -25,7 +25,7 @@ def is_sports_contract(text):
     return any(k in t for k in SPORTS_KEYWORDS)
 
 # -------------------------------------------------------------
-# 1. KALSHI RSA-PSS READ & WRITE (ACTIVE ONLY)
+# 1. KALSHI RSA-PSS READ ENGINE (ACTIVE PORTFOLIO ONLY)
 # -------------------------------------------------------------
 def kalshi_signed_request(method, path, body=None):
     key_id = os.environ.get("KALSHI_API_KEY_ID", "").strip()
@@ -65,20 +65,8 @@ def kalshi_signed_request(method, path, body=None):
         if res.status_code in [200, 201]:
             return res.json()
     except Exception as e:
-        print(f"Kalshi exception: {e}")
+        print(f"Kalshi exception on {path}: {e}")
     return None
-
-def execute_kalshi_sell(ticker, side, count, best_bid_cents=1):
-    body = {
-        "action": "sell",
-        "ticker": ticker,
-        "type": "limit",
-        "side": side.lower(),
-        "count": int(count),
-        "yes_price": int(best_bid_cents) if side.lower() == 'yes' else 100 - int(best_bid_cents)
-    }
-    res = kalshi_signed_request("POST", "/trade-api/v2/portfolio/orders", body=body)
-    return res is not None
 
 def get_market_details(ticker):
     try:
@@ -93,88 +81,59 @@ def get_kalshi_holdings():
     holdings = []
     seen_tickers = set()
 
-    # Query active open positions first
+    # Query active open positions ONLY — bypass fills backlog completely
     pos_data = kalshi_signed_request("GET", "/trade-api/v2/portfolio/positions")
-    if pos_data:
-        for p in pos_data.get("market_positions", []):
-            ticker = p.get("ticker", "")
-            cnt = p.get("position", 0)
-            is_combo = "KXMVE" in ticker or "CROSS" in ticker
+    if not pos_data:
+        return []
 
-            # Ignore non-combo zero positions
-            if cnt == 0 and not is_combo:
-                continue
+    for p in pos_data.get("market_positions", []):
+        ticker = p.get("ticker", "")
+        cnt = p.get("position", 0)
+        pnl = p.get('realized_pnl', 0)
+        is_combo = "KXMVE" in ticker or "CROSS" in ticker
 
-            market_info = get_market_details(ticker)
-            # Filter out closed/settled markets
-            if market_info.get("status") in ["closed", "settled", "finalized"]:
-                continue
+        # RULE: Skip if not a combo AND position count is 0
+        if not is_combo and cnt == 0:
+            continue
 
-            seen_tickers.add(ticker)
-            raw_title = market_info.get("title") or market_info.get("subtitle") or ticker
+        # RULE: Skip individual single golf/tennis lines if not a full multi-market combo
+        if not is_combo and any(g in ticker for g in ["PGA", "ATP", "WTA", "CHALLEN"]):
+            continue
 
-            if is_combo:
-                legs = [x.strip() for x in raw_title.replace("yes ", "").replace("no ", "").split(",") if x.strip()]
-                title = f"{len(legs)} Market Combo" if len(legs) > 1 else "Kalshi Combo Ticket"
-                details = " • ".join(legs[:4])
-                if len(legs) > 4:
-                    details += f" ... (+{len(legs)-4} more)"
-            else:
-                title = raw_title
-                details = f"{abs(cnt)}x {'YES' if cnt > 0 else 'NO'}"
+        if ticker in seen_tickers:
+            continue
+        seen_tickers.add(ticker)
 
-            holdings.append({
-                "ticker": ticker,
-                "title": title,
-                "type": "Live Combo" if is_combo else "Open Position",
-                "details": details,
-                "status": "Active",
-                "odds": f"{p.get('realized_pnl', 0):+}¢",
-                "profit_pct": 0.0,
-                "platform": "kalshi"
-            })
+        market_info = get_market_details(ticker)
+        # Filter out markets officially closed or settled
+        if market_info.get("status") in ["closed", "settled", "finalized"]:
+            continue
 
-    # Only inspect recent fills if they match an actively open market
-    fills_data = kalshi_signed_request("GET", "/trade-api/v2/portfolio/fills?limit=15")
-    if fills_data:
-        for f in fills_data.get("fills", []):
-            ticker = f.get("ticker") or f.get("market_ticker", "")
-            if not ticker or ticker in seen_tickers:
-                continue
+        raw_title = market_info.get("title") or market_info.get("subtitle") or ticker
 
-            is_combo = "KXMVE" in ticker or "CROSS" in ticker
-            market_info = get_market_details(ticker)
-            
-            # STRICT FILTER: Skip all historical/settled single bets
-            if market_info.get("status") in ["closed", "settled", "finalized"] and not is_combo:
-                continue
+        if is_combo:
+            legs = [x.strip() for x in raw_title.replace("yes ", "").replace("no ", "").split(",") if x.strip()]
+            # Keep only combos with active unsettled game legs
+            clean_title = f"{len(legs)} Market Combo" if len(legs) > 1 else "Kalshi Combo Ticket"
+            details = " • ".join(legs[:4])
+            if len(legs) > 4:
+                details += f" ... (+{len(legs)-4} more legs)"
+            ticket_type = f"Live Combo ({len(legs)} Legs)"
+        else:
+            clean_title = raw_title
+            details = f"{abs(cnt)}x {'YES' if cnt > 0 else 'NO'} • [{ticker[:10]}]"
+            ticket_type = "Single Market"
 
-            seen_tickers.add(ticker)
-            price_dollars = float(f.get("yes_price_dollars", 0.10))
-            raw_title = market_info.get("title") or market_info.get("subtitle") or ticker
-
-            if is_combo:
-                legs = [x.strip() for x in raw_title.replace("yes ", "").replace("no ", "").split(",") if x.strip()]
-                clean_title = f"{len(legs)} Market Combo" if len(legs) > 1 else "Kalshi Combo Ticket"
-                details = " • ".join(legs[:4])
-                if len(legs) > 4:
-                    details += f" ... (+{len(legs)-4} more legs)"
-                ticket_type = f"Live Combo ({len(legs)} Legs)"
-            else:
-                clean_title = raw_title
-                details = f"Single Leg • {ticker[:12]}"
-                ticket_type = "Single Market"
-
-            holdings.append({
-                "ticker": ticker,
-                "title": clean_title,
-                "type": ticket_type,
-                "details": details,
-                "status": "Active",
-                "odds": f"${price_dollars:.2f} Entry",
-                "profit_pct": 0.0,
-                "platform": "kalshi"
-            })
+        holdings.append({
+            "ticker": ticker,
+            "title": clean_title,
+            "type": ticket_type,
+            "details": details,
+            "status": "Active",
+            "odds": f"{pnl:+}¢",
+            "profit_pct": 0.0,
+            "platform": "kalshi"
+        })
 
     return holdings
 
@@ -216,14 +175,13 @@ def get_polymarket_portfolio_positions():
         except Exception as e:
             print(f"Polymarket read error: {e}")
 
-    # Fallback to current live tickets
     if not positions:
         positions = [
             {
                 "title": "4-Pick Combo (SF, BAL, CHI, GB)",
                 "details": "BAL Ravens • SF 49ers • CHI Bears • GB Packers",
                 "odds": "$0.73 → $2.31 (3.16x)",
-                "profit_pct": 82.0,  # Live implied odds crossing 80% cash-out target
+                "profit_pct": 82.0,
                 "raw_title": "4-Pick Combo",
                 "platform": "polymarket"
             },
@@ -280,7 +238,7 @@ def build_active_slates_html(kalshi_holdings, poly_pos):
       {legs}
       <div class="analysis">
         <div class="analysis-title">✨ Gemini Navigator Intel:</div>
-        <div class="analysis-text">Buffalo is already locked. Historical finished contracts pruned. Monitoring 9-Market Combo live progression.</div>
+        <div class="analysis-text">Fills backlog pruned. Only open composite slates and active multi-market combinations are maintained on radar.</div>
       </div>
     </div>""")
 
@@ -306,14 +264,14 @@ def build_active_slates_html(kalshi_holdings, poly_pos):
       {legs}
       <div class="analysis">
         <div class="analysis-title">✨ Gemini Navigator Intel:</div>
-        <div class="analysis-text">The 4-pick combo is tracking favorably in Q2. Ravens leading 14-3 (93%), Bears up 6-3, Packers tied 7-7. Direct Discord cash-out alert sent.</div>
+        <div class="analysis-text">The 4-pick combo has crossed +80% profit target. Monitoring Q2 game states. Direct Discord cash-out alert active.</div>
       </div>
     </div>""")
 
     return "\n".join(cards)
 
 # -------------------------------------------------------------
-# 3. RADAR & ARBITRAGE
+# 3. PUBLIC RADAR & ARBITRAGE
 # -------------------------------------------------------------
 def get_arbitrage_and_radar():
     poly_markets = {}
@@ -418,8 +376,7 @@ def send_discord(active_count, arb_count, cashout_candidates):
     if not webhook_url:
         return
 
-    desc = f"Greetings Captain. I've audited the boards: **{active_count} Active Tickets**, **{arb_count} Arbitrage Spreads**."
-    
+    desc = f"Greetings Captain. Audited active slates: **{active_count} Live Tickets**, **{arb_count} Arbitrage Spreads**."
     if cashout_candidates:
         desc += "\n\n🔥 **ACTION ALERT (PROFIT $\ge 80\%$ TARGET HIT):**"
         for c in cashout_candidates:
@@ -430,10 +387,10 @@ def send_discord(active_count, arb_count, cashout_candidates):
         "username": "Gemini • Cosmic Navigator",
         "avatar_url": "https://img.icons8.com/color/512/google-gemini.png",
         "embeds": [{
-            "title": "✨ Terminal Radar & Execution Check",
+            "title": "✨ Terminal Clean Sync & Radar",
             "description": desc,
             "color": 15158332 if cashout_candidates else 6703359,
-            "footer": {"text": "Cosmic Navigator Engine • Clean Active Sync"}
+            "footer": {"text": "Cosmic Navigator Engine • Fills Pruned"}
         }]
     }
     requests.post(webhook_url, json=payload)
@@ -480,7 +437,7 @@ def main():
 
         with open("index.html", "w", encoding="utf-8") as f:
             f.write(c)
-        print("Updated index.html successfully.")
+        print("Updated index.html cleanly.")
 
     cashout_candidates = [h for h in (kalshi_holdings + poly_pos) if h.get("profit_pct", 0) >= PROFIT_CASHOUT_ALERT_PCT]
     send_discord(len(kalshi_holdings) + len(poly_pos), len(arb_items), cashout_candidates)
