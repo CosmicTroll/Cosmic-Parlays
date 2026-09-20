@@ -28,7 +28,7 @@
     .status-badge { font-size: 0.7rem; padding: 0.2rem 0.5rem; border-radius: 9999px; background: rgba(0, 208, 132, 0.15); color: var(--green); border: 1px solid rgba(0, 208, 132, 0.3); white-space: nowrap; }
     .refresh-btn { background: var(--accent); color: #fff; border: none; padding: 0.35rem 0.75rem; border-radius: 6px; font-weight: 600; font-size: 0.75rem; cursor: pointer; }
 
-    /* Top Horizontal Navigation */
+    /* Top Navigation Tabs */
     .nav-tabs { max-width: 900px; margin: 0 auto 1rem; display: flex; gap: 0.5rem; overflow-x: auto; scrollbar-width: none; padding-bottom: 0.25rem; }
     .nav-tabs::-webkit-scrollbar { display: none; }
     .nav-btn { background: rgba(255,255,255,0.03); border: 1px solid var(--border); color: var(--muted); padding: 0.45rem 0.85rem; border-radius: 8px; font-size: 0.8rem; font-weight: 600; cursor: pointer; white-space: nowrap; transition: all 0.15s ease; }
@@ -48,7 +48,7 @@
     .asset-pill { background: var(--card-inner); border: 1px solid var(--border); color: var(--muted); padding: 0.35rem 0.7rem; border-radius: 20px; font-size: 0.75rem; font-weight: 700; cursor: pointer; white-space: nowrap; }
     .asset-pill.active { background: rgba(6, 182, 212, 0.15); border-color: var(--cyan); color: var(--cyan); }
 
-    /* Perp Outlook & Charts */
+    /* Perp Outlook & Trajectory */
     .outlook-callout { border-radius: 8px; padding: 0.85rem; margin-bottom: 0.85rem; display: flex; flex-direction: column; gap: 0.3rem; }
     .outlook-headline { font-size: 0.95rem; font-weight: 800; }
     .outlook-sub { font-size: 0.75rem; color: var(--muted); }
@@ -68,7 +68,7 @@
     .stat-label { color: var(--muted); }
     .stat-val { font-weight: 700; color: #fff; }
 
-    /* Opportunity & Value Cards */
+    /* Best Buy Cards */
     .opp-card { background: var(--card-inner); border: 1px solid var(--border); border-radius: 10px; padding: 0.9rem; display: flex; flex-direction: column; gap: 0.65rem; }
     .opp-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 0.5rem; }
     .opp-title { font-size: 0.9rem; font-weight: 700; color: #f1f5f9; line-height: 1.3; }
@@ -108,7 +108,7 @@
     .info-banner { background: rgba(99, 102, 241, 0.08); border: 1px dashed var(--accent); border-radius: 8px; padding: 0.75rem; font-size: 0.75rem; line-height: 1.4; color: #cbd5e1; }
     .empty { color: var(--muted); font-size: 0.8rem; text-align: center; padding: 2rem 1rem; }
 
-    /* Fixed Bottom Dock */
+    /* Fixed Bottom Nav */
     .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: #0b0f19; border-top: 1px solid var(--border); display: flex; justify-content: space-around; padding: 0.5rem 0.25rem; z-index: 100; max-width: 900px; margin: 0 auto; }
     .bottom-tab { background: none; border: none; color: var(--muted); display: flex; flex-direction: column; align-items: center; gap: 0.2rem; font-size: 0.65rem; font-weight: 600; cursor: pointer; flex: 1; }
     .bottom-tab span.icon { font-size: 1.1rem; }
@@ -139,54 +139,25 @@
   </div>
 
   <main>
-    <!-- TAB 1: Cosmic's Picks (Pure Sports Slips, Game Lines & Player Props) -->
+    <!-- TAB 1: Cosmic's Picks (Active Tickets + Pure Sports Game Lines & Player Props) -->
     <section id="view-picks" class="view-panel active">
       <div class="card">
         <div class="card-header">
-          <h2 class="card-title">🎟️ Active & Audited Sports Slips</h2>
-          <span style="font-size: 0.75rem; color: var(--green);">Settled Baseline</span>
+          <h2 class="card-title">🎟️ Active Exchange Tickets & Positions</h2>
+          <span style="font-size: 0.75rem; color: var(--green);" id="live-ticket-sync">Live Stream Sync</span>
         </div>
-        <div class="item-list">
-          <div class="list-item">
-            <div class="item-top">
-              <span class="item-title">Polymarket: CIN Bengals to Win</span>
-              <span class="tag tag-settled">+$1.39 Payout (Won)</span>
-            </div>
-            <div class="item-meta">
-              <span>Final: CIN 20 - HOU 6 &bull; Entry $0.58</span>
-              <span class="tag-platform">Polymarket</span>
-            </div>
-          </div>
-          <div class="list-item">
-            <div class="item-top">
-              <span class="item-title">Polymarket: 2 of 2 Combo (Bengals + Under 21.5 1H)</span>
-              <span class="tag tag-settled">+$0.04 Payout (Won)</span>
-            </div>
-            <div class="item-meta">
-              <span>GB/NYJ OT &bull; Entry $0.01 &bull; Cashed Out</span>
-              <span class="tag-platform">Polymarket</span>
-            </div>
-          </div>
-          <div class="list-item">
-            <div class="item-top">
-              <span class="item-title">Kalshi: 9 Market Combo Slate</span>
-              <span class="tag tag-closed">Closed ($0.00)</span>
-            </div>
-            <div class="item-meta">
-              <span>Cost $0.10 &bull; 8 of 9 Won (MIN/CHI missed)</span>
-              <span class="tag-platform">Kalshi</span>
-            </div>
-          </div>
+        <div class="item-list" id="tickets-container">
+          <div class="empty">Checking exchange accounts for active filled contracts...</div>
         </div>
       </div>
 
       <div class="card">
         <div class="card-header">
-          <h2 class="card-title">🏈 Game Lines & Player Props</h2>
+          <h2 class="card-title">🏈 High-Probability Game Lines & Player Props</h2>
           <span style="font-size: 0.75rem; color: var(--gold);">Live Model Edge</span>
         </div>
         <div class="item-list" id="props-container">
-          <div class="empty">Filtering live book for active NFL, NBA & player lines...</div>
+          <div class="empty">Filtering live books for active NFL, NBA & player prop lines...</div>
         </div>
       </div>
     </section>
@@ -202,7 +173,7 @@
           Real-time order book analysis on candidates, elections, geopolitical outcomes, and awards.
         </p>
         <div class="item-list" id="macro-container">
-          <div class="empty">Scanning live books for political & cultural lines...</div>
+          <div class="empty">Scanning live order books for political & cultural lines...</div>
         </div>
       </div>
     </section>
@@ -231,7 +202,7 @@
         </div>
 
         <div class="outlook-callout" id="perp-outlook-box">
-          <div class="outlook-headline" id="perp-headline">Loading direction...</div>
+          <div class="outlook-headline" id="perp-headline">Loading live market quote...</div>
           <div class="outlook-sub" id="perp-subline">Scanning Kalshi order-flow...</div>
         </div>
 
@@ -314,25 +285,25 @@
       </div>
     </section>
 
-    <!-- TAB 7: Vault -->
+    <!-- TAB 7: Vault (Live Balances & Live Dynamic Ledger) -->
     <section id="view-vault" class="view-panel">
       <div class="card">
         <div class="card-header">
-          <h2 class="card-title">💼 Portfolio Cash State</h2>
-          <span style="font-size: 0.75rem; color: var(--green);">Settled Baseline</span>
+          <h2 class="card-title">💼 Live Portfolio Cash State</h2>
+          <span style="font-size: 0.75rem; color: var(--green);" id="vault-sync-status">Syncing with Exchange APIs...</span>
         </div>
         <div class="balance-grid">
           <div class="metric">
-            <div class="metric-label">Polymarket (Settled)</div>
-            <div class="metric-value">$2.57</div>
+            <div class="metric-label">Polymarket (Live Cash)</div>
+            <div class="metric-value" id="vault-poly-bal">$0.00</div>
           </div>
           <div class="metric">
-            <div class="metric-label">Kalshi (Available)</div>
-            <div class="metric-value">$0.00</div>
+            <div class="metric-label">Kalshi (Live Cash)</div>
+            <div class="metric-value" id="vault-kalshi-bal">$0.00</div>
           </div>
           <div class="metric">
             <div class="metric-label">Net Available</div>
-            <div class="metric-value" style="color: var(--cyan);">$2.57</div>
+            <div class="metric-value" id="vault-net-bal" style="color: var(--cyan);">$0.00</div>
           </div>
           <div class="metric">
             <div class="metric-label">Execution Guard</div>
@@ -343,38 +314,35 @@
 
       <div class="card">
         <div class="card-header">
-          <h2 class="card-title">📊 Profit & Loss Ledger</h2>
-          <div class="time-selector" id="pnl-time-selector">
-            <button class="time-btn active" onclick="setPnlTime('Today')">Today</button>
-            <button class="time-btn" onclick="setPnlTime('7D')">7D</button>
-            <button class="time-btn" onclick="setPnlTime('30D')">30D</button>
-            <button class="time-btn" onclick="setPnlTime('All-Time')">All-Time</button>
-          </div>
+          <h2 class="card-title">📊 Live Portfolio Ledger</h2>
+          <span style="font-size: 0.75rem; color: var(--muted);">Audited In Real-Time</span>
         </div>
         <div class="balance-grid" style="margin-bottom: 0.85rem;">
           <div class="metric">
-            <div class="metric-label">Period PnL</div>
-            <div class="metric-value" id="pnl-value" style="color: var(--green);">+$0.74</div>
+            <div class="metric-label">Active Exposure</div>
+            <div class="metric-value" id="ledger-exposure">$0.00</div>
           </div>
           <div class="metric">
-            <div class="metric-label">Realized ROI</div>
-            <div class="metric-value" id="pnl-roi" style="color: var(--green);">+107.2%</div>
+            <div class="metric-label">Active Contracts</div>
+            <div class="metric-value" id="ledger-active-count">0</div>
           </div>
           <div class="metric">
-            <div class="metric-label">Total Outlay</div>
-            <div class="metric-value" id="pnl-outlay">$0.69</div>
+            <div class="metric-label">Polymarket Status</div>
+            <div class="metric-value" id="ledger-poly-status" style="font-size: 1rem;">Connecting</div>
           </div>
           <div class="metric">
-            <div class="metric-label">Win Rate</div>
-            <div class="metric-value" id="pnl-winrate">66.7%</div>
+            <div class="metric-label">Kalshi Status</div>
+            <div class="metric-value" id="ledger-kalshi-status" style="font-size: 1rem;">Connecting</div>
           </div>
         </div>
-        <div class="item-list" id="pnl-history-list"></div>
+        <div class="item-list" id="live-positions-list">
+          <div class="empty">No live open contracts detected across connected wallets.</div>
+        </div>
       </div>
     </section>
   </main>
 
-  <!-- Persistent Bottom Dock -->
+  <!-- Persistent Bottom Navigation Dock -->
   <nav class="bottom-nav">
     <button class="bottom-tab active" onclick="switchView('picks')">
       <span class="icon">🎯</span>
@@ -408,60 +376,11 @@
 
   <script>
     const WORKER_URL = "https://cosmic-parlays.cosmictrollgaming.workers.dev/api/live-data";
-    let latestData = { kalshi: [], polymarket: [], perps: {} };
+    let latestData = { kalshi: [], polymarket: [], perps: {}, portfolio: {} };
     const viewKeys = ['picks', 'macro', 'perps', 'poly', 'kalshi', 'spreads', 'vault'];
 
     let activePerp = "GOLD";
     let activePerpTime = "4H";
-    let currentPnlTime = "Today";
-
-    const PNL_DATA = {
-      "Today": {
-        pnl: "+$0.74",
-        roi: "+107.2%",
-        outlay: "$0.69",
-        winrate: "66.7%",
-        history: [
-          { title: "Polymarket: CIN Bengals to Win", pnl: "+$0.81 net", tag: "Won", cost: "$0.58", return: "$1.39" },
-          { title: "Polymarket: 2-Pick Combo (Bengals + U21.5)", pnl: "+$0.03 net", tag: "Won", cost: "$0.01", return: "$0.04" },
-          { title: "Kalshi: 9-Market Combo Slate", pnl: "-$0.10 net", tag: "Closed", cost: "$0.10", return: "$0.00" }
-        ]
-      },
-      "7D": {
-        pnl: "+$0.74",
-        roi: "+107.2%",
-        outlay: "$0.69",
-        winrate: "66.7%",
-        history: [
-          { title: "Polymarket: CIN Bengals to Win", pnl: "+$0.81 net", tag: "Won", cost: "$0.58", return: "$1.39" },
-          { title: "Polymarket: 2-Pick Combo (Bengals + U21.5)", pnl: "+$0.03 net", tag: "Won", cost: "$0.01", return: "$0.04" },
-          { title: "Kalshi: 9-Market Combo Slate", pnl: "-$0.10 net", tag: "Closed", cost: "$0.10", return: "$0.00" }
-        ]
-      },
-      "30D": {
-        pnl: "-$12.44",
-        roi: "-82.8%",
-        outlay: "$15.01",
-        winrate: "40.0%",
-        history: [
-          { title: "Polymarket: Initial Parlay Tickets Run", pnl: "-$13.18 net", tag: "Closed", cost: "$14.32", return: "$1.14" },
-          { title: "Polymarket: CIN Bengals to Win", pnl: "+$0.81 net", tag: "Won", cost: "$0.58", return: "$1.39" },
-          { title: "Polymarket: 2-Pick Combo Cashed Out", pnl: "+$0.03 net", tag: "Won", cost: "$0.01", return: "$0.04" },
-          { title: "Kalshi: 9-Market Combo Test", pnl: "-$0.10 net", tag: "Closed", cost: "$0.10", return: "$0.00" }
-        ]
-      },
-      "All-Time": {
-        pnl: "-$12.44",
-        roi: "-82.8%",
-        outlay: "$15.01",
-        winrate: "40.0%",
-        history: [
-          { title: "Baseline All-Time PnL Accumulation", pnl: "-$12.44 net", tag: "Audited", cost: "$15.01", return: "$2.57" },
-          { title: "Polymarket: CIN Bengals to Win", pnl: "+$0.81 net", tag: "Won", cost: "$0.58", return: "$1.39" },
-          { title: "Kalshi: 9-Market Combo Test", pnl: "-$0.10 net", tag: "Closed", cost: "$0.10", return: "$0.00" }
-        ]
-      }
-    };
 
     function switchView(tabId) {
       document.querySelectorAll('.view-panel').forEach(p => p.classList.remove('active'));
@@ -477,7 +396,7 @@
       });
 
       if (tabId === 'perps') renderPerpForecast();
-      if (tabId === 'vault') renderPnlView();
+      if (tabId === 'vault') renderVaultLive();
     }
 
     function selectPerpAsset(asset) {
@@ -508,9 +427,9 @@
       const sublineEl = document.getElementById('perp-subline');
       const outlookBox = document.getElementById('perp-outlook-box');
 
-      headlineEl.textContent = `${model.name} is expected to ${tf.dir} over the next ${activePerpTime}`;
+      headlineEl.textContent = `${model.name} is expected to ${tf.dir} over next ${activePerpTime}`;
       headlineEl.style.color = isUp ? "var(--green)" : "var(--red)";
-      sublineEl.textContent = `Kalshi order-flow projects ${tf.pct} implied move. Target: ${tf.target}${model.unit}`;
+      sublineEl.textContent = `Live order-flow indicates ${tf.pct} implied move. Target: ${tf.target} ${model.unit}`;
 
       outlookBox.style.background = isUp ? "rgba(0, 208, 132, 0.08)" : "rgba(255, 77, 77, 0.08)";
       outlookBox.style.borderColor = isUp ? "rgba(0, 208, 132, 0.3)" : "rgba(255, 77, 77, 0.3)";
@@ -614,23 +533,48 @@
         
         const kalshi = latestData.kalshi || [];
         const poly = latestData.polymarket || [];
-        
+        const portfolio = latestData.portfolio || {};
+
         document.getElementById('scan-count').textContent = `${kalshi.length} Kalshi / ${poly.length} Poly`;
         document.getElementById('poly-count').textContent = `${poly.length} Markets`;
         document.getElementById('kalshi-count').textContent = `${kalshi.length} Markets`;
 
+        renderTickets(portfolio.positions || []);
         renderSportsParlays(poly, kalshi);
         renderMacroHub(poly, kalshi);
         renderPerpForecast();
         renderBestBuys('poly-container', poly, 'POLY');
         renderBestBuys('kalshi-container', kalshi, 'KALSHI');
         renderSpreads(kalshi, poly);
+        renderVaultLive();
       } catch (err) {
         console.error("Live fetch error:", err);
       }
     }
 
-    // Cosmic's Picks: Exclusively Sports Slips, Game Lines & Player Props
+    // Dynamic Active Exchange Positions / Slips
+    function renderTickets(positions) {
+      const container = document.getElementById('tickets-container');
+      if (!positions || positions.length === 0) {
+        container.innerHTML = `<div class="empty">0 open positions active on exchange order books. Ready for execution.</div>`;
+        return;
+      }
+
+      container.innerHTML = positions.map(pos => `
+        <div class="list-item">
+          <div class="item-top">
+            <span class="item-title">${pos.title}</span>
+            <span class="tag tag-settled">${pos.status}</span>
+          </div>
+          <div class="item-meta">
+            <span>Size: <b>${pos.count} contracts</b> &bull; Total Outlay: $${pos.exposure.toFixed(2)}</span>
+            <span class="tag-platform">${pos.platform}</span>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // Pure Sports Slips & Props
     function renderSportsParlays(poly, kalshi) {
       const container = document.getElementById('props-container');
       const all = [...poly, ...kalshi];
@@ -654,15 +598,11 @@
       });
 
       if (candidates.length === 0) {
-        candidates.push(
-          { title: "Patrick Mahomes: Over 245.5 Passing Yards", side: "YES", price: 0.54, prob: 54, platform: "Kalshi", type: "Anchor Leg", candidate: "Over 245.5" },
-          { title: "Travis Kelce: Any Time Touchdown Scorer", side: "YES", price: 0.48, prob: 48, platform: "Polymarket", type: "Value Add-On", candidate: "Kelce Anytime TD" },
-          { title: "Josh Allen: Over 1.5 Passing TDs", side: "YES", price: 0.62, prob: 62, platform: "Kalshi", type: "Anchor Leg", candidate: "Over 1.5 TDs" },
-          { title: "Celtics vs Knicks: Game Total Over 218.5", side: "YES", price: 0.51, prob: 51, platform: "Kalshi", type: "Anchor Leg", candidate: "Over 218.5" }
-        );
+        container.innerHTML = `<div class="empty">No live sports games meeting model thresholds at this second. Refreshing feed...</div>`;
+        return;
       }
 
-      container.innerHTML = candidates.slice(0, 6).map(p => `
+      container.innerHTML = candidates.slice(0, 8).map(p => `
         <div class="list-item">
           <div class="item-top">
             <span class="item-title">${p.title}</span>
@@ -677,7 +617,7 @@
       `).join('');
     }
 
-    // Politics & Culture: Elections, Macro, Tech
+    // Politics & Culture Hub
     function renderMacroHub(poly, kalshi) {
       const container = document.getElementById('macro-container');
       const all = [...poly, ...kalshi];
@@ -781,44 +721,57 @@
       container.innerHTML = found ? html : `<div class="empty">No direct cross-exchange spreads found in active order books right now.</div>`;
     }
 
-    function setPnlTime(t) {
-      currentPnlTime = t;
-      document.querySelectorAll('#pnl-time-selector .time-btn').forEach(btn => {
-        btn.classList.toggle('active', btn.textContent === t);
-      });
-      renderPnlView();
+    // 100% Live Vault Balances & Real-Time Position Rendering
+    function renderVaultLive() {
+      const portfolio = latestData.portfolio || {};
+      const polyBal = portfolio.polyBalance || 0;
+      const kalshiBal = portfolio.kalshiBalance || 0;
+      const total = polyBal + kalshiBal;
+
+      document.getElementById('vault-poly-bal').textContent = `$${polyBal.toFixed(2)}`;
+      document.getElementById('vault-kalshi-bal').textContent = `$${kalshiBal.toFixed(2)}`;
+      document.getElementById('vault-net-bal').textContent = `$${total.toFixed(2)}`;
+
+      const polyAuth = portfolio.polyAuth;
+      const kalshiAuth = portfolio.kalshiAuth;
+
+      const pStatusEl = document.getElementById('ledger-poly-status');
+      pStatusEl.textContent = polyAuth ? "Connected" : "Not Linked";
+      pStatusEl.style.color = polyAuth ? "var(--green)" : "var(--gold)";
+
+      const kStatusEl = document.getElementById('ledger-kalshi-status');
+      kStatusEl.textContent = kalshiAuth ? "Connected" : "Not Linked";
+      kStatusEl.style.color = kalshiAuth ? "var(--green)" : "var(--gold)";
+
+      const syncStatus = document.getElementById('vault-sync-status');
+      syncStatus.textContent = (polyAuth || kalshiAuth) ? "Live API Connected" : "Awaiting API Auth Handshake";
+      syncStatus.style.color = (polyAuth || kalshiAuth) ? "var(--green)" : "var(--gold)";
+
+      const positions = portfolio.positions || [];
+      document.getElementById('ledger-active-count').textContent = positions.length;
+
+      const totalExposure = positions.reduce((acc, p) => acc + (p.exposure || 0), 0);
+      document.getElementById('ledger-exposure').textContent = `$${totalExposure.toFixed(2)}`;
+
+      const listContainer = document.getElementById('live-positions-list');
+      if (positions.length === 0) {
+        listContainer.innerHTML = `<div class="empty">Clean slate: 0 open contracts or unsettled risk on exchange accounts.</div>`;
+      } else {
+        listContainer.innerHTML = positions.map(pos => `
+          <div class="list-item">
+            <div class="item-top">
+              <span class="item-title">${pos.title}</span>
+              <span class="tag tag-settled">${pos.status}</span>
+            </div>
+            <div class="item-meta">
+              <span>Size: ${pos.count} contracts &bull; Capital: $${pos.exposure.toFixed(2)}</span>
+              <span class="tag-platform">${pos.platform}</span>
+            </div>
+          </div>
+        `).join('');
+      }
     }
 
-    function renderPnlView() {
-      const data = PNL_DATA[currentPnlTime] || PNL_DATA["Today"];
-      const pnlValEl = document.getElementById('pnl-value');
-      const pnlRoiEl = document.getElementById('pnl-roi');
-
-      pnlValEl.textContent = data.pnl;
-      pnlRoiEl.textContent = data.roi;
-      document.getElementById('pnl-outlay').textContent = data.outlay;
-      document.getElementById('pnl-winrate').textContent = data.winrate;
-
-      const isPositive = data.pnl.startsWith("+");
-      pnlValEl.style.color = isPositive ? "var(--green)" : "var(--red)";
-      pnlRoiEl.style.color = isPositive ? "var(--green)" : "var(--red)";
-
-      const listContainer = document.getElementById('pnl-history-list');
-      listContainer.innerHTML = data.history.map(h => `
-        <div class="list-item">
-          <div class="item-top">
-            <span class="item-title">${h.title}</span>
-            <span class="tag ${h.tag === 'Won' ? 'tag-settled' : 'tag-closed'}">${h.tag}</span>
-          </div>
-          <div class="item-meta">
-            <span>Cost: ${h.cost} &bull; Return: ${h.return}</span>
-            <span style="font-weight: 700; color: ${h.pnl.startsWith('+') ? 'var(--green)' : 'var(--red)'};">${h.pnl}</span>
-          </div>
-        </div>
-      `).join('');
-    }
-
-    renderPnlView();
     fetchLiveData();
     setInterval(fetchLiveData, 30000);
   </script>
