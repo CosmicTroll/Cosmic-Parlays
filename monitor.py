@@ -51,46 +51,66 @@ def kalshi_signed_request(method, path):
             "Content-Type": "application/json"
         }
         res = requests.get(f"https://external-api.kalshi.com{path}", headers=headers, timeout=10)
-        print(f"Kalshi {path} Response: {res.status_code}")
         if res.status_code == 200:
             return res.json()
-        else:
-            print(f"Kalshi {path} Error: {res.text}")
     except Exception as e:
         print(f"Kalshi request exception on {path}: {e}")
     return None
 
+def get_market_title(ticker):
+    # Quick helper to turn raw tickers into readable titles
+    try:
+        res = requests.get(f"https://external-api.kalshi.com/trade-api/v2/markets/{ticker}", timeout=5)
+        if res.status_code == 200:
+            m = res.json().get('market', {})
+            return m.get('title') or m.get('subtitle') or ticker
+    except:
+        pass
+    return ticker
+
 def get_kalshi_holdings():
     holdings = []
     
-    # 1. Fetch Settled / Running Positions
+    # 1. Fetch Positions — STRICT FILTER: position MUST be non-zero
     pos_data = kalshi_signed_request("GET", "/trade-api/v2/portfolio/positions")
     if pos_data:
         for p in pos_data.get("market_positions", []):
             cnt = p.get("position", 0)
-            if cnt != 0:
-                holdings.append({
-                    "title": p.get("ticker", "Position"),
-                    "type": "Contract Position",
-                    "details": f"{abs(cnt)}x {'YES' if cnt > 0 else 'NO'}",
-                    "status": "Active" if not p.get("settled") else "Settled",
-                    "odds": f"{p.get('realized_pnl', 0):+}¢"
-                })
+            # Skip phantom zero positions
+            if cnt == 0:
+                continue
+            
+            ticker = p.get("ticker", "")
+            title = get_market_title(ticker)
+            side = "YES" if cnt > 0 else "NO"
+            pnl = p.get('realized_pnl', 0)
+            
+            holdings.append({
+                "title": title,
+                "type": "Contract Holding",
+                "details": f"{abs(cnt)}x {side} • [{ticker[:10]}]",
+                "status": "Active" if not p.get("settled") else "Settled",
+                "odds": f"{pnl:+}¢"
+            })
 
-    # 2. Fetch Open/Resting/Filled Orders (Combo Tickets & Slates)
+    # 2. Fetch Open/Resting/Executed Orders (active tickets)
     order_data = kalshi_signed_request("GET", "/trade-api/v2/portfolio/orders?status=resting,executed")
     if order_data:
         for o in order_data.get("orders", []):
-            ticker = o.get("ticker", "Order")
+            count = o.get("order_count") or o.get("count", 0)
+            if count <= 0:
+                continue
+            
+            ticker = o.get("ticker", "Ticket")
+            title = get_market_title(ticker)
             action = o.get("action", "buy").upper()
             side = o.get("side", "yes").upper()
-            count = o.get("order_count") or o.get("count", 1)
             status = o.get("status", "open").capitalize()
             yes_price = o.get("yes_price", o.get("price", 0))
             
             holdings.append({
-                "title": f"Kalshi Ticket [{ticker[:16]}]",
-                "type": "Slate Order",
+                "title": title,
+                "type": "Live Ticket",
                 "details": f"{action} {count}x {side} @ {yes_price}¢",
                 "status": status,
                 "odds": f"{yes_price}%"
@@ -113,7 +133,13 @@ def get_polymarket_portfolio_positions():
         res = requests.get("https://data-api.polymarket.com/positions", headers=headers, timeout=10)
         if res.status_code == 200:
             data = res.json()
-            return data if isinstance(data, list) else data.get("positions", [])
+            items = data if isinstance(data, list) else data.get("positions", [])
+            valid = []
+            for p in items:
+                # Filter out zero balances
+                if float(p.get('size', 0)) > 0:
+                    valid.append(p)
+            return valid
     except Exception as e:
         print(f"Polymarket portfolio error: {e}")
     return []
@@ -136,14 +162,14 @@ def build_active_slates_html(kalshi_holdings, poly_pos):
         cards.append(f"""
     <div class="card">
       <div class="card-head">
-        <div class="card-title">Kalshi Live Portfolio</div>
+        <div class="card-title">Kalshi Live Slates</div>
         <div class="badge up">Sync Active</div>
       </div>
-      <div class="tier">Active Tickets, Fills & Positions</div>
+      <div class="tier">Live Fills & Unsettled Risk</div>
       {legs}
       <div class="analysis">
         <div class="analysis-title">Portfolio Status:</div>
-        <div class="analysis-text">Synchronized directly via Kalshi authenticated portfolio and order streams.</div>
+        <div class="analysis-text">Synchronized in real-time with Kalshi via RSA-PSS API. Zero-balance history filtered out.</div>
       </div>
     </div>""")
 
@@ -167,11 +193,11 @@ def build_active_slates_html(kalshi_holdings, poly_pos):
         <div class="card-title">Polymarket Live Portfolio</div>
         <div class="badge up">Sync Active</div>
       </div>
-      <div class="tier">Active Polymarket Positions</div>
+      <div class="tier">Active Contract Allocations</div>
       {legs}
       <div class="analysis">
         <div class="analysis-title">Portfolio Status:</div>
-        <div class="analysis-text">Position units synchronized via Polymarket US API.</div>
+        <div class="analysis-text">Position units synchronized via Polymarket API keys.</div>
       </div>
     </div>""")
 
@@ -179,13 +205,13 @@ def build_active_slates_html(kalshi_holdings, poly_pos):
         return """
     <div class="card">
       <div class="card-head">
-        <div class="card-title">Portfolio Synced (No Open Risk)</div>
+        <div class="card-title">Active Portfolio Clear</div>
         <div class="badge scout">Standby</div>
       </div>
       <div class="tier">Kalshi & Polymarket Portfolio Reader</div>
       <div class="analysis">
         <div class="analysis-title">Live Account State:</div>
-        <div class="analysis-text">Authenticated successfully. No active contracts or resting orders detected. When you submit a ticket on Kalshi, it will populate here automatically.</div>
+        <div class="analysis-text">No active risk exposure or resting orders detected. When you open a contract or perp, it will populate here automatically.</div>
       </div>
     </div>"""
     return "\n".join(cards)
@@ -305,8 +331,8 @@ def send_discord(active_count, sports_count, macro_count):
         "username": "Cosmic Scout Agent",
         "avatar_url": "https://img.icons8.com/isometric/512/telescope.png",
         "embeds": [{
-            "title": "🌌 Terminal Refreshed & Portfolio Synced",
-            "description": f"Synced **{active_count} Active Holdings / Orders**, **{sports_count} Sports Lines**, and **{macro_count} Macro Horizons**.",
+            "title": "🌌 Companion Terminal Updated",
+            "description": f"Refreshed **{active_count} Active Portfolio Slates**, **{sports_count} Sports Lines**, and **{macro_count} Macro Horizons**.",
             "color": 4156648,
             "footer": {"text": "Cosmic Parlay Companion Engine"}
         }]
@@ -346,7 +372,7 @@ def main():
 
         with open("index.html", "w", encoding="utf-8") as f:
             f.write(c)
-        print("Updated index.html successfully across all 3 autogen sections.")
+        print("Updated index.html successfully.")
 
     send_discord(len(kalshi_holdings) + len(poly_pos), len(sports_items), len(macro_items))
 
