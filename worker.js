@@ -1,5 +1,5 @@
 // Cloudflare Worker: worker.js
-// Production Execution Engine for Kalshi & Polymarket.us (CFTC DCM)
+// Production Automated Scanner & Execution Engine for Kalshi & Polymarket.us
 
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",
@@ -12,7 +12,6 @@ const CORS_HEADERS = {
 // 1. Cryptography Helpers (WebCrypto API)
 // -------------------------------------------------------------
 
-// Convert base64 / PEM RSA string into WebCrypto Private Key for Kalshi
 async function importKalshiRsaKey(pem) {
   const cleanPem = pem
     .replace(/-----BEGIN PRIVATE KEY-----/g, "")
@@ -26,16 +25,12 @@ async function importKalshiRsaKey(pem) {
   return await crypto.subtle.importKey(
     "pkcs8",
     binaryDer.buffer,
-    {
-      name: "RSA-PSS",
-      hash: "SHA-256",
-    },
+    { name: "RSA-PSS", hash: "SHA-256" },
     false,
     ["sign"]
   );
 }
 
-// Sign Kalshi Request (Method + Path + Timestamp + Body)
 async function signKalshiRequest(privateKey, timestamp, method, path, body = "") {
   const message = `${timestamp}${method.toUpperCase()}${path}${body}`;
   const encoder = new TextEncoder();
@@ -47,7 +42,6 @@ async function signKalshiRequest(privateKey, timestamp, method, path, body = "")
   return btoa(String.fromCharCode(...new Uint8Array(signature)));
 }
 
-// Sign Polymarket.us Request with HMAC-SHA256
 async function signPolymarketUsRequest(secret, timestamp, method, path, body = "") {
   const encoder = new TextEncoder();
   const key = await crypto.subtle.importKey(
@@ -63,10 +57,69 @@ async function signPolymarketUsRequest(secret, timestamp, method, path, body = "
 }
 
 // -------------------------------------------------------------
-// 2. Main Request Router
+// 2. Automated Arbitrage Monitor Routine
+// -------------------------------------------------------------
+
+async function runAutonomousScan(env) {
+  const marketData = await handleLiveData();
+  const body = await marketData.json();
+  const kalshi = body.kalshi || [];
+  const polymarket = body.polymarket || [];
+
+  if (kalshi.length === 0 || polymarket.length === 0) return;
+
+  for (const k of kalshi) {
+    for (const p of polymarket) {
+      // Find events with matching keywords (e.g. Fed, GDP, Election)
+      const kWords = k.title.toLowerCase().split(/\s+/);
+      const isCandidate = kWords.some(w => w.length > 3 && p.title.toLowerCase().includes(w));
+
+      if (isCandidate) {
+        const totalCost = k.yesAsk + p.noAsk;
+        const feeBuffer = 0.02; // 2 cent taker fee buffer
+        const netEdge = 1.00 - totalCost - feeBuffer;
+
+        // Spread condition: Positive yield greater than 2%
+        if (netEdge > 0.02) {
+          const alertMessage = `🚨 **Cosmic Arbitrage Detected!**\n` +
+            `• Event: ${k.title}\n` +
+            `• Kalshi Yes: $${k.yesAsk.toFixed(2)} | Polymarket No: $${p.noAsk.toFixed(2)}\n` +
+            `• Net Edge: +${(netEdge * 100).toFixed(1)}¢ per contract (${((netEdge / totalCost) * 100).toFixed(1)}% ROI)`;
+
+          // Send Discord notification if DISCORD_WEBHOOK exists in secrets
+          if (env.DISCORD_WEBHOOK) {
+            await fetch(env.DISCORD_WEBHOOK, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ content: alertMessage })
+            });
+          }
+
+          // OPTIONAL: Auto-execute small test order if keys are set
+          if (env.AUTO_TRADE_ENABLED === "true" && env.KALSHI_KEY_ID && env.KALSHI_PRIVATE_KEY) {
+            await handleExecuteSpread({
+              kalshiTicker: k.ticker,
+              kalshiSide: "yes",
+              kalshiCount: 1,
+              kalshiMaxPrice: k.yesAsk,
+              polyTicker: p.ticker,
+              polySide: "BUY",
+              polyCount: 1,
+              polyPrice: p.noAsk
+            }, env);
+          }
+        }
+      }
+    }
+  }
+}
+
+// -------------------------------------------------------------
+// 3. Main Request Router & Cron Scheduler
 // -------------------------------------------------------------
 
 export default {
+  // HTTP Fetch Handler (for Terminal UI)
   async fetch(request, env, ctx) {
     if (request.method === "OPTIONS") {
       return new Response(null, { headers: CORS_HEADERS });
@@ -75,12 +128,10 @@ export default {
     const url = new URL(request.url);
 
     try {
-      // Endpoint 1: Market Polling (Kalshi + Polymarket US data)
       if (url.pathname === "/api/live-data" || url.pathname === "/") {
         return await handleLiveData();
       }
 
-      // Endpoint 2: Live Spread Order Execution
       if (url.pathname === "/api/execute-spread" && request.method === "POST") {
         const payload = await request.json();
         return await handleExecuteSpread(payload, env);
@@ -90,25 +141,28 @@ export default {
         status: 404,
         headers: CORS_HEADERS,
       });
-
     } catch (err) {
       return new Response(JSON.stringify({ status: "error", message: err.message }), {
         status: 500,
         headers: CORS_HEADERS,
       });
     }
+  },
+
+  // Cron Trigger Handler (Automated Background Execution)
+  async scheduled(event, env, ctx) {
+    ctx.waitUntil(runAutonomousScan(env));
   }
 };
 
 // -------------------------------------------------------------
-// 3. Handlers
+// 4. Data Gathering & Execution
 // -------------------------------------------------------------
 
 async function handleLiveData() {
-  // 1. Kalshi Public Markets (Targeting updated external API endpoint with required User-Agent)
   let kalshiMarkets = [];
   try {
-    const kalshiRes = await fetch("https://external-api.kalshi.com/trade-api/v2/markets?limit=10&status=open", {
+    const kalshiRes = await fetch("https://external-api.kalshi.com/trade-api/v2/markets?limit=15&status=open", {
       headers: {
         "Accept": "application/json",
         "User-Agent": "CosmicParlaysTerminal/1.0"
@@ -119,8 +173,7 @@ async function handleLiveData() {
       const kJson = await kalshiRes.json();
       kalshiMarkets = kJson.markets || [];
     } else {
-      // Secondary fallback to standard trade-api path
-      const backupRes = await fetch("https://api.elections.kalshi.com/trade-api/v2/markets?limit=10&status=open", {
+      const backupRes = await fetch("https://api.elections.kalshi.com/trade-api/v2/markets?limit=15&status=open", {
         headers: {
           "Accept": "application/json",
           "User-Agent": "CosmicParlaysTerminal/1.0"
@@ -135,10 +188,9 @@ async function handleLiveData() {
     console.error("Kalshi public fetch error:", err);
   }
 
-  // 2. Polymarket Public Events
   let polyData = [];
   try {
-    const polyRes = await fetch("https://gamma-api.polymarket.com/events?closed=false&limit=10", {
+    const polyRes = await fetch("https://gamma-api.polymarket.com/events?closed=false&limit=15", {
       headers: {
         "Accept": "application/json",
         "User-Agent": "CosmicParlaysTerminal/1.0"
@@ -180,7 +232,6 @@ async function handleLiveData() {
 }
 
 async function handleExecuteSpread(payload, env) {
-  // Check Kalshi credentials
   const kalshiKeyId = env.KALSHI_KEY_ID || env.KALSHI_API_KEY;
   const kalshiPrivateKey = env.KALSHI_PRIVATE_KEY;
 
@@ -202,7 +253,6 @@ async function handleExecuteSpread(payload, env) {
     polyPrice
   } = payload;
 
-  // Safety Guard: Stop execution if exceeding $10 test cap
   const contractsToBuy = kalshiCount || 1;
   const maxPriceCents = Math.round((kalshiMaxPrice || 0.50) * 100);
   const totalOutlay = (contractsToBuy * maxPriceCents) / 100;
@@ -213,7 +263,7 @@ async function handleExecuteSpread(payload, env) {
     });
   }
 
-  // --- LEG 1: KALSHI EXECUTION ---
+  // --- KALSHI EXECUTION ---
   const kalshiPath = "/trade-api/v2/portfolio/orders";
   const kalshiTimestamp = Date.now().toString();
   const kalshiBodyObj = {
@@ -243,7 +293,7 @@ async function handleExecuteSpread(payload, env) {
 
   const kalshiResult = await kalshiOrderRes.json();
 
-  // --- LEG 2: POLYMARKET.US EXECUTION ---
+  // --- POLYMARKET.US EXECUTION ---
   const polyKey = env.POLYMARKET_US_KEY || env.POLYMARKET_KEY;
   const polySecret = env.POLYMARKET_US_SECRET || env.POLYMARKET_SECRET;
 
@@ -282,4 +332,3 @@ async function handleExecuteSpread(payload, env) {
     polymarket: polyResult
   }), { headers: CORS_HEADERS });
 }
-
