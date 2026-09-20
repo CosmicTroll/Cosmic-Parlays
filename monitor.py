@@ -1,6 +1,11 @@
 import os
 import requests
 import json
+import base64
+import datetime
+from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives.asymmetric import padding
+from cryptography.hazmat.primitives.serialization import load_pem_private_key
 
 SPORTS_KEYWORDS = [
     'nfl', 'football', 'bengals', 'packers', 'vikings', 'bears', 'ravens', 'saints',
@@ -14,6 +19,142 @@ def is_sports_contract(text):
     t = text.lower()
     return any(k in t for k in SPORTS_KEYWORDS)
 
+# -------------------------------------------------------------
+# 1. AUTHENTICATED PORTFOLIO POLLING (TAB 1)
+# -------------------------------------------------------------
+def get_kalshi_portfolio_positions():
+    key_id = os.environ.get("KALSHI_API_KEY_ID")
+    private_key_pem = os.environ.get("KALSHI_PRIVATE_KEY")
+    if not key_id or not private_key_pem:
+        return []
+
+    try:
+        timestamp_ms = int(datetime.datetime.now(datetime.timezone.utc).timestamp() * 1000)
+        timestr = str(timestamp_ms)
+        method = "GET"
+        path = "/trade-api/v2/portfolio/positions"
+        message = f"{timestr}{method}{path}".encode('utf-8')
+
+        private_key = load_pem_private_key(private_key_pem.encode('utf-8'), password=None)
+        signature = private_key.sign(message, padding.PKCS1v15(), hashes.SHA256())
+        sig_b64 = base64.b64encode(signature).decode('utf-8')
+
+        headers = {
+            "KALSHI-ACCESS-KEY": key_id,
+            "KALSHI-ACCESS-SIGNATURE": sig_b64,
+            "KALSHI-ACCESS-TIMESTAMP": timestr,
+            "Content-Type": "application/json"
+        }
+        res = requests.get(f"https://trading-api.kalshi.com{path}", headers=headers, timeout=10)
+        if res.status_code == 200:
+            return res.json().get("market_positions", [])
+    except Exception as e:
+        print(f"Kalshi portfolio read error: {e}")
+    return []
+
+def get_polymarket_portfolio_positions():
+    api_key = os.environ.get("POLYMARKET_API_KEY")
+    secret = os.environ.get("POLYMARKET_SECRET")
+    if not api_key:
+        return []
+
+    try:
+        headers = {
+            "Authorization": f"Bearer {api_key}",
+            "POLY-API-SECRET": secret or "",
+            "Content-Type": "application/json"
+        }
+        # Standard Polymarket portfolio / positions endpoint
+        url = "https://data-api.polymarket.com/positions"
+        res = requests.get(url, headers=headers, timeout=10)
+        if res.status_code == 200:
+            data = res.json()
+            return data if isinstance(data, list) else data.get("positions", [])
+    except Exception as e:
+        print(f"Polymarket portfolio read error: {e}")
+    return []
+
+def build_active_slates_html(kalshi_pos, poly_pos):
+    cards = []
+    
+    # Render Kalshi Positions
+    if kalshi_pos:
+        legs = ""
+        for p in kalshi_pos:
+            ticker = p.get('ticker', 'KALSHI')
+            count = p.get('position', 0)
+            side = "YES" if count > 0 else "NO"
+            pnl = p.get('realized_pnl', 0)
+            status_badge = "✅ Settled" if p.get('settled') else "🟢 Active"
+            legs += f"""
+      <div class="leg">
+        <div class="leg-info">
+          <div class="leg-matchup">Kalshi Position • <span style="color: #86EFAC;">{status_badge}</span></div>
+          <div class="leg-pick">{ticker} ({abs(count)}x {side})</div>
+        </div>
+        <div class="leg-odds">{pnl:+}¢</div>
+      </div>"""
+        cards.append(f"""
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title">Kalshi Live Portfolio</div>
+        <div class="badge up">Syncing API</div>
+      </div>
+      <div class="tier">Authenticated Orders & Active Fills</div>
+      {legs}
+      <div class="analysis">
+        <div class="analysis-title">Portfolio Status:</div>
+        <div class="analysis-text">Real-time contract exposures verified via Kalshi RSA API.</div>
+      </div>
+    </div>""")
+
+    # Render Polymarket Positions
+    if poly_pos:
+        legs = ""
+        for p in poly_pos:
+            title = p.get('title') or p.get('market', 'Market')
+            size = p.get('size', 0)
+            cur_price = int(float(p.get('curPrice', 0.5)) * 100)
+            legs += f"""
+      <div class="leg">
+        <div class="leg-info">
+          <div class="leg-matchup">Polymarket Slate • <span style="color: #86EFAC;">Active</span></div>
+          <div class="leg-pick">{title} ({size} shares)</div>
+        </div>
+        <div class="leg-odds">{cur_price}%</div>
+      </div>"""
+        cards.append(f"""
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title">Polymarket Live Portfolio</div>
+        <div class="badge up">Syncing API</div>
+      </div>
+      <div class="tier">Active Polymarket Positions</div>
+      {legs}
+      <div class="analysis">
+        <div class="analysis-title">Portfolio Status:</div>
+        <div class="analysis-text">Position units synchronized via Polymarket API keys.</div>
+      </div>
+    </div>""")
+
+    if not cards:
+        return """
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title">Active Portfolio Clear</div>
+        <div class="badge scout">No Open Risk</div>
+      </div>
+      <div class="tier">Kalshi & Polymarket Portfolio Reader</div>
+      <div class="analysis">
+        <div class="analysis-title">Live State:</div>
+        <div class="analysis-text">No active contract exposure currently open. New tickets will populate here automatically upon fill.</div>
+      </div>
+    </div>"""
+    return "\n".join(cards)
+
+# -------------------------------------------------------------
+# 2. PUBLIC RADAR & PROPS POLLING (TABS 2 & 3)
+# -------------------------------------------------------------
 def format_kalshi_stats(raw_title):
     items = raw_title.replace("yes ", "").replace("no ", "").split(",")
     formatted = []
@@ -32,8 +173,9 @@ def format_kalshi_stats(raw_title):
         formatted.append(it)
     return " • ".join(formatted) if formatted else raw_title
 
-def get_polymarket_feeds():
+def get_public_markets():
     sports, macro = [], []
+    # Polymarket Public Flow
     try:
         url = "https://gamma-api.polymarket.com/events?limit=40&active=true&closed=false"
         res = requests.get(url, timeout=10).json()
@@ -52,11 +194,9 @@ def get_polymarket_feeds():
             else:
                 macro.append(item)
     except Exception as e:
-        print(f"Polymarket fetch error: {e}")
-    return sports[:4], macro[:4]
+        print(f"Polymarket radar error: {e}")
 
-def get_kalshi_feeds():
-    sports, macro = [], []
+    # Kalshi Public Flow
     try:
         url = "https://external-api.kalshi.com/trade-api/v2/markets?limit=100&status=open"
         res = requests.get(url, timeout=10).json()
@@ -64,14 +204,12 @@ def get_kalshi_feeds():
             ticker = m.get('ticker', 'KALSHI')
             raw_title = m.get('title') or m.get('subtitle') or ticker
             yes_price = m.get('yes_ask', m.get('last_price', 50))
-            
-            # Skip composite traps with too many variables
+
             if "KXMVE" in ticker or raw_title.count(",") >= 3:
                 continue
 
             clean_title = format_kalshi_stats(raw_title)
             is_sport = is_sports_contract(ticker) or is_sports_contract(raw_title)
-            
             if is_sport:
                 sports.append({
                     "matchup": f"Kalshi Single Matchup [{ticker[:10]}]",
@@ -85,7 +223,8 @@ def get_kalshi_feeds():
                     "odds": f"{yes_price}%"
                 })
     except Exception as e:
-        print(f"Kalshi fetch error: {e}")
+        print(f"Kalshi radar error: {e}")
+
     return sports[:4], macro[:4]
 
 def build_card(title, tier, badge_text, badge_class, items, notes):
@@ -122,7 +261,7 @@ def inject_content(html, start_tag, end_tag, new_content):
         return before + start_tag + "\n" + new_content + "\n    " + end_tag + after
     return html
 
-def send_discord(sports_count, macro_count):
+def send_discord(active_count, sports_count, macro_count):
     webhook_url = os.environ.get("DISCORD_WEBHOOK_URL")
     if not webhook_url:
         return
@@ -130,8 +269,8 @@ def send_discord(sports_count, macro_count):
         "username": "Cosmic Scout Agent",
         "avatar_url": "https://img.icons8.com/isometric/512/telescope.png",
         "embeds": [{
-            "title": "🌌 Companion Terminal Updated",
-            "description": f"Refreshed **{sports_count} Sports Lines** and **{macro_count} Macro Milestone contracts**.",
+            "title": "🌌 Terminal Refreshed & Portfolio Synced",
+            "description": f"Synced **{active_count} Active Portfolio Positions**, **{sports_count} Sports Lines**, and **{macro_count} Macro Horizons**.",
             "color": 4156648,
             "footer": {"text": "Cosmic Parlay Companion Engine"}
         }]
@@ -139,39 +278,44 @@ def send_discord(sports_count, macro_count):
     requests.post(webhook_url, json=payload)
 
 def main():
-    poly_sports, poly_macro = get_polymarket_feeds()
-    kalshi_sports, kalshi_macro = get_kalshi_feeds()
+    # 1. Fetch live portfolios
+    kalshi_pos = get_kalshi_portfolio_positions()
+    poly_pos = get_polymarket_portfolio_positions()
+    active_html = build_active_slates_html(kalshi_pos, poly_pos)
 
+    # 2. Fetch radar & macro
+    sports_items, macro_items = get_public_markets()
     sports_html = build_card(
-        "Single-Leg Props & Game Radar: Kalshi",
-        "Scouted Add-on Legs (No Pre-Packs)",
+        "Single-Leg Props & Game Radar",
+        "Scouted Add-on Legs (Zero Pre-Packs)",
         "Scouted Add-on",
         "scout",
-        kalshi_sports,
+        sports_items,
         "Filtered for isolated single lines with defensive mismatches. Add to custom tickets as anchor or multiplier legs."
     )
-
     macro_html = build_card(
         "Macro Horizon: Event Milestones",
         "Event Probability Tracker (Not Stock Recommendations)",
         "Milestones",
         "macro",
-        poly_macro + kalshi_macro[:2],
+        macro_items,
         "Consensus odds for timeline projections, regulatory events, and rate paths."
     )
 
+    # 3. Inject all three into index.html
     if os.path.exists("index.html"):
         with open("index.html", "r", encoding="utf-8") as f:
             c = f.read()
 
+        c = inject_content(c, "<!-- AUTOGEN_ACTIVE_START -->", "<!-- AUTOGEN_ACTIVE_END -->", active_html)
         c = inject_content(c, "<!-- AUTOGEN_SPORTS_START -->", "<!-- AUTOGEN_SPORTS_END -->", sports_html)
         c = inject_content(c, "<!-- AUTOGEN_MACRO_START -->", "<!-- AUTOGEN_MACRO_END -->", macro_html)
 
         with open("index.html", "w", encoding="utf-8") as f:
             f.write(c)
-        print("Updated index.html safely.")
+        print("Updated index.html successfully across all 3 autogen sections.")
 
-    send_discord(len(kalshi_sports) + len(poly_sports), len(poly_macro) + len(kalshi_macro))
+    send_discord(len(kalshi_pos) + len(poly_pos), len(sports_items), len(macro_items))
 
 if __name__ == "__main__":
     main()
