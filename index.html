@@ -28,7 +28,7 @@
     .status-badge { font-size: 0.7rem; padding: 0.2rem 0.5rem; border-radius: 9999px; background: rgba(0, 208, 132, 0.15); color: var(--green); border: 1px solid rgba(0, 208, 132, 0.3); white-space: nowrap; }
     .refresh-btn { background: var(--accent); color: #fff; border: none; padding: 0.35rem 0.75rem; border-radius: 6px; font-weight: 600; font-size: 0.75rem; cursor: pointer; }
 
-    /* Top Navigation Tabs */
+    /* Top Horizontal Navigation */
     .nav-tabs { max-width: 900px; margin: 0 auto 1rem; display: flex; gap: 0.5rem; overflow-x: auto; scrollbar-width: none; padding-bottom: 0.25rem; }
     .nav-tabs::-webkit-scrollbar { display: none; }
     .nav-btn { background: rgba(255,255,255,0.03); border: 1px solid var(--border); color: var(--muted); padding: 0.45rem 0.85rem; border-radius: 8px; font-size: 0.8rem; font-weight: 600; cursor: pointer; white-space: nowrap; transition: all 0.15s ease; }
@@ -68,7 +68,7 @@
     .stat-label { color: var(--muted); }
     .stat-val { font-weight: 700; color: #fff; }
 
-    /* Best Buy Cards */
+    /* Opportunity & Best Buy Cards */
     .opp-card { background: var(--card-inner); border: 1px solid var(--border); border-radius: 10px; padding: 0.9rem; display: flex; flex-direction: column; gap: 0.65rem; }
     .opp-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 0.5rem; }
     .opp-title { font-size: 0.9rem; font-weight: 700; color: #f1f5f9; line-height: 1.3; }
@@ -105,7 +105,6 @@
     .tag-closed { background: rgba(148, 163, 184, 0.15); color: var(--muted); }
     .tag-platform { font-size: 0.65rem; padding: 0.15rem 0.4rem; border-radius: 4px; background: rgba(255, 255, 255, 0.08); font-weight: 600; }
 
-    .info-banner { background: rgba(99, 102, 241, 0.08); border: 1px dashed var(--accent); border-radius: 8px; padding: 0.75rem; font-size: 0.75rem; line-height: 1.4; color: #cbd5e1; }
     .empty { color: var(--muted); font-size: 0.8rem; text-align: center; padding: 2rem 1rem; }
 
     /* Fixed Bottom Nav */
@@ -139,12 +138,12 @@
   </div>
 
   <main>
-    <!-- TAB 1: Cosmic's Picks (Active Tickets + Pure Sports Game Lines & Player Props) -->
+    <!-- TAB 1: Cosmic's Picks -->
     <section id="view-picks" class="view-panel active">
       <div class="card">
         <div class="card-header">
-          <h2 class="card-title">🎟️ Active Exchange Tickets & Positions</h2>
-          <span style="font-size: 0.75rem; color: var(--green);" id="live-ticket-sync">Live Stream Sync</span>
+          <h2 class="card-title">🎟️ Active Exchange Orders & Slips</h2>
+          <span style="font-size: 0.75rem; color: var(--green);" id="live-ticket-sync">Live Exchange Sync</span>
         </div>
         <div class="item-list" id="tickets-container">
           <div class="empty">Checking exchange accounts for active filled contracts...</div>
@@ -157,7 +156,7 @@
           <span style="font-size: 0.75rem; color: var(--gold);">Live Model Edge</span>
         </div>
         <div class="item-list" id="props-container">
-          <div class="empty">Filtering live books for active NFL, NBA & player prop lines...</div>
+          <div class="empty">Filtering live book for sports lines...</div>
         </div>
       </div>
     </section>
@@ -178,7 +177,7 @@
       </div>
     </section>
 
-    <!-- TAB 3: Kalshi Leveraged Perpetuals (Metals & Crypto Outlook) -->
+    <!-- TAB 3: Kalshi Leveraged Perpetuals -->
     <section id="view-perps" class="view-panel">
       <div class="asset-tabs">
         <button class="asset-pill active" onclick="selectPerpAsset('GOLD')">🥇 Gold (15.9x)</button>
@@ -323,20 +322,20 @@
             <div class="metric-value" id="ledger-exposure">$0.00</div>
           </div>
           <div class="metric">
-            <div class="metric-label">Active Contracts</div>
+            <div class="metric-label">Active Orders / Contracts</div>
             <div class="metric-value" id="ledger-active-count">0</div>
           </div>
           <div class="metric">
             <div class="metric-label">Polymarket Status</div>
-            <div class="metric-value" id="ledger-poly-status" style="font-size: 1rem;">Connecting</div>
+            <div class="metric-value" id="ledger-poly-status" style="font-size: 0.95rem;">Connecting</div>
           </div>
           <div class="metric">
             <div class="metric-label">Kalshi Status</div>
-            <div class="metric-value" id="ledger-kalshi-status" style="font-size: 1rem;">Connecting</div>
+            <div class="metric-value" id="ledger-kalshi-status" style="font-size: 0.95rem;">Connecting</div>
           </div>
         </div>
         <div class="item-list" id="live-positions-list">
-          <div class="empty">No live open contracts detected across connected wallets.</div>
+          <div class="empty">Scanning for live filled contracts or resting orders...</div>
         </div>
       </div>
     </section>
@@ -552,7 +551,7 @@
       }
     }
 
-    // Dynamic Active Exchange Positions / Slips
+    // Dynamic Active Exchange Positions / Resting Orders
     function renderTickets(positions) {
       const container = document.getElementById('tickets-container');
       if (!positions || positions.length === 0) {
@@ -567,7 +566,7 @@
             <span class="tag tag-settled">${pos.status}</span>
           </div>
           <div class="item-meta">
-            <span>Size: <b>${pos.count} contracts</b> &bull; Total Outlay: $${pos.exposure.toFixed(2)}</span>
+            <span>Size: <b>${pos.count} contracts</b> &bull; Capital: $${pos.exposure.toFixed(2)}</span>
             <span class="tag-platform">${pos.platform}</span>
           </div>
         </div>
@@ -598,7 +597,7 @@
       });
 
       if (candidates.length === 0) {
-        container.innerHTML = `<div class="empty">No live sports games meeting model thresholds at this second. Refreshing feed...</div>`;
+        container.innerHTML = `<div class="empty">Scanning live order books for current sports lines...</div>`;
         return;
       }
 
@@ -721,7 +720,7 @@
       container.innerHTML = found ? html : `<div class="empty">No direct cross-exchange spreads found in active order books right now.</div>`;
     }
 
-    // 100% Live Vault Balances & Real-Time Position Rendering
+    // Live Vault Balances & Real-Time Position Rendering
     function renderVaultLive() {
       const portfolio = latestData.portfolio || {};
       const polyBal = portfolio.polyBalance || 0;
@@ -744,7 +743,7 @@
       kStatusEl.style.color = kalshiAuth ? "var(--green)" : "var(--gold)";
 
       const syncStatus = document.getElementById('vault-sync-status');
-      syncStatus.textContent = (polyAuth || kalshiAuth) ? "Live API Connected" : "Awaiting API Auth Handshake";
+      syncStatus.textContent = (polyAuth && kalshiAuth) ? "All Exchange APIs Connected" : ((polyAuth || kalshiAuth) ? "Partial API Connected" : "Connecting to APIs...");
       syncStatus.style.color = (polyAuth || kalshiAuth) ? "var(--green)" : "var(--gold)";
 
       const positions = portfolio.positions || [];
@@ -755,7 +754,7 @@
 
       const listContainer = document.getElementById('live-positions-list');
       if (positions.length === 0) {
-        listContainer.innerHTML = `<div class="empty">Clean slate: 0 open contracts or unsettled risk on exchange accounts.</div>`;
+        listContainer.innerHTML = `<div class="empty">0 open positions active on exchange order books.</div>`;
       } else {
         listContainer.innerHTML = positions.map(pos => `
           <div class="list-item">
