@@ -527,7 +527,7 @@
         return null;
       }
 
-      // Strong Buy Probability Anchor (51%+)
+      // Strong Buy Directional Anchor (51%+)
       if (yesAsk >= 0.51) {
         const roi = Math.round(((1.00 - yesAsk) / yesAsk) * 100);
         return {
@@ -638,7 +638,7 @@
       const container = document.getElementById('props-container');
       const all = [...poly, ...kalshi];
 
-      // Exclusively Sports
+      // Strictly Sports
       const sportsMarkets = all.filter(m => {
         const t = (m.title + " " + (m.candidate || "")).toLowerCase();
         const isPolitical = /house|senate|congress|election|nominee|president|governor|democrat|republican|vance|trump|harris|newsom|putin|war/i.test(t);
@@ -818,7 +818,7 @@
             </div>
             <div class="item-meta" style="margin-top: 0.4rem;">
               <span>Kalshi Yes: <b style="color:#fff;">$${s.kYes}</b></span>
-              <span>Poly.us No: <b style="color:#fff;">$${s.pNo}</b></span>
+              <span>Poly.us No: <b style="color:#fff;">$${p.noAsk}</b></span>
             </div>
             <div style="font-size: 0.7rem; color: var(--muted); margin-top: 0.2rem;">
               Total Cost: $${s.totalCost} &bull; Implied ROI: <b style="color:var(--green);">+${s.roiVal}%</b>
