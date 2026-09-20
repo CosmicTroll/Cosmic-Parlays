@@ -43,7 +43,62 @@ async function signKalshiRequest(privateKey, timestamp, method, path, body = "")
 }
 
 // -------------------------------------------------------------
-// 2. Request Router
+// 2. Strict Categorization Engine
+// -------------------------------------------------------------
+
+function categorizeTitle(title) {
+  const t = (title || "").toLowerCase();
+  
+  // Politics & Elections
+  if (/house|senate|congress|election|nominee|president|governor|democrat|republican|gop|dnc|rnc|vance|trump|harris|newsom|biden|putin|ukraine|war|cabinet|veto|supreme court/i.test(t)) {
+    return "POLITICS";
+  }
+  // Macro & Finance
+  if (/fed|rate|inflation|cpi|interest|gdp|recession|treasury|yield|cuts|debt|unemployment|jobs report/i.test(t)) {
+    return "MACRO";
+  }
+  // Sports Exclusively
+  if (/vs\.?|game|spread|over\/under|total points|yards|touchdown|td|nfl|nba|mlb|nhl|fifa|uefa|mls|premier league|champions league|fc |quarterback|receptions|goals|puck|score/i.test(t)) {
+    return "SPORTS";
+  }
+  return "CULTURE";
+}
+
+function getPerpsFallback() {
+  const meta = {
+    "GOLD": { name: "Gold", unit: "/oz", lev: "15.9x", bias: 54, vol: "$3.4M", oi: "$1.1M" },
+    "SILVER": { name: "Silver", unit: "/oz", lev: "12.5x", bias: 48, vol: "$1.6M", oi: "$720K" },
+    "BTC": { name: "Bitcoin", unit: "", lev: "20.0x", bias: 58, vol: "$16.8M", oi: "$6.4M" },
+    "ETH": { name: "Ethereum", unit: "", lev: "18.5x", bias: 51, vol: "$9.1M", oi: "$3.5M" },
+    "SOL": { name: "Solana", unit: "", lev: "10.0x", bias: 62, vol: "$4.6M", oi: "$2.1M" }
+  };
+  const perps = {};
+  for (const [key, m] of Object.entries(meta)) {
+    const isUp = m.bias >= 50;
+    perps[key] = {
+      name: m.name,
+      unit: m.unit,
+      leverage: m.lev,
+      vol24: m.vol,
+      oi: m.oi,
+      funding: isUp ? "-0.0125%" : "+0.0084%",
+      countdown: "16:42:10",
+      annualFunding: isUp ? "-4.56%" : "+3.06%",
+      timeframes: {
+        "1H": { dir: isUp ? "RISE" : "FALL", bias: m.bias, pct: "+0.4%", target: "Book", chart: [m.bias - 2, m.bias - 1, m.bias] },
+        "4H": { dir: isUp ? "RISE" : "FALL", bias: m.bias + 2, pct: "+1.1%", target: "Book", chart: [m.bias - 3, m.bias, m.bias + 2] },
+        "1D": { dir: isUp ? "RISE" : "FALL", bias: m.bias + 4, pct: "+2.2%", target: "Book", chart: [m.bias - 4, m.bias + 1, m.bias + 4] },
+        "1W": { dir: isUp ? "RISE" : "FALL", bias: m.bias + 7, pct: "+4.5%", target: "Book", chart: [m.bias - 6, m.bias + 2, m.bias + 7] },
+        "1M": { dir: isUp ? "RISE" : "FALL", bias: m.bias + 11, pct: "+7.8%", target: "Book", chart: [m.bias - 8, m.bias + 4, m.bias + 11] },
+        "1Y": { dir: isUp ? "RISE" : "FALL", bias: m.bias + 16, pct: "+17.2%", target: "Book", chart: [m.bias - 10, m.bias + 8, m.bias + 16] }
+      }
+    };
+  }
+  return perps;
+}
+
+// -------------------------------------------------------------
+// 3. Request Router
 // -------------------------------------------------------------
 
 export default {
@@ -102,49 +157,8 @@ export default {
   }
 };
 
-function categorizeTitle(title) {
-  const t = (title || "").toLowerCase();
-  if (/president|election|nominee|democrat|republican|senate|governor|vance|trump|harris|war|fed/i.test(t)) return "POLITICS";
-  if (/rate|inflation|cpi|interest|gdp|recession|treasury|yield|cuts/i.test(t)) return "MACRO";
-  if (/vs|game|over|under|yards|pass|touchdown|td|nfl|nba|mlb|nhl|spread|win/i.test(t)) return "SPORTS";
-  return "CULTURE";
-}
-
-function getPerpsFallback() {
-  const meta = {
-    "GOLD": { name: "Gold", unit: "/oz", lev: "15.9x", bias: 54, vol: "$3.4M", oi: "$1.1M" },
-    "SILVER": { name: "Silver", unit: "/oz", lev: "12.5x", bias: 48, vol: "$1.6M", oi: "$720K" },
-    "BTC": { name: "Bitcoin", unit: "", lev: "20.0x", bias: 58, vol: "$16.8M", oi: "$6.4M" },
-    "ETH": { name: "Ethereum", unit: "", lev: "18.5x", bias: 51, vol: "$9.1M", oi: "$3.5M" },
-    "SOL": { name: "Solana", unit: "", lev: "10.0x", bias: 62, vol: "$4.6M", oi: "$2.1M" }
-  };
-  const perps = {};
-  for (const [key, m] of Object.entries(meta)) {
-    const isUp = m.bias >= 50;
-    perps[key] = {
-      name: m.name,
-      unit: m.unit,
-      leverage: m.lev,
-      vol24: m.vol,
-      oi: m.oi,
-      funding: isUp ? "-0.0125%" : "+0.0084%",
-      countdown: "16:42:10",
-      annualFunding: isUp ? "-4.56%" : "+3.06%",
-      timeframes: {
-        "1H": { dir: isUp ? "RISE" : "FALL", bias: m.bias, pct: "+0.4%", target: "Book", chart: [m.bias - 2, m.bias - 1, m.bias] },
-        "4H": { dir: isUp ? "RISE" : "FALL", bias: m.bias + 2, pct: "+1.1%", target: "Book", chart: [m.bias - 3, m.bias, m.bias + 2] },
-        "1D": { dir: isUp ? "RISE" : "FALL", bias: m.bias + 4, pct: "+2.2%", target: "Book", chart: [m.bias - 4, m.bias + 1, m.bias + 4] },
-        "1W": { dir: isUp ? "RISE" : "FALL", bias: m.bias + 7, pct: "+4.5%", target: "Book", chart: [m.bias - 6, m.bias + 2, m.bias + 7] },
-        "1M": { dir: isUp ? "RISE" : "FALL", bias: m.bias + 11, pct: "+7.8%", target: "Book", chart: [m.bias - 8, m.bias + 4, m.bias + 11] },
-        "1Y": { dir: isUp ? "RISE" : "FALL", bias: m.bias + 16, pct: "+17.2%", target: "Book", chart: [m.bias - 10, m.bias + 8, m.bias + 16] }
-      }
-    };
-  }
-  return perps;
-}
-
 // -------------------------------------------------------------
-// 3. Live Data Synthesis Engine
+// 4. Live Data Synthesis Engine
 // -------------------------------------------------------------
 
 async function handleLiveData(env) {
@@ -163,7 +177,7 @@ async function handleLiveData(env) {
     try {
       const privKey = await importKalshiRsaKey(kalshiPrivateKey);
 
-      // 1. Fetch Kalshi Balance: GET /trade-api/v2/portfolio/balance
+      // 1. Fetch Kalshi Balance
       const bPath = "/trade-api/v2/portfolio/balance";
       const bTs = Date.now().toString();
       const bSig = await signKalshiRequest(privKey, bTs, "GET", bPath, "");
@@ -184,7 +198,7 @@ async function handleLiveData(env) {
         kalshiAuth = true;
       }
 
-      // 2. Fetch Active Resting Orders: GET /trade-api/v2/portfolio/orders?status=resting
+      // 2. Fetch Active Resting Orders
       const oPath = "/trade-api/v2/portfolio/orders?status=resting";
       const oTs = Date.now().toString();
       const oSig = await signKalshiRequest(privKey, oTs, "GET", oPath, "");
@@ -224,47 +238,58 @@ async function handleLiveData(env) {
   const activeExposure = allPositions.reduce((acc, p) => acc + (p.exposure || 0), 0);
   const activeContracts = allPositions.reduce((acc, p) => acc + (p.count || 0), 0);
 
-  // --- Polymarket Public Catalog (Expanded Coverage & De-duped) ---
+  // --- Polymarket Public Catalog (Sports + Politics) ---
   let polymarket = [];
   try {
-    const res = await fetch("https://gamma-api.polymarket.com/events?closed=false&active=true&limit=60", {
-      headers: { "Accept": "application/json", "User-Agent": "CosmicParlaysTerminal/1.0" }
-    });
-    if (res.ok) {
-      const data = await res.json();
-      data.forEach(e => {
-        // Skip giant multi-leg parlay titles that flood UI
-        if ((e.title || "").includes(",") && (e.title || "").split(",").length > 3) return;
+    const [genRes, sportsRes] = await Promise.all([
+      fetch("https://gamma-api.polymarket.com/events?closed=false&active=true&limit=50", {
+        headers: { "Accept": "application/json", "User-Agent": "CosmicParlaysTerminal/1.0" }
+      }),
+      fetch("https://gamma-api.polymarket.com/events?closed=false&active=true&tag_id=100639&limit=50", {
+        headers: { "Accept": "application/json", "User-Agent": "CosmicParlaysTerminal/1.0" }
+      })
+    ]);
 
-        (e.markets || []).slice(0, 3).forEach(m => {
-          if (!m || m.closed) return;
-          let yes = 0.50, no = 0.50;
-          try {
-            if (m.outcomePrices) {
-              const p = JSON.parse(m.outcomePrices);
-              yes = parseFloat(p[0]) || 0.50;
-              no = parseFloat(p[1]) || 0.50;
-            }
-          } catch (_) {}
+    const polyEvents = [];
+    if (genRes.ok) polyEvents.push(...(await genRes.json()));
+    if (sportsRes.ok) polyEvents.push(...(await sportsRes.json()));
 
-          polymarket.push({
-            ticker: m.id || e.slug,
-            title: e.title || m.question,
-            candidate: m.groupItemTitle || "Consensus",
-            category: categorizeTitle(e.title || m.question),
-            yesAsk: Number(yes.toFixed(2)),
-            noAsk: Number(no.toFixed(2)),
-            volume: m.volume || e.volume || 0,
-            platform: "Polymarket.us"
-          });
+    const seenEvent = new Set();
+    polyEvents.forEach(e => {
+      if (!e || seenEvent.has(e.id)) return;
+      seenEvent.add(e.id);
+
+      // Skip multi-leg accumulator parlays
+      if ((e.title || "").includes(",") && (e.title || "").split(",").length > 2) return;
+
+      (e.markets || []).slice(0, 3).forEach(m => {
+        if (!m || m.closed) return;
+        let yes = 0.50, no = 0.50;
+        try {
+          if (m.outcomePrices) {
+            const p = JSON.parse(m.outcomePrices);
+            yes = parseFloat(p[0]) || 0.50;
+            no = parseFloat(p[1]) || 0.50;
+          }
+        } catch (_) {}
+
+        polymarket.push({
+          ticker: m.id || e.slug,
+          title: e.title || m.question,
+          candidate: m.groupItemTitle || "Consensus",
+          category: categorizeTitle(e.title || m.question),
+          yesAsk: Number(yes.toFixed(2)),
+          noAsk: Number(no.toFixed(2)),
+          volume: m.volume || e.volume || 0,
+          platform: "Polymarket.us"
         });
       });
-    }
+    });
   } catch (err) {
     console.error("Polymarket catalog fetch error:", err);
   }
 
-  // --- Kalshi Public Catalog (Authenticated & Accurate Path Signing) ---
+  // --- Kalshi Public Catalog (Comprehensive Price Extraction) ---
   let kalshi = [];
   try {
     const basePath = "/trade-api/v2/markets";
@@ -278,7 +303,6 @@ async function handleLiveData(env) {
       try {
         const privKey = await importKalshiRsaKey(kalshiPrivateKey);
         const kTs = Date.now().toString();
-        // Kalshi Rule: Sign base path only
         const kSig = await signKalshiRequest(privKey, kTs, "GET", basePath, "");
         kHeaders["KALSHI-ACCESS-KEY"] = kalshiKeyId;
         kHeaders["KALSHI-ACCESS-SIGNATURE"] = kSig;
@@ -298,22 +322,24 @@ async function handleLiveData(env) {
       rawMarkets.forEach(m => {
         if (m.status && m.status !== "open" && m.status !== "active") return;
 
-        let yesPrice = 0.50;
-        let noPrice = 0.50;
+        // Exhaustive parsing across Kalshi API formats (dollars & cents)
+        let yesPrice = null;
+        let noPrice = null;
 
-        if (m.yes_ask !== undefined && m.yes_ask !== null && m.yes_ask > 0) {
-          yesPrice = m.yes_ask > 1 ? m.yes_ask / 100 : m.yes_ask;
-        } else if (m.last_price !== undefined && m.last_price !== null && m.last_price > 0) {
-          yesPrice = m.last_price > 1 ? m.last_price / 100 : m.last_price;
-        } else if (m.yes_bid !== undefined && m.yes_bid !== null && m.yes_bid > 0) {
-          yesPrice = m.yes_bid > 1 ? m.yes_bid / 100 : m.yes_bid;
-        }
+        if (m.yes_ask_dollars !== undefined) yesPrice = parseFloat(m.yes_ask_dollars);
+        else if (m.yes_ask !== undefined && m.yes_ask > 0) yesPrice = m.yes_ask > 1 ? m.yes_ask / 100 : m.yes_ask;
+        else if (m.last_price_dollars !== undefined) yesPrice = parseFloat(m.last_price_dollars);
+        else if (m.last_price !== undefined && m.last_price > 0) yesPrice = m.last_price > 1 ? m.last_price / 100 : m.last_price;
+        else if (m.yes_bid_dollars !== undefined) yesPrice = parseFloat(m.yes_bid_dollars);
+        else if (m.yes_bid !== undefined && m.yes_bid > 0) yesPrice = m.yes_bid > 1 ? m.yes_bid / 100 : m.yes_bid;
+        else if (m.no_bid_dollars !== undefined) yesPrice = 1.00 - parseFloat(m.no_bid_dollars);
+        else if (m.no_bid !== undefined && m.no_bid > 0) yesPrice = 1.00 - (m.no_bid > 1 ? m.no_bid / 100 : m.no_bid);
 
-        if (m.no_ask !== undefined && m.no_ask !== null && m.no_ask > 0) {
-          noPrice = m.no_ask > 1 ? m.no_ask / 100 : m.no_ask;
-        } else {
-          noPrice = Number((1.00 - yesPrice).toFixed(2));
-        }
+        if (m.no_ask_dollars !== undefined) noPrice = parseFloat(m.no_ask_dollars);
+        else if (m.no_ask !== undefined && m.no_ask > 0) noPrice = m.no_ask > 1 ? m.no_ask / 100 : m.no_ask;
+
+        if (yesPrice === null) yesPrice = 0.50;
+        if (noPrice === null) noPrice = Number((1.00 - yesPrice).toFixed(2));
 
         kalshi.push({
           ticker: m.ticker,
@@ -351,7 +377,7 @@ async function handleLiveData(env) {
 }
 
 // -------------------------------------------------------------
-// 4. Trade Execution Dispatcher
+// 5. Trade Execution Dispatcher
 // -------------------------------------------------------------
 
 async function handleExecuteSpread(payload, env) {
