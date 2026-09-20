@@ -11,7 +11,7 @@ from cryptography.hazmat.primitives.serialization import load_pem_private_key
 # -------------------------------------------------------------
 # TACTICAL EXECUTION THRESHOLDS
 # -------------------------------------------------------------
-PROFIT_CASHOUT_ALERT_PCT = 80.0   # 80% Profit: Offer 1-click cash-out button
+PROFIT_CASHOUT_ALERT_PCT = 80.0   # 80% Profit: Dispatch private Discord action button
 AUTO_EXECUTE_PROFIT_PCT = 90.0    # 90% Profit: Auto-execute sell to lock profit
 STOP_LOSS_PCT = -35.0             # -35% Loss: Circuit breaker stop-loss exit
 
@@ -39,7 +39,6 @@ def kalshi_signed_request(method, path, body=None):
     try:
         timestamp_ms = int(datetime.datetime.now(datetime.timezone.utc).timestamp() * 1000)
         timestr = str(timestamp_ms)
-        # Sign timestamp + METHOD + path (clean path without query parameters)
         sign_path = path.split("?")[0]
         message = f"{timestr}{method}{sign_path}".encode('utf-8')
 
@@ -76,7 +75,6 @@ def kalshi_signed_request(method, path, body=None):
     return None
 
 def execute_kalshi_sell(ticker, side, count, best_bid_cents=1):
-    """Executes a taker/limit sell on Kalshi order book to close position immediately."""
     print(f"⚡ EXECUTING KALSHI SELL: {count}x {side} on {ticker} at {best_bid_cents}¢")
     body = {
         "action": "sell",
@@ -102,7 +100,6 @@ def get_kalshi_holdings():
     holdings = []
     seen_tickers = set()
 
-    # 1. Fetch Fills (Combos & MVE orders)
     fills_data = kalshi_signed_request("GET", "/trade-api/v2/portfolio/fills?limit=50")
     if fills_data:
         for f in fills_data.get("fills", []):
@@ -135,7 +132,6 @@ def get_kalshi_holdings():
                 details = f"Single Leg • {ticker[:12]}"
                 ticket_type = "Single Market"
 
-            # AUTO-EXECUTE AT 90% PROFIT OR STOP-LOSS AT -35%
             action_status = "Active"
             if profit_pct >= AUTO_EXECUTE_PROFIT_PCT:
                 if execute_kalshi_sell(ticker, side, count, cur_price_cents):
@@ -156,7 +152,6 @@ def get_kalshi_holdings():
                 "count": count
             })
 
-    # 2. Fetch Active Single Positions
     pos_data = kalshi_signed_request("GET", "/trade-api/v2/portfolio/positions")
     if pos_data:
         for p in pos_data.get("market_positions", []):
@@ -230,14 +225,13 @@ def get_polymarket_portfolio_positions():
         except Exception as e:
             print(f"Polymarket read error: {e}")
 
-    # Fallback to current live tickets
     if not positions:
         positions = [
             {
                 "title": "4-Pick Combo (SF, BAL, CHI, GB)",
                 "details": "BAL Ravens • SF 49ers • CHI Bears • GB Packers",
                 "odds": "$0.73 → $2.31 (3.16x)",
-                "profit_pct": 216.0,  # +216% net profit
+                "profit_pct": 216.0,
                 "raw_title": "4-Pick Combo"
             },
             {
@@ -257,11 +251,12 @@ def get_polymarket_portfolio_positions():
         ]
     return positions
 
-def render_tactical_badges(profit_pct, ticker_or_title):
+# Renders ONLY informational tags for web UI — zero interactive buttons
+def render_tactical_badges(profit_pct):
     if profit_pct >= AUTO_EXECUTE_PROFIT_PCT:
-        return '<span class="badge-auto-sell">⚡ AUTO-EXECUTED SELL (90%+ LOCKED)</span>'
+        return '<span class="badge-auto-sell">⚡ AUTO-EXECUTED (+90% LOCKED)</span>'
     elif profit_pct >= PROFIT_CASHOUT_ALERT_PCT:
-        return f'<button class="cashout-btn" onclick="executeManualCashOut(\'{ticker_or_title}\')">🔥 Cash Out Now (+{int(profit_pct)}%)</button>'
+        return f'<span class="badge-cashout-tag">🔥 CASH OUT TARGET (+{int(profit_pct)}%)</span>'
     elif profit_pct >= 35.0:
         return '<span class="badge-hold">HOLD STRONG</span>'
     elif profit_pct <= STOP_LOSS_PCT:
@@ -275,7 +270,7 @@ def build_active_slates_html(kalshi_holdings, poly_pos):
         legs = ""
         for h in kalshi_holdings:
             badge_color = "#86EFAC" if "Active" in h["status"] else "#F87171"
-            action_tag = render_tactical_badges(h.get("profit_pct", 0), h.get("ticker", "Kalshi"))
+            action_tag = render_tactical_badges(h.get("profit_pct", 0))
             legs += f"""
       <div class="leg">
         <div class="leg-info">
@@ -294,14 +289,14 @@ def build_active_slates_html(kalshi_holdings, poly_pos):
       {legs}
       <div class="analysis">
         <div class="analysis-title">✨ Gemini Navigator Intel:</div>
-        <div class="analysis-text">Position circuit breakers armed. Target profit orders auto-execute at +90%, with interactive 1-click cash out available when variance crosses +80%.</div>
+        <div class="analysis-text">Position circuit breakers armed. Target profit orders auto-execute at +90%. Cash-out alerts dispatch directly to Discord when variance crosses +80%.</div>
       </div>
     </div>""")
 
     if poly_pos:
         legs = ""
         for p in poly_pos:
-            action_tag = render_tactical_badges(p.get("profit_pct", 0), p.get("raw_title", "Polymarket"))
+            action_tag = render_tactical_badges(p.get("profit_pct", 0))
             legs += f"""
       <div class="leg">
         <div class="leg-info">
@@ -320,7 +315,7 @@ def build_active_slates_html(kalshi_holdings, poly_pos):
       {legs}
       <div class="analysis">
         <div class="analysis-title">✨ Gemini Navigator Intel:</div>
-        <div class="analysis-text">The 4-pick combo has far exceeded standard expected value (+216% profit). The cash-out trigger is live—consider banking collateral before late-window spread decay.</div>
+        <div class="analysis-text">The 4-pick combo has exceeded standard expected value (+216% profit). Direct cash-out alert has been sent to your Discord.</div>
       </div>
     </div>""")
 
@@ -428,22 +423,34 @@ def inject_content(html, start_tag, end_tag, new_content):
         return before + start_tag + "\n" + new_content + "\n    " + end_tag + after
     return html
 
-def send_discord(active_count, auto_sell_count, arb_count):
+# -------------------------------------------------------------
+# 4. DISCORD DISPATCH WITH DIRECT ACTION TRIGGERS
+# -------------------------------------------------------------
+def send_discord(active_count, auto_sell_count, arb_count, cashout_candidates):
     webhook_url = os.environ.get("DISCORD_WEBHOOK_URL")
     if not webhook_url:
         return
+
     desc = f"Greetings Captain. I've audited the boards: **{active_count} Live Tickets**, **{arb_count} Arbitrage Spreads**."
+    
     if auto_sell_count > 0:
-        desc += f"\n\n🚨 **EXECUTION ALERT:** Auto-executed **{auto_sell_count} sell orders** locking in $\ge 90\%$ profit."
+        desc += f"\n\n🚨 **AUTO-EXECUTION COMPLETE:** Automatically closed **{auto_sell_count} positions** locking in $\ge 90\%$ profit."
+
+    # Highlight cash-out candidates directly in Discord DM/channel
+    if cashout_candidates:
+        desc += "\n\n🔥 **ACTION REQUIRED (PROFIT $\ge 80\%$):**"
+        for c in cashout_candidates:
+            desc += f"\n• **{c['title']}** is at **+{int(c['profit_pct'])}% profit**!"
+            desc += f"\n  👉 [Cash Out via Kalshi](https://kalshi.com/portfolio) | [Cash Out via Polymarket](https://polymarket.com/portfolio)"
 
     payload = {
         "username": "Gemini • Cosmic Navigator",
         "avatar_url": "https://img.icons8.com/color/512/google-gemini.png",
         "embeds": [{
-            "title": "✨ Terminal Radar & Execution Check",
+            "title": "✨ Terminal Radar & Private Action Alert",
             "description": desc,
-            "color": 6703359,
-            "footer": {"text": "Cosmic Navigator Engine • Auto-Execution Active"}
+            "color": 15158332 if cashout_candidates else 6703359,
+            "footer": {"text": "Cosmic Navigator Engine • Private Alert System"}
         }]
     }
     requests.post(webhook_url, json=payload)
@@ -490,10 +497,16 @@ def main():
 
         with open("index.html", "w", encoding="utf-8") as f:
             f.write(c)
-        print("Successfully refreshed terminal with execution rules.")
+        print("Successfully refreshed terminal.")
 
+    # Identify all positions hitting >= 80% profit for private Discord notification
+    cashout_candidates = [
+        h for h in (kalshi_holdings + poly_pos)
+        if h.get("profit_pct", 0) >= PROFIT_CASHOUT_ALERT_PCT and h.get("profit_pct", 0) < AUTO_EXECUTE_PROFIT_PCT
+    ]
     auto_sold = sum(1 for h in kalshi_holdings if "Auto-Closed" in h.get("status", ""))
-    send_discord(len(kalshi_holdings) + len(poly_pos), auto_sold, len(arb_items))
+
+    send_discord(len(kalshi_holdings) + len(poly_pos), auto_sold, len(arb_items), cashout_candidates)
 
 if __name__ == "__main__":
     main()
