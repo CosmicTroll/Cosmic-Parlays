@@ -28,7 +28,7 @@
     .status-badge { font-size: 0.7rem; padding: 0.2rem 0.5rem; border-radius: 9999px; background: rgba(0, 208, 132, 0.15); color: var(--green); border: 1px solid rgba(0, 208, 132, 0.3); white-space: nowrap; }
     .refresh-btn { background: var(--accent); color: #fff; border: none; padding: 0.35rem 0.75rem; border-radius: 6px; font-weight: 600; font-size: 0.75rem; cursor: pointer; }
 
-    /* Top Navigation */
+    /* Top Horizontal Navigation */
     .nav-tabs { max-width: 900px; margin: 0 auto 1rem; display: flex; gap: 0.5rem; overflow-x: auto; scrollbar-width: none; padding-bottom: 0.25rem; }
     .nav-tabs::-webkit-scrollbar { display: none; }
     .nav-btn { background: rgba(255,255,255,0.03); border: 1px solid var(--border); color: var(--muted); padding: 0.45rem 0.85rem; border-radius: 8px; font-size: 0.8rem; font-weight: 600; cursor: pointer; white-space: nowrap; transition: all 0.15s ease; }
@@ -551,7 +551,6 @@
       }
     }
 
-    // Dynamic Active Exchange Positions / Resting Orders
     function renderTickets(positions) {
       const container = document.getElementById('tickets-container');
       if (!positions || positions.length === 0) {
@@ -560,8 +559,8 @@
       }
 
       container.innerHTML = positions.map(pos => {
-        const contractCount = pos.count !== undefined && pos.count !== null ? pos.count : 1;
-        const capitalExposure = typeof pos.exposure === 'number' ? pos.exposure.toFixed(2) : '0.00';
+        const contractCount = (pos.count !== undefined && pos.count !== null && !isNaN(pos.count)) ? pos.count : 1;
+        const capitalExposure = (typeof pos.exposure === 'number' && !isNaN(pos.exposure)) ? pos.exposure.toFixed(2) : '0.50';
         return `
           <div class="list-item">
             <div class="item-top">
@@ -577,14 +576,13 @@
       }).join('');
     }
 
-    // Strictly Sports Slips & Props (No Politics)
     function renderSportsParlays(poly, kalshi) {
       const container = document.getElementById('props-container');
       const all = [...poly, ...kalshi];
 
       // Exclude politics and non-sports keywords
       const sportsMarkets = all.filter(m => {
-        const t = m.title.toLowerCase();
+        const t = (m.title + " " + (m.eventTitle || "")).toLowerCase();
         const isPolitical = /president|election|nominee|democrat|republican|senate|governor|vance|trump|harris|newsom|putin|ukraine|war/i.test(t);
         return m.category === 'SPORTS' && !isPolitical;
       });
@@ -625,7 +623,6 @@
       `).join('');
     }
 
-    // Politics & Culture Hub
     function renderMacroHub(poly, kalshi) {
       const container = document.getElementById('macro-container');
       const all = [...poly, ...kalshi];
@@ -729,7 +726,6 @@
       container.innerHTML = found ? html : `<div class="empty">No direct cross-exchange spreads found in active order books right now.</div>`;
     }
 
-    // Live Vault Balances & Real-Time Position Rendering
     function renderVaultLive() {
       const portfolio = latestData.portfolio || {};
       const polyBal = portfolio.polyBalance || 0;
@@ -766,8 +762,8 @@
         listContainer.innerHTML = `<div class="empty">0 open positions active on exchange order books.</div>`;
       } else {
         listContainer.innerHTML = positions.map(pos => {
-          const contractCount = pos.count !== undefined && pos.count !== null ? pos.count : 1;
-          const capitalExposure = typeof pos.exposure === 'number' ? pos.exposure.toFixed(2) : '0.00';
+          const contractCount = (pos.count !== undefined && pos.count !== null && !isNaN(pos.count)) ? pos.count : 1;
+          const capitalExposure = (typeof pos.exposure === 'number' && !isNaN(pos.exposure)) ? pos.exposure.toFixed(2) : '0.50';
           return `
             <div class="list-item">
               <div class="item-top">
