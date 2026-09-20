@@ -3,7 +3,6 @@ import requests
 import json
 import re
 
-# 1. Fetch live public contract data
 def get_polymarket_sample():
     try:
         url = "https://gamma-api.polymarket.com/events?limit=5&active=true&closed=false"
@@ -13,80 +12,71 @@ def get_polymarket_sample():
             title = event.get('title', 'Unknown')
             for m in event.get('markets', [])[:2]:
                 q = m.get('groupItemTitle') or m.get('question')
-                # Parse outcome prices
                 outcomes = json.loads(m.get('outcomePrices', '["0","0"]'))
                 prob = f"{int(float(outcomes[0])*100)}%" if outcomes else "N/A"
-                markets.append(f"{title} - {q}: {prob}")
-        return "\n".join(markets[:6])
+                markets.append(f"• {title} ({q}): **{prob}**")
+        return "\n".join(markets[:5])
     except Exception as e:
-        return f"Polymarket fetch error: {e}"
+        return f"Polymarket read error: {e}"
 
 def get_kalshi_sample():
     try:
-        url = "https://external-api.kalshi.com/trade-api/v2/markets?limit=6&status=open"
+        url = "https://external-api.kalshi.com/trade-api/v2/markets?limit=5&status=open"
         res = requests.get(url, timeout=10).json()
         markets = []
         for m in res.get('markets', []):
             ticker = m.get('ticker')
             yes_price = m.get('yes_ask', m.get('last_price', 0))
-            markets.append(f"Kalshi [{ticker}]: {yes_price}%")
-        return "\n".join(markets[:6])
+            markets.append(f"• Kalshi [{ticker}]: **{yes_price}%**")
+        return "\n".join(markets[:5])
     except Exception as e:
-        return f"Kalshi fetch error: {e}"
+        return f"Kalshi read error: {e}"
 
-# 2. Call AI to analyze movements
-def analyze_with_ai(market_data):
-    api_key = os.environ.get("AI_API_KEY")
-    if not api_key:
-        return "Market liquidity steady across late boards. Spread discrepancies within standard threshold."
+def send_discord_alert(poly_text, kalshi_text):
+    webhook_url = os.environ.get("DISCORD_WEBHOOK_URL")
+    if not webhook_url:
+        print("No DISCORD_WEBHOOK_URL provided, skipping alert.")
+        return
 
-    prompt = f"""
-    You are the Cosmic Parlay Theorem scout. Review these live contract prices from Polymarket and Kalshi:
-    {market_data}
-    
-    Write a 2-sentence sharp, cosmic-themed scouting summary on market variance, line movements, and opportunities.
-    """
-    
-    headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
+    # Rich Discord Embed Payload
     payload = {
-        "model": "gpt-4o-mini", # or any provider
-        "messages": [{"role": "user", "content": prompt}],
-        "max_tokens": 100
+        "username": "Cosmic Scout Agent",
+        "avatar_url": "https://img.icons8.com/isometric/512/telescope.png",
+        "embeds": [
+            {
+                "title": "🌌 Cosmic Parlay Theorem — Slate & Contract Update",
+                "description": "Automated orderbook scan across active Polymarket & Kalshi liquidity.",
+                "color": 8497656, # Cosmic Indigo (#818CF8)
+                "fields": [
+                    {"name": "Polymarket Contract Radar", "value": poly_text or "No contracts", "inline": False},
+                    {"name": "Kalshi Probability Feed", "value": kalshi_text or "No contracts", "inline": False},
+                ],
+                "footer": {"text": "For entertainment and educational analysis only."}
+            }
+        ]
     }
-    try:
-        res = requests.post("https://api.openai.com/v1/chat/completions", headers=headers, json=payload, timeout=15)
-        return res.json()['choices'][0]['message']['content'].strip()
-    except Exception:
-        return "Contract pricing steady across board. Maintaining priority watch on prime-window liquidity."
-
-# 3. Send notification to your phone (e.g. Telegram)
-def send_telegram_alert(text):
-    bot_token = os.environ.get("TELEGRAM_BOT_TOKEN")
-    chat_id = os.environ.get("TELEGRAM_CHAT_ID")
-    if bot_token and chat_id:
-        url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
-        requests.post(url, json={"chat_id": chat_id, "text": f"🌌 Cosmic Parlay Alert:\n\n{text}"})
+    res = requests.post(webhook_url, json=payload)
+    print(f"Discord alert response: {res.status_code}")
 
 def main():
     poly_data = get_polymarket_sample()
     kalshi_data = get_kalshi_sample()
-    combined = f"Polymarket:\n{poly_data}\n\nKalshi:\n{kalshi_data}"
     
-    analysis = analyze_with_ai(combined)
-    send_telegram_alert(analysis)
+    # 1. Send Discord alert to your server
+    send_discord_alert(poly_data, kalshi_data)
     
-    # Update index.html scouting text automatically
+    # 2. Update index.html live scouting section
     if os.path.exists("index.html"):
         with open("index.html", "r") as f:
             content = f.read()
         
-        # Replace the first scouting note text dynamically
+        scout_summary = "Automated contract scan complete. Market liquidity depth aligned with baseline theorem expectations."
         pattern = r'(<div class="analysis-text">)(.*?)(</div>)'
-        new_content = re.sub(pattern, rf'\1{analysis}\3', content, count=1)
+        new_content = re.sub(pattern, rf'\1{scout_summary}\3', content, count=1)
         
         with open("index.html", "w") as f:
             f.write(new_content)
-        print("Updated index.html successfully.")
+        print("index.html updated successfully.")
 
 if __name__ == "__main__":
     main()
