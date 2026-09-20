@@ -137,7 +137,7 @@
     <button class="nav-btn" onclick="switchView('vault')">💼 Vault</button>
   </div>
 
-  <!-- Interactive Filter & Sort Bar -->
+  <!-- Interactive Sort Bar -->
   <div class="sort-bar">
     <span class="sort-label">Sort:</span>
     <button class="sort-chip active" onclick="setSortOrder('roi-desc')">🔥 Top ROI</button>
@@ -402,6 +402,17 @@
     let activePerpTime = "4H";
     let currentSort = "roi-desc";
 
+    function cleanDisplayTitle(raw) {
+      let t = (raw || "").replace(/^yes\s+/i, '').replace(/^no\s+/i, '');
+      if (t.includes(',')) {
+        const parts = t.split(',').map(s => s.trim().replace(/^(yes|no)\s+/i, ''));
+        if (parts.length > 2) {
+          return `${parts[0]} + ${parts[1]} (+${parts.length - 2} more legs)`;
+        }
+      }
+      return t.length > 75 ? t.slice(0, 72) + '...' : t;
+    }
+
     function setSortOrder(order) {
       currentSort = order;
       document.querySelectorAll('.sort-chip').forEach(c => {
@@ -526,13 +537,13 @@
     function evaluateMarketRecommendation(m) {
       const yesAsk = (typeof m.yesAsk === 'number') ? m.yesAsk : 0.50;
       const noAsk = (typeof m.noAsk === 'number') ? m.noAsk : (1.00 - yesAsk);
-      const targetEntity = m.candidate && m.candidate !== "Consensus Leg" ? ` [${m.candidate}]` : "";
+      const cleanCandidate = cleanDisplayTitle(m.candidate || "Consensus Leg");
+      const targetEntity = cleanCandidate !== "Consensus Leg" ? ` [${cleanCandidate}]` : "";
 
       if (yesAsk >= 0.99 || noAsk >= 0.99 || yesAsk <= 0.01 || noAsk <= 0.01) {
         return null;
       }
 
-      // Strong Buy Directional Anchor (>= 50%)
       if (yesAsk >= 0.50) {
         const roi = Math.round(((1.00 - yesAsk) / yesAsk) * 100);
         return {
@@ -658,11 +669,11 @@
       container.innerHTML = sorted.slice(0, 15).map(p => `
         <div class="list-item">
           <div class="item-top">
-            <span class="item-title">${p.title}</span>
+            <span class="item-title">${cleanDisplayTitle(p.title)}</span>
             <span class="tag ${p.type === 'Anchor Leg' ? 'tag-settled' : 'tag-closed'}">${p.type}</span>
           </div>
           <div class="item-meta">
-            <span>Side: <b style="color: #fff;">${p.side} [${p.candidate}]</b> @ $${p.price.toFixed(2)}</span>
+            <span>Side: <b style="color: #fff;">${p.side} [${cleanDisplayTitle(p.candidate)}]</b> @ $${p.price.toFixed(2)}</span>
             <span style="color: var(--green); font-weight: 800;">${p.rec.roi}</span>
             <span style="color: var(--cyan); font-weight: 700;">${p.rec.prob}</span>
             <span class="tag-platform">${p.platform}</span>
@@ -695,7 +706,7 @@
           <div class="opp-top">
             <div>
               <span class="tag-platform">${m.platform} &bull; ${m.category}</span>
-              <div class="opp-title" style="margin-top: 0.25rem;">${m.title}</div>
+              <div class="opp-title" style="margin-top: 0.25rem;">${cleanDisplayTitle(m.title)}</div>
             </div>
             <span class="consensus-badge ${m.rec.badgeClass}">${m.rec.badgeText}</span>
           </div>
@@ -732,7 +743,7 @@
       container.innerHTML = sorted.slice(0, 25).map(m => `
         <div class="opp-card">
           <div class="opp-top">
-            <div class="opp-title">${m.title}</div>
+            <div class="opp-title">${cleanDisplayTitle(m.title)}</div>
             <span class="consensus-badge ${m.rec.badgeClass}">${m.rec.badgeText}</span>
           </div>
           <div class="opp-body">
@@ -753,24 +764,16 @@
       const container = document.getElementById('spread-container');
       const spreadList = [];
 
-      const cleanTitle = (raw) => {
-        let t = (raw || "").replace(/^yes\s+/i, '').replace(/^no\s+/i, '');
-        if (t.includes(',')) {
-          const parts = t.split(',').map(s => s.trim().replace(/^(yes|no)\s+/i, ''));
-          if (parts.length > 2) {
-            return `${parts[0]} + ${parts[1]} (+${parts.length - 2} more legs)`;
-          }
-        }
-        return t.length > 70 ? t.slice(0, 67) + '...' : t;
-      };
-
       kalshi.forEach(k => {
+        // Skip unquoted lines (50¢ default fallback)
+        if (!k.isQuoted) return;
         if (!k.yesAsk || k.yesAsk <= 0.05 || k.yesAsk >= 0.95) return;
 
         poly.forEach(p => {
           if (!p.noAsk || p.noAsk <= 0.05 || p.noAsk >= 0.95) return;
 
-          const kWords = (k.title || "").toLowerCase().split(/\s+/).filter(w => w.length >= 4 && !['match', 'game', 'total', 'points', 'versus', 'will', 'with'].includes(w));
+          // Strict match: require meaningful keyword overlap
+          const kWords = (k.title || "").toLowerCase().split(/\s+/).filter(w => w.length >= 5 && !['match', 'game', 'total', 'points', 'versus', 'will', 'with'].includes(w));
           const pLower = (p.title || "").toLowerCase();
 
           const isDirectMatch = kWords.some(w => pLower.includes(w));
@@ -782,7 +785,7 @@
             if (netEdge >= 0.01) {
               const roiVal = Math.round(((netEdge / totalCost) * 100));
               spreadList.push({
-                title: cleanTitle(k.title),
+                title: cleanDisplayTitle(k.title),
                 edgeCents: (netEdge * 100).toFixed(1),
                 kYes: k.yesAsk.toFixed(2),
                 pNo: p.noAsk.toFixed(2),
