@@ -72,7 +72,7 @@ def get_kalshi_holdings():
     holdings = []
     seen_tickers = set()
 
-    # 1. Read Fills (Multi-market Combo Tickets / MVE Orders)
+    # 1. Read Fills (Picks up multi-market Combo Tickets / MVE Orders)
     fills_data = kalshi_signed_request("GET", "/trade-api/v2/portfolio/fills?limit=50")
     if fills_data:
         for f in fills_data.get("fills", []):
@@ -143,6 +143,20 @@ def get_kalshi_holdings():
 # -------------------------------------------------------------
 # 2. POLYMARKET US AUTHENTICATED ED25519 PORTFOLIO
 # -------------------------------------------------------------
+def load_polymarket_key(secret_str):
+    """Safely derive Ed25519 private key from 32-byte seed or 64-byte key."""
+    try:
+        raw_bytes = base64.b64decode(secret_str)
+    except Exception:
+        raw_bytes = secret_str.encode('utf-8')
+
+    # If 32 bytes or 64 bytes (seed is the first 32 bytes)
+    if len(raw_bytes) >= 32:
+        return ed25519.Ed25519PrivateKey.from_private_bytes(raw_bytes[:32])
+    
+    # Fallback to direct bytes
+    return ed25519.Ed25519PrivateKey.from_private_bytes(raw_bytes.ljust(32, b'\0')[:32])
+
 def polymarket_us_request(method, path):
     api_key = os.environ.get("POLYMARKET_API_KEY", "").strip()
     secret = os.environ.get("POLYMARKET_SECRET", "").strip()
@@ -153,14 +167,7 @@ def polymarket_us_request(method, path):
         timestamp_ms = str(int(time.time() * 1000))
         message = f"{timestamp_ms}{method}{path}".encode('utf-8')
 
-        # Decode base64 secret seed and instantiate Ed25519 private key
-        try:
-            raw_secret = base64.b64decode(secret)
-        except Exception:
-            raw_secret = secret.encode('utf-8')
-
-        # Ed25519 seed is 32 bytes
-        priv_key = ed25519.Ed25519PrivateKey.from_private_bytes(raw_secret[:32])
+        priv_key = load_polymarket_key(secret)
         signature = priv_key.sign(message)
         sig_b64 = base64.b64encode(signature).decode('utf-8')
 
@@ -175,39 +182,51 @@ def polymarket_us_request(method, path):
         if res.status_code == 200:
             return res.json()
         else:
-            print(f"Polymarket US error: {res.text}")
+            print(f"Polymarket US response error ({res.status_code}): {res.text[:200]}")
     except Exception as e:
-        print(f"Polymarket US signing error on {path}: {e}")
+        print(f"Polymarket US execution error on {path}: {e}")
     return None
 
 def get_polymarket_portfolio_positions():
     positions = []
     
     # 1. Fetch User Positions from Polymarket US
-    data = polymarket_us_request("GET", "/v1/portfolio/positions")
-    if data:
-        items = data if isinstance(data, list) else data.get("positions", [])
-        for p in items:
-            title = p.get("title") or p.get("market_title") or p.get("marketSlug") or "Polymarket Ticket"
-            size = p.get("size") or p.get("netPosition", 1)
-            price = p.get("curPrice") or p.get("cost", 0.5)
-            positions.append({
-                "title": title,
-                "details": f"{size} shares • {p.get('outcome', 'YES')}",
-                "odds": f"{int(float(price) * 100)}%" if float(price) <= 1 else f"{float(price):.2f}¢"
-            })
+    try:
+        data = polymarket_us_request("GET", "/v1/portfolio/positions")
+        if data:
+            items = data if isinstance(data, list) else data.get("positions", [])
+            for p in items:
+                title = p.get("title") or p.get("market_title") or p.get("question") or "Polymarket Ticket"
+                size = p.get("size") or p.get("netPosition") or 1
+                price = p.get("curPrice") or p.get("price") or p.get("cost") or 0.5
+                try:
+                    price_val = float(price)
+                    odds_str = f"{int(price_val * 100)}%" if price_val <= 1 else f"{price_val:.2f}¢"
+                except:
+                    odds_str = str(price)
+
+                positions.append({
+                    "title": title,
+                    "details": f"{size} shares • {p.get('outcome', 'YES')}",
+                    "odds": odds_str
+                })
+    except Exception as e:
+        print(f"Error parsing Polymarket positions: {e}")
 
     # 2. Fetch Open/Pending Combos
-    orders_data = polymarket_us_request("GET", "/v1/orders/open")
-    if orders_data:
-        items = orders_data if isinstance(orders_data, list) else orders_data.get("orders", [])
-        for o in items:
-            title = o.get("marketTitle") or o.get("title") or "Polymarket Combo Ticket"
-            positions.append({
-                "title": title,
-                "details": f"Open Slate • {o.get('side', 'BUY')} {o.get('quantity', 1)}x",
-                "odds": f"{o.get('price', 'Open')}"
-            })
+    try:
+        orders_data = polymarket_us_request("GET", "/v1/orders/open")
+        if orders_data:
+            items = orders_data if isinstance(orders_data, list) else orders_data.get("orders", [])
+            for o in items:
+                title = o.get("marketTitle") or o.get("title") or "Polymarket Combo Ticket"
+                positions.append({
+                    "title": title,
+                    "details": f"Open Slate • {o.get('side', 'BUY')} {o.get('quantity', 1)}x",
+                    "odds": f"{o.get('price', 'Open')}"
+                })
+    except Exception as e:
+        print(f"Error parsing Polymarket orders: {e}")
 
     return positions
 
