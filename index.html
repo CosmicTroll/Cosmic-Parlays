@@ -239,45 +239,82 @@
     <!-- AUTOGEN_MACRO_END -->
   </div>
 
-  <!-- TAB 4: PERPS & FLOWS WITH INTERACTIVE TOOLTIPS -->
+    <!-- TAB 4: PERPS, FORECASTS & ALLOCATION -->
   <div id="tab-perps" class="tab-content">
+    
+    <!-- Bucket Allocation Model -->
     <div class="card">
       <div class="card-head">
-        <div class="card-title">Prediction Market Perp Flow</div>
-        <div class="badge perp">Derivatives</div>
+        <div class="card-title">Perps & Horizon Bucket Split</div>
+        <div class="badge perp">Strategy</div>
       </div>
-      <div class="tier">Contract Depth & Liquidity Arbitrage</div>
-      
+      <div class="tier">Kalshi / Polymarket Liquidity Portfolio</div>
+
       <div class="leg">
         <div class="leg-info">
-          <div class="leg-matchup">Kalshi vs Polymarket Spread</div>
-          <div class="leg-pick"><span class="tip" onclick="showTip('basis')">Bengals Spread Basis Discrepancy</span></div>
+          <div class="leg-matchup">Hard Asset Anchor (60% Split)</div>
+          <div class="leg-pick"><span class="tip" onclick="showTip('gold_target')">Gold / Silver Year-End Target Contracts</span></div>
         </div>
-        <div class="leg-odds"><span class="tip" onclick="showTip('arb')">+1.8% Arb</span></div>
+        <div class="leg-odds">60% Target</div>
       </div>
 
       <div class="leg">
         <div class="leg-info">
-          <div class="leg-matchup">Orderbook Imbalance</div>
-          <div class="leg-pick"><span class="tip" onclick="showTip('orderbook')">SF 49ers Ask Depth Heavy (91¢)</span></div>
+          <div class="leg-matchup">High-Beta Liquidity (40% Split)</div>
+          <div class="leg-pick"><span class="tip" onclick="showTip('crypto_target')">BTC / ETH High-Strike Call Contracts</span></div>
         </div>
-        <div class="leg-odds">High Flow</div>
-      </div>
-
-      <div class="leg">
-        <div class="leg-info">
-          <div class="leg-matchup">Volatility Squeeze</div>
-          <div class="leg-pick"><span class="tip" onclick="showTip('squeeze')">1st Half Total Compression</span></div>
-        </div>
-        <div class="leg-odds">Active</div>
+        <div class="leg-odds">40% Target</div>
       </div>
 
       <div class="analysis">
-        <div class="analysis-title">Perp Mechanics:</div>
-        <div class="analysis-text">Cross-market price discrepancies between CFTC-regulated Kalshi contracts and on-chain Polymarket pools create synthetic scalping channels.</div>
+        <div class="analysis-title">Strategic Allocation Thesis:</div>
+        <div class="analysis-text">
+          <strong>Metals (60%):</strong> Lower delta, structural hedge against currency debasement and central bank rate easing. Ideal for deep-in-the-money Yes contracts on Kalshi metals boards.<br><br>
+          <strong>Crypto (40%):</strong> Asymmetric convexity. Deployed into out-of-the-money long-range contracts on Polymarket to maximize payout multiples during post-halving market expansion.
+        </div>
       </div>
     </div>
+
+    <!-- Long-Term Tactical Outlooks -->
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title">Long-Term Contract Forecasts</div>
+        <div class="badge scout">Outlook</div>
+      </div>
+      <div class="tier">Macro Regime Analysis</div>
+
+      <div class="leg">
+        <div class="leg-info">
+          <div class="leg-matchup">Commodities: Kalshi Gold > $2,700/oz</div>
+          <div class="leg-pick">Structural Long-Term Yes Bias</div>
+        </div>
+        <div class="leg-odds">Bullish</div>
+      </div>
+
+      <div class="leg">
+        <div class="leg-info">
+          <div class="leg-matchup">Digital Assets: BTC Year-End New ATH</div>
+          <div class="leg-pick">Consolidation Breakout Play</div>
+        </div>
+        <div class="leg-odds">Accumulate</div>
+      </div>
+
+      <div class="leg">
+        <div class="leg-info">
+          <div class="leg-matchup">Fed Policy: Target Rate Reductions</div>
+          <div class="leg-pick"><span class="tip" onclick="showTip('basis')">Basis Spread Convergence</span></div>
+        </div>
+        <div class="leg-odds">Neutral</div>
+      </div>
+
+      <div class="analysis">
+        <div class="analysis-title">Cosmic Risk Model:</div>
+        <div class="analysis-text">Perp scalping and event contract allocations should remain ring-fenced from daily sports parlay units to ensure drawdown resilience.</div>
+      </div>
+    </div>
+
   </div>
+
 
   <!-- Interactive Educational Modal -->
   <div id="tipModal" class="modal-overlay" onclick="closeTip()">
