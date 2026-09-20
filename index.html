@@ -169,7 +169,7 @@
           <span style="font-size: 0.75rem; color: var(--cyan);">Live Consensus</span>
         </div>
         <p style="font-size: 0.75rem; color: var(--muted); margin-bottom: 0.85rem;">
-          Real-time order book analysis on candidates, elections, geopolitical outcomes, and awards.
+          Real-time order book analysis ranked by highest ROI opportunity.
         </p>
         <div class="item-list" id="macro-container">
           <div class="empty">Scanning live order books for political & cultural lines...</div>
@@ -489,7 +489,7 @@
         return null;
       }
 
-      // High-Probability Anchors (56%+ probability)
+      // Strong Probability Anchors (56%+ probability)
       if (yesAsk >= 0.56 && yesAsk < 0.94) {
         const roi = Math.round(((1.00 - yesAsk) / yesAsk) * 100);
         return {
@@ -497,9 +497,10 @@
           badgeText: "Strong Buy YES",
           action: `BUY YES${targetEntity} @ $${yesAsk.toFixed(2)}`,
           target: "Probability Anchor",
+          roiVal: roi,
           roi: `+${roi}% ROI`,
           prob: `${Math.round(yesAsk * 100)}% Implied`,
-          score: 80 + roi
+          score: roi
         };
       } else if (noAsk >= 0.56 && noAsk < 0.94) {
         const roi = Math.round(((1.00 - noAsk) / noAsk) * 100);
@@ -508,9 +509,10 @@
           badgeText: "Strong Buy NO",
           action: `BUY NO${targetEntity} @ $${noAsk.toFixed(2)}`,
           target: "Probability Anchor",
+          roiVal: roi,
           roi: `+${roi}% ROI`,
           prob: `${Math.round(noAsk * 100)}% Implied`,
-          score: 80 + roi
+          score: roi
         };
       } 
       // Asymmetric Value Plays (Under 44¢)
@@ -521,9 +523,10 @@
           badgeText: "Value Buy YES",
           action: `BUY YES${targetEntity} @ $${yesAsk.toFixed(2)}`,
           target: "Asymmetric Value",
+          roiVal: roi,
           roi: `+${roi}% ROI`,
           prob: `${Math.round(yesAsk * 100)}% Implied`,
-          score: 55 + Math.min(roi / 5, 45)
+          score: roi
         };
       } else if (noAsk <= 0.44 && noAsk >= 0.08) {
         const roi = Math.round(((1.00 - noAsk) / noAsk) * 100);
@@ -532,9 +535,10 @@
           badgeText: "Value Buy NO",
           action: `BUY NO${targetEntity} @ $${noAsk.toFixed(2)}`,
           target: "Asymmetric Value",
+          roiVal: roi,
           roi: `+${roi}% ROI`,
           prob: `${Math.round(noAsk * 100)}% Implied`,
-          score: 55 + Math.min(roi / 5, 45)
+          score: roi
         };
       }
 
@@ -604,9 +608,10 @@
       const container = document.getElementById('props-container');
       const all = [...poly, ...kalshi];
 
+      // Exclusively Sports - Strict exclusion of political/election events
       const sportsMarkets = all.filter(m => {
-        const t = (m.title + " " + (m.eventTitle || "")).toLowerCase();
-        const isPolitical = /president|election|nominee|democrat|republican|senate|governor|vance|trump|harris|newsom|putin|ukraine|war/i.test(t);
+        const t = (m.title + " " + (m.candidate || "")).toLowerCase();
+        const isPolitical = /house|senate|congress|election|nominee|president|governor|democrat|republican|vance|trump|harris|newsom|putin|war/i.test(t);
         return m.category === 'SPORTS' && !isPolitical;
       });
 
@@ -619,6 +624,8 @@
             side: item.yesAsk >= 0.56 ? "YES" : "NO",
             price: item.yesAsk >= 0.56 ? item.yesAsk : item.noAsk,
             prob: Math.round((item.yesAsk >= 0.56 ? item.yesAsk : item.noAsk) * 100),
+            roiVal: rec.roiVal,
+            roiText: rec.roi,
             platform: item.platform,
             type: item.yesAsk >= 0.56 || item.noAsk >= 0.56 ? "Anchor Leg" : "Value Add-On",
             candidate: item.candidate
@@ -631,7 +638,10 @@
         return;
       }
 
-      container.innerHTML = candidates.slice(0, 8).map(p => `
+      // Sort strictly from Highest ROI Downwards
+      candidates.sort((a, b) => b.roiVal - a.roiVal);
+
+      container.innerHTML = candidates.slice(0, 10).map(p => `
         <div class="list-item">
           <div class="item-top">
             <span class="item-title">${p.title}</span>
@@ -639,7 +649,8 @@
           </div>
           <div class="item-meta">
             <span>Side: <b style="color: #fff;">${p.side} [${p.candidate}]</b> @ $${p.price.toFixed(2)}</span>
-            <span style="color: var(--green); font-weight: 700;">${p.prob}% Implied</span>
+            <span style="color: var(--green); font-weight: 800;">${p.roiText}</span>
+            <span style="color: var(--cyan); font-weight: 700;">${p.prob}% Implied</span>
             <span class="tag-platform">${p.platform}</span>
           </div>
         </div>
@@ -657,14 +668,15 @@
         rec: evaluateMarketRecommendation(m)
       }))
       .filter(m => m.rec !== null)
-      .sort((a, b) => b.rec.score - a.rec.score);
+      // Sort strictly from Highest ROI Downwards
+      .sort((a, b) => b.rec.roiVal - a.rec.roiVal);
 
       if (ranked.length === 0) {
         container.innerHTML = `<div class="empty">No active presidential/macro edge lines meeting probability thresholds.</div>`;
         return;
       }
 
-      container.innerHTML = ranked.slice(0, 10).map(m => `
+      container.innerHTML = ranked.slice(0, 12).map(m => `
         <div class="opp-card">
           <div class="opp-top">
             <div>
@@ -689,41 +701,45 @@
 
     function renderBestBuys(containerId, markets, platform) {
       const container = document.getElementById(containerId);
-      const validCards = [];
+      const scored = [];
 
       markets.forEach(m => {
         const rec = evaluateMarketRecommendation(m);
         if (!rec) return;
-
-        validCards.push(`
-          <div class="opp-card">
-            <div class="opp-top">
-              <div class="opp-title">${m.title}</div>
-              <span class="consensus-badge ${rec.badgeClass}">${rec.badgeText}</span>
-            </div>
-            <div class="opp-body">
-              <div>
-                <div class="rec-action">${rec.action}</div>
-                <div class="rec-target">${rec.target}</div>
-              </div>
-              <div class="rec-stats">
-                <div class="rec-roi">${rec.roi}</div>
-                <div class="rec-prob">${rec.prob}</div>
-              </div>
-            </div>
-          </div>
-        `);
+        scored.push({ market: m, rec });
       });
 
-      container.innerHTML = validCards.length > 0 
-        ? validCards.join('') 
-        : `<div class="empty">No tradable asymmetric lines in current active batch.</div>`;
+      // Sort strictly from Highest ROI Downwards
+      scored.sort((a, b) => b.rec.roiVal - a.rec.roiVal);
+
+      if (scored.length === 0) {
+        container.innerHTML = `<div class="empty">No tradable asymmetric lines in current active batch.</div>`;
+        return;
+      }
+
+      container.innerHTML = scored.slice(0, 15).map(({ market: m, rec }) => `
+        <div class="opp-card">
+          <div class="opp-top">
+            <div class="opp-title">${m.title}</div>
+            <span class="consensus-badge ${rec.badgeClass}">${rec.badgeText}</span>
+          </div>
+          <div class="opp-body">
+            <div>
+              <div class="rec-action">${rec.action}</div>
+              <div class="rec-target">${rec.target}</div>
+            </div>
+            <div class="rec-stats">
+              <div class="rec-roi">${rec.roi}</div>
+              <div class="rec-prob">${rec.prob}</div>
+            </div>
+          </div>
+        </div>
+      `).join('');
     }
 
     function renderSpreads(kalshi, poly) {
       const container = document.getElementById('spread-container');
-      let html = "";
-      let matchCount = 0;
+      const spreadList = [];
 
       const cleanTitle = (raw) => {
         let t = (raw || "").replace(/^yes\s+/i, '').replace(/^no\s+/i, '');
@@ -752,33 +768,41 @@
             const netEdge = 1.00 - totalCost - 0.02;
 
             if (netEdge >= 0.01) {
-              matchCount++;
-              const displayTitle = cleanTitle(k.title);
-              const edgeCents = (netEdge * 100).toFixed(1);
-
-              html += `
-                <div class="list-item" style="border-left: 3px solid var(--green);">
-                  <div class="item-top">
-                    <span class="item-title" style="font-size: 0.85rem; line-height: 1.3;">${displayTitle}</span>
-                    <span class="tag tag-settled">+${edgeCents}¢ EDGE</span>
-                  </div>
-                  <div class="item-meta" style="margin-top: 0.4rem;">
-                    <span>Kalshi Yes: <b style="color:#fff;">$${k.yesAsk.toFixed(2)}</b></span>
-                    <span>Poly.us No: <b style="color:#fff;">$${p.noAsk.toFixed(2)}</b></span>
-                  </div>
-                  <div style="font-size: 0.7rem; color: var(--muted); margin-top: 0.2rem;">
-                    Total Cost: $${totalCost.toFixed(2)} &bull; Implied ROI: ${((netEdge / totalCost) * 100).toFixed(1)}%
-                  </div>
-                </div>`;
+              const roiVal = Math.round(((netEdge / totalCost) * 100));
+              spreadList.push({
+                title: cleanTitle(k.title),
+                edgeCents: (netEdge * 100).toFixed(1),
+                kYes: k.yesAsk.toFixed(2),
+                pNo: p.noAsk.toFixed(2),
+                totalCost: totalCost.toFixed(2),
+                roiVal: roiVal
+              });
             }
           }
         });
       });
 
-      if (matchCount === 0) {
+      // Sort strictly from Highest ROI Downwards
+      spreadList.sort((a, b) => b.roiVal - a.roiVal);
+
+      if (spreadList.length === 0) {
         container.innerHTML = `<div class="empty">No direct cross-exchange spreads with positive net edge right now. Scanning order books...</div>`;
       } else {
-        container.innerHTML = html;
+        container.innerHTML = spreadList.map(s => `
+          <div class="list-item" style="border-left: 3px solid var(--green);">
+            <div class="item-top">
+              <span class="item-title" style="font-size: 0.85rem; line-height: 1.3;">${s.title}</span>
+              <span class="tag tag-settled">+${s.edgeCents}¢ EDGE</span>
+            </div>
+            <div class="item-meta" style="margin-top: 0.4rem;">
+              <span>Kalshi Yes: <b style="color:#fff;">$${s.kYes}</b></span>
+              <span>Poly.us No: <b style="color:#fff;">$${s.pNo}</b></span>
+            </div>
+            <div style="font-size: 0.7rem; color: var(--muted); margin-top: 0.2rem;">
+              Total Cost: $${s.totalCost} &bull; Implied ROI: <b style="color:var(--green);">+${s.roiVal}%</b>
+            </div>
+          </div>
+        `).join('');
       }
     }
 
