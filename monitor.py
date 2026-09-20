@@ -3,6 +3,9 @@ import requests
 import json
 import base64
 import datetime
+import time
+import hmac
+import hashlib
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric import padding
 from cryptography.hazmat.primitives.serialization import load_pem_private_key
@@ -20,7 +23,7 @@ def is_sports_contract(text):
     return any(k in t for k in SPORTS_KEYWORDS)
 
 # -------------------------------------------------------------
-# 1. KALSHI RSA-PSS PORTFOLIO, FILLS & COMBOS
+# 1. KALSHI RSA-PSS PORTFOLIO & COMBO FILLS
 # -------------------------------------------------------------
 def kalshi_signed_request(method, path):
     key_id = os.environ.get("KALSHI_API_KEY_ID", "").strip()
@@ -51,13 +54,10 @@ def kalshi_signed_request(method, path):
             "Content-Type": "application/json"
         }
         res = requests.get(f"https://external-api.kalshi.com{path}", headers=headers, timeout=10)
-        print(f"Kalshi {path} -> Status {res.status_code}")
         if res.status_code == 200:
             return res.json()
-        else:
-            print(f"Kalshi {path} Error: {res.text}")
     except Exception as e:
-        print(f"Kalshi exception on {path}: {e}")
+        print(f"Kalshi request error on {path}: {e}")
     return None
 
 def get_market_details(ticker):
@@ -73,23 +73,21 @@ def get_kalshi_holdings():
     holdings = []
     seen_tickers = set()
 
-    # 1. Check Fills (Captures active Combo Tickets / MVE Orders)
-    fills_data = kalshi_signed_request("GET", "/trade-api/v2/portfolio/fills?limit=40")
+    # 1. Read Fills (Picks up multi-market Combo Tickets / MVE Orders)
+    fills_data = kalshi_signed_request("GET", "/trade-api/v2/portfolio/fills?limit=50")
     if fills_data:
         for f in fills_data.get("fills", []):
             ticker = f.get("ticker") or f.get("market_ticker", "")
             if not ticker or ticker in seen_tickers:
                 continue
             seen_tickers.add(ticker)
-            
-            side = f.get("outcome_side") or f.get("side", "YES").upper()
+
             price_dollars = float(f.get("yes_price_dollars", 0.10))
             is_combo = "KXMVE" in ticker or "CROSS" in ticker
-            
+
             market_info = get_market_details(ticker)
             raw_title = market_info.get("title") or market_info.get("subtitle") or ticker
-            
-            # Format clean title
+
             if is_combo:
                 legs = [x.strip() for x in raw_title.replace("yes ", "").replace("no ", "").split(",") if x.strip()]
                 clean_title = f"{len(legs)} Market Combo" if len(legs) > 1 else "Kalshi Combo Ticket"
@@ -110,20 +108,19 @@ def get_kalshi_holdings():
                 "odds": f"${price_dollars:.2f} Entry"
             })
 
-    # 2. Check Positions (Single contracts & active inventory)
+    # 2. Read Positions (Single contracts & open margin)
     pos_data = kalshi_signed_request("GET", "/trade-api/v2/portfolio/positions")
     if pos_data:
         for p in pos_data.get("market_positions", []):
             ticker = p.get("ticker", "")
             cnt = p.get("position", 0)
             is_combo = "KXMVE" in ticker or "CROSS" in ticker
-            
-            # Accept if non-zero OR if it's a combo ticker we haven't rendered yet
+
             if (cnt != 0 or is_combo) and ticker not in seen_tickers:
                 seen_tickers.add(ticker)
                 market_info = get_market_details(ticker)
                 raw_title = market_info.get("title") or market_info.get("subtitle") or ticker
-                
+
                 if is_combo:
                     legs = [x.strip() for x in raw_title.replace("yes ", "").replace("no ", "").split(",") if x.strip()]
                     title = f"{len(legs)} Market Combo" if len(legs) > 1 else "Kalshi Combo Ticket"
@@ -144,34 +141,80 @@ def get_kalshi_holdings():
 
     return holdings
 
+# -------------------------------------------------------------
+# 2. POLYMARKET US AUTHENTICATED PORTFOLIO
+# -------------------------------------------------------------
 def get_polymarket_portfolio_positions():
     api_key = os.environ.get("POLYMARKET_API_KEY", "").strip()
     secret = os.environ.get("POLYMARKET_SECRET", "").strip()
     if not api_key:
         return []
 
+    positions = []
+    
+    # Method A: Polymarket US Official Header Signing (X-PM headers)
     try:
+        ts = str(int(time.time()))
+        method = "GET"
+        path = "/v1/portfolio/positions"
+        msg = f"{ts}{method}{path}".encode('utf-8')
+        
+        # Compute HMAC-SHA256 signature using the secret key
+        try:
+            secret_bytes = base64.b64decode(secret)
+        except:
+            secret_bytes = secret.encode('utf-8')
+            
+        sig = base64.b64encode(hmac.new(secret_bytes, msg, hashlib.sha256).digest()).decode('utf-8')
+
         headers = {
-            "Authorization": f"Bearer {api_key}",
-            "POLY-API-SECRET": secret,
+            "X-PM-Access-Key": api_key,
+            "X-PM-Timestamp": ts,
+            "X-PM-Signature": sig,
             "Content-Type": "application/json"
         }
-        res = requests.get("https://data-api.polymarket.com/positions", headers=headers, timeout=10)
+        res = requests.get(f"https://api.polymarket.us{path}", headers=headers, timeout=10)
+        print(f"Polymarket US API Response: {res.status_code}")
         if res.status_code == 200:
             data = res.json()
             items = data if isinstance(data, list) else data.get("positions", [])
-            valid = []
+            for p in items:
+                positions.append({
+                    "title": p.get("title") or p.get("market_title") or "Polymarket Ticket",
+                    "details": f"{p.get('size', 1)} shares • {p.get('outcome', 'YES')}",
+                    "odds": f"{int(float(p.get('curPrice', p.get('price', 0.5))) * 100)}%"
+                })
+            if positions:
+                return positions
+    except Exception as e:
+        print(f"Polymarket US header auth error: {e}")
+
+    # Method B: Global / CLOB positions fallback
+    try:
+        headers = {
+            "POLY_API_KEY": api_key,
+            "POLY_SIGNATURE": secret,
+            "Content-Type": "application/json"
+        }
+        res = requests.get("https://data-api.polymarket.com/positions", headers=headers, timeout=8)
+        if res.status_code == 200:
+            data = res.json()
+            items = data if isinstance(data, list) else data.get("positions", [])
             for p in items:
                 if float(p.get('size', 0)) > 0:
-                    valid.append(p)
-            return valid
+                    positions.append({
+                        "title": p.get("title") or p.get("market", "Polymarket Ticket"),
+                        "details": f"{p.get('size')} shares",
+                        "odds": f"{int(float(p.get('curPrice', 0.5)) * 100)}%"
+                    })
     except Exception as e:
-        print(f"Polymarket portfolio error: {e}")
-    return []
+        print(f"Polymarket CLOB fallback error: {e}")
+
+    return positions
 
 def build_active_slates_html(kalshi_holdings, poly_pos):
     cards = []
-    
+
     if kalshi_holdings:
         legs = ""
         for h in kalshi_holdings:
@@ -190,27 +233,24 @@ def build_active_slates_html(kalshi_holdings, poly_pos):
         <div class="card-title">Kalshi Live Slates</div>
         <div class="badge up">Sync Active</div>
       </div>
-      <div class="tier">Active Combo Tickets & Live Fills</div>
+      <div class="tier">Active Combo Tickets & Fills</div>
       {legs}
       <div class="analysis">
         <div class="analysis-title">Portfolio Status:</div>
-        <div class="analysis-text">Synchronized in real-time with Kalshi portfolio fills and open multi-market combo contracts.</div>
+        <div class="analysis-text">Synchronized with Kalshi portfolio fills and active multi-market combinations.</div>
       </div>
     </div>""")
 
     if poly_pos:
         legs = ""
         for p in poly_pos:
-            title = p.get('title') or p.get('market', 'Market')
-            size = p.get('size', 0)
-            cur_price = int(float(p.get('curPrice', 0.5)) * 100)
             legs += f"""
       <div class="leg">
         <div class="leg-info">
-          <div class="leg-matchup">Polymarket Slate • <span style="color: #86EFAC;">Active</span></div>
-          <div class="leg-pick">{title} ({size} shares)</div>
+          <div class="leg-matchup">Polymarket US • <span style="color: #86EFAC;">Active</span></div>
+          <div class="leg-pick">{p['title']}<br><span style="font-size: 11px; color: #94A3B8;">{p['details']}</span></div>
         </div>
-        <div class="leg-odds">{cur_price}%</div>
+        <div class="leg-odds">{p['odds']}</div>
       </div>"""
         cards.append(f"""
     <div class="card">
@@ -218,11 +258,11 @@ def build_active_slates_html(kalshi_holdings, poly_pos):
         <div class="card-title">Polymarket Live Portfolio</div>
         <div class="badge up">Sync Active</div>
       </div>
-      <div class="tier">Active Contract Allocations</div>
+      <div class="tier">Active Polymarket Positions</div>
       {legs}
       <div class="analysis">
         <div class="analysis-title">Portfolio Status:</div>
-        <div class="analysis-text">Position units synchronized via Polymarket API keys.</div>
+        <div class="analysis-text">Position units verified via Polymarket API credentials.</div>
       </div>
     </div>""")
 
@@ -242,7 +282,7 @@ def build_active_slates_html(kalshi_holdings, poly_pos):
     return "\n".join(cards)
 
 # -------------------------------------------------------------
-# 2. PUBLIC RADAR & PROPS POLLING (TABS 2 & 3)
+# 3. PUBLIC RADAR & PROPS POLLING (TABS 2 & 3)
 # -------------------------------------------------------------
 def format_kalshi_stats(raw_title):
     items = raw_title.replace("yes ", "").replace("no ", "").split(",")
