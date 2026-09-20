@@ -84,8 +84,9 @@ async function runAutonomousScan(env) {
             `• Kalshi Yes: $${k.yesAsk.toFixed(2)} | Polymarket No: $${p.noAsk.toFixed(2)}\n` +
             `• Net Edge: +${(netEdge * 100).toFixed(1)}¢ per contract (${((netEdge / totalCost) * 100).toFixed(1)}% ROI)`;
 
-          if (env.DISCORD_WEBHOOK) {
-            await fetch(env.DISCORD_WEBHOOK, {
+          const webhookUrl = env.DISCORD_WEBHOOK || env.DISCORD_WEBHOOK_URL;
+          if (webhookUrl) {
+            await fetch(webhookUrl, {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ content: alertMessage })
@@ -128,14 +129,18 @@ export default {
       }
 
       if (url.pathname === "/api/test-discord") {
-        if (!env.DISCORD_WEBHOOK) {
-          return new Response(JSON.stringify({ error: "DISCORD_WEBHOOK secret not found" }), {
+        const webhookUrl = env.DISCORD_WEBHOOK || env.DISCORD_WEBHOOK_URL;
+        if (!webhookUrl) {
+          return new Response(JSON.stringify({ 
+            error: "DISCORD_WEBHOOK secret not found",
+            availableKeys: Object.keys(env)
+          }), {
             status: 400,
             headers: CORS_HEADERS
           });
         }
 
-        const pingRes = await fetch(env.DISCORD_WEBHOOK, {
+        const pingRes = await fetch(webhookUrl, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
