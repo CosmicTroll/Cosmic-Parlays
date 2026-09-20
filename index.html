@@ -137,7 +137,7 @@
     <button class="nav-btn" onclick="switchView('vault')">💼 Vault</button>
   </div>
 
-  <!-- Interactive Sort Bar -->
+  <!-- Interactive Filter & Sort Bar -->
   <div class="sort-bar">
     <span class="sort-label">Sort:</span>
     <button class="sort-chip active" onclick="setSortOrder('roi-desc')">🔥 Top ROI</button>
@@ -410,7 +410,7 @@
           return `${parts[0]} + ${parts[1]} (+${parts.length - 2} more legs)`;
         }
       }
-      return t.length > 75 ? t.slice(0, 72) + '...' : t;
+      return t.length > 70 ? t.slice(0, 67) + '...' : t;
     }
 
     function setSortOrder(order) {
@@ -423,10 +423,10 @@
 
     function sortCandidates(list) {
       return list.slice().sort((a, b) => {
-        const roiA = (a.rec && a.rec.roiVal !== undefined) ? a.rec.roiVal : 0;
-        const roiB = (b.rec && b.rec.roiVal !== undefined) ? b.rec.roiVal : 0;
-        const probA = (a.rec && a.rec.probVal !== undefined) ? a.rec.probVal : 0;
-        const probB = (b.rec && b.rec.probVal !== undefined) ? b.rec.probVal : 0;
+        const roiA = (a.rec && a.rec.roiVal !== undefined) ? a.rec.roiVal : (a.roiVal !== undefined ? a.roiVal : 0);
+        const roiB = (b.rec && b.rec.roiVal !== undefined) ? b.rec.roiVal : (b.roiVal !== undefined ? b.roiVal : 0);
+        const probA = (a.rec && a.rec.probVal !== undefined) ? a.rec.probVal : (a.probVal !== undefined ? a.probVal : 0);
+        const probB = (b.rec && b.rec.probVal !== undefined) ? b.rec.probVal : (b.probVal !== undefined ? b.probVal : 0);
 
         if (currentSort === 'roi-desc') return roiB - roiA;
         if (currentSort === 'roi-asc') return roiA - roiB;
@@ -540,6 +540,7 @@
       const cleanCandidate = cleanDisplayTitle(m.candidate || "Consensus Leg");
       const targetEntity = cleanCandidate !== "Consensus Leg" ? ` [${cleanCandidate}]` : "";
 
+      // Eliminate resolved endpoints
       if (yesAsk >= 0.99 || noAsk >= 0.99 || yesAsk <= 0.01 || noAsk <= 0.01) {
         return null;
       }
@@ -638,7 +639,7 @@
       const container = document.getElementById('props-container');
       const all = [...poly, ...kalshi];
 
-      // Exclusively Sports
+      // Strictly Sports
       const sportsMarkets = all.filter(m => {
         const t = (m.title + " " + (m.candidate || "")).toLowerCase();
         const isPolitical = /house|senate|congress|election|nominee|president|governor|democrat|republican|vance|trump|harris|newsom|putin|war/i.test(t);
@@ -765,15 +766,15 @@
       const spreadList = [];
 
       kalshi.forEach(k => {
-        // Skip unquoted lines (50¢ default fallback)
-        if (!k.isQuoted) return;
+        // Enforce genuine live-quoted line (not 50¢ default fallback)
+        if (!k.isLiveQuoted) return;
         if (!k.yesAsk || k.yesAsk <= 0.05 || k.yesAsk >= 0.95) return;
 
         poly.forEach(p => {
           if (!p.noAsk || p.noAsk <= 0.05 || p.noAsk >= 0.95) return;
 
-          // Strict match: require meaningful keyword overlap
-          const kWords = (k.title || "").toLowerCase().split(/\s+/).filter(w => w.length >= 5 && !['match', 'game', 'total', 'points', 'versus', 'will', 'with'].includes(w));
+          // Require significant token matching on real underlying asset/event
+          const kWords = (k.title || "").toLowerCase().split(/\s+/).filter(w => w.length >= 4 && !['match', 'game', 'total', 'points', 'versus', 'will', 'with'].includes(w));
           const pLower = (p.title || "").toLowerCase();
 
           const isDirectMatch = kWords.some(w => pLower.includes(w));
