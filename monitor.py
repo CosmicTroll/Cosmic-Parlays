@@ -2,12 +2,10 @@ import os
 import requests
 import json
 import base64
-import datetime
 import time
-import hmac
-import hashlib
+import datetime
 from cryptography.hazmat.primitives import hashes
-from cryptography.hazmat.primitives.asymmetric import padding
+from cryptography.hazmat.primitives.asymmetric import padding, ed25519
 from cryptography.hazmat.primitives.serialization import load_pem_private_key
 
 SPORTS_KEYWORDS = [
@@ -54,10 +52,11 @@ def kalshi_signed_request(method, path):
             "Content-Type": "application/json"
         }
         res = requests.get(f"https://external-api.kalshi.com{path}", headers=headers, timeout=10)
+        print(f"Kalshi {path} -> Status {res.status_code}")
         if res.status_code == 200:
             return res.json()
     except Exception as e:
-        print(f"Kalshi request error on {path}: {e}")
+        print(f"Kalshi error on {path}: {e}")
     return None
 
 def get_market_details(ticker):
@@ -73,7 +72,7 @@ def get_kalshi_holdings():
     holdings = []
     seen_tickers = set()
 
-    # 1. Read Fills (Picks up multi-market Combo Tickets / MVE Orders)
+    # 1. Read Fills (Multi-market Combo Tickets / MVE Orders)
     fills_data = kalshi_signed_request("GET", "/trade-api/v2/portfolio/fills?limit=50")
     if fills_data:
         for f in fills_data.get("fills", []):
@@ -108,7 +107,7 @@ def get_kalshi_holdings():
                 "odds": f"${price_dollars:.2f} Entry"
             })
 
-    # 2. Read Positions (Single contracts & open margin)
+    # 2. Read Positions (Single active contracts)
     pos_data = kalshi_signed_request("GET", "/trade-api/v2/portfolio/positions")
     if pos_data:
         for p in pos_data.get("market_positions", []):
@@ -142,73 +141,73 @@ def get_kalshi_holdings():
     return holdings
 
 # -------------------------------------------------------------
-# 2. POLYMARKET US AUTHENTICATED PORTFOLIO
+# 2. POLYMARKET US AUTHENTICATED ED25519 PORTFOLIO
 # -------------------------------------------------------------
-def get_polymarket_portfolio_positions():
+def polymarket_us_request(method, path):
     api_key = os.environ.get("POLYMARKET_API_KEY", "").strip()
     secret = os.environ.get("POLYMARKET_SECRET", "").strip()
-    if not api_key:
-        return []
+    if not api_key or not secret:
+        return None
 
-    positions = []
-    
-    # Method A: Polymarket US Official Header Signing (X-PM headers)
     try:
-        ts = str(int(time.time()))
-        method = "GET"
-        path = "/v1/portfolio/positions"
-        msg = f"{ts}{method}{path}".encode('utf-8')
-        
-        # Compute HMAC-SHA256 signature using the secret key
+        timestamp_ms = str(int(time.time() * 1000))
+        message = f"{timestamp_ms}{method}{path}".encode('utf-8')
+
+        # Decode base64 secret seed and instantiate Ed25519 private key
         try:
-            secret_bytes = base64.b64decode(secret)
-        except:
-            secret_bytes = secret.encode('utf-8')
-            
-        sig = base64.b64encode(hmac.new(secret_bytes, msg, hashlib.sha256).digest()).decode('utf-8')
+            raw_secret = base64.b64decode(secret)
+        except Exception:
+            raw_secret = secret.encode('utf-8')
+
+        # Ed25519 seed is 32 bytes
+        priv_key = ed25519.Ed25519PrivateKey.from_private_bytes(raw_secret[:32])
+        signature = priv_key.sign(message)
+        sig_b64 = base64.b64encode(signature).decode('utf-8')
 
         headers = {
             "X-PM-Access-Key": api_key,
-            "X-PM-Timestamp": ts,
-            "X-PM-Signature": sig,
+            "X-PM-Timestamp": timestamp_ms,
+            "X-PM-Signature": sig_b64,
             "Content-Type": "application/json"
         }
         res = requests.get(f"https://api.polymarket.us{path}", headers=headers, timeout=10)
-        print(f"Polymarket US API Response: {res.status_code}")
+        print(f"Polymarket US {path} -> Status {res.status_code}")
         if res.status_code == 200:
-            data = res.json()
-            items = data if isinstance(data, list) else data.get("positions", [])
-            for p in items:
-                positions.append({
-                    "title": p.get("title") or p.get("market_title") or "Polymarket Ticket",
-                    "details": f"{p.get('size', 1)} shares • {p.get('outcome', 'YES')}",
-                    "odds": f"{int(float(p.get('curPrice', p.get('price', 0.5))) * 100)}%"
-                })
-            if positions:
-                return positions
+            return res.json()
+        else:
+            print(f"Polymarket US error: {res.text}")
     except Exception as e:
-        print(f"Polymarket US header auth error: {e}")
+        print(f"Polymarket US signing error on {path}: {e}")
+    return None
 
-    # Method B: Global / CLOB positions fallback
-    try:
-        headers = {
-            "POLY_API_KEY": api_key,
-            "POLY_SIGNATURE": secret,
-            "Content-Type": "application/json"
-        }
-        res = requests.get("https://data-api.polymarket.com/positions", headers=headers, timeout=8)
-        if res.status_code == 200:
-            data = res.json()
-            items = data if isinstance(data, list) else data.get("positions", [])
-            for p in items:
-                if float(p.get('size', 0)) > 0:
-                    positions.append({
-                        "title": p.get("title") or p.get("market", "Polymarket Ticket"),
-                        "details": f"{p.get('size')} shares",
-                        "odds": f"{int(float(p.get('curPrice', 0.5)) * 100)}%"
-                    })
-    except Exception as e:
-        print(f"Polymarket CLOB fallback error: {e}")
+def get_polymarket_portfolio_positions():
+    positions = []
+    
+    # 1. Fetch User Positions from Polymarket US
+    data = polymarket_us_request("GET", "/v1/portfolio/positions")
+    if data:
+        items = data if isinstance(data, list) else data.get("positions", [])
+        for p in items:
+            title = p.get("title") or p.get("market_title") or p.get("marketSlug") or "Polymarket Ticket"
+            size = p.get("size") or p.get("netPosition", 1)
+            price = p.get("curPrice") or p.get("cost", 0.5)
+            positions.append({
+                "title": title,
+                "details": f"{size} shares • {p.get('outcome', 'YES')}",
+                "odds": f"{int(float(price) * 100)}%" if float(price) <= 1 else f"{float(price):.2f}¢"
+            })
+
+    # 2. Fetch Open/Pending Combos
+    orders_data = polymarket_us_request("GET", "/v1/orders/open")
+    if orders_data:
+        items = orders_data if isinstance(orders_data, list) else orders_data.get("orders", [])
+        for o in items:
+            title = o.get("marketTitle") or o.get("title") or "Polymarket Combo Ticket"
+            positions.append({
+                "title": title,
+                "details": f"Open Slate • {o.get('side', 'BUY')} {o.get('quantity', 1)}x",
+                "odds": f"{o.get('price', 'Open')}"
+            })
 
     return positions
 
@@ -248,7 +247,7 @@ def build_active_slates_html(kalshi_holdings, poly_pos):
       <div class="leg">
         <div class="leg-info">
           <div class="leg-matchup">Polymarket US • <span style="color: #86EFAC;">Active</span></div>
-          <div class="leg-pick">{p['title']}<br><span style="font-size: 11px; color: #94A3B8;">{p['details']}</span></div>
+          <div class="leg-pick">{p['title']}<br><span style="font-size: 11px; color: #94A3B8; line-height: 15px;">{p['details']}</span></div>
         </div>
         <div class="leg-odds">{p['odds']}</div>
       </div>"""
@@ -262,7 +261,7 @@ def build_active_slates_html(kalshi_holdings, poly_pos):
       {legs}
       <div class="analysis">
         <div class="analysis-title">Portfolio Status:</div>
-        <div class="analysis-text">Position units verified via Polymarket API credentials.</div>
+        <div class="analysis-text">Authenticated directly via Polymarket US Ed25519 API.</div>
       </div>
     </div>""")
 
@@ -437,7 +436,7 @@ def main():
 
         with open("index.html", "w", encoding="utf-8") as f:
             f.write(c)
-        print("Updated index.html successfully across all 3 autogen sections.")
+        print("Updated index.html successfully.")
 
     send_discord(len(kalshi_holdings) + len(poly_pos), len(sports_items), len(macro_items))
 
