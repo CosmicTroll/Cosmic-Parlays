@@ -1,5 +1,5 @@
 // Cloudflare Worker: worker.js
-// Production Engine: Kalshi RSA-PSS & Polymarket.us Live Synthesis
+// Dynamic Execution & Real-Time Aggregator: Kalshi RSA-PSS & Polymarket.us
 
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",
@@ -43,7 +43,7 @@ async function signKalshiRequest(privateKey, timestamp, method, path, body = "")
 }
 
 // -------------------------------------------------------------
-// 2. Strict Categorization Engine
+// 2. Strict Dynamic Classification Engine
 // -------------------------------------------------------------
 
 function categorizeTitle(title) {
@@ -52,7 +52,7 @@ function categorizeTitle(title) {
   if (/house|senate|congress|election|nominee|president|governor|democrat|republican|gop|dnc|rnc|vance|trump|harris|newsom|biden|putin|ukraine|war|cabinet|veto|supreme court/i.test(t)) {
     return "POLITICS";
   }
-  if (/fed|rate|inflation|cpi|interest|gdp|recession|treasury|yield|cuts|debt|unemployment|jobs/i.test(t)) {
+  if (/fed|rate|inflation|cpi|interest|gdp|recession|treasury|yield|cuts|debt|unemployment|jobs|payroll/i.test(t)) {
     return "MACRO";
   }
   if (/vs\.?|game|spread|over\/under|total points|yards|touchdown|td|nfl|nba|mlb|nhl|fifa|uefa|mls|premier league|champions league|quarterback|receptions|goals|puck|score/i.test(t)) {
@@ -157,7 +157,7 @@ async function handleLiveData(env) {
   let polyBalance = 2.57;
   let polyPositions = [];
 
-  // --- Kalshi Account Live Integration ---
+  // --- Kalshi Authenticated Account Sync ---
   let kalshiBalance = 0.00;
   let kalshiPositions = [];
   let kalshiAuth = false;
@@ -169,7 +169,7 @@ async function handleLiveData(env) {
     try {
       const privKey = await importKalshiRsaKey(kalshiPrivateKey);
 
-      // 1. Fetch Kalshi Balance
+      // 1. Live Kalshi Balance
       const bPath = "/trade-api/v2/portfolio/balance";
       const bTs = Date.now().toString();
       const bSig = await signKalshiRequest(privKey, bTs, "GET", bPath, "");
@@ -190,7 +190,7 @@ async function handleLiveData(env) {
         kalshiAuth = true;
       }
 
-      // 2. Fetch Active Resting Orders
+      // 2. Live Kalshi Resting Orders
       const oPath = "/trade-api/v2/portfolio/orders?status=resting";
       const oTs = Date.now().toString();
       const oSig = await signKalshiRequest(privKey, oTs, "GET", oPath, "");
@@ -230,7 +230,7 @@ async function handleLiveData(env) {
   const activeExposure = allPositions.reduce((acc, p) => acc + (p.exposure || 0), 0);
   const activeContracts = allPositions.reduce((acc, p) => acc + (p.count || 0), 0);
 
-  // --- Polymarket Public Catalog (Sports + Politics + EndDates) ---
+  // --- Polymarket Public Catalog (Sports + Politics + Expiry Times) ---
   let polymarket = [];
   try {
     const [genRes, sportsRes] = await Promise.all([
@@ -313,34 +313,61 @@ async function handleLiveData(env) {
     if (kRes.ok) {
       const kData = await kRes.json();
       const rawMarkets = kData.markets || [];
+
       rawMarkets.forEach(m => {
-        // Robust price parsing across all Kalshi schemas
+        if (m.status && m.status !== "open" && m.status !== "active") return;
+
         let yesPrice = null;
         let noPrice = null;
 
-        if (m.yes_ask !== undefined && m.yes_ask > 0) yesPrice = m.yes_ask > 1 ? m.yes_ask / 100 : m.yes_ask;
-        else if (m.yes_ask_dollars !== undefined) yesPrice = parseFloat(m.yes_ask_dollars);
-        else if (m.last_price !== undefined && m.last_price > 0) yesPrice = m.last_price > 1 ? m.last_price / 100 : m.last_price;
-        else if (m.last_price_dollars !== undefined) yesPrice = parseFloat(m.last_price_dollars);
-        else if (m.yes_bid !== undefined && m.yes_bid > 0) yesPrice = m.yes_bid > 1 ? m.yes_bid / 100 : m.yes_bid;
-        else if (m.no_bid !== undefined && m.no_bid > 0) yesPrice = 1.00 - (m.no_bid > 1 ? m.no_bid / 100 : m.no_bid);
+        // Exhaustive price detection across live bid/ask/trade cents and dollar keys
+        const yesCandidates = [
+          m.yes_ask, m.yes_ask_dollars, 
+          m.last_price, m.last_price_dollars, 
+          m.yes_bid, m.yes_bid_dollars,
+          m.previous_yes_ask, m.previous_price
+        ];
 
-        if (m.no_ask !== undefined && m.no_ask > 0) noPrice = m.no_ask > 1 ? m.no_ask / 100 : m.no_ask;
-        else if (m.no_ask_dollars !== undefined) noPrice = parseFloat(m.no_ask_dollars);
+        for (const val of yesCandidates) {
+          if (val !== undefined && val !== null && !isNaN(val) && Number(val) > 0) {
+            yesPrice = Number(val) > 1 ? Number(val) / 100 : Number(val);
+            break;
+          }
+        }
 
-        if (yesPrice === null && noPrice !== null) yesPrice = Number((1.00 - noPrice).toFixed(2));
-        if (noPrice === null && yesPrice !== null) noPrice = Number((1.00 - yesPrice).toFixed(2));
+        const noCandidates = [
+          m.no_ask, m.no_ask_dollars, 
+          m.no_bid, m.no_bid_dollars,
+          m.previous_no_ask
+        ];
 
-        if (yesPrice === null) yesPrice = 0.50;
-        if (noPrice === null) noPrice = 0.50;
+        for (const val of noCandidates) {
+          if (val !== undefined && val !== null && !isNaN(val) && Number(val) > 0) {
+            noPrice = Number(val) > 1 ? Number(val) / 100 : Number(val);
+            break;
+          }
+        }
+
+        // Compute complementary ask if reciprocal quote exists
+        if (yesPrice !== null && noPrice === null) noPrice = Number((1.00 - yesPrice).toFixed(2));
+        if (noPrice !== null && yesPrice === null) yesPrice = Number((1.00 - noPrice).toFixed(2));
+
+        // Skip non-quoted contracts
+        if (yesPrice === null && noPrice === null) return;
+
+        const finalYes = yesPrice !== null ? yesPrice : 0.50;
+        const finalNo = noPrice !== null ? noPrice : 0.50;
+
+        const fullTitle = m.title || m.ticker;
+        const candidateName = m.subtitle || m.sub_title || m.yes_sub_title || m.ticker;
 
         kalshi.push({
           ticker: m.ticker,
-          title: m.title || m.ticker,
-          candidate: m.subtitle || m.sub_title || m.ticker,
-          category: categorizeTitle(m.title || ""),
-          yesAsk: Number(yesPrice.toFixed(2)),
-          noAsk: Number(noPrice.toFixed(2)),
+          title: fullTitle,
+          candidate: candidateName,
+          category: categorizeTitle(fullTitle),
+          yesAsk: Number(finalYes.toFixed(2)),
+          noAsk: Number(finalNo.toFixed(2)),
           volume: m.volume || m.volume_24h || 0,
           endDate: m.close_time || m.expiration_time || null,
           platform: "Kalshi"
