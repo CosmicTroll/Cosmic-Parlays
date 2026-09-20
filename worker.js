@@ -261,10 +261,11 @@ async function handleLiveData(env) {
     console.error("Polymarket catalog fetch error:", err);
   }
 
-  // --- Kalshi Public Catalog (Authenticated & Fallback Resilient) ---
+  // --- Kalshi Public Catalog (Authenticated & Proper Path Signing) ---
   let kalshi = [];
   try {
-    const kPath = "/trade-api/v2/markets?limit=50&status=open";
+    const basePath = "/trade-api/v2/markets";
+    const queryString = "?limit=100";
     let kHeaders = { 
       "Accept": "application/json",
       "User-Agent": "CosmicParlaysTerminal/1.0"
@@ -274,14 +275,17 @@ async function handleLiveData(env) {
       try {
         const privKey = await importKalshiRsaKey(kalshiPrivateKey);
         const kTs = Date.now().toString();
-        const kSig = await signKalshiRequest(privKey, kTs, "GET", kPath, "");
+        // Kalshi Rule: Sign PATH ONLY without query params
+        const kSig = await signKalshiRequest(privKey, kTs, "GET", basePath, "");
         kHeaders["KALSHI-ACCESS-KEY"] = kalshiKeyId;
         kHeaders["KALSHI-ACCESS-SIGNATURE"] = kSig;
         kHeaders["KALSHI-ACCESS-TIMESTAMP"] = kTs;
-      } catch (_) {}
+      } catch (signErr) {
+        console.warn("Kalshi catalog signing warning:", signErr);
+      }
     }
 
-    const kRes = await fetch(`https://external-api.kalshi.com${kPath}`, {
+    const kRes = await fetch(`https://external-api.kalshi.com${basePath}${queryString}`, {
       headers: kHeaders
     });
 
@@ -289,22 +293,24 @@ async function handleLiveData(env) {
       const kData = await kRes.json();
       const rawMarkets = kData.markets || [];
       rawMarkets.forEach(m => {
-        // Evaluate available pricing fields (dollars/cents)
+        // Skip settled or closed contracts
+        if (m.status && m.status !== "open" && m.status !== "active") return;
+
         let yesPrice = 0.50;
         let noPrice = 0.50;
 
-        if (m.yes_ask !== undefined && m.yes_ask !== null) {
+        if (m.yes_ask !== undefined && m.yes_ask !== null && m.yes_ask > 0) {
           yesPrice = m.yes_ask > 1 ? m.yes_ask / 100 : m.yes_ask;
-        } else if (m.yes_bid !== undefined && m.yes_bid !== null) {
-          yesPrice = m.yes_bid > 1 ? m.yes_bid / 100 : m.yes_bid;
-        } else if (m.last_price !== undefined && m.last_price !== null) {
+        } else if (m.last_price !== undefined && m.last_price !== null && m.last_price > 0) {
           yesPrice = m.last_price > 1 ? m.last_price / 100 : m.last_price;
+        } else if (m.yes_bid !== undefined && m.yes_bid !== null && m.yes_bid > 0) {
+          yesPrice = m.yes_bid > 1 ? m.yes_bid / 100 : m.yes_bid;
         }
 
-        if (m.no_ask !== undefined && m.no_ask !== null) {
+        if (m.no_ask !== undefined && m.no_ask !== null && m.no_ask > 0) {
           noPrice = m.no_ask > 1 ? m.no_ask / 100 : m.no_ask;
         } else {
-          noPrice = 1.00 - yesPrice;
+          noPrice = Number((1.00 - yesPrice).toFixed(2));
         }
 
         kalshi.push({
@@ -318,10 +324,13 @@ async function handleLiveData(env) {
           platform: "Kalshi"
         });
       });
+    } else {
+      console.error(`Kalshi catalog HTTP error: ${kRes.status} ${kRes.statusText}`);
     }
   } catch (err) {
     console.error("Kalshi catalog fetch error:", err);
   }
+
 
   return new Response(JSON.stringify({
     status: "healthy",
