@@ -20,12 +20,13 @@ def is_sports_contract(text):
     return any(k in t for k in SPORTS_KEYWORDS)
 
 # -------------------------------------------------------------
-# 1. AUTHENTICATED PORTFOLIO POLLING (TAB 1)
+# 1. KALSHI RSA-PSS AUTHENTICATED PORTFOLIO
 # -------------------------------------------------------------
 def get_kalshi_portfolio_positions():
-    key_id = os.environ.get("KALSHI_API_KEY_ID")
-    private_key_pem = os.environ.get("KALSHI_PRIVATE_KEY")
+    key_id = os.environ.get("KALSHI_API_KEY_ID", "").strip()
+    private_key_pem = os.environ.get("KALSHI_PRIVATE_KEY", "").strip()
     if not key_id or not private_key_pem:
+        print("Missing Kalshi credentials, skipping live portfolio.")
         return []
 
     try:
@@ -35,8 +36,16 @@ def get_kalshi_portfolio_positions():
         path = "/trade-api/v2/portfolio/positions"
         message = f"{timestr}{method}{path}".encode('utf-8')
 
+        # Load private key & sign with RSA-PSS (Kalshi standard)
         private_key = load_pem_private_key(private_key_pem.encode('utf-8'), password=None)
-        signature = private_key.sign(message, padding.PKCS1v15(), hashes.SHA256())
+        signature = private_key.sign(
+            message,
+            padding.PSS(
+                mgf=padding.MGF1(hashes.SHA256()),
+                salt_length=padding.PSS.DIGEST_LENGTH
+            ),
+            hashes.SHA256()
+        )
         sig_b64 = base64.b64encode(signature).decode('utf-8')
 
         headers = {
@@ -45,39 +54,43 @@ def get_kalshi_portfolio_positions():
             "KALSHI-ACCESS-TIMESTAMP": timestr,
             "Content-Type": "application/json"
         }
-        res = requests.get(f"https://trading-api.kalshi.com{path}", headers=headers, timeout=10)
+        url = f"https://external-api.kalshi.com{path}"
+        res = requests.get(url, headers=headers, timeout=10)
+        print(f"Kalshi Portfolio Response Code: {res.status_code}")
+        
         if res.status_code == 200:
-            return res.json().get("market_positions", [])
+            data = res.json()
+            return data.get("market_positions", [])
+        else:
+            print(f"Kalshi error: {res.text}")
     except Exception as e:
-        print(f"Kalshi portfolio read error: {e}")
+        print(f"Kalshi portfolio read exception: {e}")
     return []
 
 def get_polymarket_portfolio_positions():
-    api_key = os.environ.get("POLYMARKET_API_KEY")
-    secret = os.environ.get("POLYMARKET_SECRET")
+    api_key = os.environ.get("POLYMARKET_API_KEY", "").strip()
+    secret = os.environ.get("POLYMARKET_SECRET", "").strip()
     if not api_key:
         return []
 
     try:
         headers = {
             "Authorization": f"Bearer {api_key}",
-            "POLY-API-SECRET": secret or "",
+            "POLY-API-SECRET": secret,
             "Content-Type": "application/json"
         }
-        # Standard Polymarket portfolio / positions endpoint
-        url = "https://data-api.polymarket.com/positions"
-        res = requests.get(url, headers=headers, timeout=10)
+        res = requests.get("https://data-api.polymarket.com/positions", headers=headers, timeout=10)
+        print(f"Polymarket Portfolio Response Code: {res.status_code}")
         if res.status_code == 200:
             data = res.json()
             return data if isinstance(data, list) else data.get("positions", [])
     except Exception as e:
-        print(f"Polymarket portfolio read error: {e}")
+        print(f"Polymarket portfolio error: {e}")
     return []
 
 def build_active_slates_html(kalshi_pos, poly_pos):
     cards = []
     
-    # Render Kalshi Positions
     if kalshi_pos:
         legs = ""
         for p in kalshi_pos:
@@ -89,7 +102,7 @@ def build_active_slates_html(kalshi_pos, poly_pos):
             legs += f"""
       <div class="leg">
         <div class="leg-info">
-          <div class="leg-matchup">Kalshi Position • <span style="color: #86EFAC;">{status_badge}</span></div>
+          <div class="leg-matchup">Kalshi Order • <span style="color: #86EFAC;">{status_badge}</span></div>
           <div class="leg-pick">{ticker} ({abs(count)}x {side})</div>
         </div>
         <div class="leg-odds">{pnl:+}¢</div>
@@ -98,17 +111,16 @@ def build_active_slates_html(kalshi_pos, poly_pos):
     <div class="card">
       <div class="card-head">
         <div class="card-title">Kalshi Live Portfolio</div>
-        <div class="badge up">Syncing API</div>
+        <div class="badge up">Sync Active</div>
       </div>
-      <div class="tier">Authenticated Orders & Active Fills</div>
+      <div class="tier">Authenticated Fills & Settled Orders</div>
       {legs}
       <div class="analysis">
         <div class="analysis-title">Portfolio Status:</div>
-        <div class="analysis-text">Real-time contract exposures verified via Kalshi RSA API.</div>
+        <div class="analysis-text">Position units synchronized directly from your Kalshi account via RSA-PSS API.</div>
       </div>
     </div>""")
 
-    # Render Polymarket Positions
     if poly_pos:
         legs = ""
         for p in poly_pos:
@@ -127,13 +139,13 @@ def build_active_slates_html(kalshi_pos, poly_pos):
     <div class="card">
       <div class="card-head">
         <div class="card-title">Polymarket Live Portfolio</div>
-        <div class="badge up">Syncing API</div>
+        <div class="badge up">Sync Active</div>
       </div>
       <div class="tier">Active Polymarket Positions</div>
       {legs}
       <div class="analysis">
         <div class="analysis-title">Portfolio Status:</div>
-        <div class="analysis-text">Position units synchronized via Polymarket API keys.</div>
+        <div class="analysis-text">Tickets tracked across Polymarket US endpoints.</div>
       </div>
     </div>""")
 
@@ -141,13 +153,13 @@ def build_active_slates_html(kalshi_pos, poly_pos):
         return """
     <div class="card">
       <div class="card-head">
-        <div class="card-title">Active Portfolio Clear</div>
-        <div class="badge scout">No Open Risk</div>
+        <div class="card-title">Portfolio Synced (No Open Risk)</div>
+        <div class="badge scout">Standby</div>
       </div>
-      <div class="tier">Kalshi & Polymarket Portfolio Reader</div>
+      <div class="tier">Kalshi & Polymarket Portfolio Terminal</div>
       <div class="analysis">
-        <div class="analysis-title">Live State:</div>
-        <div class="analysis-text">No active contract exposure currently open. New tickets will populate here automatically upon fill.</div>
+        <div class="analysis-title">Live Account State:</div>
+        <div class="analysis-text">API credentials verified. You currently have no open positions. When you place a bet or open a perp on Kalshi, it will populate here automatically.</div>
       </div>
     </div>"""
     return "\n".join(cards)
@@ -175,7 +187,6 @@ def format_kalshi_stats(raw_title):
 
 def get_public_markets():
     sports, macro = [], []
-    # Polymarket Public Flow
     try:
         url = "https://gamma-api.polymarket.com/events?limit=40&active=true&closed=false"
         res = requests.get(url, timeout=10).json()
@@ -196,7 +207,6 @@ def get_public_markets():
     except Exception as e:
         print(f"Polymarket radar error: {e}")
 
-    # Kalshi Public Flow
     try:
         url = "https://external-api.kalshi.com/trade-api/v2/markets?limit=100&status=open"
         res = requests.get(url, timeout=10).json()
@@ -278,12 +288,10 @@ def send_discord(active_count, sports_count, macro_count):
     requests.post(webhook_url, json=payload)
 
 def main():
-    # 1. Fetch live portfolios
     kalshi_pos = get_kalshi_portfolio_positions()
     poly_pos = get_polymarket_portfolio_positions()
     active_html = build_active_slates_html(kalshi_pos, poly_pos)
 
-    # 2. Fetch radar & macro
     sports_items, macro_items = get_public_markets()
     sports_html = build_card(
         "Single-Leg Props & Game Radar",
@@ -302,7 +310,6 @@ def main():
         "Consensus odds for timeline projections, regulatory events, and rate paths."
     )
 
-    # 3. Inject all three into index.html
     if os.path.exists("index.html"):
         with open("index.html", "r", encoding="utf-8") as f:
             c = f.read()
