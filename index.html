@@ -1,462 +1,166 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Cosmic Parlay Theorem | Tactical Prediction Market Terminal</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cosmic Parlays Terminal</title>
   <style>
     :root {
-      --bg: #090d16;
-      --card-bg: #101626;
-      --card-inner: #161f36;
-      --border: #1e293b;
-      --border-light: rgba(255, 255, 255, 0.08);
-      --text-main: #f8fafc;
-      --text-muted: #94a3b8;
+      --bg: #0b0f19;
+      --card-bg: #131a2a;
+      --border: #232f48;
+      --text: #e2e8f0;
+      --muted: #94a3b8;
       --accent: #6366f1;
-      --accent-glow: rgba(99, 102, 241, 0.2);
       --green: #10b981;
       --red: #ef4444;
       --gold: #f59e0b;
-      --gemini-purple: #c084fc;
     }
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, monospace; }
-    body { background: var(--bg); color: var(--text-main); padding: 20px 14px; line-height: 1.5; }
-    .container { max-width: 1200px; margin: 0 auto; }
-    
-    /* Top Header */
-    header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 16px; margin-bottom: 18px; flex-wrap: wrap; gap: 10px; }
-    .title-group h1 { font-size: 1.5rem; letter-spacing: -0.5px; }
-    .title-group p { font-size: 0.85rem; color: var(--text-muted); }
-    .controls { display: flex; gap: 8px; align-items: center; }
-    
-    .badge { background: #1e1b4b; color: #a5b4fc; padding: 4px 10px; border-radius: 9999px; font-size: 0.75rem; border: 1px solid #4338ca; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; }
-    .badge-gold { background: rgba(245, 158, 11, 0.15); color: #fcd34d; border-color: rgba(245, 158, 11, 0.4); }
-    .badge-green { background: rgba(16, 185, 129, 0.15); color: #6ee7b7; border-color: rgba(16, 185, 129, 0.4); }
-    
-    /* Pulsing Badges & Dots */
-    @keyframes pulse-glow {
-      0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.6); }
-      70% { transform: scale(1.02); box-shadow: 0 0 0 8px rgba(245, 158, 11, 0); }
-      100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(245, 158, 11, 0); }
-    }
-    .pulse-target {
-      display: inline-block;
-      animation: pulse-glow 2s infinite;
-      border: 1px solid rgba(245, 158, 11, 0.6);
-      background: rgba(245, 158, 11, 0.18);
-      border-radius: 4px;
-      padding: 2px 6px;
-    }
-    
-    .status-dot { height: 8px; width: 8px; border-radius: 50%; display: inline-block; }
-    .status-online { background: var(--green); box-shadow: 0 0 8px var(--green); }
-    .status-alert { background: var(--gold); box-shadow: 0 0 8px var(--gold); }
-    
-    button { background: var(--accent); color: #fff; border: none; border-radius: 6px; padding: 7px 14px; font-weight: 600; font-size: 0.82rem; cursor: pointer; transition: 0.15s ease-in-out; }
-    button:hover { opacity: 0.9; }
 
-    .disclaimer { background: rgba(245, 158, 11, 0.08); border-left: 3px solid var(--gold); padding: 10px 14px; font-size: 0.8rem; color: #fcd34d; margin-bottom: 20px; border-radius: 0 6px 6px 0; }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { background-color: var(--bg); color: var(--text); padding: 1rem; }
+    header { max-width: 900px; margin: 0 auto 1.5rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 1rem; }
+    h1 { font-size: 1.25rem; font-weight: 700; color: #fff; display: flex; align-items: center; gap: 0.5rem; }
+    .status-badge { font-size: 0.75rem; padding: 0.25rem 0.6rem; border-radius: 9999px; background: rgba(16, 185, 129, 0.15); color: var(--green); border: 1px solid rgba(16, 185, 129, 0.3); }
 
-    /* Grid & Cards */
-    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 18px; margin-bottom: 20px; }
-    .card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 10px; padding: 16px; position: relative; }
-    .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
-    .card-title { font-size: 0.92rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
-    .card-subtitle { font-size: 0.78rem; color: var(--text-muted); margin-bottom: 12px; }
-    
-    /* Internal Market Blocks */
-    .market-box { background: var(--card-inner); border: 1px solid var(--border-light); border-radius: 6px; padding: 12px; margin-bottom: 10px; }
-    .market-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 6px; border-bottom: 1px solid var(--border-light); border-radius: 4px; transition: background 0.15s; }
-    .clickable-row { cursor: pointer; }
-    .clickable-row:hover { background: rgba(99, 102, 241, 0.12); }
-    .market-row:last-child { border-bottom: none; }
-    .leg-title { font-size: 0.84rem; font-weight: 500; max-width: 230px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .leg-desc { font-size: 0.72rem; color: var(--text-muted); }
-    .price-tag { font-family: monospace; font-size: 0.88rem; font-weight: 700; }
-    
-    .green { color: var(--green); }
-    .red { color: var(--red); }
-    .gold { color: var(--gold); }
+    main { max-width: 900px; margin: 0 auto; display: grid; gap: 1.25rem; }
+    .card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 1.25rem; }
+    .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+    .card-title { font-size: 1rem; font-weight: 600; color: #fff; }
 
-    /* Gemini Intel Callouts */
-    .gemini-intel { background: rgba(192, 132, 252, 0.08); border: 1px solid rgba(192, 132, 252, 0.25); border-radius: 6px; padding: 10px 12px; margin-top: 10px; font-size: 0.78rem; }
-    .gemini-intel strong { color: var(--gemini-purple); display: block; margin-bottom: 2px; }
+    .balance-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; }
+    .metric { background: rgba(255,255,255,0.02); border: 1px solid var(--border); border-radius: 8px; padding: 0.75rem 1rem; }
+    .metric-label { font-size: 0.75rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }
+    .metric-value { font-size: 1.25rem; font-weight: 700; color: #fff; margin-top: 0.25rem; }
 
-    /* Inputs & Simulators */
-    .calc-input { width: 100%; background: #07090e; border: 1px solid var(--border); color: #fff; padding: 7px 10px; border-radius: 5px; margin-top: 4px; margin-bottom: 10px; font-size: 0.85rem; }
-    .result-box { background: rgba(99, 102, 241, 0.08); border: 1px dashed var(--accent); border-radius: 6px; padding: 10px 12px; margin-top: 10px; font-size: 0.82rem; }
+    .spread-list { display: flex; flex-direction: column; gap: 0.75rem; }
+    .spread-item { background: rgba(255,255,255,0.02); border: 1px solid var(--border); border-radius: 8px; padding: 1rem; display: flex; flex-direction: column; gap: 0.5rem; }
+    .spread-title { font-size: 0.95rem; font-weight: 600; }
+    .spread-details { display: flex; flex-wrap: wrap; justify-content: space-between; font-size: 0.85rem; color: var(--muted); gap: 0.5rem; }
+    .edge-tag { font-weight: 700; color: var(--green); }
+
+    .refresh-btn { background: var(--accent); color: #fff; border: none; padding: 0.4rem 0.8rem; border-radius: 6px; font-weight: 600; font-size: 0.8rem; cursor: pointer; }
+    .refresh-btn:hover { opacity: 0.9; }
+    .empty { color: var(--muted); font-size: 0.85rem; text-align: center; padding: 1.5rem; }
   </style>
 </head>
 <body>
 
-<div class="container">
   <header>
-    <div class="title-group">
-      <h1>Cosmic Parlay Theorem</h1>
-      <p>Tactical Prediction Market & Arbitrage Terminal</p>
-    </div>
-    <div class="controls">
-      <span class="badge" id="feed-status"><span class="status-dot status-online"></span>Sync Active</span>
-      <span class="badge badge-gold">✨ Gemini Co-Pilot</span>
-      <button onclick="fetchFeeds(true)" id="sync-btn">Sync Books (30s)</button>
+    <h1>🚀 Cosmic Parlays <span>Terminal</span></h1>
+    <div style="display: flex; gap: 0.5rem; align-items: center;">
+      <span class="status-badge" id="bot-status">Edge Engine Active</span>
+      <button class="refresh-btn" onclick="fetchLiveData()">Refresh</button>
     </div>
   </header>
 
-  <div class="disclaimer">
-    ⚠️ <strong>CFTC Compliance Notice:</strong> For entertainment, analysis, and educational purposes only. Terminal runs on market simulation & order book feeds. Does not execute live-money wagering.
-  </div>
-
-  <!-- ROW 1: DYNAMIC POSITIONS & PROPS RADAR -->
-  <div class="grid">
-    <!-- Active Combo / Live Slates -->
+  <main>
+    <!-- Balances Section -->
     <div class="card">
       <div class="card-header">
-        <span class="card-title">Kalshi Live Slates</span>
-        <span class="badge badge-green">Sync Active</span>
+        <h2 class="card-title">Portfolio State</h2>
+        <span style="font-size: 0.75rem; color: var(--muted);">Auto-Synching</span>
       </div>
-      <div class="card-subtitle">Active Dynamic Positions • Tap line to send to Calc</div>
-
-      <div class="market-box">
-        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-          <div>
-            <div style="font-size: 0.85rem; font-weight: 700;">Live Combo (9 Legs) • <span class="green">Active</span></div>
-            <div style="margin: 4px 0;">
-              <span class="pulse-target" style="font-size: 0.72rem; color: #fcd34d; font-weight: 700;">🔥 CASH OUT TARGET (+400%)</span>
-            </div>
-            <div class="leg-desc">Buffalo • Carolina • Cincinnati • Tampa Bay ... (+5 more legs)</div>
-          </div>
-          <div class="price-tag green">+392¢</div>
+      <div class="balance-grid">
+        <div class="metric">
+          <div class="metric-label">Polymarket (Settled)</div>
+          <div class="metric-value" id="poly-balance">$2.57</div>
         </div>
-      </div>
-
-      <div id="kalshi-live-list">
-        <div style="font-size: 0.8rem; color: var(--text-muted); padding: 8px 0;">Polling Kalshi contracts...</div>
-      </div>
-
-      <div class="gemini-intel">
-        <strong>✨ Gemini Navigator Intel:</strong>
-        Dynamic balance and market pricing live. Single lines pruned automatically upon expiration.
+        <div class="metric">
+          <div class="metric-label">Kalshi (Available)</div>
+          <div class="metric-value" id="kalshi-balance">$0.00</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">Execution Guard</div>
+          <div class="metric-value" style="color: var(--gold);">$10.00 Cap</div>
+        </div>
       </div>
     </div>
 
-    <!-- Props & Add-ons Radar -->
+    <!-- Active Markets & Spreads -->
     <div class="card">
       <div class="card-header">
-        <span class="card-title">Single-Leg Props & Game Radar</span>
-        <span class="badge">Target Add-on</span>
+        <h2 class="card-title">Live Scanned Market Spreads</h2>
+        <span id="scan-count" style="font-size: 0.8rem; color: var(--muted);">0 events</span>
       </div>
-      <div class="card-subtitle">Polymarket Gamma Legs • Tap line to send to Calc</div>
-
-      <div id="poly-live-list">
-        <div style="font-size: 0.8rem; color: var(--text-muted); padding: 8px 0;">Scanning Polymarket order books...</div>
-      </div>
-
-      <div class="gemini-intel">
-        <strong>✨ Gemini Navigator Intel:</strong>
-        Isolated single-event and pace props. Pair defensive discrepancies as multipliers—skip multi-leg retail traps.
+      <div class="spread-list" id="spread-container">
+        <div class="empty">Scanning live order books via Cloudflare Edge...</div>
       </div>
     </div>
-  </div>
+  </main>
 
-  <!-- ROW 2: SPREAD SCANNER & MACRO HORIZON -->
-  <div class="grid">
-    <!-- Arbitrage Scanner & Calculator -->
-    <div class="card" id="arb-calculator-card">
-      <div class="card-header">
-        <span class="card-title">Cross-Platform Basis & Arbitrage</span>
-        <span class="badge badge-gold">Interactive Engine</span>
-      </div>
-      <div class="card-subtitle">Auto-filled from clicks or manual input</div>
+  <script>
+    const WORKER_URL = "https://cosmic-parlays.cosmictrollgaming.workers.dev/api/live-data";
 
-      <p style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 10px;">
-        Arbitrage exists if <code>Cost(Yes on A) + Cost(No on B) + Taker Fees &lt; $1.00</code>.
-      </p>
-
-      <label style="font-size: 0.72rem; color: var(--text-muted);">Leg A "Yes" Price ($):</label>
-      <input type="number" id="arb-yes" class="calc-input" step="0.01" value="0.48" oninput="calculateArb()">
-
-      <label style="font-size: 0.72rem; color: var(--text-muted);">Leg B "No" Price ($):</label>
-      <input type="number" id="arb-no" class="calc-input" step="0.01" value="0.46" oninput="calculateArb()">
-
-      <label style="font-size: 0.72rem; color: var(--text-muted);">Combined Taker Fees ($):</label>
-      <input type="number" id="arb-fee" class="calc-input" step="0.005" value="0.02" oninput="calculateArb()">
-
-      <div class="result-box" id="arb-result">Calculating edge...</div>
-
-      <div class="gemini-intel">
-        <strong>✨ Gemini Navigator Intel:</strong>
-        When Kalshi and Polymarket diverge on identical events by ≥3%, taking opposing Yes/No sides locks in structural risk-free alpha.
-      </div>
-    </div>
-
-    <!-- Macro Event Horizon -->
-    <div class="card">
-      <div class="card-header">
-        <span class="card-title">Macro Horizon: Event Milestones</span>
-        <span class="badge">Milestones</span>
-      </div>
-      <div class="card-subtitle">Event Probability Tracker (CFTC Regulated Markets)</div>
-
-      <div class="market-row clickable-row" onclick="populateArb(0.64, 0.36, 'Fed Rate Cut 2026')">
-        <div>
-          <div class="leg-title">Federal Reserve Rate Cut in 2026?</div>
-          <div class="leg-desc">FOMC Rate Policy Outcome</div>
-        </div>
-        <div class="price-tag green">64%</div>
-      </div>
-
-      <div class="market-row clickable-row" onclick="populateArb(0.78, 0.22, 'SpaceX Landing')">
-        <div>
-          <div class="leg-title">SpaceX Starship Orbital Landing?</div>
-          <div class="leg-desc">FAA / Mission Milestone Target</div>
-        </div>
-        <div class="price-tag green">78%</div>
-      </div>
-
-      <div class="market-row clickable-row" onclick="populateArb(0.41, 0.59, 'US GDP > 2.5%')">
-        <div>
-          <div class="leg-title">US GDP Growth &gt; 2.5% Annualized?</div>
-          <div class="leg-desc">BEA Advance Settlement Release</div>
-        </div>
-        <div class="price-tag red">41%</div>
-      </div>
-
-      <div class="gemini-intel">
-        <strong>✨ Gemini Navigator Intel:</strong>
-        Crowd-implied probabilities for corporate milestones, Federal Reserve rate trajectories, and election roadmaps.
-      </div>
-    </div>
-  </div>
-
-  <!-- ROW 3: IRC SECTION 1256 TAX FRAMEWORK -->
-  <div class="grid">
-    <div class="card">
-      <div class="card-header">
-        <span class="card-title">IRC Section 1256 Derivatives Advantage</span>
-        <span class="badge">CFTC Tax Framework</span>
-      </div>
-      <div class="card-subtitle">Regulated Futures Exchange Classification (Kalshi & Regulated Event Contracts)</div>
-
-      <div class="market-row">
-        <div>
-          <div class="leg-title">The 60 / 40 Blended Rate Rule</div>
-          <div class="leg-desc">60% Long-Term / 40% Short-Term Capital Gains</div>
-        </div>
-        <div class="price-tag green">Max ~28%</div>
-      </div>
-
-      <div class="market-row">
-        <div>
-          <div class="leg-title">Holding Period Exemption</div>
-          <div class="leg-desc">Applies even if contracts are held for 1 minute or 1 day</div>
-        </div>
-        <div class="price-tag">No 1-Yr Wait</div>
-      </div>
-
-      <div class="market-row">
-        <div>
-          <div class="leg-title">Loss Deductibility Advantage</div>
-          <div class="leg-desc">Offsets capital gains dollar-for-dollar + up to $3k ordinary income</div>
-        </div>
-        <div class="price-tag green">Full Offset</div>
-      </div>
-
-      <!-- Live Interactive Tax Shield Tool -->
-      <div style="margin-top: 14px; border-top: 1px solid var(--border-light); padding-top: 12px;">
-        <label style="font-size: 0.72rem; color: var(--text-muted);">Annual Prediction Net Gain ($):</label>
-        <input type="number" id="tax-gain" class="calc-input" value="10000" step="1000" oninput="calculateTax()">
-
-        <label style="font-size: 0.72rem; color: var(--text-muted);">Your Ordinary Marginal Tax Rate (%):</label>
-        <input type="number" id="tax-bracket" class="calc-input" value="35" step="1" oninput="calculateTax()">
-
-        <div class="result-box" id="tax-result">Calculating tax shield...</div>
-      </div>
-
-      <div class="gemini-intel">
-        <strong>✨ Gemini Navigator Tax Brief:</strong>
-        Unlike sportsbooks where winnings are taxed at ordinary rates up to 37% and loss deductions are strictly limited, CFTC event contracts trade under derivatives rules. File Form 6781.
-      </div>
-    </div>
-
-    <!-- COMMODITY & CRYPTO PORTFOLIO ANCHORS -->
-    <div class="card">
-      <div class="card-header">
-        <span class="card-title">Core Portfolio Anchors</span>
-        <span class="badge badge-green">Allocation Model</span>
-      </div>
-      <div class="card-subtitle">Basis Spreads & Macro Hedges</div>
-
-      <div class="market-box clickable-row" onclick="populateArb(0.60, 0.40, 'Gold Spot Index')">
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-          <div>
-            <div style="font-size: 0.85rem; font-weight: 700;">Metals Anchor: Gold Index</div>
-            <div class="leg-desc">Hold Window: 90–180 Days • Daily Settlement</div>
-          </div>
-          <span class="badge badge-green">UP (60% Weight)</span>
-        </div>
-        <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px;">Zero Term Roll Fees • Central bank accumulation hedge</div>
-      </div>
-
-      <div class="market-box clickable-row" onclick="populateArb(0.55, 0.45, 'Bitcoin Spot Range')">
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-          <div>
-            <div style="font-size: 0.85rem; font-weight: 700;">Crypto Core: Bitcoin Spot Range</div>
-            <div class="leg-desc">Hold Window: 60–90 Days • 8h Reset Cycles</div>
-          </div>
-          <span class="badge badge-green">UP (25% Weight)</span>
-        </div>
-        <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px;">Trim contract exposure if long funding rate turns heavily positive</div>
-      </div>
-
-      <div class="market-box">
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-          <div>
-            <div style="font-size: 0.85rem; font-weight: 700;">Altcoins: High-Beta / Selective Fade</div>
-            <div class="leg-desc">Hold Window: 30–45 Days</div>
-          </div>
-          <span class="badge badge-gold">DOWN (15% Cash)</span>
-        </div>
-        <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px;">Keep unallocated cash earning risk-free yield or fade hype spikes</div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<script>
-  const WORKER_URL = "https://cosmic-parlays.cosmictrollgaming.workers.dev/api/live-data";
-
-  const fallbackKalshi = [
-    { title: "Fed Interest Rate Cut in 2026?", yesAsk: 0.64, noAsk: 0.38 },
-    { title: "US GDP Growth > 2.2%?", yesAsk: 0.54, noAsk: 0.48 },
-    { title: "Crude Oil Closes > $85?", yesAsk: 0.31, noAsk: 0.71 },
-    { title: "Gold Spot All-Time High This Quarter?", yesAsk: 0.49, noAsk: 0.53 }
-  ];
-
-  const fallbackPoly = [
-    { title: "SpaceX Starship Orbital Catch Success", yesAsk: 0.78, noAsk: 0.24 },
-    { title: "Ethereum Layer 2 TVL High", yesAsk: 0.52, noAsk: 0.49 },
-    { title: "Federal Reserve Pivot Confirmed", yesAsk: 0.61, noAsk: 0.40 },
-    { title: "Bitcoin Breaks Key All-Time Milestone", yesAsk: 0.43, noAsk: 0.58 }
-  ];
-
-  let countdown = 30;
-
-  async function fetchFeeds(manual = false) {
-    if (manual) countdown = 30;
-    let kalshiData = fallbackKalshi;
-    let polyData = fallbackPoly;
-
-    try {
-      const res = await fetch(WORKER_URL);
-      if (res.ok) {
+    async function fetchLiveData() {
+      const container = document.getElementById("spread-container");
+      const countLabel = document.getElementById("scan-count");
+      
+      try {
+        const res = await fetch(WORKER_URL);
         const data = await res.json();
-        if (data.kalshi && data.kalshi.length > 0) kalshiData = data.kalshi;
-        if (data.polymarket && data.polymarket.length > 0) polyData = data.polymarket;
-        document.getElementById("feed-status").innerHTML = `<span class="status-dot status-online"></span>Sync Active`;
-      }
-    } catch (e) {
-      console.warn("Using reserve dataset:", e);
-      document.getElementById("feed-status").innerHTML = `<span class="status-dot status-alert"></span>Reserve Mode`;
-    }
+        
+        const kalshi = data.kalshi || [];
+        const poly = data.polymarket || [];
+        countLabel.textContent = `${kalshi.length} Kalshi / ${poly.length} Poly`;
 
-    renderFeed("kalshi-live-list", kalshiData, "kalshi");
-    renderFeed("poly-live-list", polyData, "poly");
-  }
-
-  function renderFeed(elementId, items, source) {
-    const container = document.getElementById(elementId);
-    container.innerHTML = "";
-
-    items.slice(0, 5).forEach(item => {
-      const row = document.createElement("div");
-      row.className = "market-row clickable-row";
-      row.onclick = () => {
-        if (source === "kalshi") {
-          document.getElementById("arb-yes").value = Number(item.yesAsk).toFixed(2);
-        } else {
-          document.getElementById("arb-no").value = Number(item.noAsk).toFixed(2);
+        if (kalshi.length === 0 && poly.length === 0) {
+          container.innerHTML = `<div class="empty">No active markets returned. Check exchange API status.</div>`;
+          return;
         }
-        calculateArb();
-        document.getElementById("arb-calculator-card").scrollIntoView({ behavior: 'smooth' });
-      };
 
-      row.innerHTML = `
-        <div>
-          <div class="leg-title" title="${item.title}">${item.title}</div>
-          <div class="leg-desc">Yes: $${Number(item.yesAsk).toFixed(2)} | No: $${Number(item.noAsk).toFixed(2)} • <em>Tap to Load</em></div>
-        </div>
-        <div class="price-tag ${item.yesAsk >= 0.5 ? 'green' : 'red'}">
-          ${Math.round(item.yesAsk * 100)}% Implied
-        </div>
-      `;
-      container.appendChild(row);
-    });
-  }
+        let html = "";
+        let foundAny = false;
 
-  function populateArb(yes, no, title) {
-    document.getElementById("arb-yes").value = Number(yes).toFixed(2);
-    document.getElementById("arb-no").value = Number(no).toFixed(2);
-    calculateArb();
-    document.getElementById("arb-calculator-card").scrollIntoView({ behavior: 'smooth' });
-  }
+        // Display paired comparisons or open markets
+        kalshi.forEach(k => {
+          poly.forEach(p => {
+            const kWords = k.title.toLowerCase().split(/\s+/);
+            const matches = kWords.some(w => w.length > 3 && p.title.toLowerCase().includes(w));
 
-  function calculateArb() {
-    const yes = parseFloat(document.getElementById("arb-yes").value) || 0;
-    const no = parseFloat(document.getElementById("arb-no").value) || 0;
-    const fee = parseFloat(document.getElementById("arb-fee").value) || 0;
+            if (matches) {
+              foundAny = true;
+              const totalCost = k.yesAsk + p.noAsk;
+              const netEdge = 1.00 - totalCost - 0.02;
 
-    const totalCost = yes + no + fee;
-    const netEdge = 1.00 - totalCost;
-    const resBox = document.getElementById("arb-result");
+              html += `
+                <div class="spread-item">
+                  <div class="spread-title">${k.title}</div>
+                  <div class="spread-details">
+                    <span>Kalshi Yes: <b>$${k.yesAsk.toFixed(2)}</b></span>
+                    <span>Polymarket No: <b>$${p.noAsk.toFixed(2)}</b></span>
+                    <span class="edge-tag">Net Edge: ${netEdge > 0 ? "+" : ""}${(netEdge * 100).toFixed(1)}¢</span>
+                  </div>
+                </div>
+              `;
+            }
+          });
+        });
 
-    if (netEdge > 0) {
-      resBox.innerHTML = `
-        <span class="green" style="font-weight: bold;">⚡ Structural Arbitrage Found</span><br>
-        Cost Basis: <strong>$${totalCost.toFixed(3)}</strong> / $1.00<br>
-        Net Spread: <strong>+$${(netEdge * 100).toFixed(1)}¢</strong> per contract pair (${((netEdge / totalCost) * 100).toFixed(2)}% ROI).
-      `;
-    } else {
-      resBox.innerHTML = `
-        <span style="color: var(--text-muted);">No Arbitrage Available</span><br>
-        Cost Basis: $${totalCost.toFixed(3)} / $1.00 (Loss: -$${Math.abs(netEdge * 100).toFixed(1)}¢ after fees).
-      `;
+        if (!foundAny) {
+          // If no identical matched pairs, show raw active contracts
+          html = kalshi.slice(0, 5).map(m => `
+            <div class="spread-item">
+              <div class="spread-title">[Kalshi] ${m.title}</div>
+              <div class="spread-details">
+                <span>Yes Ask: $${m.yesAsk.toFixed(2)}</span>
+                <span>No Ask: $${m.noAsk.toFixed(2)}</span>
+                <span>Status: Monitoring</span>
+              </div>
+            </div>
+          `).join("");
+        }
+
+        container.innerHTML = html;
+      } catch (err) {
+        container.innerHTML = `<div class="empty" style="color: var(--red);">Error loading edge feed: ${err.message}</div>`;
+      }
     }
-  }
 
-  function calculateTax() {
-    const gain = parseFloat(document.getElementById("tax-gain").value) || 0;
-    const ordinaryRate = (parseFloat(document.getElementById("tax-bracket").value) || 0) / 100;
-    
-    const ltRate = 0.15;
-    const blendedRate = (0.60 * ltRate) + (0.40 * ordinaryRate);
-
-    const sportsbookTax = gain * ordinaryRate;
-    const cftcTax = gain * blendedRate;
-    const netSavings = sportsbookTax - cftcTax;
-
-    document.getElementById("tax-result").innerHTML = `
-      Standard Sportsbook Tax: <strong>$${sportsbookTax.toLocaleString(undefined, {maximumFractionDigits: 0})}</strong> (${(ordinaryRate * 100).toFixed(0)}%)<br>
-      CFTC §1256 Blended Tax: <strong>$${cftcTax.toLocaleString(undefined, {maximumFractionDigits: 0})}</strong> (${(blendedRate * 100).toFixed(1)}%)<br>
-      <span class="green" style="font-weight: bold;">Tax Advantage: $${netSavings.toLocaleString(undefined, {maximumFractionDigits: 0})} retained</span>
-    `;
-  }
-
-  // Auto-polling 30-second interval ticker
-  setInterval(() => {
-    countdown--;
-    const btn = document.getElementById("sync-btn");
-    if (btn) btn.innerText = `Sync Books (${countdown}s)`;
-    if (countdown <= 0) {
-      countdown = 30;
-      fetchFeeds();
-    }
-  }, 1000);
-
-  // Initial runs
-  fetchFeeds();
-  calculateArb();
-  calculateTax();
-</script>
+    // Initial load
+    fetchLiveData();
+    // Poll every 30s
+    setInterval(fetchLiveData, 30000);
+  </script>
 </body>
 </html>
