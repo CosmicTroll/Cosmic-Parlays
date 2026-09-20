@@ -294,7 +294,7 @@
         <div class="balance-grid">
           <div class="metric">
             <div class="metric-label">Polymarket.us (Available)</div>
-            <div class="metric-value" id="vault-poly-bal">$2.57</div>
+            <div class="metric-value" id="vault-poly-bal">$0.00</div>
           </div>
           <div class="metric">
             <div class="metric-label">Kalshi (Live Cash)</div>
@@ -302,7 +302,7 @@
           </div>
           <div class="metric">
             <div class="metric-label">Net Available</div>
-            <div class="metric-value" id="vault-net-bal" style="color: var(--cyan);">$2.57</div>
+            <div class="metric-value" id="vault-net-bal" style="color: var(--cyan);">$0.00</div>
           </div>
           <div class="metric">
             <div class="metric-label">Execution Guard</div>
@@ -319,11 +319,11 @@
         <div class="balance-grid" style="margin-bottom: 0.85rem;">
           <div class="metric">
             <div class="metric-label">Active Exposure</div>
-            <div class="metric-value" id="ledger-exposure">$1.50</div>
+            <div class="metric-value" id="ledger-exposure">$0.00</div>
           </div>
           <div class="metric">
             <div class="metric-label">Active Orders / Contracts</div>
-            <div class="metric-value" id="ledger-active-count">3</div>
+            <div class="metric-value" id="ledger-active-count">0</div>
           </div>
           <div class="metric">
             <div class="metric-label">Polymarket.us Status</div>
@@ -558,7 +558,7 @@
 
       container.innerHTML = positions.map(pos => {
         const contractCount = (pos.count !== undefined && pos.count !== null && !isNaN(pos.count)) ? pos.count : 1;
-        const capitalExposure = (typeof pos.exposure === 'number' && !isNaN(pos.exposure) && pos.exposure > 0) ? pos.exposure.toFixed(2) : '0.50';
+        const capitalExposure = (typeof pos.exposure === 'number' && !isNaN(pos.exposure)) ? pos.exposure.toFixed(2) : '0.00';
         return `
           <div class="list-item">
             <div class="item-top">
@@ -725,8 +725,8 @@
 
     function renderVaultLive() {
       const portfolio = latestData.portfolio || {};
-      const polyBal = portfolio.polyBalance || 2.57;
-      const kalshiBal = portfolio.kalshiBalance || 0.00;
+      const polyBal = typeof portfolio.polyBalance === 'number' ? portfolio.polyBalance : 2.57;
+      const kalshiBal = typeof portfolio.kalshiBalance === 'number' ? portfolio.kalshiBalance : 0.00;
       const total = polyBal + kalshiBal;
 
       document.getElementById('vault-poly-bal').textContent = `$${polyBal.toFixed(2)}`;
@@ -734,10 +734,34 @@
       document.getElementById('vault-net-bal').textContent = `$${total.toFixed(2)}`;
 
       const positions = portfolio.positions || [];
-      document.getElementById('ledger-active-count').textContent = positions.length;
+      const totalContracts = typeof portfolio.activeContracts === 'number' 
+        ? portfolio.activeContracts 
+        : positions.length;
 
-      const totalExposure = positions.reduce((acc, p) => acc + (p.exposure || 0.50), 0);
+      const totalExposure = typeof portfolio.activeExposure === 'number'
+        ? portfolio.activeExposure
+        : positions.reduce((acc, p) => acc + Number(p.exposure || 0), 0);
+
+      document.getElementById('ledger-active-count').textContent = totalContracts;
       document.getElementById('ledger-exposure').textContent = `$${totalExposure.toFixed(2)}`;
+
+      const polyStatusEl = document.getElementById('ledger-poly-status');
+      if (portfolio.polyAuth) {
+        polyStatusEl.textContent = "Connected";
+        polyStatusEl.style.color = "var(--green)";
+      } else {
+        polyStatusEl.textContent = "Standby";
+        polyStatusEl.style.color = "var(--gold)";
+      }
+
+      const kalshiStatusEl = document.getElementById('ledger-kalshi-status');
+      if (portfolio.kalshiAuth) {
+        kalshiStatusEl.textContent = "Connected";
+        kalshiStatusEl.style.color = "var(--green)";
+      } else {
+        kalshiStatusEl.textContent = "Not Configured";
+        kalshiStatusEl.style.color = "var(--muted)";
+      }
 
       const listContainer = document.getElementById('live-positions-list');
       if (positions.length === 0) {
@@ -745,7 +769,7 @@
       } else {
         listContainer.innerHTML = positions.map(pos => {
           const contractCount = (pos.count !== undefined && pos.count !== null && !isNaN(pos.count)) ? pos.count : 1;
-          const capitalExposure = (typeof pos.exposure === 'number' && !isNaN(pos.exposure) && pos.exposure > 0) ? pos.exposure.toFixed(2) : '0.50';
+          const capitalExposure = (typeof pos.exposure === 'number' && !isNaN(pos.exposure)) ? pos.exposure.toFixed(2) : '0.00';
           return `
             <div class="list-item">
               <div class="item-top">
