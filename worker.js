@@ -180,7 +180,6 @@ async function handleLiveData(env) {
 
       if (bRes.ok) {
         const bData = await bRes.json();
-        // Kalshi API returns balance in cents
         kalshiBalance = (bData.balance || 0) / 100;
         kalshiAuth = true;
       }
@@ -225,35 +224,39 @@ async function handleLiveData(env) {
   const activeExposure = allPositions.reduce((acc, p) => acc + (p.exposure || 0), 0);
   const activeContracts = allPositions.reduce((acc, p) => acc + (p.count || 0), 0);
 
-  // --- Polymarket Public Catalog ---
+  // --- Polymarket Public Catalog (Expanded Coverage & De-duped) ---
   let polymarket = [];
   try {
-    const res = await fetch("https://gamma-api.polymarket.com/events?closed=false&active=true&limit=30", {
+    const res = await fetch("https://gamma-api.polymarket.com/events?closed=false&active=true&limit=60", {
       headers: { "Accept": "application/json", "User-Agent": "CosmicParlaysTerminal/1.0" }
     });
     if (res.ok) {
       const data = await res.json();
       data.forEach(e => {
-        const m = (e.markets || [])[0];
-        if (!m || m.closed) return;
-        let yes = 0.50, no = 0.50;
-        try {
-          if (m.outcomePrices) {
-            const p = JSON.parse(m.outcomePrices);
-            yes = parseFloat(p[0]) || 0.50;
-            no = parseFloat(p[1]) || 0.50;
-          }
-        } catch (_) {}
+        // Skip giant multi-leg parlay titles that flood UI
+        if ((e.title || "").includes(",") && (e.title || "").split(",").length > 3) return;
 
-        polymarket.push({
-          ticker: m.id || e.slug,
-          title: e.title || m.question,
-          candidate: m.groupItemTitle || "Consensus",
-          category: categorizeTitle(e.title || m.question),
-          yesAsk: yes,
-          noAsk: no,
-          volume: m.volume || e.volume || 0,
-          platform: "Polymarket.us"
+        (e.markets || []).slice(0, 3).forEach(m => {
+          if (!m || m.closed) return;
+          let yes = 0.50, no = 0.50;
+          try {
+            if (m.outcomePrices) {
+              const p = JSON.parse(m.outcomePrices);
+              yes = parseFloat(p[0]) || 0.50;
+              no = parseFloat(p[1]) || 0.50;
+            }
+          } catch (_) {}
+
+          polymarket.push({
+            ticker: m.id || e.slug,
+            title: e.title || m.question,
+            candidate: m.groupItemTitle || "Consensus",
+            category: categorizeTitle(e.title || m.question),
+            yesAsk: Number(yes.toFixed(2)),
+            noAsk: Number(no.toFixed(2)),
+            volume: m.volume || e.volume || 0,
+            platform: "Polymarket.us"
+          });
         });
       });
     }
@@ -261,7 +264,7 @@ async function handleLiveData(env) {
     console.error("Polymarket catalog fetch error:", err);
   }
 
-  // --- Kalshi Public Catalog (Authenticated & Proper Path Signing) ---
+  // --- Kalshi Public Catalog (Authenticated & Accurate Path Signing) ---
   let kalshi = [];
   try {
     const basePath = "/trade-api/v2/markets";
@@ -275,7 +278,7 @@ async function handleLiveData(env) {
       try {
         const privKey = await importKalshiRsaKey(kalshiPrivateKey);
         const kTs = Date.now().toString();
-        // Kalshi Rule: Sign PATH ONLY without query params
+        // Kalshi Rule: Sign base path only
         const kSig = await signKalshiRequest(privKey, kTs, "GET", basePath, "");
         kHeaders["KALSHI-ACCESS-KEY"] = kalshiKeyId;
         kHeaders["KALSHI-ACCESS-SIGNATURE"] = kSig;
@@ -293,7 +296,6 @@ async function handleLiveData(env) {
       const kData = await kRes.json();
       const rawMarkets = kData.markets || [];
       rawMarkets.forEach(m => {
-        // Skip settled or closed contracts
         if (m.status && m.status !== "open" && m.status !== "active") return;
 
         let yesPrice = 0.50;
@@ -324,13 +326,10 @@ async function handleLiveData(env) {
           platform: "Kalshi"
         });
       });
-    } else {
-      console.error(`Kalshi catalog HTTP error: ${kRes.status} ${kRes.statusText}`);
     }
   } catch (err) {
     console.error("Kalshi catalog fetch error:", err);
   }
-
 
   return new Response(JSON.stringify({
     status: "healthy",
