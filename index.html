@@ -129,8 +129,8 @@
 
   <!-- Top Navigation Tabs -->
   <div class="nav-tabs">
-    <button class="nav-btn active" onclick="switchView('macro')">🏛️ Politics & Culture</button>
-    <button class="nav-btn" onclick="switchView('picks')">🏈 Sports Parlays</button>
+    <button class="nav-btn active" onclick="switchView('picks')">🎯 Cosmic's Picks</button>
+    <button class="nav-btn" onclick="switchView('macro')">🏛️ Politics & Culture</button>
     <button class="nav-btn" onclick="switchView('perps')">⚡ Kalshi Perps</button>
     <button class="nav-btn" onclick="switchView('poly')">🟣 Poly</button>
     <button class="nav-btn" onclick="switchView('kalshi')">🟢 Kalshi</button>
@@ -139,24 +139,8 @@
   </div>
 
   <main>
-    <!-- TAB 1: Politics, Elections, Macro & Culture (Main Hub) -->
-    <section id="view-macro" class="view-panel active">
-      <div class="card">
-        <div class="card-header">
-          <h2 class="card-title">🏛️ Presidential, Elections & Culture</h2>
-          <span style="font-size: 0.75rem; color: var(--cyan);">Live Consensus</span>
-        </div>
-        <p style="font-size: 0.75rem; color: var(--muted); margin-bottom: 0.85rem;">
-          Real-time order book analysis on candidates, elections, geopolitical outcomes, and awards.
-        </p>
-        <div class="item-list" id="macro-container">
-          <div class="empty">Scanning live books for political & cultural lines...</div>
-        </div>
-      </div>
-    </section>
-
-    <!-- TAB 2: Sports Parlays & Player Props (Exclusively Sports) -->
-    <section id="view-picks" class="view-panel">
+    <!-- TAB 1: Cosmic's Picks (Pure Sports Slips, Game Lines & Player Props) -->
+    <section id="view-picks" class="view-panel active">
       <div class="card">
         <div class="card-header">
           <h2 class="card-title">🎟️ Active & Audited Sports Slips</h2>
@@ -203,6 +187,22 @@
         </div>
         <div class="item-list" id="props-container">
           <div class="empty">Filtering live book for active NFL, NBA & player lines...</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 2: Politics, Elections, Macro & Culture Desk -->
+    <section id="view-macro" class="view-panel">
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">🏛️ Presidential, Elections & Culture</h2>
+          <span style="font-size: 0.75rem; color: var(--cyan);">Live Consensus</span>
+        </div>
+        <p style="font-size: 0.75rem; color: var(--muted); margin-bottom: 0.85rem;">
+          Real-time order book analysis on candidates, elections, geopolitical outcomes, and awards.
+        </p>
+        <div class="item-list" id="macro-container">
+          <div class="empty">Scanning live books for political & cultural lines...</div>
         </div>
       </div>
     </section>
@@ -376,13 +376,13 @@
 
   <!-- Persistent Bottom Dock -->
   <nav class="bottom-nav">
-    <button class="bottom-tab active" onclick="switchView('macro')">
-      <span class="icon">🏛️</span>
-      <span>Front</span>
+    <button class="bottom-tab active" onclick="switchView('picks')">
+      <span class="icon">🎯</span>
+      <span>Picks</span>
     </button>
-    <button class="bottom-tab" onclick="switchView('picks')">
-      <span class="icon">🏈</span>
-      <span>Sports</span>
+    <button class="bottom-tab" onclick="switchView('macro')">
+      <span class="icon">🏛️</span>
+      <span>Macro</span>
     </button>
     <button class="bottom-tab" onclick="switchView('perps')">
       <span class="icon">⚡</span>
@@ -409,7 +409,7 @@
   <script>
     const WORKER_URL = "https://cosmic-parlays.cosmictrollgaming.workers.dev/api/live-data";
     let latestData = { kalshi: [], polymarket: [], perps: {} };
-    const viewKeys = ['macro', 'picks', 'perps', 'poly', 'kalshi', 'spreads', 'vault'];
+    const viewKeys = ['picks', 'macro', 'perps', 'poly', 'kalshi', 'spreads', 'vault'];
 
     let activePerp = "GOLD";
     let activePerpTime = "4H";
@@ -549,7 +549,6 @@
       `;
     }
 
-    // Recommendation Engine with strict price boundary gates
     function evaluateMarketRecommendation(m) {
       const yesAsk = m.yesAsk || 0.50;
       const noAsk = m.noAsk || (1.00 - yesAsk);
@@ -620,8 +619,8 @@
         document.getElementById('poly-count').textContent = `${poly.length} Markets`;
         document.getElementById('kalshi-count').textContent = `${kalshi.length} Markets`;
 
-        renderMacroHub(poly, kalshi);
         renderSportsParlays(poly, kalshi);
+        renderMacroHub(poly, kalshi);
         renderPerpForecast();
         renderBestBuys('poly-container', poly, 'POLY');
         renderBestBuys('kalshi-container', kalshi, 'KALSHI');
@@ -631,12 +630,58 @@
       }
     }
 
-    // Front Hub: Politics, Presidential Elections, Macro, Culture
+    // Cosmic's Picks: Exclusively Sports Slips, Game Lines & Player Props
+    function renderSportsParlays(poly, kalshi) {
+      const container = document.getElementById('props-container');
+      const all = [...poly, ...kalshi];
+
+      const sportsMarkets = all.filter(m => m.category === 'SPORTS');
+      const candidates = [];
+
+      sportsMarkets.forEach(item => {
+        const rec = evaluateMarketRecommendation(item);
+        if (rec) {
+          candidates.push({
+            title: item.title,
+            side: item.yesAsk >= 0.65 ? "YES" : "NO",
+            price: item.yesAsk >= 0.65 ? item.yesAsk : item.noAsk,
+            prob: Math.round((item.yesAsk >= 0.65 ? item.yesAsk : item.noAsk) * 100),
+            platform: item.platform,
+            type: item.yesAsk >= 0.65 || item.noAsk >= 0.65 ? "Anchor Leg" : "Value Add-On",
+            candidate: item.candidate
+          });
+        }
+      });
+
+      if (candidates.length === 0) {
+        candidates.push(
+          { title: "Patrick Mahomes: Over 245.5 Passing Yards", side: "YES", price: 0.54, prob: 54, platform: "Kalshi", type: "Anchor Leg", candidate: "Over 245.5" },
+          { title: "Travis Kelce: Any Time Touchdown Scorer", side: "YES", price: 0.48, prob: 48, platform: "Polymarket", type: "Value Add-On", candidate: "Kelce Anytime TD" },
+          { title: "Josh Allen: Over 1.5 Passing TDs", side: "YES", price: 0.62, prob: 62, platform: "Kalshi", type: "Anchor Leg", candidate: "Over 1.5 TDs" },
+          { title: "Celtics vs Knicks: Game Total Over 218.5", side: "YES", price: 0.51, prob: 51, platform: "Kalshi", type: "Anchor Leg", candidate: "Over 218.5" }
+        );
+      }
+
+      container.innerHTML = candidates.slice(0, 6).map(p => `
+        <div class="list-item">
+          <div class="item-top">
+            <span class="item-title">${p.title}</span>
+            <span class="tag ${p.type === 'Anchor Leg' ? 'tag-settled' : 'tag-closed'}">${p.type}</span>
+          </div>
+          <div class="item-meta">
+            <span>Side: <b style="color: #fff;">${p.side} [${p.candidate}]</b> @ $${p.price.toFixed(2)}</span>
+            <span style="color: var(--green); font-weight: 700;">${p.prob}% Implied</span>
+            <span class="tag-platform">${p.platform}</span>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // Politics & Culture: Elections, Macro, Tech
     function renderMacroHub(poly, kalshi) {
       const container = document.getElementById('macro-container');
       const all = [...poly, ...kalshi];
 
-      // Keep only politics, culture, and macro categories
       const macroMarkets = all.filter(m => m.category === 'POLITICS' || m.category === 'MACRO' || m.category === 'CULTURE');
 
       const ranked = macroMarkets.map(m => ({
@@ -669,55 +714,6 @@
               <div class="rec-roi">${m.rec.roi}</div>
               <div class="rec-prob">${m.rec.prob}</div>
             </div>
-          </div>
-        </div>
-      `).join('');
-    }
-
-    // Exclusively Sports Parlays & Player Props
-    function renderSportsParlays(poly, kalshi) {
-      const container = document.getElementById('props-container');
-      const all = [...poly, ...kalshi];
-
-      // Filter strictly for sports lines
-      const sportsMarkets = all.filter(m => m.category === 'SPORTS');
-      const candidates = [];
-
-      sportsMarkets.forEach(item => {
-        const rec = evaluateMarketRecommendation(item);
-        if (rec) {
-          candidates.push({
-            title: item.title,
-            side: item.yesAsk >= 0.65 ? "YES" : "NO",
-            price: item.yesAsk >= 0.65 ? item.yesAsk : item.noAsk,
-            prob: Math.round((item.yesAsk >= 0.65 ? item.yesAsk : item.noAsk) * 100),
-            platform: item.platform,
-            type: item.yesAsk >= 0.65 || item.noAsk >= 0.65 ? "Anchor Leg" : "Value Add-On",
-            candidate: item.candidate
-          });
-        }
-      });
-
-      // Curated sports fallbacks when prediction books are between slate windows
-      if (candidates.length === 0) {
-        candidates.push(
-          { title: "Patrick Mahomes: Over 245.5 Passing Yards", side: "YES", price: 0.54, prob: 54, platform: "Kalshi", type: "Anchor Leg", candidate: "Over 245.5" },
-          { title: "Travis Kelce: Any Time Touchdown Scorer", side: "YES", price: 0.48, prob: 48, platform: "Polymarket", type: "Value Add-On", candidate: "Kelce Anytime TD" },
-          { title: "Josh Allen: Over 1.5 Passing TDs", side: "YES", price: 0.62, prob: 62, platform: "Kalshi", type: "Anchor Leg", candidate: "Over 1.5 TDs" },
-          { title: "Celtics vs Knicks: Game Total Over 218.5", side: "YES", price: 0.51, prob: 51, platform: "Kalshi", type: "Anchor Leg", candidate: "Over 218.5" }
-        );
-      }
-
-      container.innerHTML = candidates.slice(0, 6).map(p => `
-        <div class="list-item">
-          <div class="item-top">
-            <span class="item-title">${p.title}</span>
-            <span class="tag ${p.type === 'Anchor Leg' ? 'tag-settled' : 'tag-closed'}">${p.type}</span>
-          </div>
-          <div class="item-meta">
-            <span>Side: <b style="color: #fff;">${p.side} [${p.candidate}]</b> @ $${p.price.toFixed(2)}</span>
-            <span style="color: var(--green); font-weight: 700;">${p.prob}% Implied</span>
-            <span class="tag-platform">${p.platform}</span>
           </div>
         </div>
       `).join('');
