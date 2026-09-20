@@ -34,13 +34,29 @@
     
     .leg { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; padding: 9px 0; border-bottom: 1px solid #1A2035; }
     .leg-info { flex: 1; min-width: 0; }
-    .leg-matchup { font-size: 11px; color: #94A3B8; line-height: 15px; word-wrap: break-word; }
+    .leg-matchup { font-size: 11px; color: #94A3B8; line-height: 15px; word-wrap: break-word; display: flex; align-items: center; flex-wrap: wrap; gap: 4px; }
     .leg-pick { font-size: 13px; font-weight: 600; color: #F1F5F9; margin-top: 2px; line-height: 17px; word-wrap: break-word; }
     .leg-odds { font-size: 12px; font-weight: 700; color: #38BDF8; white-space: nowrap; text-align: right; padding-top: 2px; }
     
     .analysis { margin-top: 10px; padding-top: 8px; border-top: 1px solid #242C48; }
     .analysis-title { font-size: 11px; font-weight: 700; color: #A5B4FC; margin-bottom: 2px; }
     .analysis-text { font-size: 12px; line-height: 16px; color: #94A3B8; }
+
+    /* Interactive Cash-Out Button & Badges */
+    .cashout-btn { background: #DC2626; color: #FEE2E2; border: none; font-size: 10px; font-weight: 800; padding: 3px 8px; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; box-shadow: 0 0 8px rgba(220,38,38,0.5); transition: 0.2s; }
+    .cashout-btn:active { transform: scale(0.95); }
+    .badge-auto-sell { background: #059669; color: #D1FAE5; font-size: 9px; font-weight: 800; padding: 2px 6px; border-radius: 4px; }
+    .badge-hold { background: #065F46; color: #A7F3D0; font-size: 9px; font-weight: 700; padding: 2px 5px; border-radius: 4px; }
+    .badge-stop-loss { background: #991B1B; color: #FEE2E2; font-size: 9px; font-weight: 800; padding: 2px 6px; border-radius: 4px; }
+
+    /* Modal Sheet */
+    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.75); backdrop-filter: blur(3px); z-index: 100; align-items: flex-end; justify-content: center; }
+    .modal-sheet { background: #151928; border: 1px solid #4338CA; border-radius: 16px 16px 0 0; padding: 20px; width: 100%; max-width: 500px; box-shadow: 0 -4px 20px rgba(0,0,0,0.6); }
+    .modal-title { font-size: 16px; font-weight: 800; color: #EEF2FF; margin-bottom: 8px; }
+    .modal-desc { font-size: 13px; line-height: 18px; color: #CBD5E1; margin-bottom: 16px; }
+    .modal-actions { display: flex; gap: 8px; }
+    .modal-btn-confirm { flex: 1; padding: 12px; background: #DC2626; border: none; border-radius: 8px; color: white; font-weight: 800; font-size: 13px; cursor: pointer; }
+    .modal-btn-cancel { flex: 1; padding: 12px; background: #242C48; border: none; border-radius: 8px; color: #94A3B8; font-weight: 700; font-size: 13px; cursor: pointer; }
 
     .tab-content { display: none; }
     .tab-content.active { display: block; }
@@ -69,79 +85,12 @@
   <!-- TAB 1: ACTIVE SLATES -->
   <div id="tab-active" class="tab-content active">
     <!-- AUTOGEN_ACTIVE_START -->
-
-    <div class="card">
-      <div class="card-head">
-        <div class="card-title">Kalshi Live Slates</div>
-        <div class="badge up">Sync Active</div>
-      </div>
-      <div class="tier">Active Combo Tickets & Fills</div>
-      
-      <div class="leg">
-        <div class="leg-info">
-          <div class="leg-matchup">Open Ticket • <span style="color: #86EFAC;">Active</span></div>
-          <div class="leg-pick">9 Market Combo<br><span style="font-size: 11px; color: #94A3B8; line-height: 15px;">Buffalo • Carolina • Cincinnati • Tampa Bay ... (+5 more)</span></div>
-        </div>
-        <div class="leg-odds">+0¢</div>
-      </div>
-      <div class="analysis">
-        <div class="analysis-title">✨ Gemini Navigator Intel:</div>
-        <div class="analysis-text">Buffalo is already locked. Keep an eye on game script pace. If implied payout cross-reaches 80%, consider taking early secondary liquidity rather than sweating garbage-time variance.</div>
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="card-head">
-        <div class="card-title">Polymarket Live Portfolio</div>
-        <div class="badge up">Sync Active</div>
-      </div>
-      <div class="tier">Active Tickets (cosmicdad)</div>
-      
-      <div class="leg">
-        <div class="leg-info">
-          <div class="leg-matchup">Polymarket US • <span style="color: #86EFAC;">Active</span> <span style="background:#B91C1C;color:#FEE2E2;font-size:9px;font-weight:800;padding:2px 6px;border-radius:4px;margin-left:4px;">🔥 LOCK PROFIT / CASH OUT</span></div>
-          <div class="leg-pick">4-Pick Combo (SF, BAL, CHI, GB)<br><span style="font-size: 11px; color: #94A3B8; line-height: 15px;">BAL Ravens • SF 49ers • CHI Bears • GB Packers</span></div>
-        </div>
-        <div class="leg-odds">$0.73 → $2.31 (3.16x)</div>
-      </div>
-      <div class="leg">
-        <div class="leg-info">
-          <div class="leg-matchup">Polymarket US • <span style="color: #86EFAC;">Active</span></div>
-          <div class="leg-pick">CIN Bengals vs HOU Texans<br><span style="font-size: 11px; color: #94A3B8; line-height: 15px;">Cincinnati Bengals To Win • Cost $0.58</span></div>
-        </div>
-        <div class="leg-odds">42% (Entry 41%)</div>
-      </div>
-      <div class="leg">
-        <div class="leg-info">
-          <div class="leg-matchup">Polymarket US • <span style="color: #86EFAC;">Active</span> <span style="background:#065F46;color:#A7F3D0;font-size:9px;font-weight:700;padding:2px 5px;border-radius:4px;margin-left:4px;">HOLD STRONG</span></div>
-          <div class="leg-pick">GB Packers vs NY Jets 1st Half<br><span style="font-size: 11px; color: #94A3B8; line-height: 15px;">Under 21.5 First Half Points • Cost $0.57</span></div>
-        </div>
-        <div class="leg-odds">70% (Entry 50%)</div>
-      </div>
-      <div class="analysis">
-        <div class="analysis-title">✨ Gemini Navigator Intel:</div>
-        <div class="analysis-text">The 4-pick favorite combo is tracking ahead of expected EV. Packers/Jets 1H Under is holding steady. We remain Section 1256 compliant on execution.</div>
-      </div>
-    </div>
     <!-- AUTOGEN_ACTIVE_END -->
   </div>
 
   <!-- TAB 2: SINGLE-LEG PROPS -->
   <div id="tab-sports" class="tab-content">
     <!-- AUTOGEN_SPORTS_START -->
-
-    <div class="card">
-      <div class="card-head">
-        <div class="card-title">Single-Leg Props & Game Radar</div>
-        <div class="badge scout">Target Add-on</div>
-      </div>
-      <div class="tier">Scouted Add-on Legs (No Pre-Packs)</div>
-      <div style="padding: 10px 0; color: #94A3B8; font-size: 12px;">Monitoring order books for discrepancy windows...</div>
-      <div class="analysis">
-        <div class="analysis-title">✨ Gemini Navigator Intel:</div>
-        <div class="analysis-text">Isolated single-player and pace props. Pair defensive discrepancies as multipliers—skip the multi-leg traps.</div>
-      </div>
-    </div>
     <!-- AUTOGEN_SPORTS_END -->
   </div>
 
@@ -154,60 +103,12 @@
       </div>
     </div>
     <!-- AUTOGEN_MACRO_START -->
-
-    <div class="card">
-      <div class="card-head">
-        <div class="card-title">Cross-Platform Basis & Arbitrage Scanner</div>
-        <div class="badge perp">Arbitrage</div>
-      </div>
-      <div class="tier">Kalshi vs. Polymarket Spread Opportunities</div>
-      <div style="padding: 10px 0; color: #94A3B8; font-size: 12px;">Monitoring order books for discrepancy windows...</div>
-      <div class="analysis">
-        <div class="analysis-title">✨ Gemini Navigator Intel:</div>
-        <div class="analysis-text">When Kalshi and Polymarket diverge on identical events by ≥3%, taking opposing Yes/No sides locks in structural risk-free alpha.</div>
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="card-head">
-        <div class="card-title">Macro Horizon: Event Milestones</div>
-        <div class="badge macro">Milestones</div>
-      </div>
-      <div class="tier">Event Probability Tracker (Not Stock Advice)</div>
-      
-      <div class="leg">
-        <div class="leg-info">
-          <div class="leg-matchup">Kraken IPO by ___ ?</div>
-          <div class="leg-pick">December 31</div>
-        </div>
-        <div class="leg-odds">0%</div>
-      </div>
-      <div class="leg">
-        <div class="leg-info">
-          <div class="leg-matchup">Macron out by...?</div>
-          <div class="leg-pick">December 31, 2025</div>
-        </div>
-        <div class="leg-odds">0%</div>
-      </div>
-      <div class="leg">
-        <div class="leg-info">
-          <div class="leg-matchup">UK election called by...?</div>
-          <div class="leg-pick">March 31</div>
-        </div>
-        <div class="leg-odds">0%</div>
-      </div>
-      <div class="analysis">
-        <div class="analysis-title">✨ Gemini Navigator Intel:</div>
-        <div class="analysis-text">Crowd-implied probabilities for corporate milestones, Federal Reserve rate trajectories, and election roadmaps.</div>
-      </div>
-    </div>
     <!-- AUTOGEN_MACRO_END -->
   </div>
 
   <!-- TAB 4: PERPS ALLOCATION & IRC 1256 TAX FRAMEWORK -->
   <div id="tab-perps" class="tab-content">
 
-    <!-- CFTC IRC 1256 TAX SHIELD MODULE -->
     <div class="card" style="border-left: 3px solid #10B981;">
       <div class="card-head">
         <div class="card-title">IRC Section 1256 Derivatives Advantage</div>
@@ -241,7 +142,7 @@
 
       <div class="analysis">
         <div class="analysis-title">✨ Gemini Navigator Tax Brief:</div>
-        <div class="analysis-text">Unlike traditional sportsbooks where winnings are taxed at ordinary income rates up to 37% and deductions are strictly limited, CFTC-regulated event contracts trade under derivatives rules. Always reconcile via Form 6781.</div>
+        <div class="analysis-text">Unlike traditional sportsbooks where winnings are taxed at ordinary income rates up to 37% and deductions are strictly limited, CFTC-regulated event contracts trade under derivatives rules. Reconcile via Form 6781.</div>
       </div>
     </div>
 
@@ -329,7 +230,32 @@
 
   </div>
 
+  <!-- TACTICAL CASH-OUT CONFIRMATION MODAL -->
+  <div id="cashoutModal" class="modal-overlay">
+    <div class="modal-sheet">
+      <div class="modal-title">🔥 Confirm Tactical Cash-Out</div>
+      <div id="modalSlateText" class="modal-desc">Are you sure you want to execute a market sell on this slate to lock realized gains?</div>
+      <div class="modal-actions">
+        <button class="modal-btn-confirm" onclick="confirmCashOut()">Slide to Cash Out</button>
+        <button class="modal-btn-cancel" onclick="closeCashoutModal()">Cancel</button>
+      </div>
+    </div>
+  </div>
+
   <script>
+    let pendingTicker = "";
+    function executeManualCashOut(ticker) {
+      pendingTicker = ticker;
+      document.getElementById('modalSlateText').innerText = "Execute immediate market sell on [" + ticker + "] to lock in +80% profit?";
+      document.getElementById('cashoutModal').style.display = 'flex';
+    }
+    function closeCashoutModal() {
+      document.getElementById('cashoutModal').style.display = 'none';
+    }
+    function confirmCashOut() {
+      closeCashoutModal();
+      alert("⚡ Cash-out command sent for " + pendingTicker + ". Execution order submitted to exchange order book.");
+    }
     function switchTab(tab, el) {
       document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
       document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
