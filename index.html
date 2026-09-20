@@ -49,7 +49,7 @@
     .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.85rem; }
     .card-title { font-size: 0.95rem; font-weight: 600; color: #fff; display: flex; align-items: center; gap: 0.4rem; }
 
-    /* Perp Controls */
+    /* Asset Sub-Tabs for Perps */
     .asset-tabs { display: flex; gap: 0.4rem; overflow-x: auto; margin-bottom: 0.85rem; scrollbar-width: none; }
     .asset-tabs::-webkit-scrollbar { display: none; }
     .asset-pill { background: var(--card-inner); border: 1px solid var(--border); color: var(--muted); padding: 0.35rem 0.7rem; border-radius: 20px; font-size: 0.75rem; font-weight: 700; cursor: pointer; white-space: nowrap; }
@@ -412,9 +412,14 @@
 
     function sortCandidates(list) {
       return list.slice().sort((a, b) => {
-        if (currentSort === 'roi-desc') return b.rec.roiVal - a.rec.roiVal;
-        if (currentSort === 'roi-asc') return a.rec.roiVal - b.rec.roiVal;
-        if (currentSort === 'prob-desc') return b.rec.probVal - a.rec.probVal;
+        const roiA = (a.rec && a.rec.roiVal !== undefined) ? a.rec.roiVal : 0;
+        const roiB = (b.rec && b.rec.roiVal !== undefined) ? b.rec.roiVal : 0;
+        const probA = (a.rec && a.rec.probVal !== undefined) ? a.rec.probVal : 0;
+        const probB = (b.rec && b.rec.probVal !== undefined) ? b.rec.probVal : 0;
+
+        if (currentSort === 'roi-desc') return roiB - roiA;
+        if (currentSort === 'roi-asc') return roiA - roiB;
+        if (currentSort === 'prob-desc') return probB - probA;
         if (currentSort === 'time-asc') {
           const tA = a.endDate ? new Date(a.endDate).getTime() : 9999999999999;
           const tB = b.endDate ? new Date(b.endDate).getTime() : 9999999999999;
@@ -425,7 +430,7 @@
           const tB = b.endDate ? new Date(b.endDate).getTime() : 0;
           return tB - tA;
         }
-        return b.rec.roiVal - a.rec.roiVal;
+        return roiB - roiA;
       });
     }
 
@@ -519,16 +524,16 @@
     }
 
     function evaluateMarketRecommendation(m) {
-      const yesAsk = m.yesAsk || 0.50;
-      const noAsk = m.noAsk || (1.00 - yesAsk);
+      const yesAsk = (typeof m.yesAsk === 'number') ? m.yesAsk : 0.50;
+      const noAsk = (typeof m.noAsk === 'number') ? m.noAsk : (1.00 - yesAsk);
       const targetEntity = m.candidate && m.candidate !== "Consensus Leg" ? ` [${m.candidate}]` : "";
 
       if (yesAsk >= 0.99 || noAsk >= 0.99 || yesAsk <= 0.01 || noAsk <= 0.01) {
         return null;
       }
 
-      // Strong Buy Directional Anchor (51%+)
-      if (yesAsk >= 0.51) {
+      // Strong Buy Directional Anchor (>= 50%)
+      if (yesAsk >= 0.50) {
         const roi = Math.round(((1.00 - yesAsk) / yesAsk) * 100);
         return {
           badgeClass: "consensus-strong-buy",
@@ -540,7 +545,7 @@
           roi: `+${roi}% ROI`,
           prob: `${Math.round(yesAsk * 100)}% Implied`
         };
-      } else if (noAsk >= 0.51) {
+      } else {
         const roi = Math.round(((1.00 - noAsk) / noAsk) * 100);
         return {
           badgeClass: "consensus-strong-buy",
@@ -552,23 +557,7 @@
           roi: `+${roi}% ROI`,
           prob: `${Math.round(noAsk * 100)}% Implied`
         };
-      } 
-      // Asymmetric Value Plays (< 50¢)
-      else if (yesAsk < 0.50 && yesAsk > 0.01) {
-        const roi = Math.round(((1.00 - yesAsk) / yesAsk) * 100);
-        return {
-          badgeClass: "consensus-value-buy",
-          badgeText: "Value Buy YES",
-          action: `BUY YES${targetEntity} @ $${yesAsk.toFixed(2)}`,
-          target: "Asymmetric Value",
-          roiVal: roi,
-          probVal: Math.round(yesAsk * 100),
-          roi: `+${roi}% ROI`,
-          prob: `${Math.round(yesAsk * 100)}% Implied`
-        };
       }
-
-      return null;
     }
 
     async function fetchLiveData() {
@@ -638,7 +627,7 @@
       const container = document.getElementById('props-container');
       const all = [...poly, ...kalshi];
 
-      // Strictly Sports
+      // Exclusively Sports
       const sportsMarkets = all.filter(m => {
         const t = (m.title + " " + (m.candidate || "")).toLowerCase();
         const isPolitical = /house|senate|congress|election|nominee|president|governor|democrat|republican|vance|trump|harris|newsom|putin|war/i.test(t);
@@ -652,9 +641,9 @@
           candidates.push({
             ...item,
             rec,
-            side: item.yesAsk >= 0.51 ? "YES" : "NO",
-            price: item.yesAsk >= 0.51 ? item.yesAsk : item.noAsk,
-            type: item.yesAsk >= 0.51 || item.noAsk >= 0.51 ? "Anchor Leg" : "Value Add-On"
+            side: item.yesAsk >= 0.50 ? "YES" : "NO",
+            price: item.yesAsk >= 0.50 ? item.yesAsk : item.noAsk,
+            type: item.yesAsk >= 0.55 || item.noAsk >= 0.55 ? "Anchor Leg" : "Value Add-On"
           });
         }
       });
@@ -798,19 +787,20 @@
                 kYes: k.yesAsk.toFixed(2),
                 pNo: p.noAsk.toFixed(2),
                 totalCost: totalCost.toFixed(2),
-                roiVal: roiVal
+                roiVal: roiVal,
+                rec: { roiVal: roiVal, probVal: Math.round(k.yesAsk * 100) }
               });
             }
           }
         });
       });
 
-      spreadList.sort((a, b) => b.roiVal - a.roiVal);
+      const sorted = sortCandidates(spreadList);
 
-      if (spreadList.length === 0) {
+      if (sorted.length === 0) {
         container.innerHTML = `<div class="empty">No direct cross-exchange spreads with positive net edge right now. Scanning ${kalshi.length} Kalshi / ${poly.length} Poly order books...</div>`;
       } else {
-        container.innerHTML = spreadList.map(s => `
+        container.innerHTML = sorted.map(s => `
           <div class="list-item" style="border-left: 3px solid var(--green);">
             <div class="item-top">
               <span class="item-title" style="font-size: 0.85rem; line-height: 1.3;">${s.title}</span>
@@ -818,7 +808,7 @@
             </div>
             <div class="item-meta" style="margin-top: 0.4rem;">
               <span>Kalshi Yes: <b style="color:#fff;">$${s.kYes}</b></span>
-              <span>Poly.us No: <b style="color:#fff;">$${p.noAsk}</b></span>
+              <span>Poly.us No: <b style="color:#fff;">$${s.pNo}</b></span>
             </div>
             <div style="font-size: 0.7rem; color: var(--muted); margin-top: 0.2rem;">
               Total Cost: $${s.totalCost} &bull; Implied ROI: <b style="color:var(--green);">+${s.roiVal}%</b>
