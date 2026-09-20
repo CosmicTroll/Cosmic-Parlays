@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Cosmic Parlays Terminal</title>
   <style>
     :root {
@@ -19,77 +19,70 @@
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    body { background-color: var(--bg); color: var(--text); padding: 1rem; }
+    body { background-color: var(--bg); color: var(--text); padding: 0.75rem; padding-bottom: 5rem; }
 
-    header { max-width: 900px; margin: 0 auto 1.25rem; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 0.75rem; border-bottom: 1px solid var(--border); padding-bottom: 1rem; }
-    .brand { display: flex; align-items: center; gap: 0.5rem; }
-    h1 { font-size: 1.2rem; font-weight: 700; color: #fff; }
+    header { max-width: 900px; margin: 0 auto 0.75rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 0.75rem; }
+    .brand h1 { font-size: 1.15rem; font-weight: 700; color: #fff; }
     .controls { display: flex; align-items: center; gap: 0.5rem; }
-    .status-badge { font-size: 0.7rem; padding: 0.25rem 0.5rem; border-radius: 9999px; background: rgba(16, 185, 129, 0.15); color: var(--green); border: 1px solid rgba(16, 185, 129, 0.3); white-space: nowrap; }
+    .status-badge { font-size: 0.7rem; padding: 0.2rem 0.5rem; border-radius: 9999px; background: rgba(16, 185, 129, 0.15); color: var(--green); border: 1px solid rgba(16, 185, 129, 0.3); white-space: nowrap; }
+    .refresh-btn { background: var(--accent); color: #fff; border: none; padding: 0.35rem 0.75rem; border-radius: 6px; font-weight: 600; font-size: 0.75rem; cursor: pointer; }
 
-    main { max-width: 900px; margin: 0 auto; display: grid; gap: 1.25rem; }
-    .card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 1.25rem; }
-    .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
-    .card-title { font-size: 1rem; font-weight: 600; color: #fff; display: flex; align-items: center; gap: 0.4rem; }
+    /* Top Horizontal Navigation Scrollbar */
+    .nav-tabs { max-width: 900px; margin: 0 auto 1rem; display: flex; gap: 0.5rem; overflow-x: auto; scrollbar-width: none; padding-bottom: 0.25rem; }
+    .nav-tabs::-webkit-scrollbar { display: none; }
+    .nav-btn { background: rgba(255,255,255,0.03); border: 1px solid var(--border); color: var(--muted); padding: 0.45rem 0.85rem; border-radius: 8px; font-size: 0.8rem; font-weight: 600; cursor: pointer; white-space: nowrap; transition: all 0.15s ease; }
+    .nav-btn.active { background: rgba(99, 102, 241, 0.2); border-color: var(--accent); color: #fff; }
+
+    main { max-width: 900px; margin: 0 auto; }
+    .view-panel { display: none; flex-direction: column; gap: 1rem; }
+    .view-panel.active { display: flex; }
+
+    .card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 1.1rem; }
+    .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.85rem; }
+    .card-title { font-size: 0.95rem; font-weight: 600; color: #fff; }
 
     /* Balances & Metrics */
-    .balance-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 0.75rem; }
-    .metric { background: rgba(255,255,255,0.02); border: 1px solid var(--border); border-radius: 8px; padding: 0.75rem 1rem; }
-    .metric-label { font-size: 0.7rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }
-    .metric-value { font-size: 1.25rem; font-weight: 700; color: #fff; margin-top: 0.25rem; }
+    .balance-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 0.65rem; }
+    .metric { background: rgba(255,255,255,0.02); border: 1px solid var(--border); border-radius: 8px; padding: 0.7rem 0.85rem; }
+    .metric-label { font-size: 0.65rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }
+    .metric-value { font-size: 1.2rem; font-weight: 700; color: #fff; margin-top: 0.2rem; }
 
-    /* Consensus Barometer */
-    .consensus-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-top: 0.75rem; }
-    .consensus-card { border-radius: 8px; padding: 0.85rem; border: 1px solid var(--border); display: flex; flex-direction: column; gap: 0.35rem; }
-    .consensus-card.up { background: rgba(16, 185, 129, 0.05); border-color: rgba(16, 185, 129, 0.3); }
-    .consensus-card.down { background: rgba(239, 68, 68, 0.05); border-color: rgba(239, 68, 68, 0.3); }
-    .consensus-title { font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; }
-    .consensus-card.up .consensus-title { color: var(--green); }
-    .consensus-card.down .consensus-title { color: var(--red); }
-    .consensus-val { font-size: 1.35rem; font-weight: 800; color: #fff; }
-    .consensus-sub { font-size: 0.75rem; color: var(--muted); }
+    /* Perps Consensus */
+    .consensus-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-top: 0.5rem; }
+    .consensus-box { border-radius: 8px; padding: 0.85rem; border: 1px solid var(--border); }
+    .consensus-box.up { background: rgba(16, 185, 129, 0.05); border-color: rgba(16, 185, 129, 0.3); }
+    .consensus-box.down { background: rgba(239, 68, 68, 0.05); border-color: rgba(239, 68, 68, 0.3); }
+    .consensus-title { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; }
+    .consensus-box.up .consensus-title { color: var(--green); }
+    .consensus-box.down .consensus-title { color: var(--red); }
+    .consensus-val { font-size: 1.35rem; font-weight: 800; color: #fff; margin-top: 0.25rem; }
 
-    /* Suggested Picks & Add-Ons */
-    .pick-list { display: flex; flex-direction: column; gap: 0.65rem; }
-    .pick-card { background: rgba(255,255,255,0.02); border: 1px solid var(--border); border-radius: 8px; padding: 0.85rem; display: flex; flex-direction: column; gap: 0.45rem; }
-    .pick-header { display: flex; justify-content: space-between; align-items: center; }
-    .pick-tag { font-size: 0.65rem; padding: 0.15rem 0.4rem; border-radius: 4px; font-weight: 700; text-transform: uppercase; }
+    /* Lists & Items */
+    .item-list { display: flex; flex-direction: column; gap: 0.65rem; }
+    .list-item { background: rgba(255,255,255,0.02); border: 1px solid var(--border); border-radius: 8px; padding: 0.85rem; display: flex; flex-direction: column; gap: 0.4rem; }
+    .item-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 0.5rem; }
+    .item-title { font-size: 0.88rem; font-weight: 600; color: #f1f5f9; }
+    .item-meta { display: flex; flex-wrap: wrap; justify-content: space-between; font-size: 0.78rem; color: var(--muted); margin-top: 0.2rem; }
+    .tag { font-size: 0.65rem; padding: 0.15rem 0.4rem; border-radius: 4px; font-weight: 700; text-transform: uppercase; }
     .tag-hot { background: rgba(245, 158, 11, 0.2); color: var(--gold); border: 1px solid rgba(245, 158, 11, 0.4); }
     .tag-edge { background: rgba(99, 102, 241, 0.2); color: var(--accent); border: 1px solid rgba(99, 102, 241, 0.4); }
-    .pick-title { font-size: 0.9rem; font-weight: 600; color: #fff; }
-    .pick-action { display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; color: var(--muted); }
-    .pick-conf { font-weight: 700; color: var(--green); }
+    .tag-settled { background: rgba(16, 185, 129, 0.15); color: var(--green); }
+    .tag-closed { background: rgba(148, 163, 184, 0.15); color: var(--muted); }
 
-    /* Open Tickets / Portfolio Activity */
-    .ticket-list { display: flex; flex-direction: column; gap: 0.65rem; }
-    .ticket-item { background: rgba(255,255,255,0.02); border: 1px solid var(--border); border-radius: 8px; padding: 0.85rem; display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; }
-    .ticket-name { font-weight: 600; color: #f1f5f9; }
-    .ticket-status { font-size: 0.7rem; font-weight: 700; padding: 0.2rem 0.5rem; border-radius: 4px; }
-    .status-settled { background: rgba(16, 185, 129, 0.15); color: var(--green); }
-    .status-closed { background: rgba(148, 163, 184, 0.15); color: var(--muted); }
+    .empty { color: var(--muted); font-size: 0.8rem; text-align: center; padding: 2.5rem 1rem; }
 
-    /* Navigation Tabs */
-    .tab-bar { display: flex; gap: 0.5rem; border-bottom: 1px solid var(--border); padding-bottom: 0.5rem; margin-bottom: 1rem; }
-    .tab-btn { background: none; border: 1px solid transparent; color: var(--muted); padding: 0.4rem 0.8rem; border-radius: 6px; font-weight: 600; font-size: 0.8rem; cursor: pointer; }
-    .tab-btn.active { background: rgba(99, 102, 241, 0.15); color: #fff; border-color: var(--accent); }
-
-    /* Market Lists */
-    .market-list { display: flex; flex-direction: column; gap: 0.75rem; }
-    .market-item { background: rgba(255,255,255,0.02); border: 1px solid var(--border); border-radius: 8px; padding: 0.85rem; display: flex; flex-direction: column; gap: 0.5rem; }
-    .market-title { font-size: 0.9rem; font-weight: 600; color: #f1f5f9; }
-    .market-details { display: flex; flex-wrap: wrap; justify-content: space-between; font-size: 0.8rem; color: var(--muted); gap: 0.5rem; }
-    .edge-tag { font-weight: 700; color: var(--green); }
-    .platform-tag { font-size: 0.65rem; padding: 0.15rem 0.4rem; border-radius: 4px; background: rgba(255,255,255,0.08); text-transform: uppercase; font-weight: 600; }
-
-    .refresh-btn { background: var(--accent); color: #fff; border: none; padding: 0.4rem 0.8rem; border-radius: 6px; font-weight: 600; font-size: 0.8rem; cursor: pointer; }
-    .empty { color: var(--muted); font-size: 0.85rem; text-align: center; padding: 2rem 1rem; }
+    /* Persistent Mobile Bottom Navigation */
+    .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: #0e1422; border-top: 1px solid var(--border); display: flex; justify-content: space-around; padding: 0.5rem 0.25rem; z-index: 100; max-width: 900px; margin: 0 auto; }
+    .bottom-tab { background: none; border: none; color: var(--muted); display: flex; flex-direction: column; align-items: center; gap: 0.2rem; font-size: 0.65rem; font-weight: 600; cursor: pointer; flex: 1; }
+    .bottom-tab span.icon { font-size: 1.1rem; }
+    .bottom-tab.active { color: var(--cyan); }
   </style>
 </head>
 <body>
 
   <header>
     <div class="brand">
-      <h1>🚀 Cosmic Parlays <span>Terminal</span></h1>
+      <h1>🚀 Cosmic Terminal</h1>
     </div>
     <div class="controls">
       <span class="status-badge" id="bot-status">Edge Engine Active</span>
@@ -97,298 +90,328 @@
     </div>
   </header>
 
+  <!-- Top Tab Row -->
+  <div class="nav-tabs">
+    <button class="nav-btn active" onclick="switchView('picks')">🎯 Cosmic's Picks</button>
+    <button class="nav-btn" onclick="switchView('spreads')">⚡ Cross Spreads</button>
+    <button class="nav-btn" onclick="switchView('poly')">🟣 Polymarket</button>
+    <button class="nav-btn" onclick="switchView('kalshi')">🟢 Kalshi</button>
+    <button class="nav-btn" onclick="switchView('perps')">📊 Perps Consensus</button>
+    <button class="nav-btn" onclick="switchView('portfolio')">💼 Portfolio</button>
+  </div>
+
   <main>
-    <!-- Portfolio & Balances -->
-    <div class="card">
-      <div class="card-header">
-        <h2 class="card-title">Portfolio State</h2>
-        <span style="font-size: 0.75rem; color: var(--muted);">Auto-Syncing</span>
-      </div>
-      <div class="balance-grid">
-        <div class="metric">
-          <div class="metric-label">Polymarket (Settled)</div>
-          <div class="metric-value" id="poly-balance">$2.57</div>
+    <!-- TAB 1: Cosmic's Picks -->
+    <section id="view-picks" class="view-panel active">
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">🎯 Algorithmic Picks & Add-Ons</h2>
+          <span style="font-size: 0.75rem; color: var(--cyan);">Correlation Edge</span>
         </div>
-        <div class="metric">
-          <div class="metric-label">Kalshi (Available)</div>
-          <div class="metric-value" id="kalshi-balance">$0.00</div>
-        </div>
-        <div class="metric">
-          <div class="metric-label">Execution Guard</div>
-          <div class="metric-value" style="color: var(--gold);">$10.00 Cap</div>
-        </div>
-        <div class="metric">
-          <div class="metric-label">Clean Slate Status</div>
-          <div class="metric-value" style="color: var(--green);">Ready (0 Active)</div>
+        <div class="item-list" id="picks-container">
+          <div class="empty">Scanning live order books for high-probability anchors...</div>
         </div>
       </div>
-    </div>
+    </section>
 
-    <!-- Directional Trend Barometer (Consensus Engine) -->
-    <div class="card">
-      <div class="card-header">
-        <h2 class="card-title">📊 Perp & Event Consensus (Up / Down)</h2>
-        <span style="font-size: 0.75rem; color: var(--muted);">Order Book Skew</span>
-      </div>
-      <p style="font-size: 0.8rem; color: var(--muted); margin-bottom: 0.5rem;">
-        Composite crowd bias calculated across live contract order book asks.
-      </p>
-      <div class="consensus-grid">
-        <div class="consensus-card up">
-          <div class="consensus-title">▲ Bullish / Long Bias</div>
-          <div class="consensus-val" id="consensus-up">54.2%</div>
-          <div class="consensus-sub" id="consensus-up-sub">Average Yes skew across slates</div>
+    <!-- TAB 2: Cross Arbitrage Spreads -->
+    <section id="view-spreads" class="view-panel">
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">⚡ Cross-Exchange Spreads</h2>
+          <span id="scan-count" style="font-size: 0.75rem; color: var(--muted);">0 events</span>
         </div>
-        <div class="consensus-card down">
-          <div class="consensus-title">▼ Bearish / Short Bias</div>
-          <div class="consensus-val" id="consensus-down">45.8%</div>
-          <div class="consensus-sub" id="consensus-down-sub">Average No skew across slates</div>
+        <div class="item-list" id="spread-container">
+          <div class="empty">Comparing simultaneous Yes/No asks across order books...</div>
         </div>
       </div>
-    </div>
+    </section>
 
-    <!-- Suggested Picks & Add-Ons Engine -->
-    <div class="card">
-      <div class="card-header">
-        <h2 class="card-title">🎯 Suggested Picks & Multi-Leg Add-Ons</h2>
-        <span style="font-size: 0.75rem; color: var(--cyan);">Algorithmic Value</span>
+    <!-- TAB 3: Polymarket Specific -->
+    <section id="view-poly" class="view-panel">
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">🟣 Polymarket Live Feeds</h2>
+          <span style="font-size: 0.75rem; color: var(--muted);" id="poly-count">0 Markets</span>
+        </div>
+        <div class="item-list" id="poly-container">
+          <div class="empty">Loading Polymarket events...</div>
+        </div>
       </div>
-      <div class="pick-list" id="picks-container">
-        <div class="empty">Analyzing order book odds for correlated value legs...</div>
-      </div>
-    </div>
+    </section>
 
-    <!-- Recent Settlement & Ticket History -->
-    <div class="card">
-      <div class="card-header">
-        <h2 class="card-title">📋 Tracked Tickets & Slates</h2>
-        <span style="font-size: 0.75rem; color: var(--muted);">Audited Baseline</span>
+    <!-- TAB 4: Kalshi Specific -->
+    <section id="view-kalshi" class="view-panel">
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">🟢 Kalshi Live Feeds</h2>
+          <span style="font-size: 0.75rem; color: var(--muted);" id="kalshi-count">0 Markets</span>
+        </div>
+        <div class="item-list" id="kalshi-container">
+          <div class="empty">Loading Kalshi events...</div>
+        </div>
       </div>
-      <div class="ticket-list">
-        <div class="ticket-item">
-          <div>
-            <div class="ticket-name">Polymarket: CIN Bengals to Win</div>
-            <div style="font-size: 0.75rem; color: var(--muted);">Entry $0.58 &bull; Final: CIN 20 - HOU 6</div>
-          </div>
-          <div style="text-align: right;">
-            <span class="ticket-status status-settled">+ $1.39 Payout</span>
-          </div>
+    </section>
+
+    <!-- TAB 5: Perps Consensus -->
+    <section id="view-perps" class="view-panel">
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">📊 Perp & Event Directional Consensus</h2>
+          <span style="font-size: 0.75rem; color: var(--muted);">Order Book Skew</span>
         </div>
-        <div class="ticket-item">
-          <div>
-            <div class="ticket-name">Polymarket: 2 of 2 Combo (Bengals + Under 21.5 1H)</div>
-            <div style="font-size: 0.75rem; color: var(--muted);">Entry $0.01 &bull; Cashed Out / Settled</div>
+        <div class="consensus-grid">
+          <div class="consensus-box up">
+            <div class="consensus-title">▲ Bullish / Long Bias</div>
+            <div class="consensus-val" id="consensus-up">50.0%</div>
+            <div style="font-size: 0.7rem; color: var(--muted); margin-top: 0.2rem;">Live ask skew</div>
           </div>
-          <div style="text-align: right;">
-            <span class="ticket-status status-settled">+ $0.04 Payout</span>
-          </div>
-        </div>
-        <div class="ticket-item">
-          <div>
-            <div class="ticket-name">Kalshi: 9 Market Combo Slate</div>
-            <div style="font-size: 0.75rem; color: var(--muted);">Entry $0.10 &bull; 8 of 9 hits &bull; Closed Position</div>
-          </div>
-          <div style="text-align: right;">
-            <span class="ticket-status status-closed">Settled ($0.00)</span>
+          <div class="consensus-box down">
+            <div class="consensus-title">▼ Bearish / Short Bias</div>
+            <div class="consensus-val" id="consensus-down">50.0%</div>
+            <div style="font-size: 0.7rem; color: var(--muted); margin-top: 0.2rem;">Live ask skew</div>
           </div>
         </div>
       </div>
-    </div>
+    </section>
 
-    <!-- Scanned Order Books & Cross-Platform Arbitrage Tabs -->
-    <div class="card">
-      <div class="tab-bar">
-        <button class="tab-btn active" onclick="setTab('spreads')">Matched Spreads</button>
-        <button class="tab-btn" onclick="setTab('poly')">Polymarket Feed</button>
-        <button class="tab-btn" onclick="setTab('kalshi')">Kalshi Feed</button>
+    <!-- TAB 6: Portfolio & History -->
+    <section id="view-portfolio" class="view-panel">
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">💼 Portfolio Cash State</h2>
+          <span style="font-size: 0.75rem; color: var(--green);">Settled</span>
+        </div>
+        <div class="balance-grid">
+          <div class="metric">
+            <div class="metric-label">Polymarket (Settled)</div>
+            <div class="metric-value">$2.57</div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">Kalshi (Available)</div>
+            <div class="metric-value">$0.00</div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">Execution Guard</div>
+            <div class="metric-value" style="color: var(--gold);">$10.00 Cap</div>
+          </div>
+        </div>
       </div>
 
-      <div class="card-header">
-        <h2 class="card-title" id="tab-heading">Active Spreads</h2>
-        <span id="scan-count" style="font-size: 0.8rem; color: var(--muted);">Loading feed...</span>
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">📋 Audited Ticket History</h2>
+          <span style="font-size: 0.75rem; color: var(--muted);">0 Active</span>
+        </div>
+        <div class="item-list">
+          <div class="list-item">
+            <div class="item-top">
+              <span class="item-title">Polymarket: CIN Bengals to Win</span>
+              <span class="tag tag-settled">+$1.39 Payout</span>
+            </div>
+            <div class="item-meta"><span>Final: CIN 20 - HOU 6</span><span>Settled</span></div>
+          </div>
+          <div class="list-item">
+            <div class="item-top">
+              <span class="item-title">Polymarket: 2 of 2 Combo (Bengals + U21.5 1H)</span>
+              <span class="tag tag-settled">+$0.04 Payout</span>
+            </div>
+            <div class="item-meta"><span>Cashed Out</span><span>Settled</span></div>
+          </div>
+          <div class="list-item">
+            <div class="item-top">
+              <span class="item-title">Kalshi: 9 Market Combo Slate</span>
+              <span class="tag tag-closed">Closed ($0.00)</span>
+            </div>
+            <div class="item-meta"><span>8 of 9 hits</span><span>Expired</span></div>
+          </div>
+        </div>
       </div>
-
-      <div class="market-list" id="market-container">
-        <div class="empty">Scanning live order books via Cloudflare Edge...</div>
-      </div>
-    </div>
+    </section>
   </main>
+
+  <!-- Bottom Navigation -->
+  <nav class="bottom-nav">
+    <button class="bottom-tab active" onclick="switchView('picks')">
+      <span class="icon">🎯</span>
+      <span>Picks</span>
+    </button>
+    <button class="bottom-tab" onclick="switchView('spreads')">
+      <span class="icon">⚡</span>
+      <span>Spreads</span>
+    </button>
+    <button class="bottom-tab" onclick="switchView('poly')">
+      <span class="icon">🟣</span>
+      <span>Poly</span>
+    </button>
+    <button class="bottom-tab" onclick="switchView('kalshi')">
+      <span class="icon">🟢</span>
+      <span>Kalshi</span>
+    </button>
+    <button class="bottom-tab" onclick="switchView('perps')">
+      <span class="icon">📊</span>
+      <span>Perps</span>
+    </button>
+    <button class="bottom-tab" onclick="switchView('portfolio')">
+      <span class="icon">💼</span>
+      <span>Vault</span>
+    </button>
+  </nav>
 
   <script>
     const WORKER_URL = "https://cosmic-parlays.cosmictrollgaming.workers.dev/api/live-data";
-    let activeTab = "spreads";
     let latestData = { kalshi: [], polymarket: [] };
+    const viewKeys = ['picks', 'spreads', 'poly', 'kalshi', 'perps', 'portfolio'];
 
-    function setTab(tab) {
-      activeTab = tab;
-      document.querySelectorAll(".tab-btn").forEach((btn, idx) => {
-        btn.classList.toggle("active", 
-          (tab === "spreads" && idx === 0) || 
-          (tab === "poly" && idx === 1) || 
-          (tab === "kalshi" && idx === 2)
-        );
+    function switchView(tabId) {
+      document.querySelectorAll('.view-panel').forEach(p => p.classList.remove('active'));
+      const activePanel = document.getElementById('view-' + tabId);
+      if (activePanel) activePanel.classList.add('active');
+
+      const targetIdx = viewKeys.indexOf(tabId);
+      document.querySelectorAll('.nav-btn').forEach((btn, idx) => {
+        btn.classList.toggle('active', idx === targetIdx);
       });
-      renderMarkets();
+      document.querySelectorAll('.bottom-tab').forEach((btn, idx) => {
+        btn.classList.toggle('active', idx === targetIdx);
+      });
     }
 
     async function fetchLiveData() {
-      const countLabel = document.getElementById("scan-count");
       try {
         const res = await fetch(WORKER_URL);
         latestData = await res.json();
         
         const kalshi = latestData.kalshi || [];
         const poly = latestData.polymarket || [];
-        countLabel.textContent = `${kalshi.length} Kalshi / ${poly.length} Poly`;
         
-        updateConsensusBarometer(kalshi, poly);
-        updateSuggestedPicks(kalshi, poly);
-        renderMarkets();
+        document.getElementById('scan-count').textContent = `${kalshi.length} Kalshi / ${poly.length} Poly`;
+        document.getElementById('poly-count').textContent = `${poly.length} Markets`;
+        document.getElementById('kalshi-count').textContent = `${kalshi.length} Markets`;
+
+        renderPicks(poly);
+        renderSpreads(kalshi, poly);
+        renderPoly(poly);
+        renderKalshi(kalshi);
+        renderPerps(kalshi, poly);
       } catch (err) {
-        document.getElementById("market-container").innerHTML = `<div class="empty" style="color: var(--red);">Edge feed unreachable: ${err.message}</div>`;
+        console.error("Live fetch error:", err);
       }
     }
 
-    function updateConsensusBarometer(kalshi, poly) {
-      const all = [...kalshi, ...poly];
-      if (all.length === 0) return;
+    function renderPicks(poly) {
+      const container = document.getElementById('picks-container');
+      const picks = [];
 
-      const totalYes = all.reduce((acc, m) => acc + (m.yesAsk || 0.5), 0);
-      const avgYes = totalYes / all.length;
-      const upPct = (avgYes * 100).toFixed(1);
-      const downPct = (100 - parseFloat(upPct)).toFixed(1);
-
-      document.getElementById("consensus-up").textContent = `${upPct}%`;
-      document.getElementById("consensus-down").textContent = `${downPct}%`;
-      document.getElementById("consensus-up-sub").textContent = `Composite bias across ${all.length} live markets`;
-      document.getElementById("consensus-down-sub").textContent = `Counter-bias spread`;
-    }
-
-    function updateSuggestedPicks(kalshi, poly) {
-      const container = document.getElementById("picks-container");
-      const candidates = [];
-
-      // Find highest confidence or asymmetric value legs in Polymarket
       poly.forEach(p => {
         if (p.yesAsk >= 0.70) {
-          candidates.push({
-            title: p.title,
-            pick: "YES",
-            platform: "Polymarket",
-            odds: `$${p.yesAsk.toFixed(2)}`,
-            prob: `${Math.round(p.yesAsk * 100)}%`,
-            type: "High Probability Anchor"
-          });
+          picks.push({ title: p.title, side: "YES", price: p.yesAsk, prob: Math.round(p.yesAsk * 100), type: "Anchor Leg" });
         } else if (p.noAsk >= 0.70) {
-          candidates.push({
-            title: p.title,
-            pick: "NO",
-            platform: "Polymarket",
-            odds: `$${p.noAsk.toFixed(2)}`,
-            prob: `${Math.round(p.noAsk * 100)}%`,
-            type: "High Probability Anchor"
-          });
+          picks.push({ title: p.title, side: "NO", price: p.noAsk, prob: Math.round(p.noAsk * 100), type: "Anchor Leg" });
         } else if (p.yesAsk <= 0.25 && p.yesAsk > 0.05) {
-          candidates.push({
-            title: p.title,
-            pick: "YES",
-            platform: "Polymarket",
-            odds: `$${p.yesAsk.toFixed(2)}`,
-            prob: `${Math.round(p.yesAsk * 100)}%`,
-            type: "Asymmetric Value Add-On"
-          });
+          picks.push({ title: p.title, side: "YES", price: p.yesAsk, prob: Math.round(p.yesAsk * 100), type: "Value Add-On" });
         }
       });
 
-      if (candidates.length === 0) {
-        container.innerHTML = `<div class="empty">No specific high-edge anchors detected in current batch.</div>`;
+      if (picks.length === 0) {
+        container.innerHTML = `<div class="empty">No anchor edge picks detected in current batch.</div>`;
         return;
       }
 
-      container.innerHTML = candidates.slice(0, 4).map(c => `
-        <div class="pick-card">
-          <div class="pick-header">
-            <span class="pick-tag ${c.type.includes('Anchor') ? 'tag-hot' : 'tag-edge'}">${c.type}</span>
-            <span class="platform-tag">${c.platform}</span>
+      container.innerHTML = picks.slice(0, 5).map(p => `
+        <div class="list-item">
+          <div class="item-top">
+            <span class="item-title">${p.title}</span>
+            <span class="tag ${p.type === 'Anchor Leg' ? 'tag-hot' : 'tag-edge'}">${p.type}</span>
           </div>
-          <div class="pick-title">${c.title}</div>
-          <div class="pick-action">
-            <span>Recommended Side: <b style="color: #fff;">${c.pick}</b> @ ${c.odds}</span>
-            <span class="pick-conf">Implied Prob: ${c.prob}</span>
+          <div class="item-meta">
+            <span>Side: <b style="color: #fff;">${p.side}</b> @ $${p.price.toFixed(2)}</span>
+            <span style="color: var(--green); font-weight: 700;">${p.prob}% Implied Prob</span>
           </div>
         </div>
-      `).join("");
+      `).join('');
     }
 
-    function renderMarkets() {
-      const container = document.getElementById("market-container");
-      const heading = document.getElementById("tab-heading");
-      const kalshi = latestData.kalshi || [];
-      const poly = latestData.polymarket || [];
-
+    function renderSpreads(kalshi, poly) {
+      const container = document.getElementById('spread-container');
       let html = "";
+      let found = false;
 
-      if (activeTab === "spreads") {
-        heading.textContent = "Matched Arbitrage Spreads";
-        let found = false;
-
-        kalshi.forEach(k => {
-          poly.forEach(p => {
-            const kWords = k.title.toLowerCase().split(/\s+/);
-            const matches = kWords.some(w => w.length > 3 && p.title.toLowerCase().includes(w));
-            if (matches) {
-              found = true;
-              const totalCost = k.yesAsk + p.noAsk;
-              const netEdge = 1.00 - totalCost - 0.02;
-              html += `
-                <div class="market-item">
-                  <div class="market-title">${k.title}</div>
-                  <div class="market-details">
-                    <span>Kalshi Yes: <b>$${k.yesAsk.toFixed(2)}</b></span>
-                    <span>Poly No: <b>$${p.noAsk.toFixed(2)}</b></span>
-                    <span class="edge-tag">Net: ${netEdge > 0 ? "+" : ""}${(netEdge * 100).toFixed(1)}¢</span>
-                  </div>
-                </div>`;
-            }
-          });
+      kalshi.forEach(k => {
+        poly.forEach(p => {
+          const kWords = k.title.toLowerCase().split(/\s+/);
+          if (kWords.some(w => w.length > 3 && p.title.toLowerCase().includes(w))) {
+            found = true;
+            const netEdge = 1.00 - (k.yesAsk + p.noAsk) - 0.02;
+            html += `
+              <div class="list-item">
+                <div class="item-top">
+                  <span class="item-title">${k.title}</span>
+                  <span class="tag tag-edge">${netEdge > 0 ? "+" : ""}${(netEdge * 100).toFixed(1)}¢ Edge</span>
+                </div>
+                <div class="item-meta">
+                  <span>Kalshi Yes: $${k.yesAsk.toFixed(2)}</span>
+                  <span>Poly No: $${p.noAsk.toFixed(2)}</span>
+                </div>
+              </div>`;
+          }
         });
+      });
 
-        if (!found) {
-          html = `<div class="empty">No direct cross-exchange spreads found in this scan batch. Switch tabs above to inspect active platform books directly.</div>`;
-        }
-      } else if (activeTab === "poly") {
-        heading.textContent = "Polymarket Active Order Books";
-        if (poly.length === 0) {
-          html = `<div class="empty">No active Polymarket events returned.</div>`;
-        } else {
-          html = poly.map(p => `
-            <div class="market-item">
-              <div class="market-title"><span class="platform-tag">POLY</span> ${p.title}</div>
-              <div class="market-details">
-                <span>Yes: $${p.yesAsk.toFixed(2)}</span>
-                <span>No: $${p.noAsk.toFixed(2)}</span>
-                <span>ID: ${p.ticker.slice(0, 16)}...</span>
-              </div>
-            </div>`).join("");
-        }
-      } else if (activeTab === "kalshi") {
-        heading.textContent = "Kalshi Active Order Books";
-        if (kalshi.length === 0) {
-          html = `<div class="empty">No Kalshi contracts currently loaded in this batch.</div>`;
-        } else {
-          html = kalshi.map(k => `
-            <div class="market-item">
-              <div class="market-title"><span class="platform-tag">KALSHI</span> ${k.title}</div>
-              <div class="market-details">
-                <span>Yes: $${k.yesAsk.toFixed(2)}</span>
-                <span>No: $${k.noAsk.toFixed(2)}</span>
-                <span>Ticker: ${k.ticker}</span>
-              </div>
-            </div>`).join("");
-        }
+      container.innerHTML = found ? html : `<div class="empty">No matching cross-exchange contracts currently found in active order books.</div>`;
+    }
+
+    function renderPoly(poly) {
+      const container = document.getElementById('poly-container');
+      if (poly.length === 0) {
+        container.innerHTML = `<div class="empty">No active Polymarket lines loaded.</div>`;
+        return;
       }
+      container.innerHTML = poly.map(p => `
+        <div class="list-item">
+          <div class="item-top">
+            <span class="item-title">${p.title}</span>
+            <span class="tag" style="background: rgba(99, 102, 241, 0.15); color: var(--cyan);">POLY</span>
+          </div>
+          <div class="item-meta">
+            <span>Yes: $${p.yesAsk.toFixed(2)}</span>
+            <span>No: $${p.noAsk.toFixed(2)}</span>
+            <span>ID: ${p.ticker.slice(0, 12)}...</span>
+          </div>
+        </div>
+      `).join('');
+    }
 
-      container.innerHTML = html;
+    function renderKalshi(kalshi) {
+      const container = document.getElementById('kalshi-container');
+      if (kalshi.length === 0) {
+        container.innerHTML = `<div class="empty">No active Kalshi lines loaded.</div>`;
+        return;
+      }
+      container.innerHTML = kalshi.map(k => `
+        <div class="list-item">
+          <div class="item-top">
+            <span class="item-title">${k.title}</span>
+            <span class="tag" style="background: rgba(16, 185, 129, 0.15); color: var(--green);">KALSHI</span>
+          </div>
+          <div class="item-meta">
+            <span>Yes: $${k.yesAsk.toFixed(2)}</span>
+            <span>No: $${k.noAsk.toFixed(2)}</span>
+            <span>${k.ticker}</span>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function renderPerps(kalshi, poly) {
+      const all = [...kalshi, ...poly];
+      if (all.length === 0) return;
+      const totalYes = all.reduce((acc, m) => acc + (m.yesAsk || 0.5), 0);
+      const avgYes = totalYes / all.length;
+      const up = (avgYes * 100).toFixed(1);
+      const down = (100 - parseFloat(up)).toFixed(1);
+      document.getElementById('consensus-up').textContent = `${up}%`;
+      document.getElementById('consensus-down').textContent = `${down}%`;
     }
 
     fetchLiveData();
