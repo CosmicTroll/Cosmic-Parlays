@@ -485,50 +485,53 @@
       const noAsk = m.noAsk || (1.00 - yesAsk);
       const targetEntity = m.candidate && m.candidate !== "Consensus Leg" ? ` [${m.candidate}]` : "";
 
-      if (yesAsk >= 0.94 || noAsk >= 0.94 || yesAsk <= 0.05 || noAsk <= 0.05) {
+      if (yesAsk >= 0.96 || noAsk >= 0.96 || yesAsk <= 0.04 || noAsk <= 0.04) {
         return null;
       }
 
-      if (yesAsk >= 0.65 && yesAsk < 0.92) {
+      // High-Probability Anchors (56%+ probability)
+      if (yesAsk >= 0.56 && yesAsk < 0.94) {
         const roi = Math.round(((1.00 - yesAsk) / yesAsk) * 100);
         return {
           badgeClass: "consensus-strong-buy",
           badgeText: "Strong Buy YES",
           action: `BUY YES${targetEntity} @ $${yesAsk.toFixed(2)}`,
-          target: "High Probability Anchor",
+          target: "Probability Anchor",
           roi: `+${roi}% ROI`,
           prob: `${Math.round(yesAsk * 100)}% Implied`,
           score: 80 + roi
         };
-      } else if (noAsk >= 0.65 && noAsk < 0.92) {
+      } else if (noAsk >= 0.56 && noAsk < 0.94) {
         const roi = Math.round(((1.00 - noAsk) / noAsk) * 100);
         return {
           badgeClass: "consensus-strong-buy",
           badgeText: "Strong Buy NO",
           action: `BUY NO${targetEntity} @ $${noAsk.toFixed(2)}`,
-          target: "High Probability Anchor",
+          target: "Probability Anchor",
           roi: `+${roi}% ROI`,
           prob: `${Math.round(noAsk * 100)}% Implied`,
           score: 80 + roi
         };
-      } else if (yesAsk <= 0.35 && yesAsk >= 0.08) {
+      } 
+      // Asymmetric Value Plays (Under 44¢)
+      else if (yesAsk <= 0.44 && yesAsk >= 0.08) {
         const roi = Math.round(((1.00 - yesAsk) / yesAsk) * 100);
         return {
           badgeClass: "consensus-value-buy",
           badgeText: "Value Buy YES",
           action: `BUY YES${targetEntity} @ $${yesAsk.toFixed(2)}`,
-          target: "Asymmetric Edge",
+          target: "Asymmetric Value",
           roi: `+${roi}% ROI`,
           prob: `${Math.round(yesAsk * 100)}% Implied`,
           score: 55 + Math.min(roi / 5, 45)
         };
-      } else if (noAsk <= 0.35 && noAsk >= 0.08) {
+      } else if (noAsk <= 0.44 && noAsk >= 0.08) {
         const roi = Math.round(((1.00 - noAsk) / noAsk) * 100);
         return {
           badgeClass: "consensus-value-buy",
           badgeText: "Value Buy NO",
           action: `BUY NO${targetEntity} @ $${noAsk.toFixed(2)}`,
-          target: "Asymmetric Edge",
+          target: "Asymmetric Value",
           roi: `+${roi}% ROI`,
           prob: `${Math.round(noAsk * 100)}% Implied`,
           score: 55 + Math.min(roi / 5, 45)
@@ -613,11 +616,11 @@
         if (rec) {
           candidates.push({
             title: item.title,
-            side: item.yesAsk >= 0.65 ? "YES" : "NO",
-            price: item.yesAsk >= 0.65 ? item.yesAsk : item.noAsk,
-            prob: Math.round((item.yesAsk >= 0.65 ? item.yesAsk : item.noAsk) * 100),
+            side: item.yesAsk >= 0.56 ? "YES" : "NO",
+            price: item.yesAsk >= 0.56 ? item.yesAsk : item.noAsk,
+            prob: Math.round((item.yesAsk >= 0.56 ? item.yesAsk : item.noAsk) * 100),
             platform: item.platform,
-            type: item.yesAsk >= 0.65 || item.noAsk >= 0.65 ? "Anchor Leg" : "Value Add-On",
+            type: item.yesAsk >= 0.56 || item.noAsk >= 0.56 ? "Anchor Leg" : "Value Add-On",
             candidate: item.candidate
           });
         }
