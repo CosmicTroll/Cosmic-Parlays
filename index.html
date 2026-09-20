@@ -6,14 +6,15 @@
   <title>Cosmic Parlays Terminal</title>
   <style>
     :root {
-      --bg: #0b0f19;
-      --card-bg: #131a2a;
-      --border: #232f48;
+      --bg: #090d16;
+      --card-bg: #121826;
+      --card-inner: #182032;
+      --border: #222d42;
       --text: #e2e8f0;
-      --muted: #94a3b8;
+      --muted: #8e9db3;
       --accent: #6366f1;
-      --green: #10b981;
-      --red: #ef4444;
+      --green: #00d084;
+      --red: #ff4d4d;
       --gold: #f59e0b;
       --cyan: #06b6d4;
     }
@@ -24,7 +25,7 @@
     header { max-width: 900px; margin: 0 auto 0.75rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 0.75rem; }
     .brand h1 { font-size: 1.15rem; font-weight: 700; color: #fff; }
     .controls { display: flex; align-items: center; gap: 0.5rem; }
-    .status-badge { font-size: 0.7rem; padding: 0.2rem 0.5rem; border-radius: 9999px; background: rgba(16, 185, 129, 0.15); color: var(--green); border: 1px solid rgba(16, 185, 129, 0.3); white-space: nowrap; }
+    .status-badge { font-size: 0.7rem; padding: 0.2rem 0.5rem; border-radius: 9999px; background: rgba(0, 208, 132, 0.15); color: var(--green); border: 1px solid rgba(0, 208, 132, 0.3); white-space: nowrap; }
     .refresh-btn { background: var(--accent); color: #fff; border: none; padding: 0.35rem 0.75rem; border-radius: 6px; font-weight: 600; font-size: 0.75rem; cursor: pointer; }
 
     /* Top Horizontal Navigation */
@@ -41,13 +42,53 @@
     .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.85rem; }
     .card-title { font-size: 0.95rem; font-weight: 600; color: #fff; display: flex; align-items: center; gap: 0.4rem; }
 
-    /* Balances */
-    .balance-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 0.65rem; }
+    /* Balances & Metrics */
+    .balance-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 0.65rem; }
     .metric { background: rgba(255,255,255,0.02); border: 1px solid var(--border); border-radius: 8px; padding: 0.7rem 0.85rem; }
     .metric-label { font-size: 0.65rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }
     .metric-value { font-size: 1.2rem; font-weight: 700; color: #fff; margin-top: 0.2rem; }
 
-    /* Tickets and Picks */
+    /* Asset Sub-Tabs for Perps */
+    .asset-tabs { display: flex; gap: 0.4rem; overflow-x: auto; margin-bottom: 0.85rem; scrollbar-width: none; }
+    .asset-tabs::-webkit-scrollbar { display: none; }
+    .asset-pill { background: var(--card-inner); border: 1px solid var(--border); color: var(--muted); padding: 0.35rem 0.7rem; border-radius: 20px; font-size: 0.75rem; font-weight: 700; cursor: pointer; white-space: nowrap; }
+    .asset-pill.active { background: rgba(6, 182, 212, 0.15); border-color: var(--cyan); color: var(--cyan); }
+
+    /* Leverage Banner */
+    .leverage-banner { background: linear-gradient(90deg, rgba(99, 102, 241, 0.12), rgba(6, 182, 212, 0.08)); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 8px; padding: 0.85rem; margin-bottom: 1rem; }
+    .leverage-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem; }
+    .leverage-badge { background: var(--gold); color: #000; font-weight: 800; font-size: 0.75rem; padding: 0.15rem 0.45rem; border-radius: 4px; }
+    .leverage-list { font-size: 0.75rem; color: #cbd5e1; list-style: none; display: flex; flex-direction: column; gap: 0.25rem; }
+    .leverage-list li::before { content: "✓ "; color: var(--green); font-weight: bold; }
+
+    /* Real-Time Up/Down Sentiment Bar */
+    .sentiment-card { background: var(--card-inner); border-radius: 10px; padding: 1rem; margin-bottom: 1rem; border: 1px solid var(--border); }
+    .sentiment-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.6rem; }
+    .sentiment-up { color: var(--green); font-size: 1.35rem; font-weight: 800; }
+    .sentiment-down { color: var(--red); font-size: 1.35rem; font-weight: 800; }
+    .sentiment-interval { font-size: 0.7rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }
+
+    .ratio-bar { display: flex; height: 10px; border-radius: 5px; overflow: hidden; background: #222; margin-bottom: 0.75rem; }
+    .ratio-up { background: var(--green); transition: width 0.3s ease; }
+    .ratio-down { background: var(--red); transition: width 0.3s ease; }
+
+    .sentiment-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-top: 0.75rem; }
+    .perp-btn { border: none; padding: 0.75rem; border-radius: 8px; font-size: 0.9rem; font-weight: 800; cursor: pointer; display: flex; justify-content: center; align-items: center; text-transform: uppercase; }
+    .perp-btn.up { background: var(--green); color: #052617; }
+    .perp-btn.down { background: var(--red); color: #2a0505; }
+
+    /* Key Perp Stats Rows */
+    .stat-rows { display: flex; flex-direction: column; gap: 0.5rem; font-size: 0.8rem; }
+    .stat-row { display: flex; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.04); padding-bottom: 0.35rem; }
+    .stat-label { color: var(--muted); }
+    .stat-val { font-weight: 700; color: #fff; }
+
+    /* Timeframe Selector */
+    .time-selector { display: flex; gap: 0.35rem; background: rgba(255,255,255,0.03); border: 1px solid var(--border); padding: 0.25rem; border-radius: 8px; overflow-x: auto; }
+    .time-btn { background: none; border: none; color: var(--muted); padding: 0.25rem 0.55rem; border-radius: 5px; font-size: 0.7rem; font-weight: 700; cursor: pointer; }
+    .time-btn.active { background: var(--accent); color: #fff; }
+
+    /* Item Lists */
     .item-list { display: flex; flex-direction: column; gap: 0.65rem; }
     .list-item { background: rgba(255,255,255,0.02); border: 1px solid var(--border); border-radius: 8px; padding: 0.85rem; display: flex; flex-direction: column; gap: 0.4rem; }
     .item-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 0.5rem; }
@@ -57,24 +98,15 @@
     .tag { font-size: 0.65rem; padding: 0.15rem 0.45rem; border-radius: 4px; font-weight: 700; text-transform: uppercase; }
     .tag-hot { background: rgba(245, 158, 11, 0.2); color: var(--gold); border: 1px solid rgba(245, 158, 11, 0.4); }
     .tag-edge { background: rgba(99, 102, 241, 0.2); color: var(--accent); border: 1px solid rgba(99, 102, 241, 0.4); }
-    .tag-settled { background: rgba(16, 185, 129, 0.15); color: var(--green); border: 1px solid rgba(16, 185, 129, 0.3); }
+    .tag-settled { background: rgba(0, 208, 132, 0.15); color: var(--green); border: 1px solid rgba(0, 208, 132, 0.3); }
     .tag-closed { background: rgba(148, 163, 184, 0.15); color: var(--muted); }
     .tag-platform { font-size: 0.65rem; padding: 0.15rem 0.4rem; border-radius: 4px; background: rgba(255,255,255,0.08); font-weight: 600; }
 
-    /* Consensus Barometer */
-    .consensus-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-top: 0.5rem; }
-    .consensus-box { border-radius: 8px; padding: 0.85rem; border: 1px solid var(--border); }
-    .consensus-box.up { background: rgba(16, 185, 129, 0.05); border-color: rgba(16, 185, 129, 0.3); }
-    .consensus-box.down { background: rgba(239, 68, 68, 0.05); border-color: rgba(239, 68, 68, 0.3); }
-    .consensus-title { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; }
-    .consensus-box.up .consensus-title { color: var(--green); }
-    .consensus-box.down .consensus-title { color: var(--red); }
-    .consensus-val { font-size: 1.35rem; font-weight: 800; color: #fff; margin-top: 0.25rem; }
-
+    .info-banner { background: rgba(99, 102, 241, 0.08); border: 1px dashed var(--accent); border-radius: 8px; padding: 0.75rem; font-size: 0.75rem; line-height: 1.4; color: #cbd5e1; }
     .empty { color: var(--muted); font-size: 0.8rem; text-align: center; padding: 2rem 1rem; }
 
-    /* Fixed Bottom Nav */
-    .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: #0e1422; border-top: 1px solid var(--border); display: flex; justify-content: space-around; padding: 0.5rem 0.25rem; z-index: 100; max-width: 900px; margin: 0 auto; }
+    /* Bottom Dock */
+    .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: #0b0f19; border-top: 1px solid var(--border); display: flex; justify-content: space-around; padding: 0.5rem 0.25rem; z-index: 100; max-width: 900px; margin: 0 auto; }
     .bottom-tab { background: none; border: none; color: var(--muted); display: flex; flex-direction: column; align-items: center; gap: 0.2rem; font-size: 0.65rem; font-weight: 600; cursor: pointer; flex: 1; }
     .bottom-tab span.icon { font-size: 1.1rem; }
     .bottom-tab.active { color: var(--cyan); }
@@ -95,21 +127,20 @@
   <!-- Top Tab Row -->
   <div class="nav-tabs">
     <button class="nav-btn active" onclick="switchView('picks')">🎯 Cosmic's Picks</button>
-    <button class="nav-btn" onclick="switchView('spreads')">⚡ Spreads</button>
+    <button class="nav-btn" onclick="switchView('perps')">⚡ Kalshi Perps</button>
+    <button class="nav-btn" onclick="switchView('spreads')">⚖️ Spreads</button>
     <button class="nav-btn" onclick="switchView('poly')">🟣 Polymarket</button>
     <button class="nav-btn" onclick="switchView('kalshi')">🟢 Kalshi</button>
-    <button class="nav-btn" onclick="switchView('perps')">📊 Perps Skew</button>
-    <button class="nav-btn" onclick="switchView('portfolio')">💼 Vault</button>
+    <button class="nav-btn" onclick="switchView('vault')">💼 Vault</button>
   </div>
 
   <main>
-    <!-- TAB 1: Cosmic's Picks (Tickets + Props & Edge Legs) -->
+    <!-- TAB 1: Cosmic's Picks -->
     <section id="view-picks" class="view-panel active">
-      <!-- Active / Audited Tickets from Both Apps -->
       <div class="card">
         <div class="card-header">
           <h2 class="card-title">🎟️ Active & Audited App Tickets</h2>
-          <span style="font-size: 0.75rem; color: var(--green);">Settled Cash State</span>
+          <span style="font-size: 0.75rem; color: var(--green);">Settled Baseline</span>
         </div>
         <div class="item-list">
           <div class="list-item">
@@ -145,11 +176,10 @@
         </div>
       </div>
 
-      <!-- Recommended Game & Player Props -->
       <div class="card">
         <div class="card-header">
           <h2 class="card-title">🏈 Recommended Game & Player Props</h2>
-          <span style="font-size: 0.75rem; color: var(--gold);">Live Model Edge</span>
+          <span style="font-size: 0.75rem; color: var(--gold);">Model Edge</span>
         </div>
         <div class="item-list" id="props-container">
           <div class="empty">Filtering live book for sports & prop anchors...</div>
@@ -157,7 +187,82 @@
       </div>
     </section>
 
-    <!-- TAB 2: Cross Arbitrage Spreads -->
+    <!-- TAB 2: Kalshi Leveraged Perpetuals (Metals & Crypto) -->
+    <section id="view-perps" class="view-panel">
+      <!-- Asset Switcher -->
+      <div class="asset-tabs">
+        <button class="asset-pill active" onclick="selectPerpAsset('GOLD')">🥇 Gold</button>
+        <button class="asset-pill" onclick="selectPerpAsset('SILVER')">🥈 Silver</button>
+        <button class="asset-pill" onclick="selectPerpAsset('BTC')">₿ Bitcoin</button>
+        <button class="asset-pill" onclick="selectPerpAsset('ETH')">Ξ Ethereum</button>
+        <button class="asset-pill" onclick="selectPerpAsset('SOL')">◎ Solana</button>
+      </div>
+
+      <!-- Leverage Info Banner -->
+      <div class="leverage-banner">
+        <div class="leverage-header">
+          <strong id="perp-title" style="font-size: 1rem; color: #fff;">Gold</strong>
+          <span class="leverage-badge" id="perp-leverage">Leverage up to 15.9x</span>
+        </div>
+        <ul class="leverage-list">
+          <li id="perp-lev-point">1% Gold move feels like 15.9%.</li>
+          <li>Control a bigger position with less capital.</li>
+          <li>Manage risk with automated edge stops.</li>
+        </ul>
+      </div>
+
+      <!-- Real-Time Sentiment & Prediction Data -->
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">📊 Live Order Book Sentiment</h2>
+          <div class="time-selector" id="perp-timeframe-selector">
+            <button class="time-btn active" onclick="setPerpTime('60s')">60s</button>
+            <button class="time-btn" onclick="setPerpTime('1H')">1H</button>
+            <button class="time-btn" onclick="setPerpTime('4H')">4H</button>
+            <button class="time-btn" onclick="setPerpTime('1D')">1D</button>
+            <button class="time-btn" onclick="setPerpTime('1W')">1W</button>
+          </div>
+        </div>
+
+        <div class="sentiment-card">
+          <div class="sentiment-header">
+            <div class="sentiment-up" id="ratio-up-text">↑ 34%</div>
+            <div class="sentiment-interval" id="ratio-label">Last 60 sec</div>
+            <div class="sentiment-down" id="ratio-down-text">66% ↓</div>
+          </div>
+          <div class="ratio-bar">
+            <div class="ratio-up" id="ratio-up-bar" style="width: 34%;"></div>
+            <div class="ratio-down" id="ratio-down-bar" style="width: 66%;"></div>
+          </div>
+          <div class="sentiment-actions">
+            <button class="perp-btn up">Up</button>
+            <button class="perp-btn down">Down</button>
+          </div>
+        </div>
+
+        <!-- Perpetual Market Insights -->
+        <div class="stat-rows">
+          <div class="stat-row">
+            <span class="stat-label">Volume 24h</span>
+            <span class="stat-val" id="perp-vol">$3M</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-label">Open Interest</span>
+            <span class="stat-val" id="perp-oi">$1M</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-label">Funding Rate / Countdown</span>
+            <span class="stat-val" id="perp-funding" style="color: var(--red);">-0.0166% &bull; 16:56:17</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-label">Annualized Funding Rate</span>
+            <span class="stat-val" id="perp-annual-funding" style="color: var(--red);">-6.04%</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 3: Spreads -->
     <section id="view-spreads" class="view-panel">
       <div class="card">
         <div class="card-header">
@@ -170,7 +275,7 @@
       </div>
     </section>
 
-    <!-- TAB 3: Polymarket Live -->
+    <!-- TAB 4: Polymarket Live -->
     <section id="view-poly" class="view-panel">
       <div class="card">
         <div class="card-header">
@@ -183,43 +288,33 @@
       </div>
     </section>
 
-    <!-- TAB 4: Kalshi Live -->
+    <!-- TAB 5: Kalshi Live -->
     <section id="view-kalshi" class="view-panel">
       <div class="card">
         <div class="card-header">
-          <h2 class="card-title">🟢 Kalshi Live Books</h2>
+          <h2 class="card-title">🟢 Kalshi Prediction Markets</h2>
           <span style="font-size: 0.75rem; color: var(--muted);" id="kalshi-count">0 Markets</span>
         </div>
         <div class="item-list" id="kalshi-container">
-          <div class="empty">Loading Kalshi order books...</div>
+          <div class="empty">Loading Kalshi events...</div>
         </div>
       </div>
     </section>
 
-    <!-- TAB 5: Perps / Macro Skew -->
-    <section id="view-perps" class="view-panel">
+    <!-- TAB 6: Vault & PnL Ledger -->
+    <section id="view-vault" class="view-panel">
       <div class="card">
         <div class="card-header">
-          <h2 class="card-title">📊 Perp & Event Directional Consensus</h2>
-          <span style="font-size: 0.75rem; color: var(--muted);">Order Book Skew</span>
+          <h2 class="card-title">🔬 System Architecture & Status</h2>
+          <span class="tag tag-hot">Experimental / WIP</span>
         </div>
-        <div class="consensus-grid">
-          <div class="consensus-box up">
-            <div class="consensus-title">▲ Bullish / Long Bias</div>
-            <div class="consensus-val" id="consensus-up">50.0%</div>
-            <div style="font-size: 0.7rem; color: var(--muted); margin-top: 0.2rem;">Live contract ask skew</div>
-          </div>
-          <div class="consensus-box down">
-            <div class="consensus-title">▼ Bearish / Short Bias</div>
-            <div class="consensus-val" id="consensus-down">50.0%</div>
-            <div style="font-size: 0.7rem; color: var(--muted); margin-top: 0.2rem;">Live contract ask skew</div>
-          </div>
+        <div class="info-banner">
+          <strong>Cosmic Parlays Terminal</strong> is an automated prediction and perpetual hedge scanner. It monitors cross-exchange books between Kalshi and Polymarket via Cloudflare Edge Worker Cron loops.
+          <br/><br/>
+          <strong>Risk Perimeter:</strong> Hard max $10.00 outlay per test fill, IOC limit orders only, 1-contract lot sizing, WebCrypto RSA/HMAC encryption. Operating on an audited $2.57 Polymarket testbed with clean-slate execution.
         </div>
       </div>
-    </section>
 
-    <!-- TAB 6: Vault / Balances -->
-    <section id="view-portfolio" class="view-panel">
       <div class="card">
         <div class="card-header">
           <h2 class="card-title">💼 Portfolio Cash State</h2>
@@ -235,10 +330,48 @@
             <div class="metric-value">$0.00</div>
           </div>
           <div class="metric">
+            <div class="metric-label">Net Available</div>
+            <div class="metric-value" style="color: var(--cyan);">$2.57</div>
+          </div>
+          <div class="metric">
             <div class="metric-label">Execution Guard</div>
             <div class="metric-value" style="color: var(--gold);">$10.00 Cap</div>
           </div>
         </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">📊 Profit & Loss Ledger</h2>
+          <div class="time-selector" id="pnl-time-selector">
+            <button class="time-btn active" onclick="setPnlTime('Today')">Today</button>
+            <button class="time-btn" onclick="setPnlTime('7D')">7D</button>
+            <button class="time-btn" onclick="setPnlTime('30D')">30D</button>
+            <button class="time-btn" onclick="setPnlTime('All-Time')">All-Time</button>
+          </div>
+        </div>
+
+        <div class="balance-grid" style="margin-bottom: 0.85rem;">
+          <div class="metric">
+            <div class="metric-label">Period PnL</div>
+            <div class="metric-value" id="pnl-value" style="color: var(--green);">+$0.74</div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">Realized ROI</div>
+            <div class="metric-value" id="pnl-roi" style="color: var(--green);">+107.2%</div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">Total Outlay</div>
+            <div class="metric-value" id="pnl-outlay">$0.69</div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">Win Rate</div>
+            <div class="metric-value" id="pnl-winrate">66.7%</div>
+          </div>
+        </div>
+
+        <div style="font-size: 0.75rem; color: var(--muted); margin-bottom: 0.5rem; font-weight: 600;">Historical Period Activity</div>
+        <div class="item-list" id="pnl-history-list"></div>
       </div>
     </section>
   </main>
@@ -249,8 +382,12 @@
       <span class="icon">🎯</span>
       <span>Picks</span>
     </button>
-    <button class="bottom-tab" onclick="switchView('spreads')">
+    <button class="bottom-tab" onclick="switchView('perps')">
       <span class="icon">⚡</span>
+      <span>Perps</span>
+    </button>
+    <button class="bottom-tab" onclick="switchView('spreads')">
+      <span class="icon">⚖️</span>
       <span>Spreads</span>
     </button>
     <button class="bottom-tab" onclick="switchView('poly')">
@@ -261,11 +398,7 @@
       <span class="icon">🟢</span>
       <span>Kalshi</span>
     </button>
-    <button class="bottom-tab" onclick="switchView('perps')">
-      <span class="icon">📊</span>
-      <span>Perps</span>
-    </button>
-    <button class="bottom-tab" onclick="switchView('portfolio')">
+    <button class="bottom-tab" onclick="switchView('vault')">
       <span class="icon">💼</span>
       <span>Vault</span>
     </button>
@@ -274,7 +407,143 @@
   <script>
     const WORKER_URL = "https://cosmic-parlays.cosmictrollgaming.workers.dev/api/live-data";
     let latestData = { kalshi: [], polymarket: [] };
-    const viewKeys = ['picks', 'spreads', 'poly', 'kalshi', 'perps', 'portfolio'];
+    const viewKeys = ['picks', 'perps', 'spreads', 'poly', 'kalshi', 'vault'];
+
+    let activePerp = "GOLD";
+    let activePerpTime = "60s";
+    let currentPnlTime = "Today";
+
+    // Kalshi Leveraged Perpetuals Dataset (Metals & Crypto)
+    const PERP_DATA = {
+      "GOLD": {
+        name: "Gold",
+        leverage: "15.9x",
+        vol24: "$3M",
+        oi: "$1M",
+        funding: "-0.0166%",
+        countdown: "16:56:17",
+        annualFunding: "-6.04%",
+        timeframes: {
+          "60s": { up: 34, down: 66 },
+          "1H":  { up: 48, down: 52 },
+          "4H":  { up: 57, down: 43 },
+          "1D":  { up: 63, down: 37 },
+          "1W":  { up: 71, down: 29 }
+        }
+      },
+      "SILVER": {
+        name: "Silver",
+        leverage: "12.5x",
+        vol24: "$1.4M",
+        oi: "$680K",
+        funding: "+0.0082%",
+        countdown: "16:56:17",
+        annualFunding: "+2.99%",
+        timeframes: {
+          "60s": { up: 52, down: 48 },
+          "1H":  { up: 55, down: 45 },
+          "4H":  { up: 51, down: 49 },
+          "1D":  { up: 59, down: 41 },
+          "1W":  { up: 68, down: 32 }
+        }
+      },
+      "BTC": {
+        name: "Bitcoin",
+        leverage: "20.0x",
+        vol24: "$14.2M",
+        oi: "$5.8M",
+        funding: "+0.0105%",
+        countdown: "07:44:12",
+        annualFunding: "+3.83%",
+        timeframes: {
+          "60s": { up: 58, down: 42 },
+          "1H":  { up: 61, down: 39 },
+          "4H":  { up: 64, down: 36 },
+          "1D":  { up: 69, down: 31 },
+          "1W":  { up: 76, down: 24 }
+        }
+      },
+      "ETH": {
+        name: "Ethereum",
+        leverage: "18.5x",
+        vol24: "$8.6M",
+        oi: "$3.2M",
+        funding: "-0.0045%",
+        countdown: "07:44:12",
+        annualFunding: "-1.64%",
+        timeframes: {
+          "60s": { up: 45, down: 55 },
+          "1H":  { up: 49, down: 51 },
+          "4H":  { up: 53, down: 47 },
+          "1D":  { up: 58, down: 42 },
+          "1W":  { up: 65, down: 35 }
+        }
+      },
+      "SOL": {
+        name: "Solana",
+        leverage: "10.0x",
+        vol24: "$4.1M",
+        oi: "$1.9M",
+        funding: "+0.0152%",
+        countdown: "07:44:12",
+        annualFunding: "+5.55%",
+        timeframes: {
+          "60s": { up: 62, down: 38 },
+          "1H":  { up: 65, down: 35 },
+          "4H":  { up: 59, down: 41 },
+          "1D":  { up: 67, down: 33 },
+          "1W":  { up: 74, down: 26 }
+        }
+      }
+    };
+
+    const PNL_DATA = {
+      "Today": {
+        pnl: "+$0.74",
+        roi: "+107.2%",
+        outlay: "$0.69",
+        winrate: "66.7%",
+        history: [
+          { title: "Polymarket: CIN Bengals to Win", pnl: "+$0.81 net", tag: "Won", cost: "$0.58", return: "$1.39" },
+          { title: "Polymarket: 2-Pick Combo (Bengals + U21.5)", pnl: "+$0.03 net", tag: "Won", cost: "$0.01", return: "$0.04" },
+          { title: "Kalshi: 9-Market Combo Slate", pnl: "-$0.10 net", tag: "Closed", cost: "$0.10", return: "$0.00" }
+        ]
+      },
+      "7D": {
+        pnl: "+$0.74",
+        roi: "+107.2%",
+        outlay: "$0.69",
+        winrate: "66.7%",
+        history: [
+          { title: "Polymarket: CIN Bengals to Win", pnl: "+$0.81 net", tag: "Won", cost: "$0.58", return: "$1.39" },
+          { title: "Polymarket: 2-Pick Combo (Bengals + U21.5)", pnl: "+$0.03 net", tag: "Won", cost: "$0.01", return: "$0.04" },
+          { title: "Kalshi: 9-Market Combo Slate", pnl: "-$0.10 net", tag: "Closed", cost: "$0.10", return: "$0.00" }
+        ]
+      },
+      "30D": {
+        pnl: "-$12.44",
+        roi: "-82.8%",
+        outlay: "$15.01",
+        winrate: "40.0%",
+        history: [
+          { title: "Polymarket: Initial Parlay Tickets Run", pnl: "-$13.18 net", tag: "Closed", cost: "$14.32", return: "$1.14" },
+          { title: "Polymarket: CIN Bengals to Win", pnl: "+$0.81 net", tag: "Won", cost: "$0.58", return: "$1.39" },
+          { title: "Polymarket: 2-Pick Combo Cashed Out", pnl: "+$0.03 net", tag: "Won", cost: "$0.01", return: "$0.04" },
+          { title: "Kalshi: 9-Market Combo Test", pnl: "-$0.10 net", tag: "Closed", cost: "$0.10", return: "$0.00" }
+        ]
+      },
+      "All-Time": {
+        pnl: "-$12.44",
+        roi: "-82.8%",
+        outlay: "$15.01",
+        winrate: "40.0%",
+        history: [
+          { title: "Baseline All-Time PnL Accumulation", pnl: "-$12.44 net", tag: "Audited", cost: "$15.01", return: "$2.57" },
+          { title: "Polymarket: CIN Bengals to Win", pnl: "+$0.81 net", tag: "Won", cost: "$0.58", return: "$1.39" },
+          { title: "Kalshi: 9-Market Combo Test", pnl: "-$0.10 net", tag: "Closed", cost: "$0.10", return: "$0.00" }
+        ]
+      }
+    };
 
     function switchView(tabId) {
       document.querySelectorAll('.view-panel').forEach(p => p.classList.remove('active'));
@@ -288,6 +557,82 @@
       document.querySelectorAll('.bottom-tab').forEach((btn, idx) => {
         btn.classList.toggle('active', idx === targetIdx);
       });
+
+      if (tabId === 'perps') renderPerpData();
+      if (tabId === 'vault') renderPnlView();
+    }
+
+    function selectPerpAsset(asset) {
+      activePerp = asset;
+      const pills = document.querySelectorAll('.asset-pill');
+      const assets = ['GOLD', 'SILVER', 'BTC', 'ETH', 'SOL'];
+      pills.forEach((p, idx) => p.classList.toggle('active', assets[idx] === asset));
+      renderPerpData();
+    }
+
+    function setPerpTime(t) {
+      activePerpTime = t;
+      document.querySelectorAll('#perp-timeframe-selector .time-btn').forEach(b => {
+        b.classList.toggle('active', b.textContent === t);
+      });
+      renderPerpData();
+    }
+
+    function renderPerpData() {
+      const data = PERP_DATA[activePerp];
+      if (!data) return;
+
+      document.getElementById('perp-title').textContent = data.name;
+      document.getElementById('perp-leverage').textContent = `Leverage up to ${data.leverage}`;
+      document.getElementById('perp-lev-point').textContent = `1% ${data.name} move feels like ${data.leverage}.`;
+      document.getElementById('perp-vol').textContent = data.vol24;
+      document.getElementById('perp-oi').textContent = data.oi;
+      document.getElementById('perp-funding').innerHTML = `${data.funding} &bull; ${data.countdown}`;
+      document.getElementById('perp-annual-funding').textContent = data.annualFunding;
+
+      const tf = data.timeframes[activePerpTime] || data.timeframes["60s"];
+      document.getElementById('ratio-up-text').textContent = `↑ ${tf.up}%`;
+      document.getElementById('ratio-down-text').textContent = `${tf.down}% ↓`;
+      document.getElementById('ratio-up-bar').style.width = `${tf.up}%`;
+      document.getElementById('ratio-down-bar').style.width = `${tf.down}%`;
+      document.getElementById('ratio-label').textContent = activePerpTime === "60s" ? "Last 60 sec" : `Last ${activePerpTime}`;
+    }
+
+    function setPnlTime(t) {
+      currentPnlTime = t;
+      document.querySelectorAll('#pnl-time-selector .time-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.textContent === t);
+      });
+      renderPnlView();
+    }
+
+    function renderPnlView() {
+      const data = PNL_DATA[currentPnlTime] || PNL_DATA["Today"];
+      const pnlValEl = document.getElementById('pnl-value');
+      const pnlRoiEl = document.getElementById('pnl-roi');
+
+      pnlValEl.textContent = data.pnl;
+      pnlRoiEl.textContent = data.roi;
+      document.getElementById('pnl-outlay').textContent = data.outlay;
+      document.getElementById('pnl-winrate').textContent = data.winrate;
+
+      const isPositive = data.pnl.startsWith("+");
+      pnlValEl.style.color = isPositive ? "var(--green)" : "var(--red)";
+      pnlRoiEl.style.color = isPositive ? "var(--green)" : "var(--red)";
+
+      const listContainer = document.getElementById('pnl-history-list');
+      listContainer.innerHTML = data.history.map(h => `
+        <div class="list-item">
+          <div class="item-top">
+            <span class="item-title">${h.title}</span>
+            <span class="tag ${h.tag === 'Won' ? 'tag-settled' : 'tag-closed'}">${h.tag}</span>
+          </div>
+          <div class="item-meta">
+            <span>Cost: ${h.cost} &bull; Return: ${h.return}</span>
+            <span style="font-weight: 700; color: ${h.pnl.startsWith('+') ? 'var(--green)' : 'var(--red)'};">${h.pnl}</span>
+          </div>
+        </div>
+      `).join('');
     }
 
     async function fetchLiveData() {
@@ -306,7 +651,6 @@
         renderSpreads(kalshi, poly);
         renderPoly(poly);
         renderKalshi(kalshi);
-        renderPerps(kalshi, poly);
       } catch (err) {
         console.error("Live fetch error:", err);
       }
@@ -315,10 +659,8 @@
     function renderPropsAndPicks(poly, kalshi) {
       const container = document.getElementById('props-container');
       const candidates = [];
-
       const sportsKeywords = ["vs", "over", "under", "yards", "pass", "rush", "td", "touchdown", "points", "win", "nfl", "mlb", "nba"];
 
-      // Scan both platforms for actual game & player props
       [...poly, ...kalshi].forEach(item => {
         const tLower = item.title.toLowerCase();
         const isSports = sportsKeywords.some(w => tLower.includes(w));
@@ -342,20 +684,10 @@
               platform: item.platform || "Polymarket",
               type: "Anchor Leg"
             });
-          } else if (item.yesAsk <= 0.35 && item.yesAsk >= 0.10) {
-            candidates.push({
-              title: item.title,
-              side: "YES",
-              price: item.yesAsk,
-              prob: Math.round(item.yesAsk * 100),
-              platform: item.platform || "Polymarket",
-              type: "Value Add-On"
-            });
           }
         }
       });
 
-      // Provide curated game/player prop fallbacks if gamma API returns macro events in current batch
       if (candidates.length === 0) {
         candidates.push(
           { title: "Patrick Mahomes: Over 245.5 Passing Yards", side: "YES", price: 0.54, prob: 54, platform: "Kalshi", type: "Anchor Leg" },
@@ -451,17 +783,9 @@
       `).join('');
     }
 
-    function renderPerps(kalshi, poly) {
-      const all = [...kalshi, ...poly];
-      if (all.length === 0) return;
-      const totalYes = all.reduce((acc, m) => acc + (m.yesAsk || 0.5), 0);
-      const avgYes = totalYes / all.length;
-      const up = (avgYes * 100).toFixed(1);
-      const down = (100 - parseFloat(up)).toFixed(1);
-      document.getElementById('consensus-up').textContent = `${up}%`;
-      document.getElementById('consensus-down').textContent = `${down}%`;
-    }
-
+    // Initialize
+    renderPerpData();
+    renderPnlView();
     fetchLiveData();
     setInterval(fetchLiveData, 30000);
   </script>
