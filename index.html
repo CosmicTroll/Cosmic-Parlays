@@ -173,7 +173,7 @@
       <a href="https://ko-fi.com/cosmictroll" target="_blank" rel="noopener noreferrer" class="support-btn">
         ☕ <span>Support</span>
       </a>
-      <span class="status-badge" id="bot-status">Edge Engine Active</span>
+      <span class="status-badge" id="bot-status">Hybrid Engine Active</span>
       <button class="refresh-btn" onclick="fetchLiveData(true)">Refresh</button>
     </div>
   </header>
@@ -248,10 +248,10 @@
       <div class="card">
         <div class="card-header">
           <h2 class="card-title">🎮 Complete Esports Desk (CS2, LoL, Dota, Valorant)</h2>
-          <span style="font-size: 0.75rem; color: var(--purple);" id="esports-full-count">0 Markets</span>
+          <span style="font-size: 0.75rem; color: var(--purple);" id="esports-full-count">0 Matches</span>
         </div>
         <p style="font-size: 0.75rem; color: var(--muted); margin-bottom: 0.85rem;">
-          Real-time tournament match lines ranked by calculated edge across competitive gaming.
+          Real-time series & map lines ranked by probability and edge across major events.
         </p>
         <div class="item-list" id="esports-full-container">
           <div class="empty">Loading esports matches...</div>
@@ -578,14 +578,14 @@
       return t.length > 70 ? t.slice(0, 67) + '...' : t;
     }
 
-    // STRICT ESPORTS MATCHER: Explicit blacklist against politics/geopolitics
+    // Accurate Esports Detection
     function isEsportsMarket(item) {
       const full = ((item.title || '') + ' ' + (item.candidate || '')).toLowerCase();
       if (/election|president|presidential|senate|house|governor|prime minister|minister|war|ceasefire|ukraine|russia|brazil|putin|zelenskyy|biden|trump|bolsonaro/i.test(full)) {
         return false;
       }
-      return /\b(cs2|csgo|counter-strike|dota|dota2|valorant|starcraft|rocket league|rainbow six|r6|overwatch|iem|blast|vct)\b/i.test(full) ||
-             (full.includes("league of legends") && !full.includes("election"));
+      return /\b(cs2|csgo|counter-strike|dota|dota2|valorant|starcraft|rocket league|rainbow six|r6|overwatch|iem|blast|vct|lcs|lck|lpl|lec)\b/i.test(full) ||
+             (full.includes("lol:") || full.includes("league of legends"));
     }
 
     function setSortOrder(order) {
@@ -815,21 +815,102 @@
       };
     }
 
+    // Direct client-side fetch from the user's browser (bypasses data-center IP blocks)
+    async function fetchKalshiDirect() {
+      const endpoints = [
+        "https://api.elections.kalshi.com/trade-api/v2/events?limit=80&status=open",
+        "https://trading-api.kalshi.com/trade-api/v2/events?limit=80&status=open"
+      ];
+
+      for (const url of endpoints) {
+        try {
+          const res = await fetch(url, { headers: { "Accept": "application/json" } });
+          if (!res.ok) continue;
+          const data = await res.json();
+          const events = data.events || [];
+          if (!events.length) continue;
+
+          const clean = [];
+          const currentYear = new Date().getUTCFullYear();
+
+          events.forEach(ev => {
+            (ev.markets || []).forEach(m => {
+              if ((m.title || "").includes(",yes") || (m.title || "").includes(",no")) return;
+
+              // Filter out 2070/2099 ghost markets
+              if (m.expiration_time) {
+                const expYear = new Date(m.expiration_time).getUTCFullYear();
+                if (expYear > currentYear + 1) return;
+              }
+
+              let yesCents = null;
+              if (typeof m.yes_ask === 'number' && m.yes_ask > 0) yesCents = m.yes_ask;
+              else if (typeof m.no_bid === 'number' && m.no_bid > 0) yesCents = 100 - m.no_bid;
+              else if (typeof m.last_price === 'number' && m.last_price > 0) yesCents = m.last_price;
+              else if (typeof m.yes_bid === 'number' && m.yes_bid > 0) yesCents = m.yes_bid + 2;
+
+              if (!yesCents) return;
+
+              let noCents = (typeof m.no_ask === 'number' && m.no_ask > 0) ? m.no_ask : (100 - yesCents);
+              let yesAsk = Number((yesCents / 100).toFixed(2));
+              let noAsk = Number((noCents / 100).toFixed(2));
+
+              if (yesAsk <= 0.01 || yesAsk >= 0.99) return;
+
+              const t = (ev.title || m.title || "").toLowerCase();
+              let cat = "MACRO";
+              if (/\b(election|president|presidential|senate|house|governor|democrat|republican|trump|harris|biden)\b/i.test(t)) {
+                cat = "POLITICS";
+              } else if (/\b(nfl|nba|mlb|nhl|soccer|points|touchdown)\b/i.test(t)) {
+                cat = "SPORTS";
+              }
+
+              clean.push({
+                id: m.ticker,
+                title: ev.title || m.title || m.ticker,
+                candidate: m.subtitle || m.yes_sub_title || "Consensus",
+                platform: "KALSHI",
+                category: cat,
+                yesAsk: yesAsk,
+                noAsk: noAsk,
+                volume: m.volume_24h || m.volume || ev.volume || 0,
+                endDate: m.expiration_time || m.close_time || null
+              });
+            });
+          });
+
+          if (clean.length > 0) return clean;
+        } catch (e) {
+          console.warn("Direct Kalshi query note:", e);
+        }
+      }
+      return [];
+    }
+
     async function fetchLiveData(isManualBypass = false) {
       try {
         const targetUrl = isManualBypass 
           ? `${WORKER_URL}?t=${Date.now()}` 
           : WORKER_URL;
 
-        const res = await fetch(targetUrl);
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const data = await res.json();
-        
-        if (data && typeof data === 'object') {
-          latestData.kalshi = Array.isArray(data.kalshi) ? data.kalshi : [];
+        const [workerRes, kalshiDirect] = await Promise.allSettled([
+          fetch(targetUrl).then(r => r.json()),
+          fetchKalshiDirect()
+        ]);
+
+        if (workerRes.status === "fulfilled" && workerRes.value) {
+          const data = workerRes.value;
           latestData.polymarket = Array.isArray(data.polymarket) ? data.polymarket : [];
+          if (Array.isArray(data.kalshi) && data.kalshi.length > 0) {
+            latestData.kalshi = data.kalshi;
+          }
           if (data.perps) latestData.perps = data.perps;
           if (data.portfolio) latestData.portfolio = data.portfolio;
+        }
+
+        // Merge direct browser Kalshi feed if available
+        if (kalshiDirect.status === "fulfilled" && Array.isArray(kalshiDirect.value) && kalshiDirect.value.length > 0) {
+          latestData.kalshi = kalshiDirect.value;
         }
       } catch (err) {
         console.warn("Live fetch fallback:", err);
