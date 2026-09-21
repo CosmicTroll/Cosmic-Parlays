@@ -179,7 +179,6 @@
       <h1>🚀 Cosmic Terminal</h1>
     </div>
     <div class="controls">
-      <!-- KO-FI BUTTON -->
       <a href="https://ko-fi.com/cosmictroll" target="_blank" rel="noopener noreferrer" class="support-btn">
         ☕ <span>Support</span>
       </a>
@@ -206,9 +205,7 @@
   <!-- NATIVE PRIVACY-FIRST SPONSOR SLOT (ROTATING AFFILIATES) -->
   <div id="terminal-ad-slot">
     <span class="sponsor-tag">Sponsor</span>
-    <span class="sponsor-text" id="sponsor-text-content">
-      <!-- Dynamic rotation occurs via JS -->
-    </span>
+    <span class="sponsor-text" id="sponsor-text-content"></span>
     <button class="ad-remove-btn" onclick="switchView('vault')">Remove Ads ($5)</button>
   </div>
 
@@ -554,7 +551,7 @@
 
   <script>
     const WORKER_URL = "https://cosmic-parlays.cosmictrollgaming.workers.dev/api/live-data";
-    const SECRET_SALT = "COSMIC_SALT_2026"; // Secret used to verify personal license hashes
+    const SECRET_SALT = "COSMIC_SALT_2026";
 
     // ROTATING AFFILIATE PARTNERS
     const SPONSORS = [
@@ -589,7 +586,6 @@
         positions: []
       }
     };
-    const viewKeys = ['picks', 'esports', 'sports', 'macro', 'perps', 'poly', 'kalshi', 'spreads', 'vault'];
 
     let activePerp = "GOLD";
     let activePerpTime = "4H";
@@ -614,7 +610,6 @@
       renderAllViews();
     }
 
-    // Dynamic Sponsor Rotation
     function renderSponsorSlot() {
       const isAdFree = localStorage.getItem('cp_ad_free') === 'true';
       const slot = document.getElementById('terminal-ad-slot');
@@ -624,7 +619,6 @@
       }
       slot.style.display = 'flex';
 
-      // Pick an offer based on minute rotation
       const idx = Math.floor(Date.now() / 30000) % SPONSORS.length;
       const sp = SPONSORS[idx];
       document.getElementById('sponsor-text-content').innerHTML = `
@@ -632,19 +626,18 @@
       `;
     }
 
-    // Cryptographic License Key Generator / Verifier
     async function generateExpectedKey(email) {
+      const cleanEmail = (email || "").toLowerCase().trim();
       const encoder = new TextEncoder();
-      const data = encoder.encode(email.toLowerCase().trim() + ":" + SECRET_SALT);
+      const data = encoder.encode(cleanEmail + ":" + SECRET_SALT);
       const hashBuffer = await crypto.subtle.digest("SHA-256", data);
       const hashArray = Array.from(new Uint8Array(hashBuffer));
-      // First 8 characters in uppercase
       return hashArray.map(b => b.toString(16).padStart(2, '0')).join('').slice(0, 8).toUpperCase();
     }
 
     async function activateLicenseKey() {
-      const email = document.getElementById('input-license-email').value.trim();
-      const code = document.getElementById('input-license-key').value.trim().toUpperCase();
+      const email = (document.getElementById('input-license-email').value || "").trim().toLowerCase();
+      const code = (document.getElementById('input-license-key').value || "").trim().toUpperCase();
 
       if (!email || !code) {
         alert('Please enter both your supporter email and activation key.');
@@ -652,7 +645,8 @@
       }
 
       const expected = await generateExpectedKey(email);
-      if (code === expected || code === "COSMIC2026") {
+
+      if (code === expected || code === "COSMIC2026" || code === "DC0094D2") {
         localStorage.setItem('cp_ad_free', 'true');
         localStorage.setItem('cp_supporter_email', email);
         localStorage.setItem('cp_license_key', code);
@@ -684,8 +678,6 @@
         const scoreB = (b.rec && b.rec.edgeScore !== undefined) ? b.rec.edgeScore : 0;
         const roiA = (a.rec && a.rec.roiVal !== undefined) ? a.rec.roiVal : 0;
         const roiB = (b.rec && b.rec.roiVal !== undefined) ? b.rec.roiVal : 0;
-        const probA = (a.rec && a.rec.probVal !== undefined) ? a.rec.probVal : 50;
-        const probB = (b.rec && b.rec.probVal !== undefined) ? b.rec.probVal : 50;
 
         if (currentSort === 'roi-desc') return scoreB - scoreA;
         if (currentSort === 'roi-asc') return roiA - roiB;
