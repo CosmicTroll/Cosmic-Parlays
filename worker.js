@@ -2,7 +2,6 @@ export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
 
-    // Global CORS Headers
     const corsHeaders = {
       "Access-Control-Allow-Origin": "*",
       "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
@@ -24,7 +23,6 @@ export default {
 
         const payload = JSON.parse(rawData);
 
-        // Verify incoming webhook token matches Cloudflare Secret
         if (payload.verification_token !== env.KOFI_VERIFICATION_TOKEN) {
           return new Response("Unauthorized", { status: 401, headers: corsHeaders });
         }
@@ -32,7 +30,6 @@ export default {
         const supporterEmail = (payload.email || "").trim().toLowerCase();
         const amount = parseFloat(payload.amount || "0");
 
-        // Unlock Pro keys for contributions of $5.00 or more
         if (amount >= 5.0 && supporterEmail) {
           const keyInput = `${supporterEmail}:COSMIC_SALT_2026`;
           const msgBuffer = new TextEncoder().encode(keyInput);
@@ -42,7 +39,6 @@ export default {
 
           console.log(`[KO-FI SUCCESS] Generated Key: ${supporterKey} for Supporter: ${supporterEmail}`);
 
-          // Automated email dispatch via Resend
           if (env.RESEND_API_KEY) {
             try {
               const emailResponse = await fetch("https://api.resend.com/emails", {
@@ -82,8 +78,6 @@ export default {
               if (!emailResponse.ok) {
                 const errText = await emailResponse.text();
                 console.error(`[RESEND ERROR] Status ${emailResponse.status}: ${errText}`);
-              } else {
-                console.log(`[RESEND SUCCESS] Sent Pro key to ${supporterEmail}`);
               }
             } catch (mailErr) {
               console.error(`[RESEND EXCEPTION] ${mailErr.message}`);
@@ -159,50 +153,61 @@ async function fetchAllMarketData() {
 }
 
 async function fetchKalshiPublicMarkets() {
-  try {
-    const res = await fetch("https://api.elections.kalshi.com/trade-api/v2/markets?limit=200&status=open", {
-      headers: { "Accept": "application/json", "User-Agent": "CosmicTerminal/1.0" }
-    });
-    if (!res.ok) return [];
-    const data = await res.json();
-    const rawList = data.markets || [];
+  // Query both standard and election APIs to maximize coverage
+  const endpoints = [
+    "https://api.kalshi.com/trade-api/v2/markets?limit=200&status=open",
+    "https://api.elections.kalshi.com/trade-api/v2/markets?limit=200&status=open"
+  ];
 
-    const parsed = [];
-    rawList.forEach(m => {
-      // Exclude multi-leg combo parlays
-      if ((m.title || "").includes(",yes") || (m.title || "").includes(",no")) return;
+  const parsed = [];
+  const seen = new Set();
 
-      let yesAsk = null;
-      let noAsk = null;
-
-      if (typeof m.yes_ask === 'number' && m.yes_ask > 0) yesAsk = m.yes_ask / 100;
-      else if (typeof m.last_price === 'number' && m.last_price > 0) yesAsk = m.last_price / 100;
-      else if (typeof m.yes_bid === 'number' && m.yes_bid > 0) yesAsk = (m.yes_bid + 2) / 100;
-
-      if (typeof m.no_ask === 'number' && m.no_ask > 0) noAsk = m.no_ask / 100;
-      else if (yesAsk !== null) noAsk = 1.00 - yesAsk;
-
-      // Skip non-tradable or unpriced lines
-      if (yesAsk === null || yesAsk <= 0.01 || yesAsk >= 0.99) return;
-
-      parsed.push({
-        id: m.ticker,
-        title: m.title || m.ticker,
-        candidate: m.subtitle || "Consensus",
-        platform: "KALSHI",
-        category: categorizeMarket(m.title, m.category),
-        yesAsk: Number(yesAsk.toFixed(2)),
-        noAsk: Number((noAsk || (1 - yesAsk)).toFixed(2)),
-        volume: m.volume_24h || m.volume || 0,
-        endDate: m.expiration_time || m.close_time || null
+  for (const ep of endpoints) {
+    try {
+      const res = await fetch(ep, {
+        headers: { "Accept": "application/json", "User-Agent": "CosmicTerminal/1.0" }
       });
-    });
+      
+      if (!res.ok) continue;
+      const data = await res.json();
+      const rawList = data.markets || [];
 
-    return parsed;
-  } catch (err) {
-    console.error("Kalshi fetch error:", err);
-    return [];
+      rawList.forEach(m => {
+        // Drop un-tradable combo parlay bundles
+        if ((m.title || "").includes(",yes") || (m.title || "").includes(",no")) return;
+        
+        // Prevent dupes across the two APIs
+        if (seen.has(m.ticker)) return;
+
+        // Fallback chain: use ask, then last price, then bid, then default to 50c
+        let yesCents = m.yes_ask || m.last_price || m.yes_bid || 50;
+        let noCents = m.no_ask || (100 - yesCents);
+
+        let yesAsk = yesCents / 100;
+        let noAsk = noCents / 100;
+
+        // Ensure we don't ingest fully settled bounds
+        if (yesAsk <= 0.01 || yesAsk >= 0.99) return;
+
+        seen.add(m.ticker);
+        parsed.push({
+          id: m.ticker,
+          title: m.title || m.ticker,
+          candidate: m.subtitle || "Consensus",
+          platform: "KALSHI",
+          category: categorizeMarket(m.title, m.category),
+          yesAsk: Number(yesAsk.toFixed(2)),
+          noAsk: Number(noAsk.toFixed(2)),
+          volume: m.volume_24h || m.volume || 0,
+          endDate: m.expiration_time || m.close_time || null
+        });
+      });
+    } catch (err) {
+      console.warn("Kalshi fetch error on:", ep, err);
+    }
   }
+
+  return parsed;
 }
 
 async function fetchPolymarketPublicMarkets() {
