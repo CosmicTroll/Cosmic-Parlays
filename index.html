@@ -442,7 +442,7 @@
       renderAllViews();
     }
 
-    // Capital efficiency engine: balances nominal ROI, time horizon, and active liquidity
+    // Capital efficiency engine: balances nominal ROI, time horizon, and verified liquidity
     function calculateAnnualizedScore(roiVal, endDateStr, volume) {
       const now = Date.now();
       const end = endDateStr ? Date.parse(endDateStr) : now + (365 * 24 * 3600 * 1000);
@@ -466,6 +466,8 @@
         const scoreB = (b.rec && b.rec.edgeScore !== undefined) ? b.rec.edgeScore : 0;
         const roiA = (a.rec && a.rec.roiVal !== undefined) ? a.rec.roiVal : 0;
         const roiB = (b.rec && b.rec.roiVal !== undefined) ? b.rec.roiVal : 0;
+        const probA = (a.rec && a.rec.probVal !== undefined) ? a.rec.probVal : 50;
+        const probB = (b.rec && b.rec.probVal !== undefined) ? b.rec.probVal : 50;
 
         if (currentSort === 'roi-desc') {
           return scoreB - scoreA;
@@ -738,14 +740,15 @@
       const container = document.getElementById('macro-container');
       const all = [...poly, ...kalshi];
 
-      // Volume Floor: Filter out illiquid tail-risk contracts
-      const hasVolumeData = all.some(m => (m.volume || 0) > 0);
       const macroMarkets = all.filter(m => {
         const isCat = m.category === 'POLITICS' || m.category === 'MACRO' || m.category === 'CULTURE';
         if (!isCat) return false;
-        if (hasVolumeData && m.volume !== undefined) {
-          return Number(m.volume) >= 100;
+
+        const fullTitle = `${m.title || ''} ${m.candidate || ''}`.toLowerCase();
+        if (/conjecture|hypothesis|swinnerton|millennium prize|riemann|p versus np|hodge/i.test(fullTitle)) {
+          return false;
         }
+
         return true;
       });
 
@@ -756,7 +759,7 @@
       });
 
       if (scored.length === 0) {
-        container.innerHTML = `<div class="empty">No active presidential/macro edge lines meeting volume and probability thresholds.</div>`;
+        container.innerHTML = `<div class="empty">No active presidential/macro edge lines meeting probability thresholds.</div>`;
         return;
       }
 
@@ -792,12 +795,19 @@
         return;
       }
 
-      // Feature 1: Volume Floor to weed out untraded/unfillable academic math conjectures
-      const anyWithVol = markets.some(m => (m.volume || 0) > 0);
+      // 1. Exclude unresolved math conjectures and long-dated non-commercial academic bets
+      // 2. Reject flat 50/50 unquoted placeholder order books
       const filteredMarkets = markets.filter(m => {
-        if (anyWithVol && m.volume !== undefined) {
-          return Number(m.volume) >= 150;
+        const fullTitle = `${m.title || ''} ${m.candidate || ''}`.toLowerCase();
+        
+        if (/conjecture|hypothesis|swinnerton|millennium prize|riemann|p versus np|hodge/i.test(fullTitle)) {
+          return false;
         }
+
+        if (m.yesAsk === 0.50 && m.noAsk === 0.50 && (!m.volume || m.volume === 0)) {
+          return false;
+        }
+
         return true;
       });
 
@@ -815,7 +825,7 @@
       const sorted = sortCandidates(scored);
 
       if (sorted.length === 0) {
-        container.innerHTML = `<div class="empty">0 liquid single contracts currently clearing volume thresholds on ${platform}.</div>`;
+        container.innerHTML = `<div class="empty">0 liquid single contracts currently clearing filters on ${platform}.</div>`;
         return;
       }
 
@@ -839,7 +849,7 @@
       `).join('');
     }
 
-    // Strict Cross-Exchange Arbitrage Matcher with Alert Badge Trigger
+    // Strict Cross-Exchange Arbitrage Matcher with Enforced Year Verification & Alert Badge Trigger
     function renderSpreads(kalshi, poly) {
       const container = document.getElementById('spread-container');
       const spreadList = [];
@@ -874,7 +884,7 @@
         poly.forEach(p => {
           if (!p.noAsk || p.noAsk <= 0.02 || p.noAsk >= 0.98) return;
 
-          // 1. Year Verification: Drop pair if explicit years conflict
+          // 1. Year Verification: Drop pair if explicit resolution years conflict
           const pYears = extractYears(p);
           if (kYears.length > 0 && pYears.length > 0) {
             const hasCommonYear = kYears.some(y => pYears.includes(y));
@@ -916,7 +926,7 @@
         });
       });
 
-      // Feature 2: Update dynamic spread alert badges
+      // Update dynamic spread alert badges
       const topBadge = document.getElementById('top-spread-badge');
       const bottomBadge = document.getElementById('bottom-spread-badge');
       
