@@ -540,9 +540,7 @@
       const cleanCandidate = cleanDisplayTitle(m.candidate || "Consensus Leg");
       const targetEntity = cleanCandidate !== "Consensus Leg" ? ` [${cleanCandidate}]` : "";
 
-      if (yesAsk >= 0.98 || noAsk >= 0.98 || yesAsk <= 0.02 || noAsk <= 0.02) {
-        return null;
-      }
+      if (yesAsk >= 0.98 || noAsk >= 0.98 || yesAsk <= 0.02 || noAsk <= 0.02) return null;
 
       // Tier 1: Strong Buy Anchors (50% to 94%)
       if (yesAsk >= 0.50 && yesAsk <= 0.94) {
@@ -767,7 +765,7 @@
       });
 
       if (scored.length === 0) {
-        container.innerHTML = `<div class="empty">Analyzing ${markets.length} active contracts across ${platform} order books...</div>`;
+        container.innerHTML = `<div class="empty">No tradable lines meeting edge thresholds in current batch.</div>`;
         return;
       }
 
@@ -798,7 +796,6 @@
       const spreadList = [];
 
       kalshi.forEach(k => {
-        if (!k.isLiveQuoted) return;
         if (!k.yesAsk || k.yesAsk <= 0.05 || k.yesAsk >= 0.95) return;
 
         poly.forEach(p => {
@@ -811,8 +808,7 @@
 
           if (isDirectMatch) {
             const totalCost = k.yesAsk + p.noAsk;
-            const feeBuffer = 0.035; // 3.5¢ Slippage and Taker Buffer
-            const netEdge = 1.00 - totalCost - feeBuffer;
+            const netEdge = 1.00 - totalCost - 0.02;
 
             if (netEdge >= 0.01) {
               const roiVal = Math.round(((netEdge / totalCost) * 100));
@@ -833,7 +829,7 @@
       const sorted = sortCandidates(spreadList);
 
       if (sorted.length === 0) {
-        container.innerHTML = `<div class="empty">No direct cross-exchange spreads with positive net edge (>3.5¢ fee clearance) right now. Scanning order books...</div>`;
+        container.innerHTML = `<div class="empty">No direct cross-exchange spreads with positive net edge right now. Scanning ${kalshi.length} Kalshi / ${poly.length} Poly order books...</div>`;
       } else {
         container.innerHTML = sorted.map(s => `
           <div class="list-item" style="border-left: 3px solid var(--green);">
@@ -843,7 +839,7 @@
             </div>
             <div class="item-meta" style="margin-top: 0.4rem;">
               <span>Kalshi Yes: <b style="color:#fff;">$${s.kYes}</b></span>
-              <span>Poly.us No: <b style="color:#fff;">$${p.noAsk}</b></span>
+              <span>Poly.us No: <b style="color:#fff;">$${s.pNo}</b></span>
             </div>
             <div style="font-size: 0.7rem; color: var(--muted); margin-top: 0.2rem;">
               Total Cost: $${s.totalCost} &bull; Net Implied ROI: <b style="color:var(--green);">+${s.roiVal}%</b>
