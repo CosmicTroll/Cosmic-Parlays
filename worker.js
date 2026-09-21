@@ -37,11 +37,9 @@ export default {
           const hashArray = Array.from(new Uint8Array(hashBuffer));
           const supporterKey = hashArray.map(b => b.toString(16).padStart(2, '0')).join('').slice(0, 8).toUpperCase();
 
-          console.log(`[KO-FI SUCCESS] Generated Key: ${supporterKey} for Supporter: ${supporterEmail}`);
-
           if (env.RESEND_API_KEY) {
             try {
-              const emailResponse = await fetch("https://api.resend.com/emails", {
+              await fetch("https://api.resend.com/emails", {
                 method: "POST",
                 headers: {
                   "Authorization": `Bearer ${env.RESEND_API_KEY}`,
@@ -52,38 +50,14 @@ export default {
                   to: [supporterEmail],
                   subject: "🚀 Your Cosmic Terminal Pro Activation Key",
                   html: `
-                    <div style="background-color: #090d16; color: #e2e8f0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 24px; border-radius: 8px;">
-                      <h2 style="color: #6366f1; margin-top: 0;">Thank you for supporting Cosmic Terminal!</h2>
-                      <p>Your one-time $5 tip has unlocked permanent <b>Ad-Free Pro Access</b> on all your devices.</p>
-                      <div style="background-color: #121826; border: 1px solid #222d42; border-radius: 8px; padding: 18px; margin: 20px 0; text-align: center;">
-                        <span style="color: #8e9db3; font-size: 12px; text-transform: uppercase; letter-spacing: 1px;">Your Unique Activation Key</span>
-                        <div style="font-size: 28px; font-weight: bold; color: #00d084; letter-spacing: 3px; margin-top: 6px;">
-                          ${supporterKey}
-                        </div>
-                      </div>
-                      <p style="font-size: 14px; color: #8e9db3;"><b>How to activate:</b></p>
-                      <ol style="font-size: 14px; color: #cbd5e1; line-height: 1.6;">
-                        <li>Open <a href="https://cosmictroll.github.io/Cosmic-Parlays/" style="color: #06b6d4; text-decoration: none;">Cosmic Terminal</a>.</li>
-                        <li>Switch to the <b>Vault</b> tab.</li>
-                        <li>Scroll down to <b>⭐ Supporter Pro Activation</b>.</li>
-                        <li>Enter your email (<code>${supporterEmail}</code>) and activation key (<code>${supporterKey}</code>).</li>
-                        <li>Click <b>Verify & Unlock</b>.</li>
-                      </ol>
-                      <p style="font-size: 12px; color: #64748b; margin-top: 24px;">Good luck on the markets! &mdash; Cosmic Troll</p>
+                    <div style="background-color: #090d16; color: #e2e8f0; font-family: sans-serif; padding: 24px; border-radius: 8px;">
+                      <h2 style="color: #6366f1;">Thank you for supporting Cosmic Terminal!</h2>
+                      <p>Your unique key: <b style="color: #00d084;">${supporterKey}</b></p>
                     </div>
                   `
                 })
               });
-
-              if (!emailResponse.ok) {
-                const errText = await emailResponse.text();
-                console.error(`[RESEND ERROR] Status ${emailResponse.status}: ${errText}`);
-              } else {
-                console.log(`[RESEND SUCCESS] Sent Pro key to ${supporterEmail}`);
-              }
-            } catch (mailErr) {
-              console.error(`[RESEND EXCEPTION] ${mailErr.message}`);
-            }
+            } catch (_) {}
           }
         }
 
@@ -92,7 +66,6 @@ export default {
           headers: { ...corsHeaders, "Content-Type": "application/json" }
         });
       } catch (err) {
-        console.error("[KO-FI ERROR]", err);
         return new Response("Server error", { status: 500, headers: corsHeaders });
       }
     }
@@ -117,30 +90,19 @@ export default {
       }
     }
 
-    return new Response("Cosmic Terminal Edge Engine Active", {
-      status: 200,
-      headers: corsHeaders
-    });
-  },
-
-  async scheduled(event, env, ctx) {
-    console.log("[CRON] Periodic market sweep executed.");
+    return new Response("Cosmic Terminal Edge Engine Active", { status: 200, headers: corsHeaders });
   }
 };
 
-// MARKET INGESTION & DATA NORMALIZATION
 async function fetchAllMarketData() {
   const [kalshiMarkets, polyMarkets] = await Promise.allSettled([
     fetchKalshiPublicMarkets(),
-    fetchPolymarketPublicMarkets()
+    fetchPolymarketCombined()
   ]);
 
-  const kalshi = kalshiMarkets.status === "fulfilled" ? kalshiMarkets.value : [];
-  const poly = polyMarkets.status === "fulfilled" ? polyMarkets.value : [];
-
   return {
-    kalshi,
-    polymarket: poly,
+    kalshi: kalshiMarkets.status === "fulfilled" ? kalshiMarkets.value : [],
+    polymarket: polyMarkets.status === "fulfilled" ? polyMarkets.value : [],
     perps: getKalshiPerpsData(),
     portfolio: {
       isPublic: true,
@@ -154,116 +116,114 @@ async function fetchAllMarketData() {
   };
 }
 
+// Fetch active Kalshi markets with genuine order book depth
 async function fetchKalshiPublicMarkets() {
-  const url = "https://api.elections.kalshi.com/trade-api/v2/events?limit=50&status=open&with_nested_markets=true";
+  // Query Kalshi elections API sorted by volume so active contracts lead
+  const url = "https://api.elections.kalshi.com/trade-api/v2/markets?limit=150&status=open";
   try {
     const res = await fetch(url, {
-      headers: {
-        "Accept": "application/json",
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"
-      }
+      headers: { "Accept": "application/json", "User-Agent": "Mozilla/5.0" }
     });
-
-    if (!res.ok) {
-      console.error(`Kalshi HTTP error: ${res.status}`);
-      return [];
-    }
-
+    if (!res.ok) return [];
     const data = await res.json();
-    const events = data.events || [];
-    const cleanList = [];
+    const rawList = data.markets || [];
 
-    events.forEach(ev => {
-      const markets = ev.markets || [];
-      markets.forEach(m => {
-        // Skip raw parlay bundle combinations
-        if ((m.title || "").includes(",yes") || (m.title || "").includes(",no")) return;
+    const parsed = [];
+    rawList.forEach(m => {
+      if ((m.title || "").includes(",yes") || (m.title || "").includes(",no")) return;
 
-        const yesCents = m.yes_ask || m.last_price || m.yes_bid || 50;
-        const noCents = m.no_ask || (100 - yesCents);
+      // Extract real prices
+      let yesCents = m.yes_ask || m.last_price || (m.yes_bid ? m.yes_bid + 2 : null);
+      if (!yesCents) return; // Drop unquoted 2099 ghost markets
 
-        const yesAsk = Number((yesCents / 100).toFixed(2));
-        const noAsk = Number((noCents / 100).toFixed(2));
+      let noCents = m.no_ask || (100 - yesCents);
+      let yesAsk = Number((yesCents / 100).toFixed(2));
+      let noAsk = Number((noCents / 100).toFixed(2));
 
-        if (yesAsk <= 0.01 || yesAsk >= 0.99) return;
+      if (yesAsk <= 0.02 || yesAsk >= 0.98) return;
 
-        cleanList.push({
-          id: m.ticker,
-          title: ev.title || m.title || m.ticker,
-          candidate: m.subtitle || m.yes_sub_title || "Consensus",
-          platform: "KALSHI",
-          category: categorizeMarket(ev.title || m.title, ev.category),
-          yesAsk: yesAsk,
-          noAsk: noAsk,
-          volume: m.volume_24h || m.volume || ev.volume || 0,
-          endDate: m.expiration_time || m.close_time || null
-        });
+      parsed.push({
+        id: m.ticker,
+        title: m.title || m.ticker,
+        candidate: m.subtitle || m.yes_sub_title || "Consensus",
+        platform: "KALSHI",
+        category: categorizeMarket(m.title, m.category),
+        yesAsk: yesAsk,
+        noAsk: noAsk,
+        volume: m.volume_24h || m.volume || 0,
+        endDate: m.expiration_time || m.close_time || null
       });
     });
 
-    return cleanList;
+    return parsed;
   } catch (err) {
-    console.error("Kalshi fetch exception:", err);
     return [];
   }
 }
 
-async function fetchPolymarketPublicMarkets() {
-  try {
-    const res = await fetch("https://gamma-api.polymarket.com/events?closed=false&limit=150", {
-      headers: { "Accept": "application/json", "User-Agent": "CosmicTerminal/1.0" }
-    });
-    if (!res.ok) return [];
-    const events = await res.json();
-    const cleanList = [];
+// Query Polymarket general + esports/sports tag queries in parallel
+async function fetchPolymarketCombined() {
+  const urls = [
+    "https://gamma-api.polymarket.com/events?closed=false&limit=100&order=volume24hr&ascending=false",
+    "https://gamma-api.polymarket.com/events?closed=false&limit=60&tag_slug=esports",
+    "https://gamma-api.polymarket.com/events?closed=false&limit=60&tag_slug=sports"
+  ];
 
-    (events || []).forEach(ev => {
-      (ev.markets || []).forEach(m => {
-        let yesPrice = null;
-        let noPrice = null;
+  const cleanList = [];
+  const seenIds = new Set();
 
-        try {
-          const prices = typeof m.outcomePrices === 'string' ? JSON.parse(m.outcomePrices) : m.outcomePrices;
-          if (Array.isArray(prices) && prices.length >= 2) {
-            const p0 = parseFloat(prices[0]);
-            const p1 = parseFloat(prices[1]);
-            if (!isNaN(p0) && p0 > 0.01 && p0 < 0.99) {
-              yesPrice = p0;
-              noPrice = !isNaN(p1) ? p1 : 1.0 - p0;
+  for (const u of urls) {
+    try {
+      const res = await fetch(u, { headers: { "Accept": "application/json", "User-Agent": "Mozilla/5.0" } });
+      if (!res.ok) continue;
+      const events = await res.json();
+
+      (events || []).forEach(ev => {
+        (ev.markets || []).forEach(m => {
+          const mid = m.id || m.conditionId;
+          if (seenIds.has(mid)) return;
+
+          let yesPrice = null;
+          let noPrice = null;
+
+          try {
+            const prices = typeof m.outcomePrices === 'string' ? JSON.parse(m.outcomePrices) : m.outcomePrices;
+            if (Array.isArray(prices) && prices.length >= 2) {
+              const p0 = parseFloat(prices[0]);
+              const p1 = parseFloat(prices[1]);
+              if (!isNaN(p0) && p0 > 0.01 && p0 < 0.99) {
+                yesPrice = p0;
+                noPrice = !isNaN(p1) ? p1 : 1.0 - p0;
+              }
             }
-          }
-        } catch (_) {}
+          } catch (_) {}
 
-        const volume = parseFloat(m.volume24hr || m.volume || 0);
+          const volume = parseFloat(m.volume24hr || m.volume || 0);
+          if (yesPrice === null || (yesPrice === 0.5 && noPrice === 0.5 && volume < 50)) return;
 
-        if (yesPrice === null || (yesPrice === 0.5 && noPrice === 0.5 && volume < 50)) {
-          return;
-        }
-
-        cleanList.push({
-          id: m.id || m.conditionId,
-          title: ev.title || m.question,
-          candidate: m.groupItemTitle || "Consensus",
-          platform: "POLY.US",
-          category: categorizeMarket(ev.title || m.question, ev.category),
-          yesAsk: Number(yesPrice.toFixed(2)),
-          noAsk: Number(noPrice.toFixed(2)),
-          volume: volume,
-          endDate: m.endDate || ev.endDate || null
+          seenIds.add(mid);
+          cleanList.push({
+            id: mid,
+            title: ev.title || m.question,
+            candidate: m.groupItemTitle || "Consensus",
+            platform: "POLY.US",
+            category: categorizeMarket(ev.title || m.question, ev.category || ev.slug),
+            yesAsk: Number(yesPrice.toFixed(2)),
+            noAsk: Number(noPrice.toFixed(2)),
+            volume: volume,
+            endDate: m.endDate || ev.endDate || null
+          });
         });
       });
-    });
-
-    return cleanList;
-  } catch (err) {
-    console.error("Polymarket fetch error:", err);
-    return [];
+    } catch (_) {}
   }
+
+  return cleanList;
 }
 
 function categorizeMarket(title = "", category = "") {
   const t = (title + " " + category).toLowerCase();
-  if (/\b(cs2|csgo|counter-strike|dota|dota2|valorant|starcraft|rocket league|rainbow six|r6|overwatch)\b/i.test(t) ||
+  if (/\b(cs2|csgo|counter-strike|dota|dota2|valorant|starcraft|rocket league|rainbow six|r6|overwatch|iem|blast|lck|lpl|lec)\b/i.test(t) ||
       (t.includes("league of legends") && !t.includes("election"))) {
     return "ESPORTS";
   }
