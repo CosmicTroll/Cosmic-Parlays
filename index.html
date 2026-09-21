@@ -17,6 +17,7 @@
       --red: #ff4d4d;
       --gold: #f59e0b;
       --cyan: #06b6d4;
+      --purple: #a855f7;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
@@ -104,6 +105,7 @@
     .tag-settled { background: rgba(0, 208, 132, 0.15); color: var(--green); border: 1px solid rgba(0, 208, 132, 0.3); }
     .tag-closed { background: rgba(148, 163, 184, 0.15); color: var(--muted); }
     .tag-platform { font-size: 0.65rem; padding: 0.15rem 0.4rem; border-radius: 4px; background: rgba(255, 255, 255, 0.08); font-weight: 600; }
+    .tag-esports { background: rgba(168, 85, 247, 0.15); color: var(--purple); border: 1px solid rgba(168, 85, 247, 0.3); }
 
     .empty { color: var(--muted); font-size: 0.8rem; text-align: center; padding: 2rem 1rem; }
 
@@ -183,6 +185,18 @@
         </div>
       </div>
 
+      <!-- DEDICATED ESPORTS SECTION -->
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">🎮 Esports Desk (CS2, LoL, Dota, Valorant)</h2>
+          <span style="font-size: 0.75rem; color: var(--purple);">Competitive Gaming</span>
+        </div>
+        <div class="item-list" id="esports-container">
+          <div class="empty">Scanning live books for esports match lines...</div>
+        </div>
+      </div>
+
+      <!-- TRADITIONAL SPORTS -->
       <div class="card">
         <div class="card-header">
           <h2 class="card-title">🏈 High-Probability Game Lines & Player Props</h2>
@@ -434,6 +448,11 @@
       return t.length > 70 ? t.slice(0, 67) + '...' : t;
     }
 
+    function isEsportsMarket(item) {
+      const t = ((item.title || '') + ' ' + (item.candidate || '')).toLowerCase();
+      return /counter-strike|cs2|cs:go|dota|league of legends|lck|lpl|lec|lcs|valorant|vct|overwatch|rocket league|r6|rainbow six|starcraft|esports|bo3|bo5|bo1/i.test(t);
+    }
+
     function setSortOrder(order) {
       currentSort = order;
       document.querySelectorAll('.sort-chip').forEach(c => {
@@ -655,6 +674,7 @@
       document.getElementById('kalshi-count').textContent = `${kalshi.length} Markets`;
 
       renderTickets(portfolio.positions || []);
+      renderEsportsDesk(poly, kalshi);
       renderSportsParlays(poly, kalshi);
       renderMacroHub(poly, kalshi);
       renderPerpForecast();
@@ -689,6 +709,51 @@
       }).join('');
     }
 
+    // Dedicated Esports Section
+    function renderEsportsDesk(poly, kalshi) {
+      const container = document.getElementById('esports-container');
+      const all = [...poly, ...kalshi];
+
+      const esportsMarkets = all.filter(m => isEsportsMarket(m));
+
+      const candidates = [];
+      esportsMarkets.forEach(item => {
+        const rec = evaluateMarketRecommendation(item);
+        if (rec) {
+          candidates.push({
+            ...item,
+            rec,
+            side: item.yesAsk >= 0.50 ? "YES" : "NO",
+            price: item.yesAsk >= 0.50 ? item.yesAsk : item.noAsk,
+            type: item.yesAsk >= 0.55 || item.noAsk >= 0.55 ? "Match Pick" : "Value Angle"
+          });
+        }
+      });
+
+      if (candidates.length === 0) {
+        container.innerHTML = `<div class="empty">No live CS2, LoL, or Dota match lines active right now.</div>`;
+        return;
+      }
+
+      const sorted = sortCandidates(candidates);
+
+      container.innerHTML = sorted.slice(0, 15).map(p => `
+        <div class="list-item" style="border-left: 3px solid var(--purple);">
+          <div class="item-top">
+            <span class="item-title">${cleanDisplayTitle(p.title)}</span>
+            <span class="tag tag-esports">${p.type}</span>
+          </div>
+          <div class="item-meta">
+            <span>Pick: <b style="color: #fff;">${p.side}${p.candidate && p.candidate !== 'Consensus' ? ` [${cleanDisplayTitle(p.candidate)}]` : ''}</b> @ $${p.price.toFixed(2)}</span>
+            <span style="color: var(--green); font-weight: 800;">${p.rec.roi}</span>
+            <span style="color: var(--cyan); font-weight: 700;">${p.rec.prob}</span>
+            <span class="tag-platform">${p.platform}</span>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // Traditional Sports (Excludes Esports)
     function renderSportsParlays(poly, kalshi) {
       const container = document.getElementById('props-container');
       const all = [...poly, ...kalshi];
@@ -696,7 +761,7 @@
       const sportsMarkets = all.filter(m => {
         const t = (m.title + " " + (m.candidate || "")).toLowerCase();
         const isPolitical = /house|senate|congress|election|nominee|president|governor|democrat|republican|vance|trump|harris|newsom|putin|war/i.test(t);
-        return m.category === 'SPORTS' && !isPolitical;
+        return m.category === 'SPORTS' && !isPolitical && !isEsportsMarket(m);
       });
 
       const candidates = [];
@@ -795,8 +860,6 @@
         return;
       }
 
-      // 1. Exclude unresolved math conjectures and long-dated non-commercial academic bets
-      // 2. Reject flat 50/50 unquoted placeholder order books
       const filteredMarkets = markets.filter(m => {
         const fullTitle = `${m.title || ''} ${m.candidate || ''}`.toLowerCase();
         
@@ -849,7 +912,6 @@
       `).join('');
     }
 
-    // Strict Cross-Exchange Arbitrage Matcher with Enforced Year Verification & Alert Badge Trigger
     function renderSpreads(kalshi, poly) {
       const container = document.getElementById('spread-container');
       const spreadList = [];
@@ -884,14 +946,12 @@
         poly.forEach(p => {
           if (!p.noAsk || p.noAsk <= 0.02 || p.noAsk >= 0.98) return;
 
-          // 1. Year Verification: Drop pair if explicit resolution years conflict
           const pYears = extractYears(p);
           if (kYears.length > 0 && pYears.length > 0) {
             const hasCommonYear = kYears.some(y => pYears.includes(y));
             if (!hasCommonYear) return;
           }
 
-          // 2. Candidate & Entity Alignment
           const pCand = (p.candidate || "").toLowerCase().trim();
           const candidateMatch = (!kCand || kCand === "consensus" || !pCand || pCand === "consensus") 
             ? true 
@@ -899,14 +959,13 @@
 
           if (!candidateMatch) return;
 
-          // 3. Multi-token Semantic Overlap
           const pTokens = extractTokens(p.title);
           const sharedTokens = kTokens.filter(t => pTokens.includes(t));
           const titleMatch = sharedTokens.length >= 3 || (sharedTokens.length >= 2 && sharedTokens.length / Math.min(kTokens.length, pTokens.length) >= 0.6);
 
           if (titleMatch) {
             const totalCost = k.yesAsk + p.noAsk;
-            const netEdge = 1.00 - totalCost - 0.015; // 1.5¢ combined fee clearance
+            const netEdge = 1.00 - totalCost - 0.015;
 
             if (netEdge >= 0.01) {
               const roiVal = Math.round(((netEdge / totalCost) * 100));
@@ -926,7 +985,6 @@
         });
       });
 
-      // Update dynamic spread alert badges
       const topBadge = document.getElementById('top-spread-badge');
       const bottomBadge = document.getElementById('bottom-spread-badge');
       
