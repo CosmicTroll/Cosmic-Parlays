@@ -537,13 +537,13 @@
     function evaluateMarketRecommendation(m) {
       const yesAsk = (typeof m.yesAsk === 'number') ? m.yesAsk : 0.50;
       const noAsk = (typeof m.noAsk === 'number') ? m.noAsk : (1.00 - yesAsk);
-      const cleanCandidate = cleanDisplayTitle(m.candidate || "Consensus Leg");
-      const targetEntity = cleanCandidate !== "Consensus Leg" ? ` [${cleanCandidate}]` : "";
+      const cleanCandidate = cleanDisplayTitle(m.candidate || "Consensus");
+      const targetEntity = (cleanCandidate && cleanCandidate !== "Consensus") ? ` [${cleanCandidate}]` : "";
 
-      if (yesAsk >= 0.98 || noAsk >= 0.98 || yesAsk <= 0.02 || noAsk <= 0.02) return null;
+      if (yesAsk >= 0.99 || noAsk >= 0.99 || yesAsk <= 0.01 || noAsk <= 0.01) return null;
 
-      // Tier 1: Strong Buy Anchors (50% to 94%)
-      if (yesAsk >= 0.50 && yesAsk <= 0.94) {
+      // Unconditionally return an actionable card for any active line
+      if (yesAsk >= 0.50) {
         const roi = Math.round(((1.00 - yesAsk) / yesAsk) * 100);
         return {
           badgeClass: "consensus-strong-buy",
@@ -555,7 +555,7 @@
           roi: `+${roi}% ROI`,
           prob: `${Math.round(yesAsk * 100)}% Implied`
         };
-      } else if (noAsk >= 0.50 && noAsk <= 0.94) {
+      } else {
         const roi = Math.round(((1.00 - noAsk) / noAsk) * 100);
         return {
           badgeClass: "consensus-strong-buy",
@@ -567,35 +567,7 @@
           roi: `+${roi}% ROI`,
           prob: `${Math.round(noAsk * 100)}% Implied`
         };
-      } 
-      // Tier 2: Real Asymmetric Value (6¢ to 49¢)
-      else if (yesAsk < 0.50 && yesAsk >= 0.06) {
-        const roi = Math.round(((1.00 - yesAsk) / yesAsk) * 100);
-        return {
-          badgeClass: "consensus-value-buy",
-          badgeText: "Value Buy YES",
-          action: `BUY YES${targetEntity} @ $${yesAsk.toFixed(2)}`,
-          target: "Asymmetric Value",
-          roiVal: roi,
-          probVal: Math.round(yesAsk * 100),
-          roi: `+${roi}% ROI`,
-          prob: `${Math.round(yesAsk * 100)}% Implied`
-        };
-      } else if (noAsk < 0.50 && noAsk >= 0.06) {
-        const roi = Math.round(((1.00 - noAsk) / noAsk) * 100);
-        return {
-          badgeClass: "consensus-value-buy",
-          badgeText: "Value Buy NO",
-          action: `BUY NO${targetEntity} @ $${noAsk.toFixed(2)}`,
-          target: "Asymmetric Value",
-          roiVal: roi,
-          probVal: Math.round(noAsk * 100),
-          roi: `+${roi}% ROI`,
-          prob: `${Math.round(noAsk * 100)}% Implied`
-        };
       }
-
-      return null;
     }
 
     async function fetchLiveData(isManualBypass = false) {
@@ -669,7 +641,6 @@
       const container = document.getElementById('props-container');
       const all = [...poly, ...kalshi];
 
-      // Strictly Sports (Zero Politics)
       const sportsMarkets = all.filter(m => {
         const t = (m.title + " " + (m.candidate || "")).toLowerCase();
         const isPolitical = /house|senate|congress|election|nominee|president|governor|democrat|republican|vance|trump|harris|newsom|putin|war/i.test(t);
@@ -761,30 +732,35 @@
 
       markets.forEach(m => {
         const rec = evaluateMarketRecommendation(m);
-        if (rec) scored.push({ ...m, rec });
+        if (rec) {
+          scored.push({
+            ...m,
+            rec: rec
+          });
+        }
       });
 
       if (scored.length === 0) {
-        container.innerHTML = `<div class="empty">No tradable lines meeting edge thresholds in current batch.</div>`;
+        container.innerHTML = `<div class="empty">0 active contracts currently found on ${platform} order books.</div>`;
         return;
       }
 
       const sorted = sortCandidates(scored);
 
-      container.innerHTML = sorted.slice(0, 25).map(m => `
+      container.innerHTML = sorted.slice(0, 30).map(item => `
         <div class="opp-card">
           <div class="opp-top">
-            <div class="opp-title">${cleanDisplayTitle(m.title)}</div>
-            <span class="consensus-badge ${m.rec.badgeClass}">${m.rec.badgeText}</span>
+            <div class="opp-title">${cleanDisplayTitle(item.title)}</div>
+            <span class="consensus-badge ${item.rec.badgeClass}">${item.rec.badgeText}</span>
           </div>
           <div class="opp-body">
             <div>
-              <div class="rec-action">${m.rec.action}</div>
-              <div class="rec-target">${m.rec.target}</div>
+              <div class="rec-action">${item.rec.action}</div>
+              <div class="rec-target">${item.rec.target}</div>
             </div>
             <div class="rec-stats">
-              <div class="rec-roi">${m.rec.roi}</div>
-              <div class="rec-prob">${m.rec.prob}</div>
+              <div class="rec-roi">${item.rec.roi}</div>
+              <div class="rec-prob">${item.rec.prob}</div>
             </div>
           </div>
         </div>
