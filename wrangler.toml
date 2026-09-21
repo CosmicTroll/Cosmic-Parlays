@@ -1,6 +1,9 @@
 name = "cosmic-parlays"
 main = "worker.js"
-compatibility_date = "2024-01-01"
+compatibility_date = "2024-09-01"
+compatibility_flags = ["nodejs_compat"]
+workers_dev = true
 
+# Cron Trigger for background sweeps
 [triggers]
-crons = ["* * * * *"] # Runs automatically every single minute
+crons = ["*/5 * * * *"]
