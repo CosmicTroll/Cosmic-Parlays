@@ -235,22 +235,14 @@
         </div>
 
         <div class="stat-rows">
-          <div class="stat-row">
-            <span class="stat-label">Kalshi Max Leverage</span>
-            <span class="stat-val" id="stat-lev">-</span>
-          </div>
-          <div class="stat-row">
-            <span class="stat-label">24h Volume / Open Interest</span>
-            <span class="stat-val" id="stat-vol-oi">-</span>
-          </div>
-          <div class="stat-row">
-            <span class="stat-label">Funding Rate & Settlement Timer</span>
-            <span class="stat-val" id="stat-funding" style="color: var(--red);">-</span>
-          </div>
-          <div class="stat-row">
-            <span class="stat-label">Annualized Carry Rate</span>
-            <span class="stat-val" id="stat-annual">-</span>
-          </div>
+          <div class="stat-label">Kalshi Max Leverage</div>
+          <div class="stat-val" id="stat-lev">-</div>
+          <div class="stat-label">24h Volume / Open Interest</div>
+          <div class="stat-val" id="stat-vol-oi">-</div>
+          <div class="stat-label">Funding Rate & Settlement Timer</div>
+          <div class="stat-val" id="stat-funding" style="color: var(--red);">-</div>
+          <div class="stat-label">Annualized Carry Rate</div>
+          <div class="stat-val" id="stat-annual">-</div>
         </div>
       </div>
     </section>
@@ -404,6 +396,7 @@
 
     function cleanDisplayTitle(raw) {
       let t = (raw || "").replace(/^yes\s+/i, '').replace(/^no\s+/i, '');
+      t = t.replace(/\(\+\d+\s+more\s+legs\)/ig, '').trim();
       return t.length > 70 ? t.slice(0, 67) + '...' : t;
     }
 
@@ -417,12 +410,20 @@
 
     function sortCandidates(list) {
       return list.slice().sort((a, b) => {
-        const roiA = (a.rec && a.rec.roiVal !== undefined) ? a.rec.roiVal : (a.roiVal !== undefined ? a.roiVal : 0);
-        const roiB = (b.rec && b.rec.roiVal !== undefined) ? b.rec.roiVal : (b.roiVal !== undefined ? b.roiVal : 0);
-        const probA = (a.rec && a.rec.probVal !== undefined) ? a.rec.probVal : (a.probVal !== undefined ? a.probVal : 0);
-        const probB = (b.rec && b.rec.probVal !== undefined) ? b.rec.probVal : (b.probVal !== undefined ? b.probVal : 0);
+        const roiA = (a.rec && a.rec.roiVal !== undefined) ? a.rec.roiVal : 0;
+        const roiB = (b.rec && b.rec.roiVal !== undefined) ? b.rec.roiVal : 0;
+        const probA = (a.rec && a.rec.probVal !== undefined) ? a.rec.probVal : 50;
+        const probB = (b.rec && b.rec.probVal !== undefined) ? b.rec.probVal : 50;
 
-        if (currentSort === 'roi-desc') return roiB - roiA;
+        // Prioritize contracts with genuine price movement over flat 50/50 placeholders
+        const devA = Math.abs(probA - 50);
+        const devB = Math.abs(probB - 50);
+
+        if (currentSort === 'roi-desc') {
+          if (devA > 0 && devB === 0) return -1;
+          if (devB > 0 && devA === 0) return 1;
+          return roiB - roiA;
+        }
         if (currentSort === 'roi-asc') return roiA - roiB;
         if (currentSort === 'prob-desc') return probB - probA;
         if (currentSort === 'time-asc') {
