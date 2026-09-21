@@ -182,7 +182,7 @@
     <button class="nav-btn active" onclick="switchView('picks')">🎯 Picks</button>
     <button class="nav-btn" onclick="switchView('esports')">🎮 Esports</button>
     <button class="nav-btn" onclick="switchView('sports')">🏈 Sports</button>
-    <button class="nav-btn" onclick="switchView('macro')">🏛️ Politics & Culture</button>
+    <button class="nav-btn" onclick="switchView('macro')">🏛️ Politics</button>
     <button class="nav-btn" onclick="switchView('perps')">⚡ Kalshi Perps</button>
     <button class="nav-btn" onclick="switchView('poly')">🟣 Poly.us</button>
     <button class="nav-btn" onclick="switchView('kalshi')">🟢 Kalshi</button>
@@ -1018,7 +1018,7 @@
 
       const sorted = sortCandidates(scored);
 
-      container.innerHTML = sorted.slice(0, 50).map(m => `
+      container.innerHTML = sorted.map(m => `
         <div class="opp-card">
           <div class="opp-top">
             <div>
@@ -1081,6 +1081,7 @@
       `).join('');
     }
 
+    // CROSS-EXCHANGE SPREAD MATCHER
     function renderSpreads(kalshi, poly) {
       const container = document.getElementById('spread-container');
       const spreadList = [];
@@ -1090,48 +1091,34 @@
           .toLowerCase()
           .replace(/[^a-z0-9\s]/g, ' ')
           .split(/\s+/)
-          .filter(w => w.length >= 3 && !['will', 'the', 'and', 'for', 'that', 'this', 'with', 'from', 'what', 'when', 'who', 'how', 'end', 'rate', 'before', 'above', 'below', 'market', 'held'].includes(w));
+          .filter(w => w.length >= 3 && !['will', 'the', 'and', 'for', 'that', 'this', 'with', 'from', 'what', 'when', 'who', 'how', 'end', 'rate', 'before', 'above', 'below', 'market', 'held', 'reach'].includes(w));
       };
 
       kalshi.forEach(k => {
-        if ((k.title || "").includes(",yes") || (k.title || "").includes(",no")) return;
-        if (!k.yesAsk || k.yesAsk <= 0.05 || k.yesAsk >= 0.95) return;
+        if (!k.yesAsk || k.yesAsk <= 0.02 || k.yesAsk >= 0.98) return;
 
         const kTokens = extractTokens(k.title);
-        const kCand = (k.candidate || "").toLowerCase().trim();
+        if (kTokens.length < 2) return;
 
         poly.forEach(p => {
-          if ((p.title || "").includes(",yes") || (p.title || "").includes(",no")) return;
-          if (!p.noAsk || p.noAsk <= 0.05 || p.noAsk >= 0.95) return;
-
-          if (k.category && p.category && k.category !== p.category) return;
-
-          const pCand = (p.candidate || "").toLowerCase().trim();
-          const hasSpecificKCand = kCand && kCand !== "consensus" && kCand !== "party a";
-          const hasSpecificPCand = pCand && pCand !== "consensus" && pCand !== "party a";
-
-          if (hasSpecificKCand && hasSpecificPCand) {
-            if (!kCand.includes(pCand) && !pCand.includes(kCand)) return;
-          } else if (hasSpecificKCand !== hasSpecificPCand) {
-            return;
-          }
+          if (!p.noAsk || p.noAsk <= 0.02 || p.noAsk >= 0.98) return;
 
           const pTokens = extractTokens(p.title);
           const sharedTokens = kTokens.filter(t => pTokens.includes(t));
           
-          const kOverlap = sharedTokens.length / (kTokens.length || 1);
-          const pOverlap = sharedTokens.length / (pTokens.length || 1);
+          const matchRatio = sharedTokens.length / Math.min(kTokens.length, pTokens.length);
 
-          if (sharedTokens.length >= 3 && kOverlap >= 0.4 && pOverlap >= 0.4) {
+          if (sharedTokens.length >= 2 && matchRatio >= 0.5) {
+            // Check direct cross-exchange spread
             const totalCost = k.yesAsk + p.noAsk;
-            const netEdge = 1.00 - totalCost - 0.015;
+            const netEdge = 1.00 - totalCost; // Pure theoretical spread
 
             if (netEdge >= 0.01) {
               const roiVal = Math.round(((netEdge / totalCost) * 100));
               const edgeScore = calculateAnnualizedScore(roiVal, k.endDate, k.volume);
               spreadList.push({
                 title: cleanDisplayTitle(k.title),
-                candidate: k.candidate && k.candidate !== "Consensus" ? k.candidate : (p.candidate || ""),
+                candidate: k.candidate && k.candidate !== "Consensus" ? k.candidate : (p.candidate || "Consensus"),
                 edgeCents: (netEdge * 100).toFixed(1),
                 kYes: k.yesAsk.toFixed(2),
                 pNo: p.noAsk.toFixed(2),
