@@ -1,6 +1,5 @@
-// Cloudflare Worker: worker.js
-// Production Hardened: Real Polymarket Candidate Extraction, Nested Kalshi Events Parser,
-// Scheduled Cron Handler Support, Reciprocal Order Book Math & Micro-Nonce Protection
+// Cloudflare Worker: worker.js (Sanitized Public Aggregator)
+// Safe for Public / Open Distribution — No Personal Keys, Nonces, or Private Balances
 
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",
@@ -8,52 +7,6 @@ const CORS_HEADERS = {
   "Access-Control-Allow-Headers": "Content-Type, Authorization",
   "Content-Type": "application/json",
 };
-
-let cachedKalshiCryptoKey = null;
-let cachedPemString = null;
-let signatureNonceCounter = 0;
-
-async function getKalshiCryptoKey(pem) {
-  if (cachedKalshiCryptoKey && cachedPemString === pem) {
-    return cachedKalshiCryptoKey;
-  }
-
-  const cleanPem = pem
-    .replace(/-----BEGIN PRIVATE KEY-----/g, "")
-    .replace(/-----END PRIVATE KEY-----/g, "")
-    .replace(/-----BEGIN RSA PRIVATE KEY-----/g, "")
-    .replace(/-----END RSA PRIVATE KEY-----/g, "")
-    .replace(/\s+/g, "");
-
-  const binaryDer = Uint8Array.from(atob(cleanPem), c => c.charCodeAt(0));
-
-  cachedKalshiCryptoKey = await crypto.subtle.importKey(
-    "pkcs8",
-    binaryDer.buffer,
-    { name: "RSA-PSS", hash: "SHA-256" },
-    false,
-    ["sign"]
-  );
-  cachedPemString = pem;
-
-  return cachedKalshiCryptoKey;
-}
-
-async function signKalshiRequest(cryptoKey, timestamp, method, path, body = "") {
-  const message = `${timestamp}${method.toUpperCase()}${path}${body}`;
-  const encoder = new TextEncoder();
-  const signature = await crypto.subtle.sign(
-    { name: "RSA-PSS", saltLength: 32 },
-    cryptoKey,
-    encoder.encode(message)
-  );
-  return btoa(String.fromCharCode(...new Uint8Array(signature)));
-}
-
-function getNonceTimestamp() {
-  signatureNonceCounter = (signatureNonceCounter + 1) % 1000;
-  return (Date.now() + signatureNonceCounter).toString();
-}
 
 function parseUtcIso(dateInput) {
   if (!dateInput) return null;
@@ -114,7 +67,7 @@ function getPerpsFallback() {
 
 export default {
   async scheduled(event, env, ctx) {
-    ctx.waitUntil(handleLiveData(env));
+    ctx.waitUntil(handleLiveData());
   },
 
   async fetch(request, env, ctx) {
@@ -135,7 +88,7 @@ export default {
           if (cached) return cached;
         }
 
-        const freshResponse = await handleLiveData(env);
+        const freshResponse = await handleLiveData();
         
         if (!isBypass) {
           const resToCache = new Response(freshResponse.body, freshResponse);
@@ -145,17 +98,6 @@ export default {
         }
 
         return freshResponse;
-      }
-
-      if (url.pathname === "/api/test-poly-dry-run") {
-        return new Response(JSON.stringify({
-          status: "ready_for_execution",
-          platform: "Polymarket.us",
-          account: "cosmicdad",
-          availableCash: 2.57,
-          executionGuard: "$10.00 Cap",
-          feeClearanceRequired: ">= 3.5¢"
-        }, null, 2), { status: 200, headers: CORS_HEADERS });
       }
 
       return new Response(JSON.stringify({ error: "Endpoint not found" }), {
@@ -168,11 +110,10 @@ export default {
         error: err.message,
         timestamp: new Date().toISOString(),
         portfolio: {
-          polyBalance: 2.57,
-          polyAuth: true,
+          isPublic: true,
+          polyBalance: 0.00,
           kalshiBalance: 0.00,
-          kalshiAuth: false,
-          totalCash: 2.57,
+          totalCash: 0.00,
           activeExposure: 0.00,
           activeContracts: 0,
           positions: []
@@ -185,90 +126,16 @@ export default {
   }
 };
 
-async function handleLiveData(env) {
-  let polyBalance = 2.57;
-  let polyPositions = [];
-
-  let kalshiBalance = 0.00;
-  let kalshiPositions = [];
-  let kalshiAuth = false;
-
-  const kalshiKeyId = env?.KALSHI_KEY_ID || env?.KALSHI_API_KEY;
-  const kalshiPrivateKey = env?.KALSHI_PRIVATE_KEY;
-
-  if (kalshiKeyId && kalshiPrivateKey) {
-    try {
-      const privKey = await getKalshiCryptoKey(kalshiPrivateKey);
-
-      // Balance
-      const bPath = "/trade-api/v2/portfolio/balance";
-      const bTs = getNonceTimestamp();
-      const bSig = await signKalshiRequest(privKey, bTs, "GET", bPath, "");
-
-      const bRes = await fetch(`https://external-api.kalshi.com${bPath}`, {
-        headers: {
-          "Accept": "application/json",
-          "KALSHI-ACCESS-KEY": kalshiKeyId,
-          "KALSHI-ACCESS-SIGNATURE": bSig,
-          "KALSHI-ACCESS-TIMESTAMP": bTs,
-          "User-Agent": "CosmicParlaysTerminal/1.0"
-        }
-      });
-
-      if (bRes.ok) {
-        const bData = await bRes.json();
-        kalshiBalance = (bData.balance || 0) / 100;
-        kalshiAuth = true;
-      }
-
-      // Orders
-      const oPath = "/trade-api/v2/portfolio/orders?status=resting";
-      const oTs = getNonceTimestamp();
-      const oSig = await signKalshiRequest(privKey, oTs, "GET", oPath, "");
-
-      const oRes = await fetch(`https://external-api.kalshi.com${oPath}`, {
-        headers: {
-          "Accept": "application/json",
-          "KALSHI-ACCESS-KEY": kalshiKeyId,
-          "KALSHI-ACCESS-SIGNATURE": oSig,
-          "KALSHI-ACCESS-TIMESTAMP": oTs,
-          "User-Agent": "CosmicParlaysTerminal/1.0"
-        }
-      });
-
-      if (oRes.ok) {
-        const oData = await oRes.json();
-        (oData.orders || []).forEach(ord => {
-          const count = ord.order_count || ord.remaining_count || ord.count || ord.quantity || 1;
-          const priceCents = ord.yes_price || ord.no_price || ord.price || 50;
-          kalshiPositions.push({
-            platform: "Kalshi",
-            title: `${ord.ticker} (${(ord.action || "BUY").toUpperCase()} ${(ord.side || "YES").toUpperCase()})`,
-            count: count,
-            price: priceCents / 100,
-            exposure: (count * priceCents) / 100,
-            status: "Resting Limit"
-          });
-        });
-      }
-    } catch (e) {
-      console.error("Kalshi live sync error:", e);
-    }
-  }
-
-  const allPositions = [...polyPositions, ...kalshiPositions];
-  const activeExposure = allPositions.reduce((acc, p) => acc + (p.exposure || 0), 0);
-  const activeContracts = allPositions.reduce((acc, p) => acc + (p.count || 0), 0);
-
-  // --- Polymarket Public Catalog ---
+async function handleLiveData() {
+  // --- 1. Polymarket Public Gamma Catalog ---
   let polymarket = [];
   try {
     const [genRes, sportsRes] = await Promise.all([
       fetch("https://gamma-api.polymarket.com/events?closed=false&active=true&limit=60", {
-        headers: { "Accept": "application/json", "User-Agent": "CosmicParlaysTerminal/1.0" }
+        headers: { "Accept": "application/json", "User-Agent": "CosmicTerminal/1.0" }
       }),
       fetch("https://gamma-api.polymarket.com/events?closed=false&active=true&tag_id=100639&limit=60", {
-        headers: { "Accept": "application/json", "User-Agent": "CosmicParlaysTerminal/1.0" }
+        headers: { "Accept": "application/json", "User-Agent": "CosmicTerminal/1.0" }
       })
     ]);
 
@@ -338,32 +205,17 @@ async function handleLiveData(env) {
       });
     });
   } catch (err) {
-    console.error("Polymarket catalog fetch error:", err);
+    console.error("Polymarket public catalog error:", err);
   }
 
-  // --- Kalshi Live Market Catalog (Nested Events Endpoint) ---
+  // --- 2. Kalshi Public Market Catalog (Unauthenticated Public Events) ---
   let kalshi = [];
   try {
-    const eventsPath = "/trade-api/v2/events";
-    const queryString = "?limit=100&status=open&with_nested_markets=true";
-    let kHeaders = { 
-      "Accept": "application/json",
-      "User-Agent": "CosmicParlaysTerminal/1.0"
-    };
-
-    if (kalshiKeyId && kalshiPrivateKey) {
-      try {
-        const privKey = await getKalshiCryptoKey(kalshiPrivateKey);
-        const kTs = getNonceTimestamp();
-        const kSig = await signKalshiRequest(privKey, kTs, "GET", eventsPath, "");
-        kHeaders["KALSHI-ACCESS-KEY"] = kalshiKeyId;
-        kHeaders["KALSHI-ACCESS-SIGNATURE"] = kSig;
-        kHeaders["KALSHI-ACCESS-TIMESTAMP"] = kTs;
-      } catch (_) {}
-    }
-
-    const kRes = await fetch(`https://external-api.kalshi.com${eventsPath}${queryString}`, {
-      headers: kHeaders
+    const kRes = await fetch("https://external-api.kalshi.com/trade-api/v2/events?limit=100&status=open&with_nested_markets=true", {
+      headers: {
+        "Accept": "application/json",
+        "User-Agent": "CosmicTerminal/1.0"
+      }
     });
 
     if (kRes.ok) {
@@ -377,7 +229,7 @@ async function handleLiveData(env) {
 
           const marketTitle = m.title || eventTitle || m.ticker || "";
 
-          // Exclude internal combo parlays and accumulators
+          // Exclude combo parlays & accumulator strings
           if (
             marketTitle.includes("+") || 
             /\(\+\d+\s+more\s+legs\)/i.test(marketTitle) || 
@@ -419,7 +271,6 @@ async function handleLiveData(env) {
           if (yesVal !== null && noVal === null) noVal = 1.00 - yesVal;
           if (noVal !== null && yesVal === null) yesVal = 1.00 - noVal;
 
-          // Skip completely untraded or unquoted items
           if (yesVal === null && noVal === null) return;
 
           let candidate = m.subtitle || m.sub_title || m.yes_sub_title || "";
@@ -445,21 +296,22 @@ async function handleLiveData(env) {
       });
     }
   } catch (err) {
-    console.error("Kalshi events fetch error:", err);
+    console.error("Kalshi public catalog error:", err);
   }
 
+  // Generic neutral portfolio payload for public visitors
   return new Response(JSON.stringify({
     status: "healthy",
+    mode: "public_community_terminal",
     timestamp: new Date().toISOString(),
     portfolio: {
-      polyBalance: Number(polyBalance.toFixed(2)),
-      polyAuth: true,
-      kalshiBalance: Number(kalshiBalance.toFixed(2)),
-      kalshiAuth: kalshiAuth,
-      totalCash: Number((polyBalance + kalshiBalance).toFixed(2)),
-      activeExposure: Number(activeExposure.toFixed(2)),
-      activeContracts: activeContracts,
-      positions: allPositions
+      isPublic: true,
+      polyBalance: 0.00,
+      kalshiBalance: 0.00,
+      totalCash: 0.00,
+      activeExposure: 0.00,
+      activeContracts: 0,
+      positions: []
     },
     polymarket,
     kalshi,
