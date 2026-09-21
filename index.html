@@ -1121,7 +1121,7 @@
           .toLowerCase()
           .replace(/[^a-z0-9\s]/g, ' ')
           .split(/\s+/)
-          .filter(w => w.length >= 3 && !['will', 'the', 'and', 'for', 'that', 'this', 'with', 'from', 'what', 'when', 'who', 'how', 'end', 'rate', 'before', 'above', 'below'].includes(w));
+          .filter(w => w.length >= 3 && !['will', 'the', 'and', 'for', 'that', 'this', 'with', 'from', 'what', 'when', 'who', 'how', 'end', 'rate', 'before', 'above', 'below', 'market'].includes(w));
       };
 
       const extractYears = (item) => {
@@ -1137,15 +1137,23 @@
       };
 
       kalshi.forEach(k => {
-        if (!k.yesAsk || k.yesAsk <= 0.02 || k.yesAsk >= 0.98) return;
+        // Exclude raw multi-leg parlay bundles
+        if ((k.title || "").includes(",yes") || (k.title || "").includes(",no")) return;
+        if (!k.yesAsk || k.yesAsk <= 0.05 || k.yesAsk >= 0.95) return;
 
         const kTokens = extractTokens(k.title);
         const kCand = (k.candidate || "").toLowerCase().trim();
         const kYears = extractYears(k);
 
         poly.forEach(p => {
-          if (!p.noAsk || p.noAsk <= 0.02 || p.noAsk >= 0.98) return;
+          // Exclude raw multi-leg parlay bundles
+          if ((p.title || "").includes(",yes") || (p.title || "").includes(",no")) return;
+          if (!p.noAsk || p.noAsk <= 0.05 || p.noAsk >= 0.95) return;
 
+          // Category sanity check: ensure Sports only matches Sports, Politics only matches Politics
+          if (k.category && p.category && k.category !== p.category) return;
+
+          // Year sanity check
           const pYears = extractYears(p);
           if (kYears.length > 0 && pYears.length > 0) {
             const hasCommonYear = kYears.some(y => pYears.includes(y));
@@ -1153,19 +1161,27 @@
           }
 
           const pCand = (p.candidate || "").toLowerCase().trim();
-          const candidateMatch = (!kCand || kCand === "consensus" || !pCand || pCand === "consensus") 
-            ? true 
-            : (kCand.includes(pCand) || pCand.includes(kCand));
+          
+          // Strict candidate matching: if candidates exist and aren't generic, they must match
+          const hasSpecificKCand = kCand && kCand !== "consensus" && kCand !== "party a";
+          const hasSpecificPCand = pCand && pCand !== "consensus" && pCand !== "party a";
 
-          if (!candidateMatch) return;
+          if (hasSpecificKCand && hasSpecificPCand) {
+            if (!kCand.includes(pCand) && !pCand.includes(kCand)) return;
+          } else if (hasSpecificKCand !== hasSpecificPCand) {
+            return;
+          }
 
           const pTokens = extractTokens(p.title);
           const sharedTokens = kTokens.filter(t => pTokens.includes(t));
-          const titleMatch = sharedTokens.length >= 3 || (sharedTokens.length >= 2 && sharedTokens.length / Math.min(kTokens.length, pTokens.length) >= 0.6);
+          
+          // Require strong overlap on both sides
+          const kOverlap = sharedTokens.length / (kTokens.length || 1);
+          const pOverlap = sharedTokens.length / (pTokens.length || 1);
 
-          if (titleMatch) {
+          if (sharedTokens.length >= 3 && kOverlap >= 0.4 && pOverlap >= 0.4) {
             const totalCost = k.yesAsk + p.noAsk;
-            const netEdge = 1.00 - totalCost - 0.015;
+            const netEdge = 1.00 - totalCost - 0.015; // 1.5% fee headroom
 
             if (netEdge >= 0.01) {
               const roiVal = Math.round(((netEdge / totalCost) * 100));
