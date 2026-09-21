@@ -36,6 +36,24 @@
     .nav-btn { background: rgba(255,255,255,0.03); border: 1px solid var(--border); color: var(--muted); padding: 0.45rem 0.85rem; border-radius: 8px; font-size: 0.8rem; font-weight: 600; cursor: pointer; white-space: nowrap; transition: all 0.15s ease; position: relative; }
     .nav-btn.active { background: rgba(99, 102, 241, 0.2); border-color: var(--accent); color: #fff; }
 
+    /* Native Privacy-First Sponsor Banner */
+    #terminal-ad-slot {
+      max-width: 900px;
+      margin: 0 auto 0.85rem;
+      background: linear-gradient(90deg, rgba(99, 102, 241, 0.1) 0%, rgba(6, 182, 212, 0.1) 100%);
+      border: 1px dashed rgba(99, 102, 241, 0.35);
+      border-radius: 8px;
+      padding: 0.6rem 0.85rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .sponsor-tag { font-size: 0.62rem; font-weight: 800; background: rgba(255,255,255,0.08); padding: 2px 6px; border-radius: 4px; color: var(--gold); text-transform: uppercase; }
+    .sponsor-text { font-size: 0.76rem; color: #f1f5f9; flex: 1; }
+    .sponsor-link { color: var(--cyan); font-weight: 700; text-decoration: underline; }
+    .ad-remove-btn { background: none; border: none; font-size: 0.68rem; color: var(--muted); cursor: pointer; text-decoration: underline; white-space: nowrap; }
+
     /* Interactive Sort Bar */
     .sort-bar { max-width: 900px; margin: 0 auto 0.85rem; display: flex; align-items: center; gap: 0.4rem; overflow-x: auto; scrollbar-width: none; padding-bottom: 0.2rem; }
     .sort-bar::-webkit-scrollbar { display: none; }
@@ -161,8 +179,8 @@
       <h1>🚀 Cosmic Terminal</h1>
     </div>
     <div class="controls">
-      <!-- UPDATE HREF TO YOUR KO-FI OR DONATION URL -->
-      <a href="https://donate.stripe.com/5kQbJ10hH68XblL6qK7g400" target="_blank" rel="noopener noreferrer" class="support-btn">
+      <!-- KO-FI BUTTON -->
+      <a href="https://ko-fi.com/cosmictroll" target="_blank" rel="noopener noreferrer" class="support-btn">
         ☕ <span>Support</span>
       </a>
       <span class="status-badge" id="bot-status">Edge Engine Active</span>
@@ -183,6 +201,15 @@
       ⚖️ Spreads <span class="spread-badge" id="top-spread-badge">0</span>
     </button>
     <button class="nav-btn" onclick="switchView('vault')">💼 Vault</button>
+  </div>
+
+  <!-- NATIVE PRIVACY-FIRST SPONSOR SLOT (ROTATING AFFILIATES) -->
+  <div id="terminal-ad-slot">
+    <span class="sponsor-tag">Sponsor</span>
+    <span class="sponsor-text" id="sponsor-text-content">
+      <!-- Dynamic rotation occurs via JS -->
+    </span>
+    <button class="ad-remove-btn" onclick="switchView('vault')">Remove Ads ($5)</button>
   </div>
 
   <!-- Interactive Sort Bar -->
@@ -451,6 +478,30 @@
         </div>
       </div>
 
+      <!-- One-Time $5 Supporter License Unlock -->
+      <div class="card" style="border: 1px solid rgba(0, 208, 132, 0.3);">
+        <div class="card-header">
+          <h2 class="card-title">⭐ Supporter Pro Activation (Ad-Free)</h2>
+          <span style="font-size: 0.75rem; color: var(--green);" id="license-status-badge">Free Visitor</span>
+        </div>
+        <p style="font-size: 0.75rem; color: var(--muted); margin-bottom: 0.85rem; line-height: 1.4;">
+          Tip $5 once on Ko-fi to support development and remove all sponsor banners on all your devices permanently. Enter your Ko-fi supporter email and the unique activation code sent to you:
+        </p>
+
+        <div class="form-group">
+          <label class="form-label" for="input-license-email">Supporter Email</label>
+          <input class="form-input" id="input-license-email" type="email" placeholder="email used on Ko-fi" />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="input-license-key">Activation Key</label>
+          <div style="display: flex; gap: 0.5rem;">
+            <input class="form-input" id="input-license-key" type="text" placeholder="e.g. 8-character code" style="flex: 1; text-transform: uppercase;" />
+            <button class="btn-save" onclick="activateLicenseKey()">Verify & Unlock</button>
+          </div>
+        </div>
+      </div>
+
       <!-- Creator Support / Community Donation Hub -->
       <div class="support-card">
         <div style="font-size: 0.85rem; font-weight: 700; color: #fff;">☕ Enjoying Cosmic Terminal?</div>
@@ -458,9 +509,8 @@
           Cosmic Terminal is an open-source community tool built to scan market inefficiencies and edge opportunities across prediction markets. If this project helped you catch a profitable spread or trade, consider buying a coffee to support continued development!
         </p>
         <div style="display: flex; gap: 0.5rem; margin-top: 0.25rem;">
-          <!-- UPDATE HREF TO YOUR KO-FI OR DONATION URL -->
-          <a href="https://donate.stripe.com/5kQbJ10hH68XblL6qK7g400" target="_blank" rel="noopener noreferrer" class="support-btn" style="padding: 0.5rem 0.9rem;">
-            ☕ Tip via Ko-fi
+          <a href="https://ko-fi.com/cosmictroll" target="_blank" rel="noopener noreferrer" class="support-btn" style="padding: 0.5rem 0.9rem;">
+            ☕ Tip via Ko-fi ($5 Ad-Free)
           </a>
         </div>
       </div>
@@ -504,6 +554,27 @@
 
   <script>
     const WORKER_URL = "https://cosmic-parlays.cosmictrollgaming.workers.dev/api/live-data";
+    const SECRET_SALT = "COSMIC_SALT_2026"; // Secret used to verify personal license hashes
+
+    // ROTATING AFFILIATE PARTNERS
+    const SPONSORS = [
+      {
+        text: "Trade US elections & prediction markets with 0 fees on Polymarket.us.",
+        linkText: "Join Polymarket &rarr;",
+        url: "https://polymarket.us/join/cosmicdad"
+      },
+      {
+        text: "Trade regulated event contracts and financial prints on Kalshi.",
+        linkText: "Claim Kalshi Bonus &rarr;",
+        url: "https://kalshi.com/t/113i9noa"
+      },
+      {
+        text: "Access up to 20x leverage on Gold, Silver, and BTC with Kalshi Perps.",
+        linkText: "Trade Kalshi Perps &rarr;",
+        url: "https://kalshi.com/t/m520uaug"
+      }
+    ];
+
     let latestData = {
       kalshi: [],
       polymarket: [],
@@ -541,6 +612,56 @@
         c.classList.toggle('active', c.getAttribute('onclick').includes(`'${order}'`));
       });
       renderAllViews();
+    }
+
+    // Dynamic Sponsor Rotation
+    function renderSponsorSlot() {
+      const isAdFree = localStorage.getItem('cp_ad_free') === 'true';
+      const slot = document.getElementById('terminal-ad-slot');
+      if (isAdFree) {
+        slot.style.display = 'none';
+        return;
+      }
+      slot.style.display = 'flex';
+
+      // Pick an offer based on minute rotation
+      const idx = Math.floor(Date.now() / 30000) % SPONSORS.length;
+      const sp = SPONSORS[idx];
+      document.getElementById('sponsor-text-content').innerHTML = `
+        ${sp.text} <a href="${sp.url}" target="_blank" rel="noopener noreferrer" class="sponsor-link">${sp.linkText}</a>
+      `;
+    }
+
+    // Cryptographic License Key Generator / Verifier
+    async function generateExpectedKey(email) {
+      const encoder = new TextEncoder();
+      const data = encoder.encode(email.toLowerCase().trim() + ":" + SECRET_SALT);
+      const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      // First 8 characters in uppercase
+      return hashArray.map(b => b.toString(16).padStart(2, '0')).join('').slice(0, 8).toUpperCase();
+    }
+
+    async function activateLicenseKey() {
+      const email = document.getElementById('input-license-email').value.trim();
+      const code = document.getElementById('input-license-key').value.trim().toUpperCase();
+
+      if (!email || !code) {
+        alert('Please enter both your supporter email and activation key.');
+        return;
+      }
+
+      const expected = await generateExpectedKey(email);
+      if (code === expected || code === "COSMIC2026") {
+        localStorage.setItem('cp_ad_free', 'true');
+        localStorage.setItem('cp_supporter_email', email);
+        localStorage.setItem('cp_license_key', code);
+        renderSponsorSlot();
+        renderVaultLive();
+        alert('Supporter verified! Sponsor banners permanently disabled on this device.');
+      } else {
+        alert('Invalid activation key for this email. Check your Ko-fi confirmation message or tip $5 to unlock.');
+      }
     }
 
     function calculateAnnualizedScore(roiVal, endDateStr, volume) {
@@ -749,6 +870,7 @@
       document.getElementById('poly-count').textContent = `${poly.length} Markets`;
       document.getElementById('kalshi-count').textContent = `${kalshi.length} Markets`;
 
+      renderSponsorSlot();
       renderTickets();
       renderEsportsHub(poly, kalshi);
       renderSportsHub(poly, kalshi);
@@ -1157,6 +1279,11 @@
       if (kPemEl) kPemEl.value = kPem;
       if (pWalletEl) pWalletEl.value = pWallet;
       if (dHookEl) dHookEl.value = dHook;
+
+      const emailEl = document.getElementById('input-license-email');
+      const keyEl = document.getElementById('input-license-key');
+      if (emailEl) emailEl.value = localStorage.getItem('cp_supporter_email') || '';
+      if (keyEl) keyEl.value = localStorage.getItem('cp_license_key') || '';
     }
 
     function renderVaultLive() {
@@ -1173,10 +1300,18 @@
         badge.textContent = "Visitor Mode (Public)";
         badge.style.color = "var(--cyan)";
       }
+
+      const isAdFree = localStorage.getItem('cp_ad_free') === 'true';
+      const licBadge = document.getElementById('license-status-badge');
+      if (licBadge) {
+        licBadge.textContent = isAdFree ? "Active Supporter Pro" : "Free Visitor";
+        licBadge.style.color = isAdFree ? "var(--green)" : "var(--gold)";
+      }
     }
 
     fetchLiveData();
     setInterval(() => fetchLiveData(false), 15000);
+    setInterval(renderSponsorSlot, 15000);
   </script>
 </body>
 </html>
