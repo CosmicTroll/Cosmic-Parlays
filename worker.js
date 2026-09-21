@@ -78,6 +78,8 @@ export default {
               if (!emailResponse.ok) {
                 const errText = await emailResponse.text();
                 console.error(`[RESEND ERROR] Status ${emailResponse.status}: ${errText}`);
+              } else {
+                console.log(`[RESEND SUCCESS] Sent Pro key to ${supporterEmail}`);
               }
             } catch (mailErr) {
               console.error(`[RESEND EXCEPTION] ${mailErr.message}`);
@@ -153,61 +155,57 @@ async function fetchAllMarketData() {
 }
 
 async function fetchKalshiPublicMarkets() {
-  // Query both standard and election APIs to maximize coverage
-  const endpoints = [
-    "https://api.kalshi.com/trade-api/v2/markets?limit=200&status=open",
-    "https://api.elections.kalshi.com/trade-api/v2/markets?limit=200&status=open"
-  ];
+  const url = "https://api.elections.kalshi.com/trade-api/v2/events?limit=50&status=open&with_nested_markets=true";
+  try {
+    const res = await fetch(url, {
+      headers: {
+        "Accept": "application/json",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"
+      }
+    });
 
-  const parsed = [];
-  const seen = new Set();
+    if (!res.ok) {
+      console.error(`Kalshi HTTP error: ${res.status}`);
+      return [];
+    }
 
-  for (const ep of endpoints) {
-    try {
-      const res = await fetch(ep, {
-        headers: { "Accept": "application/json", "User-Agent": "CosmicTerminal/1.0" }
-      });
-      
-      if (!res.ok) continue;
-      const data = await res.json();
-      const rawList = data.markets || [];
+    const data = await res.json();
+    const events = data.events || [];
+    const cleanList = [];
 
-      rawList.forEach(m => {
-        // Drop un-tradable combo parlay bundles
+    events.forEach(ev => {
+      const markets = ev.markets || [];
+      markets.forEach(m => {
+        // Skip raw parlay bundle combinations
         if ((m.title || "").includes(",yes") || (m.title || "").includes(",no")) return;
-        
-        // Prevent dupes across the two APIs
-        if (seen.has(m.ticker)) return;
 
-        // Fallback chain: use ask, then last price, then bid, then default to 50c
-        let yesCents = m.yes_ask || m.last_price || m.yes_bid || 50;
-        let noCents = m.no_ask || (100 - yesCents);
+        const yesCents = m.yes_ask || m.last_price || m.yes_bid || 50;
+        const noCents = m.no_ask || (100 - yesCents);
 
-        let yesAsk = yesCents / 100;
-        let noAsk = noCents / 100;
+        const yesAsk = Number((yesCents / 100).toFixed(2));
+        const noAsk = Number((noCents / 100).toFixed(2));
 
-        // Ensure we don't ingest fully settled bounds
         if (yesAsk <= 0.01 || yesAsk >= 0.99) return;
 
-        seen.add(m.ticker);
-        parsed.push({
+        cleanList.push({
           id: m.ticker,
-          title: m.title || m.ticker,
-          candidate: m.subtitle || "Consensus",
+          title: ev.title || m.title || m.ticker,
+          candidate: m.subtitle || m.yes_sub_title || "Consensus",
           platform: "KALSHI",
-          category: categorizeMarket(m.title, m.category),
-          yesAsk: Number(yesAsk.toFixed(2)),
-          noAsk: Number(noAsk.toFixed(2)),
-          volume: m.volume_24h || m.volume || 0,
+          category: categorizeMarket(ev.title || m.title, ev.category),
+          yesAsk: yesAsk,
+          noAsk: noAsk,
+          volume: m.volume_24h || m.volume || ev.volume || 0,
           endDate: m.expiration_time || m.close_time || null
         });
       });
-    } catch (err) {
-      console.warn("Kalshi fetch error on:", ep, err);
-    }
-  }
+    });
 
-  return parsed;
+    return cleanList;
+  } catch (err) {
+    console.error("Kalshi fetch exception:", err);
+    return [];
+  }
 }
 
 async function fetchPolymarketPublicMarkets() {
@@ -238,7 +236,6 @@ async function fetchPolymarketPublicMarkets() {
 
         const volume = parseFloat(m.volume24hr || m.volume || 0);
 
-        // Strip out dummy unpriced 50/50 placeholders with low volume
         if (yesPrice === null || (yesPrice === 0.5 && noPrice === 0.5 && volume < 50)) {
           return;
         }
@@ -266,7 +263,8 @@ async function fetchPolymarketPublicMarkets() {
 
 function categorizeMarket(title = "", category = "") {
   const t = (title + " " + category).toLowerCase();
-  if (/\b(cs2|csgo|dota|dota2|league of legends|lck|lpl|lec|lcs|valorant|vct|starcraft|rocket league|overwatch|rainbow six)\b/i.test(t)) {
+  if (/\b(cs2|csgo|counter-strike|dota|dota2|valorant|starcraft|rocket league|rainbow six|r6|overwatch)\b/i.test(t) ||
+      (t.includes("league of legends") && !t.includes("election"))) {
     return "ESPORTS";
   }
   if (/\b(nfl|nba|mlb|nhl|premier league|champions league|ufc|mma|tennis|touchdown|points|rebounds)\b/i.test(t)) {
