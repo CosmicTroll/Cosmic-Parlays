@@ -404,12 +404,6 @@
 
     function cleanDisplayTitle(raw) {
       let t = (raw || "").replace(/^yes\s+/i, '').replace(/^no\s+/i, '');
-      if (t.includes(',')) {
-        const parts = t.split(',').map(s => s.trim().replace(/^(yes|no)\s+/i, ''));
-        if (parts.length > 2) {
-          return `${parts[0]} + ${parts[1]} (+${parts.length - 2} more legs)`;
-        }
-      }
       return t.length > 70 ? t.slice(0, 67) + '...' : t;
     }
 
@@ -535,14 +529,13 @@
     }
 
     function evaluateMarketRecommendation(m) {
-      // Coerce to valid numbers, falling back to 0.50 if unquoted
       let yesAsk = (typeof m.yesAsk === 'number' && !isNaN(m.yesAsk) && m.yesAsk > 0) ? m.yesAsk : 0.50;
       let noAsk = (typeof m.noAsk === 'number' && !isNaN(m.noAsk) && m.noAsk > 0) ? m.noAsk : (1.00 - yesAsk);
-      
-      const cleanCandidate = cleanDisplayTitle(m.candidate || "Consensus");
-      const targetEntity = (cleanCandidate && cleanCandidate !== "Consensus") ? ` [${cleanCandidate}]` : "";
 
-      // Ensure price is safely within tradeable bounds
+      const rawCandidate = m.candidate || "";
+      const isGeneric = !rawCandidate || rawCandidate === "Consensus" || rawCandidate === "Party A";
+      const targetEntity = isGeneric ? "" : ` [${cleanDisplayTitle(rawCandidate)}]`;
+
       if (yesAsk > 0.98) yesAsk = 0.98;
       if (yesAsk < 0.02) yesAsk = 0.02;
       if (noAsk > 0.98) noAsk = 0.98;
@@ -680,7 +673,7 @@
             <span class="tag ${p.type === 'Anchor Leg' ? 'tag-settled' : 'tag-closed'}">${p.type}</span>
           </div>
           <div class="item-meta">
-            <span>Side: <b style="color: #fff;">${p.side} [${cleanDisplayTitle(p.candidate)}]</b> @ $${p.price.toFixed(2)}</span>
+            <span>Side: <b style="color: #fff;">${p.side}${p.candidate && p.candidate !== 'Consensus' ? ` [${cleanDisplayTitle(p.candidate)}]` : ''}</b> @ $${p.price.toFixed(2)}</span>
             <span style="color: var(--green); font-weight: 800;">${p.rec.roi}</span>
             <span style="color: var(--cyan); font-weight: 700;">${p.rec.prob}</span>
             <span class="tag-platform">${p.platform}</span>
@@ -781,7 +774,7 @@
         poly.forEach(p => {
           if (!p.noAsk || p.noAsk <= 0.05 || p.noAsk >= 0.95) return;
 
-          const kWords = (k.title || "").toLowerCase().split(/\s+/).filter(w => w.length >= 4 && !['match', 'game', 'total', 'points', 'versus', 'will', 'with'].includes(w));
+          const kWords = (k.title || "").toLowerCase().split(/[\s,.-]+/).filter(w => w.length >= 4 && !['match', 'game', 'total', 'points', 'versus', 'will', 'with'].includes(w));
           const pLower = (p.title || "").toLowerCase();
 
           const isDirectMatch = kWords.some(w => pLower.includes(w));
