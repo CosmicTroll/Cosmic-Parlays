@@ -50,6 +50,11 @@
     .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.85rem; }
     .card-title { font-size: 0.95rem; font-weight: 600; color: #fff; display: flex; align-items: center; gap: 0.4rem; }
 
+    .clickable-header { cursor: pointer; transition: opacity 0.2s ease; }
+    .clickable-header:active { opacity: 0.7; }
+    .view-more-btn { background: rgba(255,255,255,0.05); border: 1px solid var(--border); color: var(--cyan); border-radius: 6px; padding: 0.5rem; text-align: center; font-size: 0.75rem; font-weight: 700; cursor: pointer; margin-top: 0.4rem; }
+    .view-more-btn:active { background: rgba(6, 182, 212, 0.15); }
+
     /* Asset Sub-Tabs for Perps */
     .asset-tabs { display: flex; gap: 0.4rem; overflow-x: auto; margin-bottom: 0.85rem; scrollbar-width: none; }
     .asset-tabs::-webkit-scrollbar { display: none; }
@@ -151,7 +156,9 @@
 
   <!-- Top Navigation Tabs -->
   <div class="nav-tabs">
-    <button class="nav-btn active" onclick="switchView('picks')">🎯 Cosmic's Picks</button>
+    <button class="nav-btn active" onclick="switchView('picks')">🎯 Picks</button>
+    <button class="nav-btn" onclick="switchView('esports')">🎮 Esports</button>
+    <button class="nav-btn" onclick="switchView('sports')">🏈 Sports</button>
     <button class="nav-btn" onclick="switchView('macro')">🏛️ Politics & Culture</button>
     <button class="nav-btn" onclick="switchView('perps')">⚡ Kalshi Perps</button>
     <button class="nav-btn" onclick="switchView('poly')">🟣 Poly.us</button>
@@ -173,7 +180,7 @@
   </div>
 
   <main>
-    <!-- TAB 1: Cosmic's Picks -->
+    <!-- TAB 1: Cosmic's Picks (Dashboard Preview) -->
     <section id="view-picks" class="view-panel active">
       <div class="card">
         <div class="card-header">
@@ -185,25 +192,59 @@
         </div>
       </div>
 
-      <!-- DEDICATED ESPORTS SECTION -->
+      <!-- ESPORTS TOP 3 CHUNK -->
       <div class="card">
-        <div class="card-header">
-          <h2 class="card-title">🎮 Esports Desk (CS2, LoL, Dota, Valorant)</h2>
-          <span style="font-size: 0.75rem; color: var(--purple);">Competitive Gaming</span>
+        <div class="card-header clickable-header" onclick="switchView('esports')">
+          <h2 class="card-title">🎮 Esports Desk (Top 3 Picks)</h2>
+          <span style="font-size: 0.75rem; color: var(--purple); font-weight: 700;">Open Hub &rarr;</span>
         </div>
-        <div class="item-list" id="esports-container">
-          <div class="empty">Scanning live books for esports match lines...</div>
+        <div class="item-list" id="esports-preview-container">
+          <div class="empty">Scanning live books for esports lines...</div>
         </div>
+        <div class="view-more-btn" onclick="switchView('esports')">View Full Esports Desk (All Matches) &rarr;</div>
       </div>
 
-      <!-- TRADITIONAL SPORTS -->
+      <!-- TRADITIONAL SPORTS TOP 3 CHUNK -->
+      <div class="card">
+        <div class="card-header clickable-header" onclick="switchView('sports')">
+          <h2 class="card-title">🏈 Game Lines & Props (Top 3 Picks)</h2>
+          <span style="font-size: 0.75rem; color: var(--gold); font-weight: 700;">Open Hub &rarr;</span>
+        </div>
+        <div class="item-list" id="props-preview-container">
+          <div class="empty">Filtering live book for sports lines...</div>
+        </div>
+        <div class="view-more-btn" onclick="switchView('sports')">View Full Sports Hub (All Games & Props) &rarr;</div>
+      </div>
+    </section>
+
+    <!-- DEDICATED TAB: Full Esports Hub -->
+    <section id="view-esports" class="view-panel">
       <div class="card">
         <div class="card-header">
-          <h2 class="card-title">🏈 High-Probability Game Lines & Player Props</h2>
-          <span style="font-size: 0.75rem; color: var(--gold);">Strictly Sports Lines</span>
+          <h2 class="card-title">🎮 Complete Esports Desk (CS2, LoL, Dota, Valorant)</h2>
+          <span style="font-size: 0.75rem; color: var(--purple);" id="esports-full-count">0 Markets</span>
         </div>
-        <div class="item-list" id="props-container">
-          <div class="empty">Filtering live book for sports lines...</div>
+        <p style="font-size: 0.75rem; color: var(--muted); margin-bottom: 0.85rem;">
+          Real-time series & map lines ranked by probability and edge across tier-1 tournaments.
+        </p>
+        <div class="item-list" id="esports-full-container">
+          <div class="empty">Loading esports matches...</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- DEDICATED TAB: Full Sports Hub -->
+    <section id="view-sports" class="view-panel">
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">🏈 Complete Sports & Prop Markets</h2>
+          <span style="font-size: 0.75rem; color: var(--gold);" id="sports-full-count">0 Markets</span>
+        </div>
+        <p style="font-size: 0.75rem; color: var(--muted); margin-bottom: 0.85rem;">
+          Traditional game moneylines, spreads, over/unders, and player props.
+        </p>
+        <div class="item-list" id="props-full-container">
+          <div class="empty">Loading traditional sports lines...</div>
         </div>
       </div>
     </section>
@@ -436,7 +477,7 @@
         positions: []
       }
     };
-    const viewKeys = ['picks', 'macro', 'perps', 'poly', 'kalshi', 'spreads', 'vault'];
+    const viewKeys = ['picks', 'esports', 'sports', 'macro', 'perps', 'poly', 'kalshi', 'spreads', 'vault'];
 
     let activePerp = "GOLD";
     let activePerpTime = "4H";
@@ -461,18 +502,14 @@
       renderAllViews();
     }
 
-    // Capital efficiency engine: balances nominal ROI, time horizon, and verified liquidity
     function calculateAnnualizedScore(roiVal, endDateStr, volume) {
       const now = Date.now();
       const end = endDateStr ? Date.parse(endDateStr) : now + (365 * 24 * 3600 * 1000);
       const daysRemaining = Math.max(2, (end - now) / (1000 * 60 * 60 * 24));
       
       const annualizedRoi = (roiVal / daysRemaining) * 365;
-
-      // Penalize contracts ending more than 400 days out (e.g. 2028-2035)
       const timePenalty = daysRemaining > 400 ? Math.pow(400 / daysRemaining, 1.8) : 1.0;
 
-      // Volume weight: scale by verified market turnover
       const safeVol = typeof volume === 'number' ? volume : parseFloat(volume) || 0;
       const volMultiplier = 1 + (Math.log10(Math.max(1, safeVol)) / 4);
 
@@ -488,9 +525,7 @@
         const probA = (a.rec && a.rec.probVal !== undefined) ? a.rec.probVal : 50;
         const probB = (b.rec && b.rec.probVal !== undefined) ? b.rec.probVal : 50;
 
-        if (currentSort === 'roi-desc') {
-          return scoreB - scoreA;
-        }
+        if (currentSort === 'roi-desc') return scoreB - scoreA;
         if (currentSort === 'roi-asc') return roiA - roiB;
         if (currentSort === 'prob-desc') return (b.rec?.probVal || 50) - (a.rec?.probVal || 50);
         if (currentSort === 'time-asc') {
@@ -512,13 +547,14 @@
       const activePanel = document.getElementById('view-' + tabId);
       if (activePanel) activePanel.classList.add('active');
 
-      const targetIdx = viewKeys.indexOf(tabId);
-      document.querySelectorAll('.nav-btn').forEach((btn, idx) => {
-        btn.classList.toggle('active', idx === targetIdx);
+      document.querySelectorAll('.nav-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.getAttribute('onclick').includes(`'${tabId}'`));
       });
-      document.querySelectorAll('.bottom-tab').forEach((btn, idx) => {
-        btn.classList.toggle('active', idx === targetIdx);
+      document.querySelectorAll('.bottom-tab').forEach(btn => {
+        btn.classList.toggle('active', btn.getAttribute('onclick').includes(`'${tabId}'`));
       });
+
+      window.scrollTo({ top: 0, behavior: 'smooth' });
 
       if (tabId === 'perps') renderPerpForecast();
       if (tabId === 'vault') renderVaultLive();
@@ -674,8 +710,8 @@
       document.getElementById('kalshi-count').textContent = `${kalshi.length} Markets`;
 
       renderTickets(portfolio.positions || []);
-      renderEsportsDesk(poly, kalshi);
-      renderSportsParlays(poly, kalshi);
+      renderEsportsHub(poly, kalshi);
+      renderSportsHub(poly, kalshi);
       renderMacroHub(poly, kalshi);
       renderPerpForecast();
       renderBestBuys('poly-container', poly, 'POLY.US');
@@ -709,9 +745,11 @@
       }).join('');
     }
 
-    // Dedicated Esports Section
-    function renderEsportsDesk(poly, kalshi) {
-      const container = document.getElementById('esports-container');
+    // Combined Esports Engine: Renders Top 3 Preview AND Dedicated Full View
+    function renderEsportsHub(poly, kalshi) {
+      const previewContainer = document.getElementById('esports-preview-container');
+      const fullContainer = document.getElementById('esports-full-container');
+      const fullCountEl = document.getElementById('esports-full-count');
       const all = [...poly, ...kalshi];
 
       const esportsMarkets = all.filter(m => isEsportsMarket(m));
@@ -730,14 +768,18 @@
         }
       });
 
+      fullCountEl.textContent = `${candidates.length} Matches`;
+
       if (candidates.length === 0) {
-        container.innerHTML = `<div class="empty">No live CS2, LoL, or Dota match lines active right now.</div>`;
+        const emptyMsg = `<div class="empty">No live CS2, LoL, or Dota match lines active right now.</div>`;
+        previewContainer.innerHTML = emptyMsg;
+        fullContainer.innerHTML = emptyMsg;
         return;
       }
 
       const sorted = sortCandidates(candidates);
 
-      container.innerHTML = sorted.slice(0, 15).map(p => `
+      const renderCard = p => `
         <div class="list-item" style="border-left: 3px solid var(--purple);">
           <div class="item-top">
             <span class="item-title">${cleanDisplayTitle(p.title)}</span>
@@ -750,12 +792,19 @@
             <span class="tag-platform">${p.platform}</span>
           </div>
         </div>
-      `).join('');
+      `;
+
+      // Top 3 for Dashboard Preview
+      previewContainer.innerHTML = sorted.slice(0, 3).map(renderCard).join('');
+      // Complete view for Dedicated Tab
+      fullContainer.innerHTML = sorted.slice(0, 40).map(renderCard).join('');
     }
 
-    // Traditional Sports (Excludes Esports)
-    function renderSportsParlays(poly, kalshi) {
-      const container = document.getElementById('props-container');
+    // Combined Sports Engine: Renders Top 3 Preview AND Dedicated Full View
+    function renderSportsHub(poly, kalshi) {
+      const previewContainer = document.getElementById('props-preview-container');
+      const fullContainer = document.getElementById('props-full-container');
+      const fullCountEl = document.getElementById('sports-full-count');
       const all = [...poly, ...kalshi];
 
       const sportsMarkets = all.filter(m => {
@@ -778,14 +827,18 @@
         }
       });
 
+      fullCountEl.textContent = `${candidates.length} Markets`;
+
       if (candidates.length === 0) {
-        container.innerHTML = `<div class="empty">No live sports games meeting edge thresholds right now. Scanning books...</div>`;
+        const emptyMsg = `<div class="empty">No live sports games meeting edge thresholds right now. Scanning books...</div>`;
+        previewContainer.innerHTML = emptyMsg;
+        fullContainer.innerHTML = emptyMsg;
         return;
       }
 
       const sorted = sortCandidates(candidates);
 
-      container.innerHTML = sorted.slice(0, 15).map(p => `
+      const renderCard = p => `
         <div class="list-item">
           <div class="item-top">
             <span class="item-title">${cleanDisplayTitle(p.title)}</span>
@@ -798,7 +851,12 @@
             <span class="tag-platform">${p.platform}</span>
           </div>
         </div>
-      `).join('');
+      `;
+
+      // Top 3 for Dashboard Preview
+      previewContainer.innerHTML = sorted.slice(0, 3).map(renderCard).join('');
+      // Complete view for Dedicated Tab
+      fullContainer.innerHTML = sorted.slice(0, 40).map(renderCard).join('');
     }
 
     function renderMacroHub(poly, kalshi) {
