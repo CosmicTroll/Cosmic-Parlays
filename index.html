@@ -30,13 +30,11 @@
     .refresh-btn { background: var(--accent); color: #fff; border: none; padding: 0.35rem 0.75rem; border-radius: 6px; font-weight: 600; font-size: 0.75rem; cursor: pointer; }
     .support-btn { background: rgba(245, 158, 11, 0.15); color: var(--gold); border: 1px solid rgba(245, 158, 11, 0.4); padding: 0.35rem 0.65rem; border-radius: 6px; font-weight: 700; font-size: 0.75rem; text-decoration: none; display: inline-flex; align-items: center; gap: 0.25rem; }
 
-    /* Top Navigation Tabs */
     .nav-tabs { max-width: 900px; margin: 0 auto 0.5rem; display: flex; gap: 0.5rem; overflow-x: auto; scrollbar-width: none; padding-bottom: 0.25rem; }
     .nav-tabs::-webkit-scrollbar { display: none; }
     .nav-btn { background: rgba(255,255,255,0.03); border: 1px solid var(--border); color: var(--muted); padding: 0.45rem 0.85rem; border-radius: 8px; font-size: 0.8rem; font-weight: 600; cursor: pointer; white-space: nowrap; transition: all 0.15s ease; position: relative; }
     .nav-btn.active { background: rgba(99, 102, 241, 0.2); border-color: var(--accent); color: #fff; }
 
-    /* Native Privacy-First Sponsor Banner */
     #terminal-ad-slot {
       max-width: 900px;
       margin: 0 auto 0.85rem;
@@ -54,7 +52,6 @@
     .sponsor-link { color: var(--cyan); font-weight: 700; text-decoration: underline; }
     .ad-remove-btn { background: none; border: none; font-size: 0.68rem; color: var(--muted); cursor: pointer; text-decoration: underline; white-space: nowrap; }
 
-    /* Interactive Sort Bar */
     .sort-bar { max-width: 900px; margin: 0 auto 0.85rem; display: flex; align-items: center; gap: 0.4rem; overflow-x: auto; scrollbar-width: none; padding-bottom: 0.2rem; }
     .sort-bar::-webkit-scrollbar { display: none; }
     .sort-label { font-size: 0.7rem; color: var(--muted); white-space: nowrap; text-transform: uppercase; font-weight: 700; }
@@ -74,7 +71,6 @@
     .view-more-btn { background: rgba(255,255,255,0.05); border: 1px solid var(--border); color: var(--cyan); border-radius: 6px; padding: 0.5rem; text-align: center; font-size: 0.75rem; font-weight: 700; cursor: pointer; margin-top: 0.4rem; }
     .view-more-btn:active { background: rgba(6, 182, 212, 0.15); }
 
-    /* Asset Sub-Tabs for Perps */
     .asset-tabs { display: flex; gap: 0.4rem; overflow-x: auto; margin-bottom: 0.85rem; scrollbar-width: none; }
     .asset-tabs::-webkit-scrollbar { display: none; }
     .asset-pill { background: var(--card-inner); border: 1px solid var(--border); color: var(--muted); padding: 0.35rem 0.7rem; border-radius: 20px; font-size: 0.75rem; font-weight: 700; cursor: pointer; white-space: nowrap; }
@@ -101,7 +97,6 @@
 
     .consensus-badge { padding: 0.2rem 0.5rem; border-radius: 5px; font-size: 0.72rem; font-weight: 800; text-transform: uppercase; white-space: nowrap; }
     .consensus-strong-buy { background: rgba(0, 208, 132, 0.2); color: var(--green); border: 1px solid rgba(0, 208, 132, 0.4); }
-    .consensus-value-buy { background: rgba(245, 158, 11, 0.2); color: var(--gold); border: 1px solid rgba(245, 158, 11, 0.4); }
 
     .opp-body { display: grid; grid-template-columns: 1.5fr 1fr; gap: 0.5rem; background: rgba(0,0,0,0.25); border-radius: 6px; padding: 0.6rem 0.75rem; align-items: center; }
     .rec-action { font-size: 0.8rem; font-weight: 700; color: #fff; }
@@ -131,7 +126,6 @@
     .tag-platform { font-size: 0.65rem; padding: 0.15rem 0.4rem; border-radius: 4px; background: rgba(255, 255, 255, 0.08); font-weight: 600; }
     .tag-esports { background: rgba(168, 85, 247, 0.15); color: var(--purple); border: 1px solid rgba(168, 85, 247, 0.3); }
 
-    /* Forms & Vault Setup */
     .form-group { display: flex; flex-direction: column; gap: 0.35rem; margin-bottom: 0.75rem; }
     .form-label { font-size: 0.72rem; color: var(--muted); font-weight: 600; }
     .form-input { background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: 6px; padding: 0.55rem 0.7rem; color: #fff; font-size: 0.8rem; outline: none; }
@@ -141,10 +135,8 @@
     .btn-clear { background: rgba(255, 77, 77, 0.15); color: var(--red); border: 1px solid rgba(255, 77, 77, 0.3); padding: 0.5rem 1rem; border-radius: 6px; font-weight: 700; font-size: 0.75rem; cursor: pointer; }
 
     .support-card { background: linear-gradient(135deg, rgba(245, 158, 11, 0.08) 0%, rgba(99, 102, 241, 0.08) 100%); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 12px; padding: 1rem; margin-top: 1rem; display: flex; flex-direction: column; gap: 0.5rem; }
-
     .empty { color: var(--muted); font-size: 0.8rem; text-align: center; padding: 2rem 1rem; }
 
-    /* Dynamic Arbitrage Badge */
     .spread-badge {
       display: none;
       background: var(--green);
@@ -165,7 +157,6 @@
       100% { transform: scale(1); }
     }
 
-    /* Persistent Bottom Navigation Dock */
     .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: #0b0f19; border-top: 1px solid var(--border); display: flex; justify-content: space-around; padding: 0.5rem 0.25rem; z-index: 100; max-width: 900px; margin: 0 auto; }
     .bottom-tab { background: none; border: none; color: var(--muted); display: flex; flex-direction: column; align-items: center; gap: 0.2rem; font-size: 0.65rem; font-weight: 600; cursor: pointer; flex: 1; position: relative; }
     .bottom-tab span.icon { font-size: 1.1rem; position: relative; }
@@ -187,7 +178,6 @@
     </div>
   </header>
 
-  <!-- Top Navigation Tabs -->
   <div class="nav-tabs">
     <button class="nav-btn active" onclick="switchView('picks')">🎯 Picks</button>
     <button class="nav-btn" onclick="switchView('esports')">🎮 Esports</button>
@@ -202,14 +192,12 @@
     <button class="nav-btn" onclick="switchView('vault')">💼 Vault</button>
   </div>
 
-  <!-- NATIVE PRIVACY-FIRST SPONSOR SLOT (ROTATING AFFILIATES) -->
   <div id="terminal-ad-slot">
     <span class="sponsor-tag">Sponsor</span>
     <span class="sponsor-text" id="sponsor-text-content"></span>
     <button class="ad-remove-btn" onclick="switchView('vault')">Remove Ads ($5)</button>
   </div>
 
-  <!-- Interactive Sort Bar -->
   <div class="sort-bar">
     <span class="sort-label">Sort:</span>
     <button class="sort-chip active" onclick="setSortOrder('roi-desc')">🔥 Top ROI</button>
@@ -220,7 +208,7 @@
   </div>
 
   <main>
-    <!-- TAB 1: Cosmic's Picks (Dashboard Preview) -->
+    <!-- TAB 1: Cosmic's Picks -->
     <section id="view-picks" class="view-panel active">
       <div class="card">
         <div class="card-header">
@@ -232,7 +220,6 @@
         </div>
       </div>
 
-      <!-- ESPORTS PREVIEW CHUNK -->
       <div class="card">
         <div class="card-header clickable-header" onclick="switchView('esports')">
           <h2 class="card-title">🎮 Esports Desk (Top 3 Picks)</h2>
@@ -244,7 +231,6 @@
         <div class="view-more-btn" onclick="switchView('esports')">View Full Esports Desk (All Matches) &rarr;</div>
       </div>
 
-      <!-- TRADITIONAL SPORTS PREVIEW CHUNK -->
       <div class="card">
         <div class="card-header clickable-header" onclick="switchView('sports')">
           <h2 class="card-title">🏈 Game Lines & Props (Top 3 Picks)</h2>
@@ -265,7 +251,7 @@
           <span style="font-size: 0.75rem; color: var(--purple);" id="esports-full-count">0 Markets</span>
         </div>
         <p style="font-size: 0.75rem; color: var(--muted); margin-bottom: 0.85rem;">
-          Real-time series & map lines ranked by probability and edge across major events.
+          Real-time tournament match lines ranked by calculated edge across competitive gaming.
         </p>
         <div class="item-list" id="esports-full-container">
           <div class="empty">Loading esports matches...</div>
@@ -439,14 +425,13 @@
         </div>
       </div>
 
-      <!-- Settings Form: Browser LocalStorage Only -->
       <div class="card">
         <div class="card-header">
           <h2 class="card-title">🔐 Bring Your Own Key (BYOK) Settings</h2>
           <span style="font-size: 0.75rem; color: var(--cyan);">100% Client-Side</span>
         </div>
         <p style="font-size: 0.75rem; color: var(--muted); margin-bottom: 0.85rem; line-height: 1.4;">
-          Your credentials are saved <b>strictly in your local browser storage</b>. They never touch a remote server. Enter read-only or trading keys below to personalize your terminal:
+          Your credentials are saved <b>strictly in your local browser storage</b>. They never touch a remote server. Enter read-only or trading keys below:
         </p>
 
         <div class="form-group">
@@ -475,14 +460,13 @@
         </div>
       </div>
 
-      <!-- One-Time $5 Supporter License Unlock -->
       <div class="card" style="border: 1px solid rgba(0, 208, 132, 0.3);">
         <div class="card-header">
           <h2 class="card-title">⭐ Supporter Pro Activation (Ad-Free)</h2>
           <span style="font-size: 0.75rem; color: var(--green);" id="license-status-badge">Free Visitor</span>
         </div>
         <p style="font-size: 0.75rem; color: var(--muted); margin-bottom: 0.85rem; line-height: 1.4;">
-          Tip $5 once on Ko-fi to support development and remove all sponsor banners on all your devices permanently. Enter your Ko-fi supporter email and the unique activation code sent to you:
+          Tip $5 once on Ko-fi to support development and remove all sponsor banners on all your devices permanently:
         </p>
 
         <div class="form-group">
@@ -499,11 +483,10 @@
         </div>
       </div>
 
-      <!-- Creator Support / Community Donation Hub -->
       <div class="support-card">
         <div style="font-size: 0.85rem; font-weight: 700; color: #fff;">☕ Enjoying Cosmic Terminal?</div>
         <p style="font-size: 0.75rem; color: var(--muted); line-height: 1.4;">
-          Cosmic Terminal is an open-source community tool built to scan market inefficiencies and edge opportunities across prediction markets. If this project helped you catch a profitable spread or trade, consider buying a coffee to support continued development!
+          Cosmic Terminal is an open-source community tool built to scan market inefficiencies across prediction markets. Consider supporting continued development!
         </p>
         <div style="display: flex; gap: 0.5rem; margin-top: 0.25rem;">
           <a href="https://ko-fi.com/cosmictroll" target="_blank" rel="noopener noreferrer" class="support-btn" style="padding: 0.5rem 0.9rem;">
@@ -514,7 +497,6 @@
     </section>
   </main>
 
-  <!-- Persistent Bottom Navigation Dock -->
   <nav class="bottom-nav">
     <button class="bottom-tab active" onclick="switchView('picks')">
       <span class="icon">🎯</span>
@@ -553,7 +535,6 @@
     const WORKER_URL = "https://cosmic-parlays.cosmictrollgaming.workers.dev/api/live-data";
     const SECRET_SALT = "COSMIC_SALT_2026";
 
-    // ROTATING AFFILIATE PARTNERS
     const SPONSORS = [
       {
         text: "Trade US elections & prediction markets with 0 fees on Polymarket.us.",
@@ -597,9 +578,14 @@
       return t.length > 70 ? t.slice(0, 67) + '...' : t;
     }
 
+    // STRICT ESPORTS MATCHER: Explicit blacklist against politics/geopolitics
     function isEsportsMarket(item) {
-      const t = ((item.title || '') + ' ' + (item.candidate || '')).toLowerCase();
-      return /counter-strike|cs2|cs:go|dota|league of legends|lck|lpl|lec|lcs|valorant|vct|overwatch|rocket league|r6|rainbow six|starcraft|esports|bo3|bo5|bo1/i.test(t);
+      const full = ((item.title || '') + ' ' + (item.candidate || '')).toLowerCase();
+      if (/election|president|presidential|senate|house|governor|prime minister|minister|war|ceasefire|ukraine|russia|brazil|putin|zelenskyy|biden|trump|bolsonaro/i.test(full)) {
+        return false;
+      }
+      return /\b(cs2|csgo|counter-strike|dota|dota2|valorant|starcraft|rocket league|rainbow six|r6|overwatch)\b/i.test(full) ||
+             (full.includes("league of legends") && !full.includes("election"));
     }
 
     function setSortOrder(order) {
@@ -660,14 +646,13 @@
 
     function calculateAnnualizedScore(roiVal, endDateStr, volume) {
       const now = Date.now();
-      const end = endDateStr ? Date.parse(endDateStr) : now + (365 * 24 * 3600 * 1000);
+      const end = endDateStr ? Date.parse(endDateStr) : now + (180 * 24 * 3600 * 1000);
       const daysRemaining = Math.max(2, (end - now) / (1000 * 60 * 60 * 24));
       
       const annualizedRoi = (roiVal / daysRemaining) * 365;
-      const timePenalty = daysRemaining > 400 ? Math.pow(400 / daysRemaining, 1.8) : 1.0;
-
+      const timePenalty = daysRemaining > 300 ? Math.pow(300 / daysRemaining, 1.8) : 1.0;
       const safeVol = typeof volume === 'number' ? volume : parseFloat(volume) || 0;
-      const volMultiplier = 1 + (Math.log10(Math.max(1, safeVol)) / 4);
+      const volMultiplier = 1 + (Math.log10(Math.max(1, safeVol)) / 5);
 
       return Math.round(annualizedRoi * timePenalty * volMultiplier);
     }
@@ -787,17 +772,20 @@
     }
 
     function evaluateMarketRecommendation(m) {
-      let yesAsk = (typeof m.yesAsk === 'number' && !isNaN(m.yesAsk) && m.yesAsk > 0) ? m.yesAsk : 0.50;
-      let noAsk = (typeof m.noAsk === 'number' && !isNaN(m.noAsk) && m.noAsk > 0) ? m.noAsk : (1.00 - yesAsk);
+      let yesAsk = m.yesAsk;
+      let noAsk = m.noAsk;
+
+      if (!yesAsk || isNaN(yesAsk) || yesAsk <= 0.02 || yesAsk >= 0.98) return null;
+      if (!noAsk || isNaN(noAsk)) noAsk = 1.00 - yesAsk;
+
+      if (yesAsk === 0.50 && noAsk === 0.50 && (!m.volume || m.volume < 100)) {
+        return null;
+      }
 
       const rawCandidate = m.candidate || "";
-      const isGeneric = !rawCandidate || rawCandidate === "Consensus" || rawCandidate === "Party A";
+      const isDateCandidate = /^(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec|\d{4}|by)/i.test(rawCandidate.trim());
+      const isGeneric = !rawCandidate || rawCandidate === "Consensus" || rawCandidate === "Party A" || isDateCandidate;
       const targetEntity = isGeneric ? "" : ` [${cleanDisplayTitle(rawCandidate)}]`;
-
-      if (yesAsk > 0.98) yesAsk = 0.98;
-      if (yesAsk < 0.02) yesAsk = 0.02;
-      if (noAsk > 0.98) noAsk = 0.98;
-      if (noAsk < 0.02) noAsk = 0.02;
 
       let roiVal = 0;
       let probVal = 50;
@@ -915,7 +903,7 @@
             rec,
             side: item.yesAsk >= 0.50 ? "YES" : "NO",
             price: item.yesAsk >= 0.50 ? item.yesAsk : item.noAsk,
-            type: item.yesAsk >= 0.55 || item.noAsk >= 0.55 ? "Match Pick" : "Value Angle"
+            type: "Match Pick"
           });
         }
       });
@@ -923,7 +911,7 @@
       fullCountEl.textContent = `${candidates.length} Matches`;
 
       if (candidates.length === 0) {
-        const emptyMsg = `<div class="empty">No live CS2, LoL, or Dota match lines active right now.</div>`;
+        const emptyMsg = `<div class="empty">No live CS2, LoL, or Dota tournament lines open right now. Scanning books...</div>`;
         previewContainer.innerHTML = emptyMsg;
         fullContainer.innerHTML = emptyMsg;
         return;
@@ -958,7 +946,7 @@
 
       const sportsMarkets = all.filter(m => {
         const t = (m.title + " " + (m.candidate || "")).toLowerCase();
-        const isPolitical = /house|senate|congress|election|nominee|president|governor|democrat|republican|vance|trump|harris|newsom|putin|war/i.test(t);
+        const isPolitical = /house|senate|congress|election|nominee|president|governor|democrat|republican|vance|trump|harris|newsom|putin|war|ukraine/i.test(t);
         return m.category === 'SPORTS' && !isPolitical && !isEsportsMarket(m);
       });
 
@@ -971,7 +959,7 @@
             rec,
             side: item.yesAsk >= 0.50 ? "YES" : "NO",
             price: item.yesAsk >= 0.50 ? item.yesAsk : item.noAsk,
-            type: item.yesAsk >= 0.55 || item.noAsk >= 0.55 ? "Anchor Leg" : "Value Add-On"
+            type: item.yesAsk >= 0.55 || item.noAsk >= 0.55 ? "Anchor Leg" : "Value Line"
           });
         }
       });
@@ -1061,26 +1049,12 @@
     function renderBestBuys(containerId, markets, platform) {
       const container = document.getElementById(containerId);
       if (!markets || markets.length === 0) {
-        container.innerHTML = `<div class="empty">0 active single contracts currently found on ${platform} order books.</div>`;
+        container.innerHTML = `<div class="empty">0 active single contracts found on ${platform} order books.</div>`;
         return;
       }
 
-      const filteredMarkets = markets.filter(m => {
-        const fullTitle = `${m.title || ''} ${m.candidate || ''}`.toLowerCase();
-        
-        if (/conjecture|hypothesis|swinnerton|millennium prize|riemann|p versus np|hodge/i.test(fullTitle)) {
-          return false;
-        }
-
-        if (m.yesAsk === 0.50 && m.noAsk === 0.50 && (!m.volume || m.volume === 0)) {
-          return false;
-        }
-
-        return true;
-      });
-
       const scored = [];
-      filteredMarkets.forEach(m => {
+      markets.forEach(m => {
         const rec = evaluateMarketRecommendation(m);
         if (rec) scored.push({ ...m, rec });
       });
@@ -1088,7 +1062,7 @@
       const sorted = sortCandidates(scored);
 
       if (sorted.length === 0) {
-        container.innerHTML = `<div class="empty">0 liquid single contracts currently clearing filters on ${platform}.</div>`;
+        container.innerHTML = `<div class="empty">0 liquid contracts currently clearing edge filters on ${platform}.</div>`;
         return;
       }
 
@@ -1121,48 +1095,23 @@
           .toLowerCase()
           .replace(/[^a-z0-9\s]/g, ' ')
           .split(/\s+/)
-          .filter(w => w.length >= 3 && !['will', 'the', 'and', 'for', 'that', 'this', 'with', 'from', 'what', 'when', 'who', 'how', 'end', 'rate', 'before', 'above', 'below', 'market'].includes(w));
-      };
-
-      const extractYears = (item) => {
-        const fullText = `${item.title || ''} ${item.candidate || ''}`;
-        const matches = fullText.match(/\b(202[4-9]|203[0-9]|204[0-9])\b/g) || [];
-        if (item.endDate) {
-          const d = new Date(item.endDate);
-          if (!isNaN(d.getTime())) {
-            matches.push(String(d.getUTCFullYear()));
-          }
-        }
-        return [...new Set(matches)];
+          .filter(w => w.length >= 3 && !['will', 'the', 'and', 'for', 'that', 'this', 'with', 'from', 'what', 'when', 'who', 'how', 'end', 'rate', 'before', 'above', 'below', 'market', 'held'].includes(w));
       };
 
       kalshi.forEach(k => {
-        // Exclude raw multi-leg parlay bundles
         if ((k.title || "").includes(",yes") || (k.title || "").includes(",no")) return;
         if (!k.yesAsk || k.yesAsk <= 0.05 || k.yesAsk >= 0.95) return;
 
         const kTokens = extractTokens(k.title);
         const kCand = (k.candidate || "").toLowerCase().trim();
-        const kYears = extractYears(k);
 
         poly.forEach(p => {
-          // Exclude raw multi-leg parlay bundles
           if ((p.title || "").includes(",yes") || (p.title || "").includes(",no")) return;
           if (!p.noAsk || p.noAsk <= 0.05 || p.noAsk >= 0.95) return;
 
-          // Category sanity check: ensure Sports only matches Sports, Politics only matches Politics
           if (k.category && p.category && k.category !== p.category) return;
 
-          // Year sanity check
-          const pYears = extractYears(p);
-          if (kYears.length > 0 && pYears.length > 0) {
-            const hasCommonYear = kYears.some(y => pYears.includes(y));
-            if (!hasCommonYear) return;
-          }
-
           const pCand = (p.candidate || "").toLowerCase().trim();
-          
-          // Strict candidate matching: if candidates exist and aren't generic, they must match
           const hasSpecificKCand = kCand && kCand !== "consensus" && kCand !== "party a";
           const hasSpecificPCand = pCand && pCand !== "consensus" && pCand !== "party a";
 
@@ -1175,13 +1124,12 @@
           const pTokens = extractTokens(p.title);
           const sharedTokens = kTokens.filter(t => pTokens.includes(t));
           
-          // Require strong overlap on both sides
           const kOverlap = sharedTokens.length / (kTokens.length || 1);
           const pOverlap = sharedTokens.length / (pTokens.length || 1);
 
           if (sharedTokens.length >= 3 && kOverlap >= 0.4 && pOverlap >= 0.4) {
             const totalCost = k.yesAsk + p.noAsk;
-            const netEdge = 1.00 - totalCost - 0.015; // 1.5% fee headroom
+            const netEdge = 1.00 - totalCost - 0.015;
 
             if (netEdge >= 0.01) {
               const roiVal = Math.round(((netEdge / totalCost) * 100));
