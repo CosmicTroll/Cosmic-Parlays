@@ -37,8 +37,6 @@ export default {
           const hashArray = Array.from(new Uint8Array(hashBuffer));
           const supporterKey = hashArray.map(b => b.toString(16).padStart(2, '0')).join('').slice(0, 8).toUpperCase();
 
-          console.log(`[KO-FI SUCCESS] Generated Key: ${supporterKey} for Supporter: ${supporterEmail}`);
-
           if (env.RESEND_API_KEY) {
             try {
               await fetch("https://api.resend.com/emails", {
@@ -52,24 +50,15 @@ export default {
                   to: [supporterEmail],
                   subject: "🚀 Your Cosmic Terminal Pro Activation Key",
                   html: `
-                    <div style="background-color: #090d16; color: #e2e8f0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 24px; border-radius: 8px;">
-                      <h2 style="color: #6366f1; margin-top: 0;">Thank you for supporting Cosmic Terminal!</h2>
-                      <p>Your one-time $5 tip has unlocked permanent <b>Ad-Free Pro Access</b> on all your devices.</p>
+                    <div style="background-color: #090d16; color: #e2e8f0; font-family: sans-serif; padding: 24px; border-radius: 8px;">
+                      <h2 style="color: #6366f1;">Thank you for supporting Cosmic Terminal!</h2>
+                      <p>Your one-time $5 tip has unlocked permanent <b>Ad-Free Pro Access</b>.</p>
                       <div style="background-color: #121826; border: 1px solid #222d42; border-radius: 8px; padding: 18px; margin: 20px 0; text-align: center;">
-                        <span style="color: #8e9db3; font-size: 12px; text-transform: uppercase; letter-spacing: 1px;">Your Unique Activation Key</span>
+                        <span style="color: #8e9db3; font-size: 12px; text-transform: uppercase;">Your Unique Activation Key</span>
                         <div style="font-size: 28px; font-weight: bold; color: #00d084; letter-spacing: 3px; margin-top: 6px;">
                           ${supporterKey}
                         </div>
                       </div>
-                      <p style="font-size: 14px; color: #8e9db3;"><b>How to activate:</b></p>
-                      <ol style="font-size: 14px; color: #cbd5e1; line-height: 1.6;">
-                        <li>Open <a href="https://cosmictroll.github.io/Cosmic-Parlays/" style="color: #06b6d4; text-decoration: none;">Cosmic Terminal</a>.</li>
-                        <li>Switch to the <b>Vault</b> tab.</li>
-                        <li>Scroll down to <b>⭐ Supporter Pro Activation</b>.</li>
-                        <li>Enter your email (<code>${supporterEmail}</code>) and activation key (<code>${supporterKey}</code>).</li>
-                        <li>Click <b>Verify & Unlock</b>.</li>
-                      </ol>
-                      <p style="font-size: 12px; color: #64748b; margin-top: 24px;">Good luck on the markets! &mdash; Cosmic Troll</p>
                     </div>
                   `
                 })
@@ -83,7 +72,6 @@ export default {
           headers: { ...corsHeaders, "Content-Type": "application/json" }
         });
       } catch (err) {
-        console.error("[KO-FI ERROR]", err);
         return new Response("Server error", { status: 500, headers: corsHeaders });
       }
     }
@@ -108,14 +96,7 @@ export default {
       }
     }
 
-    return new Response("Cosmic Terminal Edge Engine Active", {
-      status: 200,
-      headers: corsHeaders
-    });
-  },
-
-  async scheduled(event, env, ctx) {
-    console.log("[CRON] Periodic market sweep executed.");
+    return new Response("Cosmic Terminal Edge Engine Active", { status: 200, headers: corsHeaders });
   }
 };
 
@@ -148,11 +129,11 @@ async function fetchKalshiPublicMarkets() {
   const currentYear = new Date().getUTCFullYear();
 
   let cursor = "";
-  // Paginate directly on /markets (100 per page = 400 markets total)
-  for (let page = 0; page < 4; page++) {
+  // Fetch up to 3 pages of 100 markets each (= up to 300 active contracts)
+  for (let page = 0; page < 3; page++) {
     try {
-      const cursorQuery = cursor ? `&cursor=${encodeURIComponent(cursor)}` : "";
-      const url = `https://api.elections.kalshi.com/trade-api/v2/markets?limit=100&status=open${cursorQuery}`;
+      const cursorParam = cursor ? `&cursor=${encodeURIComponent(cursor)}` : "";
+      const url = `https://api.elections.kalshi.com/trade-api/v2/markets?limit=100&status=open${cursorParam}`;
 
       const res = await fetch(url, {
         headers: {
@@ -169,28 +150,30 @@ async function fetchKalshiPublicMarkets() {
       markets.forEach(m => {
         if (!m || !m.ticker || seenTickers.has(m.ticker)) return;
 
-        const titleStr = m.title || m.ticker || "";
-        if (titleStr.includes(",yes") || titleStr.includes(",no")) return;
+        // In Kalshi /markets, the display name can be in title, yes_sub_title, or ticker
+        const rawTitle = m.title || m.yes_sub_title || m.ticker || "";
+        if (rawTitle.includes(",yes") || rawTitle.includes(",no")) return;
 
-        // Exclude math conjectures
-        if (/conjecture|hypothesis|swinnerton|millennium prize|riemann|p versus np|hodge/i.test(titleStr)) return;
+        // Skip theoretical math questions
+        if (/conjecture|hypothesis|swinnerton|millennium prize|riemann|p versus np|hodge/i.test(rawTitle)) return;
 
-        // Exclude far-future ghost placeholders
+        // Filter out placeholder markets dated beyond next year
         const expTime = m.expiration_time || m.close_time || "";
         if (expTime && new Date(expTime).getUTCFullYear() > currentYear + 1) return;
 
+        // Pricing extraction across cents and dollars
         let yesPrice = null;
-        if (m.yes_ask_dollars) yesPrice = parseFloat(m.yes_ask_dollars);
-        else if (m.last_price_dollars) yesPrice = parseFloat(m.last_price_dollars);
-        else if (typeof m.yes_ask === 'number' && m.yes_ask > 0) yesPrice = m.yes_ask / 100;
+        if (typeof m.yes_ask === 'number' && m.yes_ask > 0) yesPrice = m.yes_ask / 100;
+        else if (m.yes_ask_dollars) yesPrice = parseFloat(m.yes_ask_dollars);
         else if (typeof m.no_bid === 'number' && m.no_bid > 0) yesPrice = (100 - m.no_bid) / 100;
         else if (typeof m.last_price === 'number' && m.last_price > 0) yesPrice = m.last_price / 100;
+        else if (m.last_price_dollars) yesPrice = parseFloat(m.last_price_dollars);
         else if (typeof m.yes_bid === 'number' && m.yes_bid > 0) yesPrice = (m.yes_bid + 2) / 100;
         else yesPrice = 0.50;
 
         let noPrice = null;
-        if (m.no_ask_dollars) noPrice = parseFloat(m.no_ask_dollars);
-        else if (typeof m.no_ask === 'number' && m.no_ask > 0) noPrice = m.no_ask / 100;
+        if (typeof m.no_ask === 'number' && m.no_ask > 0) noPrice = m.no_ask / 100;
+        else if (m.no_ask_dollars) noPrice = parseFloat(m.no_ask_dollars);
         else noPrice = 1.00 - yesPrice;
 
         yesPrice = Number(yesPrice.toFixed(2));
@@ -201,10 +184,10 @@ async function fetchKalshiPublicMarkets() {
         seenTickers.add(m.ticker);
         cleanList.push({
           id: m.ticker,
-          title: m.title || m.ticker,
-          candidate: m.subtitle || m.yes_sub_title || "Consensus",
+          title: formatKalshiMarketTitle(m),
+          candidate: m.yes_sub_title || m.subtitle || "Consensus",
           platform: "KALSHI",
-          category: categorizeMarket(titleStr, m.category || ""),
+          category: categorizeMarket(rawTitle, m.category || ""),
           yesAsk: yesPrice,
           noAsk: noPrice,
           volume: m.volume_24h || m.volume || 0,
@@ -215,14 +198,20 @@ async function fetchKalshiPublicMarkets() {
       cursor = data.cursor || "";
       if (!cursor) break;
 
-      // Small delay between page requests
       await new Promise(r => setTimeout(r, 60));
-    } catch (e) {
+    } catch (err) {
       break;
     }
   }
 
   return cleanList;
+}
+
+function formatKalshiMarketTitle(m) {
+  if (m.title && m.title.trim().length > 0) return m.title;
+  if (m.yes_sub_title && m.yes_sub_title.trim().length > 0) return m.yes_sub_title;
+  // Convert ticker KXBTCD-26SEP21-T82000 into readable context
+  return m.ticker.replace(/-/g, ' ');
 }
 
 async function fetchPolymarketCombined() {
@@ -292,22 +281,16 @@ async function fetchPolymarketCombined() {
 function categorizeMarket(title = "", category = "") {
   const t = (title + " " + category).toLowerCase();
 
-  // 1. Esports
   if (/\b(cs2|csgo|counter-strike|dota|dota2|valorant|starcraft|rocket league|rainbow six|r6|overwatch|iem|blast|vct|lcs|lck|lpl|lec)\b/i.test(t) ||
       (t.includes("lol:") || t.includes("league of legends"))) {
     return "ESPORTS";
   }
-
-  // 2. Traditional Sports
   if (/\b(nfl|nba|mlb|nhl|premier league|champions league|ufc|mma|tennis|australian open|wimbledon|us open|french open|touchdown|points|rebounds|soccer|fifa|retirement)\b/i.test(t)) {
     return "SPORTS";
   }
-
-  // 3. Politics
   if (/\b(president|presidential|election|senate|house|governor|democrat|republican|trump|harris|vance|ukraine|russia|putin|fed|interest rate|inflation|cpi)\b/i.test(t)) {
     return "POLITICS";
   }
-
   return "MACRO";
 }
 
