@@ -235,14 +235,22 @@
         </div>
 
         <div class="stat-rows">
-          <div class="stat-label">Kalshi Max Leverage</div>
-          <div class="stat-val" id="stat-lev">-</div>
-          <div class="stat-label">24h Volume / Open Interest</div>
-          <div class="stat-val" id="stat-vol-oi">-</div>
-          <div class="stat-label">Funding Rate & Settlement Timer</div>
-          <div class="stat-val" id="stat-funding" style="color: var(--red);">-</div>
-          <div class="stat-label">Annualized Carry Rate</div>
-          <div class="stat-val" id="stat-annual">-</div>
+          <div class="stat-row">
+            <span class="stat-label">Kalshi Max Leverage</span>
+            <span class="stat-val" id="stat-lev">-</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-label">24h Volume / Open Interest</span>
+            <span class="stat-val" id="stat-vol-oi">-</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-label">Funding Rate & Settlement Timer</span>
+            <span class="stat-val" id="stat-funding" style="color: var(--red);">-</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-label">Annualized Carry Rate</span>
+            <span class="stat-val" id="stat-annual">-</span>
+          </div>
         </div>
       </div>
     </section>
@@ -393,6 +401,15 @@
     let activePerp = "GOLD";
     let activePerpTime = "4H";
     let currentSort = "roi-desc";
+
+    // Detect and reject combo/accumulator multi-leg parlays on the client
+    function isMultiLegParlay(raw) {
+      const s = (raw || "").toLowerCase();
+      return s.includes("more legs") || 
+             /\(\+\d+\s+more\s+legs\)/i.test(s) || 
+             s.split(" + ").length > 2 ||
+             (s.includes("+") && s.includes("legs"));
+    }
 
     function cleanDisplayTitle(raw) {
       let t = (raw || "").replace(/^yes\s+/i, '').replace(/^no\s+/i, '');
@@ -580,7 +597,10 @@
         const data = await res.json();
         
         if (data && typeof data === 'object') {
-          latestData.kalshi = Array.isArray(data.kalshi) ? data.kalshi : [];
+          // Client-side parlay filter to drop multi-leg accumulators
+          const rawKalshi = Array.isArray(data.kalshi) ? data.kalshi : [];
+          latestData.kalshi = rawKalshi.filter(m => !isMultiLegParlay(m.title) && !isMultiLegParlay(m.candidate));
+
           latestData.polymarket = Array.isArray(data.polymarket) ? data.polymarket : [];
           if (data.perps) latestData.perps = data.perps;
           if (data.portfolio) latestData.portfolio = data.portfolio;
@@ -640,10 +660,11 @@
       const container = document.getElementById('props-container');
       const all = [...poly, ...kalshi];
 
+      // Strictly Sports (Zero Politics & Zero Combo Parlays)
       const sportsMarkets = all.filter(m => {
         const t = (m.title + " " + (m.candidate || "")).toLowerCase();
         const isPolitical = /house|senate|congress|election|nominee|president|governor|democrat|republican|vance|trump|harris|newsom|putin|war/i.test(t);
-        return m.category === 'SPORTS' && !isPolitical;
+        return m.category === 'SPORTS' && !isPolitical && !isMultiLegParlay(m.title);
       });
 
       const candidates = [];
@@ -661,7 +682,7 @@
       });
 
       if (candidates.length === 0) {
-        container.innerHTML = `<div class="empty">No live sports games meeting edge thresholds right now. Scanning books...</div>`;
+        container.innerHTML = `<div class="empty">No live single sports games meeting edge thresholds right now. Scanning books...</div>`;
         return;
       }
 
@@ -687,7 +708,7 @@
       const container = document.getElementById('macro-container');
       const all = [...poly, ...kalshi];
 
-      const macroMarkets = all.filter(m => m.category === 'POLITICS' || m.category === 'MACRO' || m.category === 'CULTURE');
+      const macroMarkets = all.filter(m => (m.category === 'POLITICS' || m.category === 'MACRO' || m.category === 'CULTURE') && !isMultiLegParlay(m.title));
 
       const scored = [];
       macroMarkets.forEach(m => {
@@ -727,13 +748,15 @@
 
     function renderBestBuys(containerId, markets, platform) {
       const container = document.getElementById(containerId);
-      if (!markets || markets.length === 0) {
-        container.innerHTML = `<div class="empty">0 active contracts currently found on ${platform} order books.</div>`;
+      const cleanMarkets = (markets || []).filter(m => !isMultiLegParlay(m.title) && !isMultiLegParlay(m.candidate));
+
+      if (cleanMarkets.length === 0) {
+        container.innerHTML = `<div class="empty">0 active single contracts currently found on ${platform} order books.</div>`;
         return;
       }
 
       const scored = [];
-      markets.forEach(m => {
+      cleanMarkets.forEach(m => {
         const rec = evaluateMarketRecommendation(m);
         if (rec) {
           scored.push({
@@ -769,7 +792,9 @@
       const container = document.getElementById('spread-container');
       const spreadList = [];
 
-      kalshi.forEach(k => {
+      const cleanKalshi = kalshi.filter(k => !isMultiLegParlay(k.title));
+
+      cleanKalshi.forEach(k => {
         if (!k.yesAsk || k.yesAsk <= 0.05 || k.yesAsk >= 0.95) return;
 
         poly.forEach(p => {
@@ -803,7 +828,7 @@
       const sorted = sortCandidates(spreadList);
 
       if (sorted.length === 0) {
-        container.innerHTML = `<div class="empty">No direct cross-exchange spreads with positive net edge right now. Scanning ${kalshi.length} Kalshi / ${poly.length} Poly order books...</div>`;
+        container.innerHTML = `<div class="empty">No direct cross-exchange spreads with positive net edge right now. Scanning ${cleanKalshi.length} Kalshi / ${poly.length} Poly order books...</div>`;
       } else {
         container.innerHTML = sorted.map(s => `
           <div class="list-item" style="border-left: 3px solid var(--green);">
