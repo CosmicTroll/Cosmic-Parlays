@@ -1,5 +1,5 @@
 // Cloudflare Worker: worker.js
-// Production Hardened: Real Polymarket Candidate Extraction, Clean Single-Market Kalshi Filter,
+// Production Hardened: Real Polymarket Candidate Extraction, Nested Kalshi Events Parser,
 // Scheduled Cron Handler Support, Reciprocal Order Book Math & Micro-Nonce Protection
 
 const CORS_HEADERS = {
@@ -113,12 +113,10 @@ function getPerpsFallback() {
 }
 
 export default {
-  // 1. Scheduled handler prevents cron execution crashes
   async scheduled(event, env, ctx) {
     ctx.waitUntil(handleLiveData(env));
   },
 
-  // 2. Fetch HTTP router
   async fetch(request, env, ctx) {
     if (request.method === "OPTIONS") {
       return new Response(null, { headers: CORS_HEADERS });
@@ -343,11 +341,11 @@ async function handleLiveData(env) {
     console.error("Polymarket catalog fetch error:", err);
   }
 
-  // --- Kalshi Live Market Catalog ---
+  // --- Kalshi Live Market Catalog (Nested Events Endpoint) ---
   let kalshi = [];
   try {
-    const basePath = "/trade-api/v2/markets";
-    const queryString = "?limit=200&status=open";
+    const eventsPath = "/trade-api/v2/events";
+    const queryString = "?limit=100&status=open&with_nested_markets=true";
     let kHeaders = { 
       "Accept": "application/json",
       "User-Agent": "CosmicParlaysTerminal/1.0"
@@ -357,91 +355,97 @@ async function handleLiveData(env) {
       try {
         const privKey = await getKalshiCryptoKey(kalshiPrivateKey);
         const kTs = getNonceTimestamp();
-        const kSig = await signKalshiRequest(privKey, kTs, "GET", basePath, "");
+        const kSig = await signKalshiRequest(privKey, kTs, "GET", eventsPath, "");
         kHeaders["KALSHI-ACCESS-KEY"] = kalshiKeyId;
         kHeaders["KALSHI-ACCESS-SIGNATURE"] = kSig;
         kHeaders["KALSHI-ACCESS-TIMESTAMP"] = kTs;
       } catch (_) {}
     }
 
-    const kRes = await fetch(`https://external-api.kalshi.com${basePath}${queryString}`, {
+    const kRes = await fetch(`https://external-api.kalshi.com${eventsPath}${queryString}`, {
       headers: kHeaders
     });
 
     if (kRes.ok) {
       const kData = await kRes.json();
-      const rawMarkets = kData.markets || [];
+      const events = kData.events || [];
 
-      rawMarkets.forEach(m => {
-        if (m.status && m.status !== "open" && m.status !== "active") return;
+      events.forEach(ev => {
+        const eventTitle = ev.title || "";
+        (ev.markets || []).forEach(m => {
+          if (m.status && m.status !== "open" && m.status !== "active") return;
 
-        const fullTitle = m.title || m.ticker || "";
+          const marketTitle = m.title || eventTitle || m.ticker || "";
 
-        // Drop multi-leg combo parlays and accumulators
-        if (
-          fullTitle.includes("+") || 
-          /\(\+\d+\s+more\s+legs\)/i.test(fullTitle) || 
-          /more legs/i.test(fullTitle) ||
-          m.ticker.startsWith("KCOMBO") ||
-          fullTitle.includes(",yes ") ||
-          fullTitle.includes(",no ") ||
-          fullTitle.includes(", yes ") ||
-          fullTitle.includes(", no ")
-        ) {
-          return;
-        }
+          // Exclude internal combo parlays and accumulators
+          if (
+            marketTitle.includes("+") || 
+            /\(\+\d+\s+more\s+legs\)/i.test(marketTitle) || 
+            /more legs/i.test(marketTitle) ||
+            m.ticker.startsWith("KCOMBO") ||
+            marketTitle.includes(",yes ") ||
+            marketTitle.includes(",no ") ||
+            marketTitle.includes(", yes ") ||
+            marketTitle.includes(", no ")
+          ) {
+            return;
+          }
 
-        const parsePrice = (v) => {
-          if (v === undefined || v === null || v === "") return null;
-          const num = parseFloat(v);
-          if (isNaN(num) || num <= 0) return null;
-          return num > 1 ? num / 100 : num;
-        };
+          const parsePrice = (v) => {
+            if (v === undefined || v === null || v === "") return null;
+            const num = parseFloat(v);
+            if (isNaN(num) || num <= 0) return null;
+            return num > 1 ? num / 100 : num;
+          };
 
-        const yAsk = parsePrice(m.yes_ask) || parsePrice(m.yes_ask_dollars);
-        const nAsk = parsePrice(m.no_ask) || parsePrice(m.no_ask_dollars);
-        const yBid = parsePrice(m.yes_bid) || parsePrice(m.yes_bid_dollars);
-        const nBid = parsePrice(m.no_bid) || parsePrice(m.no_bid_dollars);
-        const lastP = parsePrice(m.last_price) || parsePrice(m.last_price_dollars);
+          const yAsk = parsePrice(m.yes_ask) || parsePrice(m.yes_ask_dollars);
+          const nAsk = parsePrice(m.no_ask) || parsePrice(m.no_ask_dollars);
+          const yBid = parsePrice(m.yes_bid) || parsePrice(m.yes_bid_dollars);
+          const nBid = parsePrice(m.no_bid) || parsePrice(m.no_bid_dollars);
+          const lastP = parsePrice(m.last_price) || parsePrice(m.last_price_dollars);
 
-        let yesVal = null;
-        let noVal = null;
+          let yesVal = null;
+          let noVal = null;
 
-        if (yAsk !== null) yesVal = yAsk;
-        else if (nBid !== null) yesVal = 1.00 - nBid;
-        else if (lastP !== null) yesVal = lastP;
-        else if (yBid !== null) yesVal = yBid;
+          if (yAsk !== null) yesVal = yAsk;
+          else if (nBid !== null) yesVal = 1.00 - nBid;
+          else if (lastP !== null) yesVal = lastP;
+          else if (yBid !== null) yesVal = yBid;
 
-        if (nAsk !== null) noVal = nAsk;
-        else if (yBid !== null) noVal = 1.00 - yBid;
-        else if (yesVal !== null) noVal = 1.00 - yesVal;
+          if (nAsk !== null) noVal = nAsk;
+          else if (yBid !== null) noVal = 1.00 - yBid;
+          else if (yesVal !== null) noVal = 1.00 - yesVal;
 
-        if (yesVal !== null && noVal === null) noVal = 1.00 - yesVal;
-        if (noVal !== null && yesVal === null) yesVal = 1.00 - noVal;
+          if (yesVal !== null && noVal === null) noVal = 1.00 - yesVal;
+          if (noVal !== null && yesVal === null) yesVal = 1.00 - noVal;
 
-        if (yesVal === null) {
-          yesVal = 0.50;
-          noVal = 0.50;
-        }
+          // Skip completely untraded or unquoted items
+          if (yesVal === null && noVal === null) return;
 
-        const candidate = m.subtitle || m.sub_title || m.yes_sub_title || "Consensus";
-        const normalizedEndUtc = parseUtcIso(m.expected_expiration_time || m.expiration_time || m.close_time);
+          let candidate = m.subtitle || m.sub_title || m.yes_sub_title || "";
+          if (!candidate && eventTitle && marketTitle && eventTitle !== marketTitle) {
+            candidate = marketTitle;
+          }
+          if (!candidate) candidate = "Consensus";
 
-        kalshi.push({
-          ticker: m.ticker,
-          title: fullTitle,
-          candidate: candidate,
-          category: categorizeTitle(fullTitle),
-          yesAsk: Number(yesVal.toFixed(2)),
-          noAsk: Number(noVal.toFixed(2)),
-          volume: m.volume || m.volume_24h || 0,
-          endDate: normalizedEndUtc,
-          platform: "Kalshi"
+          const normalizedEndUtc = parseUtcIso(m.expiration_time || m.expected_expiration_time || m.close_time || ev.expiration_time);
+
+          kalshi.push({
+            ticker: m.ticker,
+            title: eventTitle || marketTitle,
+            candidate: candidate,
+            category: categorizeTitle(`${eventTitle} ${marketTitle}`),
+            yesAsk: Number((yesVal ?? 0.50).toFixed(2)),
+            noAsk: Number((noVal ?? 0.50).toFixed(2)),
+            volume: m.volume || m.volume_24h || ev.volume || 0,
+            endDate: normalizedEndUtc,
+            platform: "Kalshi"
+          });
         });
       });
     }
   } catch (err) {
-    console.error("Kalshi public markets error:", err);
+    console.error("Kalshi events fetch error:", err);
   }
 
   return new Response(JSON.stringify({
