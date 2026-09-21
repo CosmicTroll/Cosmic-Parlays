@@ -37,11 +37,9 @@ export default {
           const hashArray = Array.from(new Uint8Array(hashBuffer));
           const supporterKey = hashArray.map(b => b.toString(16).padStart(2, '0')).join('').slice(0, 8).toUpperCase();
 
-          console.log(`[KO-FI SUCCESS] Generated Key: ${supporterKey} for Supporter: ${supporterEmail}`);
-
           if (env.RESEND_API_KEY) {
             try {
-              const emailResponse = await fetch("https://api.resend.com/emails", {
+              await fetch("https://api.resend.com/emails", {
                 method: "POST",
                 headers: {
                   "Authorization": `Bearer ${env.RESEND_API_KEY}`,
@@ -52,38 +50,20 @@ export default {
                   to: [supporterEmail],
                   subject: "🚀 Your Cosmic Terminal Pro Activation Key",
                   html: `
-                    <div style="background-color: #090d16; color: #e2e8f0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 24px; border-radius: 8px;">
-                      <h2 style="color: #6366f1; margin-top: 0;">Thank you for supporting Cosmic Terminal!</h2>
-                      <p>Your one-time $5 tip has unlocked permanent <b>Ad-Free Pro Access</b> on all your devices.</p>
+                    <div style="background-color: #090d16; color: #e2e8f0; font-family: sans-serif; padding: 24px; border-radius: 8px;">
+                      <h2 style="color: #6366f1;">Thank you for supporting Cosmic Terminal!</h2>
+                      <p>Your one-time $5 tip has unlocked permanent <b>Ad-Free Pro Access</b>.</p>
                       <div style="background-color: #121826; border: 1px solid #222d42; border-radius: 8px; padding: 18px; margin: 20px 0; text-align: center;">
-                        <span style="color: #8e9db3; font-size: 12px; text-transform: uppercase; letter-spacing: 1px;">Your Unique Activation Key</span>
+                        <span style="color: #8e9db3; font-size: 12px; text-transform: uppercase;">Your Unique Activation Key</span>
                         <div style="font-size: 28px; font-weight: bold; color: #00d084; letter-spacing: 3px; margin-top: 6px;">
                           ${supporterKey}
                         </div>
                       </div>
-                      <p style="font-size: 14px; color: #8e9db3;"><b>How to activate:</b></p>
-                      <ol style="font-size: 14px; color: #cbd5e1; line-height: 1.6;">
-                        <li>Open <a href="https://cosmictroll.github.io/Cosmic-Parlays/" style="color: #06b6d4; text-decoration: none;">Cosmic Terminal</a>.</li>
-                        <li>Switch to the <b>Vault</b> tab.</li>
-                        <li>Scroll down to <b>⭐ Supporter Pro Activation</b>.</li>
-                        <li>Enter your email (<code>${supporterEmail}</code>) and activation key (<code>${supporterKey}</code>).</li>
-                        <li>Click <b>Verify & Unlock</b>.</li>
-                      </ol>
-                      <p style="font-size: 12px; color: #64748b; margin-top: 24px;">Good luck on the markets! &mdash; Cosmic Troll</p>
                     </div>
                   `
                 })
               });
-
-              if (!emailResponse.ok) {
-                const errText = await emailResponse.text();
-                console.error(`[RESEND ERROR] Status ${emailResponse.status}: ${errText}`);
-              } else {
-                console.log(`[RESEND SUCCESS] Sent Pro key to ${supporterEmail}`);
-              }
-            } catch (mailErr) {
-              console.error(`[RESEND EXCEPTION] ${mailErr.message}`);
-            }
+            } catch (_) {}
           }
         }
 
@@ -92,7 +72,6 @@ export default {
           headers: { ...corsHeaders, "Content-Type": "application/json" }
         });
       } catch (err) {
-        console.error("[KO-FI ERROR]", err);
         return new Response("Server error", { status: 500, headers: corsHeaders });
       }
     }
@@ -117,18 +96,10 @@ export default {
       }
     }
 
-    return new Response("Cosmic Terminal Edge Engine Active", {
-      status: 200,
-      headers: corsHeaders
-    });
-  },
-
-  async scheduled(event, env, ctx) {
-    console.log("[CRON] Periodic market sweep executed.");
+    return new Response("Cosmic Terminal Edge Engine Active", { status: 200, headers: corsHeaders });
   }
 };
 
-// MARKET INGESTION & DATA NORMALIZATION
 async function fetchAllMarketData() {
   const [kalshiMarkets, polyMarkets] = await Promise.allSettled([
     fetchKalshiPublicMarkets(),
@@ -156,12 +127,12 @@ async function fetchKalshiPublicMarkets() {
   const seenTickers = new Set();
   const currentYear = new Date().getUTCFullYear();
 
-  // Query broad catalog endpoints and targeted liquid series simultaneously
+  // Active public series codes on Kalshi
   const seriesTickers = [
-    "KXFED", "KXCPI", "KXGDP", "KXRECESSION", "KXUNRATE", 
-    "KXPRES", "KXSENATE", "KXHOUSE", "KXGOV", "KXUKRAINE", 
-    "KXBTC", "KXETH", "KXSP500", "KXNASDAQ", "KXTIKTOK",
-    "KXRET", "KXNFL", "KXNBA", "KXMLB", "KXWEATHER"
+    "KXBTCD", "KXETHD", "INX", "NASDAQ100", 
+    "FED", "CPI", "RECESSION", "JOBLESS", 
+    "PRES", "SENATE", "HOUSE", "GOV",
+    "KXBTC", "KXETH", "KXNFL", "KXNBA"
   ];
 
   const requests = [
@@ -206,19 +177,16 @@ async function fetchKalshiPublicMarkets() {
       const titleStr = m.title || m.eventTitle || m.ticker || "";
       if (titleStr.includes(",yes") || titleStr.includes(",no")) return;
 
-      // Filter math conjectures
       if (/conjecture|hypothesis|swinnerton|millennium prize|riemann|p versus np|hodge/i.test(titleStr)) {
         return;
       }
 
-      // Filter far-future ghost placeholders
       const expTime = m.expiration_time || m.close_time || "";
       if (expTime) {
         const expYear = new Date(expTime).getUTCFullYear();
         if (expYear > currentYear + 1) return;
       }
 
-      // Robust price extraction across string dollars and legacy cents
       let yesPrice = null;
       if (m.yes_ask_dollars) yesPrice = parseFloat(m.yes_ask_dollars);
       else if (m.last_price_dollars) yesPrice = parseFloat(m.last_price_dollars);
@@ -323,36 +291,23 @@ async function fetchPolymarketCombined() {
 function categorizeMarket(title = "", category = "") {
   const t = (title + " " + category).toLowerCase();
 
-  // 1. Esports
   if (/\b(cs2|csgo|counter-strike|dota|dota2|valorant|starcraft|rocket league|rainbow six|r6|overwatch|iem|blast|vct|lcs|lck|lpl|lec)\b/i.test(t) ||
       (t.includes("lol:") || t.includes("league of legends"))) {
     return "ESPORTS";
   }
-
-  // 2. Traditional Sports
   if (/\b(nfl|nba|mlb|nhl|premier league|champions league|ufc|mma|tennis|australian open|wimbledon|us open|french open|touchdown|points|rebounds|soccer|fifa|retirement)\b/i.test(t)) {
     return "SPORTS";
   }
-
-  // 3. Politics
   if (/\b(president|presidential|election|senate|house|governor|democrat|republican|trump|harris|vance|ukraine|russia|putin|fed|interest rate|inflation|cpi)\b/i.test(t)) {
     return "POLITICS";
   }
-
   return "MACRO";
 }
 
 function getKalshiPerpsData() {
   return {
     GOLD: {
-      name: "Gold Perpetual",
-      unit: "USD/oz",
-      leverage: "15.9x",
-      vol24: "$18.4M",
-      oi: "$42.1M",
-      funding: "-0.012% / 8h",
-      annualFunding: "-13.14% Carry",
-      countdown: "03:14:22",
+      name: "Gold Perpetual", unit: "USD/oz", leverage: "15.9x", vol24: "$18.4M", oi: "$42.1M", funding: "-0.012% / 8h", annualFunding: "-13.14% Carry", countdown: "03:14:22",
       timeframes: {
         "1H": { dir: "RISE", pct: "+0.28%", target: "2,748.50", bias: 62, chart: [48, 50, 52, 51, 55, 59, 62] },
         "4H": { dir: "RISE", pct: "+0.84%", target: "2,764.00", bias: 68, chart: [45, 48, 54, 58, 63, 65, 68] },
@@ -363,14 +318,7 @@ function getKalshiPerpsData() {
       }
     },
     SILVER: {
-      name: "Silver Perpetual",
-      unit: "USD/oz",
-      leverage: "12.5x",
-      vol24: "$8.9M",
-      oi: "$19.6M",
-      funding: "+0.008% / 8h",
-      annualFunding: "+8.76% Carry",
-      countdown: "03:14:22",
+      name: "Silver Perpetual", unit: "USD/oz", leverage: "12.5x", vol24: "$8.9M", oi: "$19.6M", funding: "+0.008% / 8h", annualFunding: "+8.76% Carry", countdown: "03:14:22",
       timeframes: {
         "1H": { dir: "FALL", pct: "-0.35%", target: "31.42", bias: 44, chart: [58, 55, 52, 50, 48, 46, 44] },
         "4H": { dir: "RISE", pct: "+0.92%", target: "32.10", bias: 59, chart: [45, 48, 51, 53, 55, 57, 59] },
@@ -381,14 +329,7 @@ function getKalshiPerpsData() {
       }
     },
     BTC: {
-      name: "Bitcoin Perpetual",
-      unit: "USD",
-      leverage: "20.0x",
-      vol24: "$92.4M",
-      oi: "$145.2M",
-      funding: "+0.010% / 8h",
-      annualFunding: "+10.95% Carry",
-      countdown: "03:14:22",
+      name: "Bitcoin Perpetual", unit: "USD", leverage: "20.0x", vol24: "$92.4M", oi: "$145.2M", funding: "+0.010% / 8h", annualFunding: "+10.95% Carry", countdown: "03:14:22",
       timeframes: {
         "1H": { dir: "RISE", pct: "+0.45%", target: "68,450", bias: 64, chart: [50, 53, 56, 55, 59, 61, 64] },
         "4H": { dir: "RISE", pct: "+1.80%", target: "69,300", bias: 72, chart: [44, 49, 57, 62, 66, 70, 72] },
@@ -399,14 +340,7 @@ function getKalshiPerpsData() {
       }
     },
     ETH: {
-      name: "Ethereum Perpetual",
-      unit: "USD",
-      leverage: "18.5x",
-      vol24: "$41.2M",
-      oi: "$68.7M",
-      funding: "+0.005% / 8h",
-      annualFunding: "+5.47% Carry",
-      countdown: "03:14:22",
+      name: "Ethereum Perpetual", unit: "USD", leverage: "18.5x", vol24: "$41.2M", oi: "$68.7M", funding: "+0.005% / 8h", annualFunding: "+5.47% Carry", countdown: "03:14:22",
       timeframes: {
         "1H": { dir: "FALL", pct: "-0.20%", target: "2,635", bias: 46, chart: [56, 54, 52, 49, 48, 47, 46] },
         "4H": { dir: "RISE", pct: "+1.10%", target: "2,670", bias: 58, chart: [42, 46, 50, 52, 54, 56, 58] },
@@ -417,14 +351,7 @@ function getKalshiPerpsData() {
       }
     },
     SOL: {
-      name: "Solana Perpetual",
-      unit: "USD",
-      leverage: "10.0x",
-      vol24: "$28.5M",
-      oi: "$39.1M",
-      funding: "+0.015% / 8h",
-      annualFunding: "+16.42% Carry",
-      countdown: "03:14:22",
+      name: "Solana Perpetual", unit: "USD", leverage: "10.0x", vol24: "$28.5M", oi: "$39.1M", funding: "+0.015% / 8h", annualFunding: "+16.42% Carry", countdown: "03:14:22",
       timeframes: {
         "1H": { dir: "RISE", pct: "+0.65%", target: "172.50", bias: 67, chart: [48, 52, 57, 56, 61, 64, 67] },
         "4H": { dir: "RISE", pct: "+2.40%", target: "175.50", bias: 74, chart: [40, 47, 56, 63, 68, 71, 74] },
