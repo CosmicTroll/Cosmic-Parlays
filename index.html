@@ -416,20 +416,35 @@
       renderAllViews();
     }
 
+    // Calculates capital efficiency: balances nominal ROI, time to expiry, and order book volume
+    function calculateAnnualizedScore(roiVal, endDateStr, volume) {
+      const now = Date.now();
+      const end = endDateStr ? Date.parse(endDateStr) : now + (365 * 24 * 3600 * 1000);
+      const daysRemaining = Math.max(2, (end - now) / (1000 * 60 * 60 * 24));
+      
+      const annualizedRoi = (roiVal / daysRemaining) * 365;
+
+      // Exponential decay for dates far into the future (e.g. 2030-2035)
+      const timePenalty = daysRemaining > 450 ? Math.pow(450 / daysRemaining, 1.8) : 1.0;
+
+      // Positive multiplier for active contracts with verified order book volume
+      const safeVol = typeof volume === 'number' ? volume : parseFloat(volume) || 0;
+      const volMultiplier = 1 + (Math.log10(Math.max(1, safeVol)) / 4);
+
+      return Math.round(annualizedRoi * timePenalty * volMultiplier);
+    }
+
     function sortCandidates(list) {
       return list.slice().sort((a, b) => {
+        const scoreA = (a.rec && a.rec.edgeScore !== undefined) ? a.rec.edgeScore : 0;
+        const scoreB = (b.rec && b.rec.edgeScore !== undefined) ? b.rec.edgeScore : 0;
         const roiA = (a.rec && a.rec.roiVal !== undefined) ? a.rec.roiVal : 0;
         const roiB = (b.rec && b.rec.roiVal !== undefined) ? b.rec.roiVal : 0;
         const probA = (a.rec && a.rec.probVal !== undefined) ? a.rec.probVal : 50;
         const probB = (b.rec && b.rec.probVal !== undefined) ? b.rec.probVal : 50;
 
-        const devA = Math.abs(probA - 50);
-        const devB = Math.abs(probB - 50);
-
         if (currentSort === 'roi-desc') {
-          if (devA > 0 && devB === 0) return -1;
-          if (devB > 0 && devA === 0) return 1;
-          return roiB - roiA;
+          return scoreB - scoreA;
         }
         if (currentSort === 'roi-asc') return roiA - roiB;
         if (currentSort === 'prob-desc') return probB - probA;
@@ -443,7 +458,7 @@
           const tB = b.endDate ? Date.parse(b.endDate) : 0;
           return tB - tA;
         }
-        return roiB - roiA;
+        return scoreB - scoreA;
       });
     }
 
@@ -549,31 +564,36 @@
       if (noAsk > 0.98) noAsk = 0.98;
       if (noAsk < 0.02) noAsk = 0.02;
 
+      let roiVal = 0;
+      let probVal = 50;
+      let actionStr = "";
+      let badgeText = "Strong Buy YES";
+
       if (yesAsk >= 0.50) {
-        const roi = Math.round(((1.00 - yesAsk) / yesAsk) * 100);
-        return {
-          badgeClass: "consensus-strong-buy",
-          badgeText: "Strong Buy YES",
-          action: `BUY YES${targetEntity} @ $${yesAsk.toFixed(2)}`,
-          target: "Probability Anchor",
-          roiVal: roi,
-          probVal: Math.round(yesAsk * 100),
-          roi: `+${roi}% ROI`,
-          prob: `${Math.round(yesAsk * 100)}% Implied`
-        };
+        roiVal = Math.round(((1.00 - yesAsk) / yesAsk) * 100);
+        probVal = Math.round(yesAsk * 100);
+        actionStr = `BUY YES${targetEntity} @ $${yesAsk.toFixed(2)}`;
+        badgeText = "Strong Buy YES";
       } else {
-        const roi = Math.round(((1.00 - noAsk) / noAsk) * 100);
-        return {
-          badgeClass: "consensus-strong-buy",
-          badgeText: "Strong Buy NO",
-          action: `BUY NO${targetEntity} @ $${noAsk.toFixed(2)}`,
-          target: "Probability Anchor",
-          roiVal: roi,
-          probVal: Math.round(noAsk * 100),
-          roi: `+${roi}% ROI`,
-          prob: `${Math.round(noAsk * 100)}% Implied`
-        };
+        roiVal = Math.round(((1.00 - noAsk) / noAsk) * 100);
+        probVal = Math.round(noAsk * 100);
+        actionStr = `BUY NO${targetEntity} @ $${noAsk.toFixed(2)}`;
+        badgeText = "Strong Buy NO";
       }
+
+      const edgeScore = calculateAnnualizedScore(roiVal, m.endDate, m.volume);
+
+      return {
+        badgeClass: "consensus-strong-buy",
+        badgeText: badgeText,
+        action: actionStr,
+        target: "Probability Anchor",
+        roiVal: roiVal,
+        probVal: probVal,
+        edgeScore: edgeScore,
+        roi: `+${roiVal}% ROI`,
+        prob: `${probVal}% Implied`
+      };
     }
 
     async function fetchLiveData(isManualBypass = false) {
@@ -834,6 +854,7 @@
 
             if (netEdge >= 0.01) {
               const roiVal = Math.round(((netEdge / totalCost) * 100));
+              const edgeScore = calculateAnnualizedScore(roiVal, k.endDate, k.volume);
               spreadList.push({
                 title: cleanDisplayTitle(k.title),
                 candidate: k.candidate && k.candidate !== "Consensus" ? k.candidate : (p.candidate || ""),
@@ -842,7 +863,7 @@
                 pNo: p.noAsk.toFixed(2),
                 totalCost: totalCost.toFixed(2),
                 roiVal: roiVal,
-                rec: { roiVal: roiVal, probVal: Math.round(k.yesAsk * 100) }
+                rec: { roiVal: roiVal, probVal: Math.round(k.yesAsk * 100), edgeScore: edgeScore }
               });
             }
           }
