@@ -5,7 +5,7 @@ export default {
     const corsHeaders = {
       "Access-Control-Allow-Origin": "*",
       "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-      "Access-Control-Allow-Headers": "Content-Type, Authorization, KALSHI-ACCESS-KEY, KALSHI-ACCESS-SIGNATURE, KALSHI-ACCESS-TIMESTAMP",
+      "Access-Control-Allow-Headers": "Content-Type, Authorization",
     };
 
     if (request.method === "OPTIONS") {
@@ -41,7 +41,7 @@ export default {
 
           if (env.RESEND_API_KEY) {
             try {
-              const emailResponse = await fetch("https://api.resend.com/emails", {
+              await fetch("https://api.resend.com/emails", {
                 method: "POST",
                 headers: {
                   "Authorization": `Bearer ${env.RESEND_API_KEY}`,
@@ -69,6 +69,7 @@ export default {
                         <li>Enter your email (<code>${supporterEmail}</code>) and activation key (<code>${supporterKey}</code>).</li>
                         <li>Click <b>Verify & Unlock</b>.</li>
                       </ol>
+                      <p style="font-size: 12px; color: #64748b; margin-top: 24px;">Good luck on the markets! &mdash; Cosmic Troll</p>
                     </div>
                   `
                 })
@@ -146,14 +147,13 @@ async function fetchKalshiPublicMarkets() {
   const seenTickers = new Set();
   const currentYear = new Date().getUTCFullYear();
 
-  // Target the working public elections gateway
-  const endpoints = [
-    "https://api.elections.kalshi.com/trade-api/v2/events?limit=200&status=open&with_nested_markets=true",
-    "https://api.elections.kalshi.com/trade-api/v2/markets?limit=100&status=open"
-  ];
-
-  for (const url of endpoints) {
+  let cursor = "";
+  // Paginate directly on /markets (100 per page = 400 markets total)
+  for (let page = 0; page < 4; page++) {
     try {
+      const cursorQuery = cursor ? `&cursor=${encodeURIComponent(cursor)}` : "";
+      const url = `https://api.elections.kalshi.com/trade-api/v2/markets?limit=100&status=open${cursorQuery}`;
+
       const res = await fetch(url, {
         headers: {
           "Accept": "application/json",
@@ -161,43 +161,24 @@ async function fetchKalshiPublicMarkets() {
         }
       });
 
-      if (!res.ok) continue;
+      if (!res.ok) break;
       const data = await res.json();
+      const markets = data.markets || [];
+      if (!markets.length) break;
 
-      let marketBatch = [];
-      if (Array.isArray(data.markets)) {
-        marketBatch = data.markets;
-      } else if (Array.isArray(data.events)) {
-        data.events.forEach(ev => {
-          (ev.markets || []).forEach(m => {
-            marketBatch.push({
-              ...m,
-              eventTitle: ev.title,
-              eventCategory: ev.category
-            });
-          });
-        });
-      }
-
-      marketBatch.forEach(m => {
+      markets.forEach(m => {
         if (!m || !m.ticker || seenTickers.has(m.ticker)) return;
 
-        const titleStr = m.title || m.eventTitle || m.ticker || "";
+        const titleStr = m.title || m.ticker || "";
         if (titleStr.includes(",yes") || titleStr.includes(",no")) return;
 
-        // Exclude math conjectures / unsolvable millennium problems
-        if (/conjecture|hypothesis|swinnerton|millennium prize|riemann|p versus np|hodge/i.test(titleStr)) {
-          return;
-        }
+        // Exclude math conjectures
+        if (/conjecture|hypothesis|swinnerton|millennium prize|riemann|p versus np|hodge/i.test(titleStr)) return;
 
-        // Drop far-future ghost contracts (2070/2099)
+        // Exclude far-future ghost placeholders
         const expTime = m.expiration_time || m.close_time || "";
-        if (expTime) {
-          const expYear = new Date(expTime).getUTCFullYear();
-          if (expYear > currentYear + 1) return;
-        }
+        if (expTime && new Date(expTime).getUTCFullYear() > currentYear + 1) return;
 
-        // Support string fixed-point dollars and integer cents
         let yesPrice = null;
         if (m.yes_ask_dollars) yesPrice = parseFloat(m.yes_ask_dollars);
         else if (m.last_price_dollars) yesPrice = parseFloat(m.last_price_dollars);
@@ -220,18 +201,24 @@ async function fetchKalshiPublicMarkets() {
         seenTickers.add(m.ticker);
         cleanList.push({
           id: m.ticker,
-          title: m.eventTitle || m.title || m.ticker,
+          title: m.title || m.ticker,
           candidate: m.subtitle || m.yes_sub_title || "Consensus",
           platform: "KALSHI",
-          category: categorizeMarket(titleStr, m.category || m.eventCategory),
+          category: categorizeMarket(titleStr, m.category || ""),
           yesAsk: yesPrice,
           noAsk: noPrice,
           volume: m.volume_24h || m.volume || 0,
           endDate: expTime || null
         });
       });
-    } catch (err) {
-      console.error("Fetch error:", err);
+
+      cursor = data.cursor || "";
+      if (!cursor) break;
+
+      // Small delay between page requests
+      await new Promise(r => setTimeout(r, 60));
+    } catch (e) {
+      break;
     }
   }
 
