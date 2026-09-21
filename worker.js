@@ -78,6 +78,8 @@ export default {
               if (!emailResponse.ok) {
                 const errText = await emailResponse.text();
                 console.error(`[RESEND ERROR] Status ${emailResponse.status}: ${errText}`);
+              } else {
+                console.log(`[RESEND SUCCESS] Sent Pro key to ${supporterEmail}`);
               }
             } catch (mailErr) {
               console.error(`[RESEND EXCEPTION] ${mailErr.message}`);
@@ -154,97 +156,96 @@ async function fetchKalshiPublicMarkets() {
   const seenTickers = new Set();
   const currentYear = new Date().getUTCFullYear();
 
-  // Multi-bucket parallel ingestion: pulls broad markets + specific financial and sports books
-  const requests = [
-    "https://api.elections.kalshi.com/trade-api/v2/markets?limit=100&status=open",
-    "https://api.elections.kalshi.com/trade-api/v2/events?limit=100&status=open&with_nested_markets=true",
-    "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXBTCD&status=open&limit=100",
-    "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXETHD&status=open&limit=100",
-    "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=INX&status=open&limit=100",
-    "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=FED&status=open&limit=100",
-    "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=CPI&status=open&limit=100",
-    "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=PRES&status=open&limit=100",
-    "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=SENATE&status=open&limit=100",
-    "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=HOUSE&status=open&limit=100",
-    "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXNFL&status=open&limit=100"
-  ];
+  let cursor = "";
+  // Sequentially paginate up to 4 pages (400 events = hundreds of nested markets)
+  for (let page = 0; page < 4; page++) {
+    try {
+      const cursorParam = cursor ? `&cursor=${encodeURIComponent(cursor)}` : "";
+      const url = `https://api.kalshi.com/trade-api/v2/events?limit=100&status=open&with_nested_markets=true${cursorParam}`;
 
-  const results = await Promise.allSettled(
-    requests.map(url =>
-      fetch(url, {
+      const res = await fetch(url, {
         headers: {
           "Accept": "application/json",
           "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
         }
-      }).then(r => r.ok ? r.json() : null).catch(() => null)
-    )
-  );
-
-  for (const res of results) {
-    if (!res.value) continue;
-    const data = res.value;
-
-    let marketBatch = [];
-    if (Array.isArray(data.markets)) {
-      marketBatch = data.markets;
-    } else if (Array.isArray(data.events)) {
-      data.events.forEach(ev => {
-        (ev.markets || []).forEach(m => {
-          marketBatch.push({
-            ...m,
-            eventTitle: ev.title,
-            eventCategory: ev.category
-          });
-        });
       });
+
+      if (!res.ok) {
+        // Fallback to elections host if primary hits origin limits
+        if (page === 0) {
+          const fallbackRes = await fetch("https://api.elections.kalshi.com/trade-api/v2/events?limit=100&status=open&with_nested_markets=true", {
+            headers: {
+              "Accept": "application/json",
+              "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+            }
+          });
+          if (fallbackRes.ok) {
+            const fbData = await fallbackRes.json();
+            processEvents(fbData.events || []);
+          }
+        }
+        break;
+      }
+
+      const data = await res.json();
+      const events = data.events || [];
+      if (!events.length) break;
+
+      processEvents(events);
+
+      cursor = data.cursor || "";
+      if (!cursor) break;
+
+      // 120ms delay between pages to stay under public burst thresholds
+      await new Promise(r => setTimeout(r, 120));
+    } catch (e) {
+      break;
     }
+  }
 
-    marketBatch.forEach(m => {
-      if (!m || !m.ticker || seenTickers.has(m.ticker)) return;
+  function processEvents(events) {
+    events.forEach(ev => {
+      const fullTitle = `${ev.title || ''} ${ev.category || ''}`.toLowerCase();
+      if (/conjecture|hypothesis|swinnerton|millennium prize|riemann|p versus np|hodge/i.test(fullTitle)) return;
 
-      const titleStr = m.title || m.eventTitle || m.ticker || "";
-      if (titleStr.includes(",yes") || titleStr.includes(",no")) return;
+      (ev.markets || []).forEach(m => {
+        if (!m || !m.ticker || seenTickers.has(m.ticker)) return;
+        if ((m.title || "").includes(",yes") || (m.title || "").includes(",no")) return;
 
-      if (/conjecture|hypothesis|swinnerton|millennium prize|riemann|p versus np|hodge/i.test(titleStr)) {
-        return;
-      }
+        const expTime = m.expiration_time || m.close_time || "";
+        if (expTime && new Date(expTime).getUTCFullYear() > currentYear + 1) return;
 
-      const expTime = m.expiration_time || m.close_time || "";
-      if (expTime) {
-        const expYear = new Date(expTime).getUTCFullYear();
-        if (expYear > currentYear + 1) return;
-      }
+        let yesPrice = null;
+        if (m.yes_ask_dollars) yesPrice = parseFloat(m.yes_ask_dollars);
+        else if (m.last_price_dollars) yesPrice = parseFloat(m.last_price_dollars);
+        else if (typeof m.yes_ask === 'number' && m.yes_ask > 0) yesPrice = m.yes_ask / 100;
+        else if (typeof m.no_bid === 'number' && m.no_bid > 0) yesPrice = (100 - m.no_bid) / 100;
+        else if (typeof m.last_price === 'number' && m.last_price > 0) yesPrice = m.last_price / 100;
+        else if (typeof m.yes_bid === 'number' && m.yes_bid > 0) yesPrice = (m.yes_bid + 2) / 100;
+        else yesPrice = 0.50;
 
-      let yesPrice = null;
-      if (m.yes_ask_dollars) yesPrice = parseFloat(m.yes_ask_dollars);
-      else if (m.last_price_dollars) yesPrice = parseFloat(m.last_price_dollars);
-      else if (typeof m.yes_ask === 'number' && m.yes_ask > 0) yesPrice = m.yes_ask / 100;
-      else if (typeof m.no_bid === 'number' && m.no_bid > 0) yesPrice = (100 - m.no_bid) / 100;
-      else if (typeof m.last_price === 'number' && m.last_price > 0) yesPrice = m.last_price / 100;
-      else if (typeof m.yes_bid === 'number' && m.yes_bid > 0) yesPrice = (m.yes_bid + 2) / 100;
-      else yesPrice = 0.50;
+        let noPrice = null;
+        if (m.no_ask_dollars) noPrice = parseFloat(m.no_ask_dollars);
+        else if (typeof m.no_ask === 'number' && m.no_ask > 0) noPrice = m.no_ask / 100;
+        else noPrice = 1.00 - yesPrice;
 
-      let noPrice = null;
-      if (m.no_ask_dollars) noPrice = parseFloat(m.no_ask_dollars);
-      else if (typeof m.no_ask === 'number' && m.no_ask > 0) noPrice = m.no_ask / 100;
-      else noPrice = 1.00 - yesPrice;
+        yesPrice = Number(yesPrice.toFixed(2));
+        noPrice = Number(noPrice.toFixed(2));
 
-      yesPrice = Number(yesPrice.toFixed(2));
-      noPrice = Number(noPrice.toFixed(2));
+        if (yesPrice <= 0.01 || yesPrice >= 0.99) return;
 
-      if (yesPrice <= 0.01 || yesPrice >= 0.99) return;
-
-      seenTickers.add(m.ticker);
-      cleanList.push({
-        id: m.ticker,
-        title: m.eventTitle || m.title || m.ticker,
-        candidate: m.subtitle || m.yes_sub_title || "Consensus",
-        platform: "KALSHI",
-        category: categorizeMarket(titleStr, m.category || m.eventCategory),
-        yesAsk: yesPrice,
-        noAsk: noPrice,
-        volume: m.volume_24h || m.volume || 0,
-        endDate: expTime || null
+        seenTickers.add(m.ticker);
+        cleanList.push({
+          id: m.ticker,
+          title: ev.title || m.title || m.ticker,
+          candidate: m.subtitle || m.yes_sub_title || "Consensus",
+          platform: "KALSHI",
+          category: categorizeMarket(ev.title || m.title, ev.category),
+          yesAsk: yesPrice,
+          noAsk: noPrice,
+          volume: m.volume_24h || m.volume || ev.volume || 0,
+          endDate: expTime || null
+        });
       });
     });
   }
