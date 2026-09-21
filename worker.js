@@ -333,7 +333,7 @@ async function handleLiveData(env) {
     console.error("Polymarket catalog fetch error:", err);
   }
 
-  // --- Kalshi Live Market Catalog (Preserve All Markets & Dates) ---
+  // --- Kalshi Live Market Catalog (Robust Mapping for All Markets) ---
   let kalshi = [];
   try {
     const basePath = "/trade-api/v2/markets";
@@ -367,68 +367,39 @@ async function handleLiveData(env) {
 
         const fullTitle = m.title || m.ticker;
 
-        let yesAsk = null;
-        let noAsk = null;
-        let isLiveQuoted = false;
+        let yesVal = null;
+        let noVal = null;
 
-        // 1. Direct Asks
-        if (m.yes_ask_dollars !== undefined && parseFloat(m.yes_ask_dollars) > 0) {
-          yesAsk = parseFloat(m.yes_ask_dollars);
-          isLiveQuoted = true;
-        } else if (m.yes_ask && m.yes_ask > 0) {
-          yesAsk = m.yes_ask > 1 ? m.yes_ask / 100 : m.yes_ask;
-          isLiveQuoted = true;
-        }
+        const parsePrice = (v) => {
+          if (v === undefined || v === null || v === "") return null;
+          const num = parseFloat(v);
+          if (isNaN(num) || num <= 0) return null;
+          return num > 1 ? num / 100 : num;
+        };
 
-        if (m.no_ask_dollars !== undefined && parseFloat(m.no_ask_dollars) > 0) {
-          noAsk = parseFloat(m.no_ask_dollars);
-          isLiveQuoted = true;
-        } else if (m.no_ask && m.no_ask > 0) {
-          noAsk = m.no_ask > 1 ? m.no_ask / 100 : m.no_ask;
-          isLiveQuoted = true;
-        }
+        const yAsk = parsePrice(m.yes_ask) || parsePrice(m.yes_ask_dollars);
+        const nAsk = parsePrice(m.no_ask) || parsePrice(m.no_ask_dollars);
+        const yBid = parsePrice(m.yes_bid) || parsePrice(m.yes_bid_dollars);
+        const nBid = parsePrice(m.no_bid) || parsePrice(m.no_bid_dollars);
+        const lastP = parsePrice(m.last_price) || parsePrice(m.last_price_dollars);
 
-        // 2. Reciprocal Orderbook Math
-        if (yesAsk === null) {
-          if (m.no_bid_dollars !== undefined && parseFloat(m.no_bid_dollars) > 0) {
-            yesAsk = 1.00 - parseFloat(m.no_bid_dollars);
-            isLiveQuoted = true;
-          } else if (m.no_bid && m.no_bid > 0) {
-            const nb = m.no_bid > 1 ? m.no_bid / 100 : m.no_bid;
-            yesAsk = 1.00 - nb;
-            isLiveQuoted = true;
-          }
-        }
+        if (yAsk !== null) yesVal = yAsk;
+        else if (nBid !== null) yesVal = 1.00 - nBid;
+        else if (lastP !== null) yesVal = lastP;
+        else if (yBid !== null) yesVal = yBid;
 
-        if (noAsk === null) {
-          if (m.yes_bid_dollars !== undefined && parseFloat(m.yes_bid_dollars) > 0) {
-            noAsk = 1.00 - parseFloat(m.yes_bid_dollars);
-            isLiveQuoted = true;
-          } else if (m.yes_bid && m.yes_bid > 0) {
-            const yb = m.yes_bid > 1 ? m.yes_bid / 100 : m.yes_bid;
-            noAsk = 1.00 - yb;
-            isLiveQuoted = true;
-          }
-        }
+        if (nAsk !== null) noVal = nAsk;
+        else if (yBid !== null) noVal = 1.00 - yBid;
+        else if (yesVal !== null) noVal = 1.00 - yesVal;
 
-        // 3. Last Trade
-        if (yesAsk === null) {
-          if (m.last_price_dollars !== undefined && parseFloat(m.last_price_dollars) > 0) {
-            yesAsk = parseFloat(m.last_price_dollars);
-            isLiveQuoted = true;
-          } else if (m.last_price && m.last_price > 0) {
-            yesAsk = m.last_price > 1 ? m.last_price / 100 : m.last_price;
-            isLiveQuoted = true;
-          }
-        }
+        if (yesVal !== null && noVal === null) noVal = 1.00 - yesVal;
+        if (noVal !== null && yesVal === null) yesVal = 1.00 - noVal;
 
-        if (yesAsk !== null && noAsk === null) noAsk = 1.00 - yesAsk;
-        if (noAsk !== null && yesAsk === null) yesAsk = 1.00 - noAsk;
+        const isLiveQuoted = yesVal !== null && yesVal !== 0.50;
 
-        if (yesAsk === null) {
-          yesAsk = 0.50;
-          noAsk = 0.50;
-          isLiveQuoted = false;
+        if (yesVal === null) {
+          yesVal = 0.50;
+          noVal = 0.50;
         }
 
         const candidate = m.subtitle || m.sub_title || m.yes_sub_title || m.ticker;
@@ -439,8 +410,8 @@ async function handleLiveData(env) {
           title: fullTitle,
           candidate: candidate,
           category: categorizeTitle(fullTitle),
-          yesAsk: Number(yesAsk.toFixed(2)),
-          noAsk: Number(noAsk.toFixed(2)),
+          yesAsk: Number(yesVal.toFixed(2)),
+          noAsk: Number(noVal.toFixed(2)),
           isLiveQuoted: isLiveQuoted,
           volume: m.volume || m.volume_24h || 0,
           endDate: normalizedEndUtc,
