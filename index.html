@@ -584,7 +584,7 @@
       if (/election|president|presidential|senate|house|governor|prime minister|minister|war|ceasefire|ukraine|russia|brazil|putin|zelenskyy|biden|trump|bolsonaro/i.test(full)) {
         return false;
       }
-      return /\b(cs2|csgo|counter-strike|dota|dota2|valorant|starcraft|rocket league|rainbow six|r6|overwatch)\b/i.test(full) ||
+      return /\b(cs2|csgo|counter-strike|dota|dota2|valorant|starcraft|rocket league|rainbow six|r6|overwatch|iem|blast|vct)\b/i.test(full) ||
              (full.includes("league of legends") && !full.includes("election"));
     }
 
@@ -775,12 +775,8 @@
       let yesAsk = m.yesAsk;
       let noAsk = m.noAsk;
 
-      if (!yesAsk || isNaN(yesAsk) || yesAsk <= 0.02 || yesAsk >= 0.98) return null;
+      if (!yesAsk || isNaN(yesAsk) || yesAsk <= 0.01 || yesAsk >= 0.99) return null;
       if (!noAsk || isNaN(noAsk)) noAsk = 1.00 - yesAsk;
-
-      if (yesAsk === 0.50 && noAsk === 0.50 && (!m.volume || m.volume < 100)) {
-        return null;
-      }
 
       const rawCandidate = m.candidate || "";
       const isDateCandidate = /^(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec|\d{4}|by)/i.test(rawCandidate.trim());
