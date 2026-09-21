@@ -116,10 +116,8 @@ async function fetchAllMarketData() {
   };
 }
 
-// Fetch active Kalshi markets with genuine order book depth
 async function fetchKalshiPublicMarkets() {
-  // Query Kalshi elections API sorted by volume so active contracts lead
-  const url = "https://api.elections.kalshi.com/trade-api/v2/markets?limit=150&status=open";
+  const url = "https://api.elections.kalshi.com/trade-api/v2/markets?limit=200&status=open";
   try {
     const res = await fetch(url, {
       headers: { "Accept": "application/json", "User-Agent": "Mozilla/5.0" }
@@ -130,17 +128,26 @@ async function fetchKalshiPublicMarkets() {
 
     const parsed = [];
     rawList.forEach(m => {
+      // Exclude multi-leg combo parlays
       if ((m.title || "").includes(",yes") || (m.title || "").includes(",no")) return;
 
-      // Extract real prices
-      let yesCents = m.yes_ask || m.last_price || (m.yes_bid ? m.yes_bid + 2 : null);
-      if (!yesCents) return; // Drop unquoted 2099 ghost markets
+      // Ignore markets dated far in the future
+      if (m.expiration_time && m.expiration_time.startsWith("2099")) return;
 
-      let noCents = m.no_ask || (100 - yesCents);
+      let yesCents = 50;
+      if (typeof m.yes_ask === 'number' && m.yes_ask > 0) {
+        yesCents = m.yes_ask;
+      } else if (typeof m.last_price === 'number' && m.last_price > 0) {
+        yesCents = m.last_price;
+      } else if (typeof m.yes_bid === 'number' && m.yes_bid > 0) {
+        yesCents = m.yes_bid + 2;
+      }
+
+      let noCents = (typeof m.no_ask === 'number' && m.no_ask > 0) ? m.no_ask : (100 - yesCents);
       let yesAsk = Number((yesCents / 100).toFixed(2));
       let noAsk = Number((noCents / 100).toFixed(2));
 
-      if (yesAsk <= 0.02 || yesAsk >= 0.98) return;
+      if (yesAsk <= 0.01 || yesAsk >= 0.99) return;
 
       parsed.push({
         id: m.ticker,
@@ -161,7 +168,6 @@ async function fetchKalshiPublicMarkets() {
   }
 }
 
-// Query Polymarket general + esports/sports tag queries in parallel
 async function fetchPolymarketCombined() {
   const urls = [
     "https://gamma-api.polymarket.com/events?closed=false&limit=100&order=volume24hr&ascending=false",
@@ -221,18 +227,26 @@ async function fetchPolymarketCombined() {
   return cleanList;
 }
 
+// Stricter categorization so Esports and Sports never spill into Macro
 function categorizeMarket(title = "", category = "") {
   const t = (title + " " + category).toLowerCase();
-  if (/\b(cs2|csgo|counter-strike|dota|dota2|valorant|starcraft|rocket league|rainbow six|r6|overwatch|iem|blast|lck|lpl|lec)\b/i.test(t) ||
-      (t.includes("league of legends") && !t.includes("election"))) {
+
+  // 1. ESPORTS FIRST
+  if (/\b(cs2|csgo|counter-strike|dota|dota2|valorant|starcraft|rocket league|rainbow six|r6|overwatch|iem|blast|vct|lcs|lck|lpl|lec)\b/i.test(t) ||
+      (t.includes("lol:") || t.includes("league of legends"))) {
     return "ESPORTS";
   }
-  if (/\b(nfl|nba|mlb|nhl|premier league|champions league|ufc|mma|tennis|touchdown|points|rebounds)\b/i.test(t)) {
+
+  // 2. TRADITIONAL SPORTS SECOND
+  if (/\b(nfl|nba|mlb|nhl|premier league|champions league|ufc|mma|tennis|australian open|wimbledon|us open|french open|touchdown|points|rebounds|soccer|fifa)\b/i.test(t)) {
     return "SPORTS";
   }
-  if (/\b(president|election|senate|house|governor|democrat|republican|trump|harris|vance|ukraine|russia|putin|fed|interest rate|inflation|cpi)\b/i.test(t)) {
+
+  // 3. POLITICS THIRD
+  if (/\b(president|presidential|election|senate|house|governor|democrat|republican|trump|harris|vance|ukraine|russia|putin|fed|interest rate|inflation|cpi)\b/i.test(t)) {
     return "POLITICS";
   }
+
   return "MACRO";
 }
 
