@@ -421,7 +421,6 @@
       renderAllViews();
     }
 
-    // Sort: Natural descending ROI with a probability floor to filter out sub-5% penny bets
     function sortCandidates(list) {
       return list.slice().sort((a, b) => {
         const roiA = (a.rec && a.rec.roiVal !== undefined) ? a.rec.roiVal : (a.roiVal !== undefined ? a.roiVal : 0);
@@ -535,19 +534,18 @@
       `;
     }
 
-    // Recommendation Evaluator: Minimum 8% probability threshold to filter sub-penny longshots
     function evaluateMarketRecommendation(m) {
       const yesAsk = (typeof m.yesAsk === 'number') ? m.yesAsk : 0.50;
       const noAsk = (typeof m.noAsk === 'number') ? m.noAsk : (1.00 - yesAsk);
       const cleanCandidate = cleanDisplayTitle(m.candidate || "Consensus Leg");
       const targetEntity = cleanCandidate !== "Consensus Leg" ? ` [${cleanCandidate}]` : "";
 
-      // Hard filter out penny lottery tickets (< 8¢) and resolved endpoints
-      if (yesAsk <= 0.08 && noAsk <= 0.08) return null;
-      if (yesAsk >= 0.98 || noAsk >= 0.98) return null;
+      if (yesAsk >= 0.98 || noAsk >= 0.98 || yesAsk <= 0.02 || noAsk <= 0.02) {
+        return null;
+      }
 
-      // Tier 1: Strong Buy Anchors (52% to 94%)
-      if (yesAsk >= 0.52 && yesAsk <= 0.94) {
+      // Tier 1: Strong Buy Anchors (50% to 94%)
+      if (yesAsk >= 0.50 && yesAsk <= 0.94) {
         const roi = Math.round(((1.00 - yesAsk) / yesAsk) * 100);
         return {
           badgeClass: "consensus-strong-buy",
@@ -559,7 +557,7 @@
           roi: `+${roi}% ROI`,
           prob: `${Math.round(yesAsk * 100)}% Implied`
         };
-      } else if (noAsk >= 0.52 && noAsk <= 0.94) {
+      } else if (noAsk >= 0.50 && noAsk <= 0.94) {
         const roi = Math.round(((1.00 - noAsk) / noAsk) * 100);
         return {
           badgeClass: "consensus-strong-buy",
@@ -572,8 +570,8 @@
           prob: `${Math.round(noAsk * 100)}% Implied`
         };
       } 
-      // Tier 2: Real Asymmetric Value (12¢ to 48¢)
-      else if (yesAsk <= 0.48 && yesAsk >= 0.12) {
+      // Tier 2: Real Asymmetric Value (6¢ to 49¢)
+      else if (yesAsk < 0.50 && yesAsk >= 0.06) {
         const roi = Math.round(((1.00 - yesAsk) / yesAsk) * 100);
         return {
           badgeClass: "consensus-value-buy",
@@ -585,7 +583,7 @@
           roi: `+${roi}% ROI`,
           prob: `${Math.round(yesAsk * 100)}% Implied`
         };
-      } else if (noAsk <= 0.48 && noAsk >= 0.12) {
+      } else if (noAsk < 0.50 && noAsk >= 0.06) {
         const roi = Math.round(((1.00 - noAsk) / noAsk) * 100);
         return {
           badgeClass: "consensus-value-buy",
@@ -673,6 +671,7 @@
       const container = document.getElementById('props-container');
       const all = [...poly, ...kalshi];
 
+      // Strictly Sports (Zero Politics)
       const sportsMarkets = all.filter(m => {
         const t = (m.title + " " + (m.candidate || "")).toLowerCase();
         const isPolitical = /house|senate|congress|election|nominee|president|governor|democrat|republican|vance|trump|harris|newsom|putin|war/i.test(t);
