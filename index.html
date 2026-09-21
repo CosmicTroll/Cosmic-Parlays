@@ -930,7 +930,7 @@
       `;
 
       previewContainer.innerHTML = sorted.slice(0, 3).map(renderCard).join('');
-      fullContainer.innerHTML = sorted.map(renderCard).join('');
+      fullContainer.innerHTML = sorted.slice(0, 40).map(renderCard).join('');
     }
 
     function renderSportsHub(poly, kalshi) {
@@ -986,7 +986,7 @@
       `;
 
       previewContainer.innerHTML = sorted.slice(0, 3).map(renderCard).join('');
-      fullContainer.innerHTML = sorted.map(renderCard).join('');
+      fullContainer.innerHTML = sorted.slice(0, 40).map(renderCard).join('');
     }
 
     function renderMacroHub(poly, kalshi) {
@@ -1061,7 +1061,6 @@
         return;
       }
 
-      // Renders all qualifying markets without artificial slice bottlenecks
       container.innerHTML = sorted.map(item => `
         <div class="opp-card">
           <div class="opp-top">
