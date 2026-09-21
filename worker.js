@@ -78,8 +78,6 @@ export default {
               if (!emailResponse.ok) {
                 const errText = await emailResponse.text();
                 console.error(`[RESEND ERROR] Status ${emailResponse.status}: ${errText}`);
-              } else {
-                console.log(`[RESEND SUCCESS] Sent Pro key to ${supporterEmail}`);
               }
             } catch (mailErr) {
               console.error(`[RESEND EXCEPTION] ${mailErr.message}`);
@@ -152,64 +150,79 @@ async function fetchAllMarketData() {
 }
 
 async function fetchKalshiPublicMarkets() {
-  const nowSec = Math.floor(Date.now() / 1000);
-  const oneYearFromNowSec = nowSec + (365 * 24 * 3600);
+  const endpoints = [
+    "https://external-api.kalshi.com/trade-api/v2/markets?limit=200&status=open",
+    "https://api.elections.kalshi.com/trade-api/v2/markets?limit=200&status=open"
+  ];
 
-  // Filter to active markets closing within 1 year to prune far-future unquoted entries
-  const url = `https://api.elections.kalshi.com/trade-api/v2/markets?limit=200&status=open&min_close_ts=${nowSec}&max_close_ts=${oneYearFromNowSec}`;
-
-  try {
-    const res = await fetch(url, {
-      headers: {
-        "Accept": "application/json",
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
-      }
-    });
-
-    if (!res.ok) return [];
-    const data = await res.json();
-    const rawList = data.markets || [];
-
-    const parsed = [];
-    rawList.forEach(m => {
-      // Exclude multi-leg combo parlays
-      if ((m.title || "").includes(",yes") || (m.title || "").includes(",no")) return;
-
-      let yesCents = null;
-      if (typeof m.yes_ask === 'number' && m.yes_ask > 0) {
-        yesCents = m.yes_ask;
-      } else if (typeof m.last_price === 'number' && m.last_price > 0) {
-        yesCents = m.last_price;
-      } else if (typeof m.yes_bid === 'number' && m.yes_bid > 0) {
-        yesCents = m.yes_bid + 2;
-      }
-
-      // Ignore unquoted entries with no orders or history
-      if (!yesCents) return;
-
-      let noCents = (typeof m.no_ask === 'number' && m.no_ask > 0) ? m.no_ask : (100 - yesCents);
-      let yesAsk = Number((yesCents / 100).toFixed(2));
-      let noAsk = Number((noCents / 100).toFixed(2));
-
-      if (yesAsk <= 0.01 || yesAsk >= 0.99) return;
-
-      parsed.push({
-        id: m.ticker,
-        title: m.title || m.ticker,
-        candidate: m.subtitle || m.yes_sub_title || "Consensus",
-        platform: "KALSHI",
-        category: categorizeMarket(m.title, m.category),
-        yesAsk: yesAsk,
-        noAsk: noAsk,
-        volume: m.volume_24h || m.volume || 0,
-        endDate: m.expiration_time || m.close_time || null
+  for (const ep of endpoints) {
+    try {
+      const res = await fetch(ep, {
+        headers: {
+          "Accept": "application/json",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+        }
       });
-    });
 
-    return parsed;
-  } catch (err) {
-    return [];
+      if (!res.ok) continue;
+      const data = await res.json();
+      const rawList = data.markets || [];
+      if (!rawList.length) continue;
+
+      const parsed = [];
+      const currentYear = new Date().getUTCFullYear();
+
+      rawList.forEach(m => {
+        // Drop multi-leg parlay combo bundles
+        if ((m.title || "").includes(",yes") || (m.title || "").includes(",no")) return;
+
+        // Skip ghost placeholders dated beyond next year
+        if (m.expiration_time) {
+          const expYear = new Date(m.expiration_time).getUTCFullYear();
+          if (expYear > currentYear + 1) return;
+        }
+
+        // Kalshi calculates asks as: yes_ask = 100 - no_bid
+        let yesCents = null;
+        if (typeof m.yes_ask === 'number' && m.yes_ask > 0) {
+          yesCents = m.yes_ask;
+        } else if (typeof m.no_bid === 'number' && m.no_bid > 0) {
+          yesCents = 100 - m.no_bid;
+        } else if (typeof m.last_price === 'number' && m.last_price > 0) {
+          yesCents = m.last_price;
+        } else if (typeof m.yes_bid === 'number' && m.yes_bid > 0) {
+          yesCents = m.yes_bid + 2;
+        }
+
+        // If market has no quotes or liquidity, skip it
+        if (!yesCents) return;
+
+        let noCents = (typeof m.no_ask === 'number' && m.no_ask > 0) ? m.no_ask : (100 - yesCents);
+        let yesAsk = Number((yesCents / 100).toFixed(2));
+        let noAsk = Number((noCents / 100).toFixed(2));
+
+        if (yesAsk <= 0.01 || yesAsk >= 0.99) return;
+
+        parsed.push({
+          id: m.ticker,
+          title: m.title || m.ticker,
+          candidate: m.subtitle || m.yes_sub_title || "Consensus",
+          platform: "KALSHI",
+          category: categorizeMarket(m.title, m.category),
+          yesAsk: yesAsk,
+          noAsk: noAsk,
+          volume: m.volume_24h || m.volume || 0,
+          endDate: m.expiration_time || m.close_time || null
+        });
+      });
+
+      if (parsed.length > 0) return parsed;
+    } catch (err) {
+      console.warn("Kalshi fetch error on:", ep, err);
+    }
   }
+
+  return [];
 }
 
 async function fetchPolymarketCombined() {
@@ -224,7 +237,12 @@ async function fetchPolymarketCombined() {
 
   for (const u of urls) {
     try {
-      const res = await fetch(u, { headers: { "Accept": "application/json", "User-Agent": "Mozilla/5.0" } });
+      const res = await fetch(u, {
+        headers: {
+          "Accept": "application/json",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+        }
+      });
       if (!res.ok) continue;
       const events = await res.json();
 
