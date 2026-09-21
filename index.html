@@ -402,11 +402,16 @@
     let activePerpTime = "4H";
     let currentSort = "roi-desc";
 
-    // Detect and reject combo/accumulator multi-leg parlays on the client
+    // Strict multi-leg accumulator and combo parlay filter
     function isMultiLegParlay(raw) {
-      const s = (raw || "").toLowerCase();
+      if (!raw) return false;
+      const s = raw.toLowerCase();
       return s.includes("more legs") || 
              /\(\+\d+\s+more\s+legs\)/i.test(s) || 
+             s.includes(",yes ") || 
+             s.includes(",no ") ||
+             s.includes(", yes ") ||
+             s.includes(", no ") ||
              s.split(" + ").length > 2 ||
              (s.includes("+") && s.includes("legs"));
     }
@@ -432,7 +437,7 @@
         const probA = (a.rec && a.rec.probVal !== undefined) ? a.rec.probVal : 50;
         const probB = (b.rec && b.rec.probVal !== undefined) ? b.rec.probVal : 50;
 
-        // Prioritize contracts with genuine price movement over flat 50/50 placeholders
+        // Prioritize contracts with genuine probability deviation over flat 50/50 placeholders
         const devA = Math.abs(probA - 50);
         const devB = Math.abs(probB - 50);
 
@@ -597,7 +602,7 @@
         const data = await res.json();
         
         if (data && typeof data === 'object') {
-          // Client-side parlay filter to drop multi-leg accumulators
+          // Drop Kalshi multi-leg accumulators completely on client ingest
           const rawKalshi = Array.isArray(data.kalshi) ? data.kalshi : [];
           latestData.kalshi = rawKalshi.filter(m => !isMultiLegParlay(m.title) && !isMultiLegParlay(m.candidate));
 
