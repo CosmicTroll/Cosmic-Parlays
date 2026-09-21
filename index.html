@@ -402,20 +402,6 @@
     let activePerpTime = "4H";
     let currentSort = "roi-desc";
 
-    // Strict multi-leg accumulator and combo parlay filter
-    function isMultiLegParlay(raw) {
-      if (!raw) return false;
-      const s = raw.toLowerCase();
-      return s.includes("more legs") || 
-             /\(\+\d+\s+more\s+legs\)/i.test(s) || 
-             s.includes(",yes ") || 
-             s.includes(",no ") ||
-             s.includes(", yes ") ||
-             s.includes(", no ") ||
-             s.split(" + ").length > 2 ||
-             (s.includes("+") && s.includes("legs"));
-    }
-
     function cleanDisplayTitle(raw) {
       let t = (raw || "").replace(/^yes\s+/i, '').replace(/^no\s+/i, '');
       t = t.replace(/\(\+\d+\s+more\s+legs\)/ig, '').trim();
@@ -437,7 +423,6 @@
         const probA = (a.rec && a.rec.probVal !== undefined) ? a.rec.probVal : 50;
         const probB = (b.rec && b.rec.probVal !== undefined) ? b.rec.probVal : 50;
 
-        // Prioritize contracts with genuine probability deviation over flat 50/50 placeholders
         const devA = Math.abs(probA - 50);
         const devB = Math.abs(probB - 50);
 
@@ -602,10 +587,7 @@
         const data = await res.json();
         
         if (data && typeof data === 'object') {
-          // Drop Kalshi multi-leg accumulators completely on client ingest
-          const rawKalshi = Array.isArray(data.kalshi) ? data.kalshi : [];
-          latestData.kalshi = rawKalshi.filter(m => !isMultiLegParlay(m.title) && !isMultiLegParlay(m.candidate));
-
+          latestData.kalshi = Array.isArray(data.kalshi) ? data.kalshi : [];
           latestData.polymarket = Array.isArray(data.polymarket) ? data.polymarket : [];
           if (data.perps) latestData.perps = data.perps;
           if (data.portfolio) latestData.portfolio = data.portfolio;
@@ -665,11 +647,10 @@
       const container = document.getElementById('props-container');
       const all = [...poly, ...kalshi];
 
-      // Strictly Sports (Zero Politics & Zero Combo Parlays)
       const sportsMarkets = all.filter(m => {
         const t = (m.title + " " + (m.candidate || "")).toLowerCase();
         const isPolitical = /house|senate|congress|election|nominee|president|governor|democrat|republican|vance|trump|harris|newsom|putin|war/i.test(t);
-        return m.category === 'SPORTS' && !isPolitical && !isMultiLegParlay(m.title);
+        return m.category === 'SPORTS' && !isPolitical;
       });
 
       const candidates = [];
@@ -687,7 +668,7 @@
       });
 
       if (candidates.length === 0) {
-        container.innerHTML = `<div class="empty">No live single sports games meeting edge thresholds right now. Scanning books...</div>`;
+        container.innerHTML = `<div class="empty">No live sports games meeting edge thresholds right now. Scanning books...</div>`;
         return;
       }
 
@@ -713,7 +694,7 @@
       const container = document.getElementById('macro-container');
       const all = [...poly, ...kalshi];
 
-      const macroMarkets = all.filter(m => (m.category === 'POLITICS' || m.category === 'MACRO' || m.category === 'CULTURE') && !isMultiLegParlay(m.title));
+      const macroMarkets = all.filter(m => m.category === 'POLITICS' || m.category === 'MACRO' || m.category === 'CULTURE');
 
       const scored = [];
       macroMarkets.forEach(m => {
@@ -753,15 +734,13 @@
 
     function renderBestBuys(containerId, markets, platform) {
       const container = document.getElementById(containerId);
-      const cleanMarkets = (markets || []).filter(m => !isMultiLegParlay(m.title) && !isMultiLegParlay(m.candidate));
-
-      if (cleanMarkets.length === 0) {
+      if (!markets || markets.length === 0) {
         container.innerHTML = `<div class="empty">0 active single contracts currently found on ${platform} order books.</div>`;
         return;
       }
 
       const scored = [];
-      cleanMarkets.forEach(m => {
+      markets.forEach(m => {
         const rec = evaluateMarketRecommendation(m);
         if (rec) {
           scored.push({
@@ -793,31 +772,71 @@
       `).join('');
     }
 
+    // Strict Cross-Exchange Arbitrage Matcher with Enforced Year Verification
     function renderSpreads(kalshi, poly) {
       const container = document.getElementById('spread-container');
       const spreadList = [];
 
-      const cleanKalshi = kalshi.filter(k => !isMultiLegParlay(k.title));
+      const extractTokens = (str) => {
+        return (str || "")
+          .toLowerCase()
+          .replace(/[^a-z0-9\s]/g, ' ')
+          .split(/\s+/)
+          .filter(w => w.length >= 3 && !['will', 'the', 'and', 'for', 'that', 'this', 'with', 'from', 'what', 'when', 'who', 'how', 'end', 'rate', 'before', 'above', 'below'].includes(w));
+      };
 
-      cleanKalshi.forEach(k => {
-        if (!k.yesAsk || k.yesAsk <= 0.05 || k.yesAsk >= 0.95) return;
+      const extractYears = (item) => {
+        const fullText = `${item.title || ''} ${item.candidate || ''}`;
+        const matches = fullText.match(/\b(202[4-9]|203[0-9]|204[0-9])\b/g) || [];
+        if (item.endDate) {
+          const d = new Date(item.endDate);
+          if (!isNaN(d.getTime())) {
+            matches.push(String(d.getUTCFullYear()));
+          }
+        }
+        return [...new Set(matches)];
+      };
+
+      kalshi.forEach(k => {
+        if (!k.yesAsk || k.yesAsk <= 0.02 || k.yesAsk >= 0.98) return;
+
+        const kTokens = extractTokens(k.title);
+        const kCand = (k.candidate || "").toLowerCase().trim();
+        const kYears = extractYears(k);
 
         poly.forEach(p => {
-          if (!p.noAsk || p.noAsk <= 0.05 || p.noAsk >= 0.95) return;
+          if (!p.noAsk || p.noAsk <= 0.02 || p.noAsk >= 0.98) return;
 
-          const kWords = (k.title || "").toLowerCase().split(/[\s,.-]+/).filter(w => w.length >= 4 && !['match', 'game', 'total', 'points', 'versus', 'will', 'with'].includes(w));
-          const pLower = (p.title || "").toLowerCase();
+          // 1. Year Verification: Drop pair if explicit years conflict
+          const pYears = extractYears(p);
+          if (kYears.length > 0 && pYears.length > 0) {
+            const hasCommonYear = kYears.some(y => pYears.includes(y));
+            if (!hasCommonYear) return;
+          }
 
-          const isDirectMatch = kWords.some(w => pLower.includes(w));
+          // 2. Candidate & Entity Alignment
+          const pCand = (p.candidate || "").toLowerCase().trim();
+          const pTokens = extractTokens(p.title);
 
-          if (isDirectMatch) {
+          const candidateMatch = (!kCand || kCand === "consensus" || !pCand || pCand === "consensus") 
+            ? true 
+            : (kCand.includes(pCand) || pCand.includes(kCand));
+
+          if (!candidateMatch) return;
+
+          // 3. Multi-token Semantic Overlap
+          const sharedTokens = kTokens.filter(t => pTokens.includes(t));
+          const titleMatch = sharedTokens.length >= 3 || (sharedTokens.length >= 2 && sharedTokens.length / Math.min(kTokens.length, pTokens.length) >= 0.6);
+
+          if (titleMatch) {
             const totalCost = k.yesAsk + p.noAsk;
-            const netEdge = 1.00 - totalCost - 0.02;
+            const netEdge = 1.00 - totalCost - 0.015; // 1.5¢ combined fee clearance
 
             if (netEdge >= 0.01) {
               const roiVal = Math.round(((netEdge / totalCost) * 100));
               spreadList.push({
                 title: cleanDisplayTitle(k.title),
+                candidate: k.candidate && k.candidate !== "Consensus" ? k.candidate : (p.candidate || ""),
                 edgeCents: (netEdge * 100).toFixed(1),
                 kYes: k.yesAsk.toFixed(2),
                 pNo: p.noAsk.toFixed(2),
@@ -833,12 +852,15 @@
       const sorted = sortCandidates(spreadList);
 
       if (sorted.length === 0) {
-        container.innerHTML = `<div class="empty">No direct cross-exchange spreads with positive net edge right now. Scanning ${cleanKalshi.length} Kalshi / ${poly.length} Poly order books...</div>`;
+        container.innerHTML = `<div class="empty">No direct cross-exchange spreads with positive net edge right now. Scanning ${kalshi.length} Kalshi / ${poly.length} Poly order books...</div>`;
       } else {
         container.innerHTML = sorted.map(s => `
           <div class="list-item" style="border-left: 3px solid var(--green);">
             <div class="item-top">
-              <span class="item-title" style="font-size: 0.85rem; line-height: 1.3;">${s.title}</span>
+              <div>
+                <span class="item-title" style="font-size: 0.85rem; line-height: 1.3;">${s.title}</span>
+                ${s.candidate && s.candidate !== "Consensus" ? `<div style="font-size: 0.72rem; color: var(--cyan); font-weight: 700; margin-top: 2px;">Target: [${s.candidate}]</div>` : ''}
+              </div>
               <span class="tag tag-settled">+${s.edgeCents}¢ NET EDGE</span>
             </div>
             <div class="item-meta" style="margin-top: 0.4rem;">
