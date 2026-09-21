@@ -5,7 +5,7 @@ export default {
     const corsHeaders = {
       "Access-Control-Allow-Origin": "*",
       "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-      "Access-Control-Allow-Headers": "Content-Type, Authorization",
+      "Access-Control-Allow-Headers": "Content-Type, Authorization, KALSHI-ACCESS-KEY, KALSHI-ACCESS-SIGNATURE, KALSHI-ACCESS-TIMESTAMP",
     };
 
     if (request.method === "OPTIONS") {
@@ -52,15 +52,23 @@ export default {
                   to: [supporterEmail],
                   subject: "🚀 Your Cosmic Terminal Pro Activation Key",
                   html: `
-                    <div style="background-color: #090d16; color: #e2e8f0; font-family: sans-serif; padding: 24px; border-radius: 8px;">
-                      <h2 style="color: #6366f1;">Thank you for supporting Cosmic Terminal!</h2>
-                      <p>Your one-time $5 tip has unlocked permanent <b>Ad-Free Pro Access</b>.</p>
+                    <div style="background-color: #090d16; color: #e2e8f0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 24px; border-radius: 8px;">
+                      <h2 style="color: #6366f1; margin-top: 0;">Thank you for supporting Cosmic Terminal!</h2>
+                      <p>Your one-time $5 tip has unlocked permanent <b>Ad-Free Pro Access</b> on all your devices.</p>
                       <div style="background-color: #121826; border: 1px solid #222d42; border-radius: 8px; padding: 18px; margin: 20px 0; text-align: center;">
-                        <span style="color: #8e9db3; font-size: 12px; text-transform: uppercase;">Your Unique Activation Key</span>
+                        <span style="color: #8e9db3; font-size: 12px; text-transform: uppercase; letter-spacing: 1px;">Your Unique Activation Key</span>
                         <div style="font-size: 28px; font-weight: bold; color: #00d084; letter-spacing: 3px; margin-top: 6px;">
                           ${supporterKey}
                         </div>
                       </div>
+                      <p style="font-size: 14px; color: #8e9db3;"><b>How to activate:</b></p>
+                      <ol style="font-size: 14px; color: #cbd5e1; line-height: 1.6;">
+                        <li>Open <a href="https://cosmictroll.github.io/Cosmic-Parlays/" style="color: #06b6d4; text-decoration: none;">Cosmic Terminal</a>.</li>
+                        <li>Switch to the <b>Vault</b> tab.</li>
+                        <li>Scroll down to <b>⭐ Supporter Pro Activation</b>.</li>
+                        <li>Enter your email (<code>${supporterEmail}</code>) and activation key (<code>${supporterKey}</code>).</li>
+                        <li>Click <b>Verify & Unlock</b>.</li>
+                      </ol>
                     </div>
                   `
                 })
@@ -74,6 +82,7 @@ export default {
           headers: { ...corsHeaders, "Content-Type": "application/json" }
         });
       } catch (err) {
+        console.error("[KO-FI ERROR]", err);
         return new Response("Server error", { status: 500, headers: corsHeaders });
       }
     }
@@ -98,7 +107,14 @@ export default {
       }
     }
 
-    return new Response("Cosmic Terminal Edge Engine Active", { status: 200, headers: corsHeaders });
+    return new Response("Cosmic Terminal Edge Engine Active", {
+      status: 200,
+      headers: corsHeaders
+    });
+  },
+
+  async scheduled(event, env, ctx) {
+    console.log("[CRON] Periodic market sweep executed.");
   }
 };
 
@@ -130,10 +146,10 @@ async function fetchKalshiPublicMarkets() {
   const seenTickers = new Set();
   const currentYear = new Date().getUTCFullYear();
 
-  // Query both the flat market endpoint and the nested events endpoint on the official host
+  // Target the working public elections gateway
   const endpoints = [
-    "https://external-api.kalshi.com/trade-api/v2/markets?limit=1000&status=open",
-    "https://external-api.kalshi.com/trade-api/v2/events?limit=200&status=open&with_nested_markets=true"
+    "https://api.elections.kalshi.com/trade-api/v2/events?limit=200&status=open&with_nested_markets=true",
+    "https://api.elections.kalshi.com/trade-api/v2/markets?limit=100&status=open"
   ];
 
   for (const url of endpoints) {
@@ -169,7 +185,7 @@ async function fetchKalshiPublicMarkets() {
         const titleStr = m.title || m.eventTitle || m.ticker || "";
         if (titleStr.includes(",yes") || titleStr.includes(",no")) return;
 
-        // Exclude unresolvable mathematical conjectures
+        // Exclude math conjectures / unsolvable millennium problems
         if (/conjecture|hypothesis|swinnerton|millennium prize|riemann|p versus np|hodge/i.test(titleStr)) {
           return;
         }
@@ -215,7 +231,7 @@ async function fetchKalshiPublicMarkets() {
         });
       });
     } catch (err) {
-      console.error("Fetch error on", url, err);
+      console.error("Fetch error:", err);
     }
   }
 
@@ -289,16 +305,22 @@ async function fetchPolymarketCombined() {
 function categorizeMarket(title = "", category = "") {
   const t = (title + " " + category).toLowerCase();
 
+  // 1. Esports
   if (/\b(cs2|csgo|counter-strike|dota|dota2|valorant|starcraft|rocket league|rainbow six|r6|overwatch|iem|blast|vct|lcs|lck|lpl|lec)\b/i.test(t) ||
       (t.includes("lol:") || t.includes("league of legends"))) {
     return "ESPORTS";
   }
+
+  // 2. Traditional Sports
   if (/\b(nfl|nba|mlb|nhl|premier league|champions league|ufc|mma|tennis|australian open|wimbledon|us open|french open|touchdown|points|rebounds|soccer|fifa|retirement)\b/i.test(t)) {
     return "SPORTS";
   }
+
+  // 3. Politics
   if (/\b(president|presidential|election|senate|house|governor|democrat|republican|trump|harris|vance|ukraine|russia|putin|fed|interest rate|inflation|cpi)\b/i.test(t)) {
     return "POLITICS";
   }
+
   return "MACRO";
 }
 
