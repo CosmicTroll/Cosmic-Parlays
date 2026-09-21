@@ -1,6 +1,6 @@
 // Cloudflare Worker: worker.js
 // Production Hardened: Real Polymarket Candidate Extraction, Clean Single-Market Kalshi Filter,
-// Reciprocal Order Book Math, Micro-Nonce Replay Protection & Execution Risk Guards
+// Scheduled Cron Handler Support, Reciprocal Order Book Math & Micro-Nonce Protection
 
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",
@@ -9,14 +9,9 @@ const CORS_HEADERS = {
   "Content-Type": "application/json",
 };
 
-// Module-scope memory caching
 let cachedKalshiCryptoKey = null;
 let cachedPemString = null;
 let signatureNonceCounter = 0;
-
-// -------------------------------------------------------------
-// 1. Cryptography Helpers (Optimized with Persistent CryptoKey)
-// -------------------------------------------------------------
 
 async function getKalshiCryptoKey(pem) {
   if (cachedKalshiCryptoKey && cachedPemString === pem) {
@@ -70,10 +65,6 @@ function parseUtcIso(dateInput) {
   return new Date(parsedMs).toISOString();
 }
 
-// -------------------------------------------------------------
-// 2. Strict Category Classifier
-// -------------------------------------------------------------
-
 function categorizeTitle(title) {
   const t = (title || "").toLowerCase();
   if (/house|senate|congress|election|nominee|president|governor|democrat|republican|gop|dnc|rnc|vance|trump|harris|newsom|biden|putin|ukraine|war|cabinet|veto|supreme court/i.test(t)) {
@@ -121,11 +112,13 @@ function getPerpsFallback() {
   return perps;
 }
 
-// -------------------------------------------------------------
-// 3. Router
-// -------------------------------------------------------------
-
 export default {
+  // 1. Scheduled handler prevents cron execution crashes
+  async scheduled(event, env, ctx) {
+    ctx.waitUntil(handleLiveData(env));
+  },
+
+  // 2. Fetch HTTP router
   async fetch(request, env, ctx) {
     if (request.method === "OPTIONS") {
       return new Response(null, { headers: CORS_HEADERS });
@@ -167,11 +160,6 @@ export default {
         }, null, 2), { status: 200, headers: CORS_HEADERS });
       }
 
-      if (url.pathname === "/api/execute-order" || url.pathname === "/api/execute-spread") {
-        const payload = await request.json();
-        return await handleExecuteSpread(payload, env);
-      }
-
       return new Response(JSON.stringify({ error: "Endpoint not found" }), {
         status: 404,
         headers: CORS_HEADERS,
@@ -198,10 +186,6 @@ export default {
     }
   }
 };
-
-// -------------------------------------------------------------
-// 4. Live Data Synthesis Engine
-// -------------------------------------------------------------
 
 async function handleLiveData(env) {
   let polyBalance = 2.57;
@@ -393,12 +377,16 @@ async function handleLiveData(env) {
 
         const fullTitle = m.title || m.ticker || "";
 
-        // Filter out multi-leg accumulator parlays and combo products
+        // Drop multi-leg combo parlays and accumulators
         if (
           fullTitle.includes("+") || 
           /\(\+\d+\s+more\s+legs\)/i.test(fullTitle) || 
           /more legs/i.test(fullTitle) ||
-          m.ticker.startsWith("KCOMBO")
+          m.ticker.startsWith("KCOMBO") ||
+          fullTitle.includes(",yes ") ||
+          fullTitle.includes(",no ") ||
+          fullTitle.includes(", yes ") ||
+          fullTitle.includes(", no ")
         ) {
           return;
         }
@@ -431,8 +419,10 @@ async function handleLiveData(env) {
         if (yesVal !== null && noVal === null) noVal = 1.00 - yesVal;
         if (noVal !== null && yesVal === null) yesVal = 1.00 - noVal;
 
-        // Skip contracts that have zero open book quotes
-        if (yesVal === null && noVal === null) return;
+        if (yesVal === null) {
+          yesVal = 0.50;
+          noVal = 0.50;
+        }
 
         const candidate = m.subtitle || m.sub_title || m.yes_sub_title || "Consensus";
         const normalizedEndUtc = parseUtcIso(m.expected_expiration_time || m.expiration_time || m.close_time);
@@ -476,112 +466,4 @@ async function handleLiveData(env) {
       "Cache-Control": "public, max-age=12"
     }
   });
-}
-
-// -------------------------------------------------------------
-// 5. Execution Engine: Precision Safety, Nonces & Rollbacks
-// -------------------------------------------------------------
-
-async function handleExecuteSpread(payload, env) {
-  const { kalshiTicker, kalshiSide, kalshiCount, kalshiMaxPrice, polyTicker, polySide, polyPrice } = payload;
-  const results = { timestamp: new Date().toISOString(), status: "initiated" };
-
-  if (!kalshiTicker || !env?.KALSHI_KEY_ID || !env?.KALSHI_PRIVATE_KEY) {
-    return new Response(JSON.stringify({ error: "Missing Kalshi credentials or payload" }), {
-      status: 400,
-      headers: CORS_HEADERS
-    });
-  }
-
-  const contracts = kalshiCount || 1;
-  const kalshiCentPrice = Math.round((kalshiMaxPrice || 0.50) * 100);
-  const outlay = (contracts * kalshiCentPrice) / 100;
-
-  if (outlay > 10.00) {
-    return new Response(JSON.stringify({
-      error: "Execution guard triggered: Total outlay exceeds $10.00 cap."
-    }), { status: 400, headers: CORS_HEADERS });
-  }
-
-  let kalshiOrderId = null;
-  const privKey = await getKalshiCryptoKey(env.KALSHI_PRIVATE_KEY);
-
-  try {
-    const kalshiPath = "/trade-api/v2/portfolio/orders";
-    const timestamp = getNonceTimestamp();
-    const bodyObj = {
-      action: "buy",
-      count: contracts,
-      type: "limit",
-      side: kalshiSide || "yes",
-      ticker: kalshiTicker,
-      yes_price: kalshiCentPrice,
-      client_order_id: `cosmic_${Date.now()}`
-    };
-    const bodyStr = JSON.stringify(bodyObj);
-    const sig = await signKalshiRequest(privKey, timestamp, "POST", kalshiPath, bodyStr);
-
-    const res = await fetch(`https://external-api.kalshi.com${kalshiPath}`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "KALSHI-ACCESS-KEY": env.KALSHI_KEY_ID,
-        "KALSHI-ACCESS-SIGNATURE": sig,
-        "KALSHI-ACCESS-TIMESTAMP": timestamp,
-        "User-Agent": "CosmicParlaysTerminal/1.0"
-      },
-      body: bodyStr
-    });
-
-    results.kalshi = await res.json();
-    if (res.ok && results.kalshi?.order?.order_id) {
-      kalshiOrderId = results.kalshi.order.order_id;
-    } else {
-      throw new Error(`Kalshi Leg 1 Rejected: ${JSON.stringify(results.kalshi)}`);
-    }
-  } catch (err) {
-    return new Response(JSON.stringify({ status: "leg1_failed", error: err.message }), {
-      status: 500,
-      headers: CORS_HEADERS
-    });
-  }
-
-  if (polyTicker) {
-    try {
-      const polyExecPrice = parseFloat(polyPrice.toFixed(4));
-      const leg2Valid = polyExecPrice > 0.01 && polyExecPrice < 0.99;
-      if (!leg2Valid) throw new Error("Polymarket price slipped outside valid range");
-
-      results.polymarket = { status: "filled", ticker: polyTicker, price: polyExecPrice, side: polySide };
-      results.status = "complete_arbitrage_executed";
-    } catch (polyErr) {
-      console.warn("Leg 2 hedge rejected! Executing Kalshi rollback...", polyErr.message);
-      results.leg2_error = polyErr.message;
-
-      if (kalshiOrderId) {
-        try {
-          const cancelPath = `/trade-api/v2/portfolio/orders/${kalshiOrderId}`;
-          const cancelTs = getNonceTimestamp();
-          const cancelSig = await signKalshiRequest(privKey, cancelTs, "DELETE", cancelPath, "");
-
-          const cancelRes = await fetch(`https://external-api.kalshi.com${cancelPath}`, {
-            method: "DELETE",
-            headers: {
-              "KALSHI-ACCESS-KEY": env.KALSHI_KEY_ID,
-              "KALSHI-ACCESS-SIGNATURE": cancelSig,
-              "KALSHI-ACCESS-TIMESTAMP": cancelTs,
-              "User-Agent": "CosmicParlaysTerminal/1.0"
-            }
-          });
-          results.rollback = await cancelRes.json();
-          results.status = "rolled_back_unhedged_risk_prevented";
-        } catch (cancelErr) {
-          results.rollback_error = cancelErr.message;
-          results.status = "CRITICAL_MANUAL_INTERVENTION_REQUIRED";
-        }
-      }
-    }
-  }
-
-  return new Response(JSON.stringify(results, null, 2), { headers: CORS_HEADERS });
 }
