@@ -1,6 +1,4 @@
-// Cloudflare Worker: worker.js (Sanitized Public Aggregator)
-// Safe for Public / Open Distribution — No Personal Keys, Nonces, or Private Balances
-
+// Cloudflare Worker: worker.js (Public Aggregator + Automated Ko-fi Webhook)
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
@@ -8,11 +6,30 @@ const CORS_HEADERS = {
   "Content-Type": "application/json",
 };
 
+const SECRET_SALT = "COSMIC_SALT_2026";
+
+// Cryptographic Supporter License Generator
+async function generateSupporterKey(email) {
+  const enc = new TextEncoder();
+  const buf = await crypto.subtle.digest(
+    "SHA-256",
+    enc.encode(email.toLowerCase().trim() + ":" + SECRET_SALT)
+  );
+  return Array.from(new Uint8Array(buf))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("")
+    .slice(0, 8)
+    .toUpperCase();
+}
+
 function parseUtcIso(dateInput) {
   if (!dateInput) return null;
-  let parsedMs = typeof dateInput === "number" 
-    ? (dateInput < 1e11 ? dateInput * 1000 : dateInput) 
-    : Date.parse(dateInput);
+  let parsedMs =
+    typeof dateInput === "number"
+      ? dateInput < 1e11
+        ? dateInput * 1000
+        : dateInput
+      : Date.parse(dateInput);
 
   if (isNaN(parsedMs)) return null;
   return new Date(parsedMs).toISOString();
@@ -20,13 +37,25 @@ function parseUtcIso(dateInput) {
 
 function categorizeTitle(title) {
   const t = (title || "").toLowerCase();
-  if (/house|senate|congress|election|nominee|president|governor|democrat|republican|gop|dnc|rnc|vance|trump|harris|newsom|biden|putin|ukraine|war|cabinet|veto|supreme court/i.test(t)) {
+  if (
+    /house|senate|congress|election|nominee|president|governor|democrat|republican|gop|dnc|rnc|vance|trump|harris|newsom|biden|putin|ukraine|war|cabinet|veto|supreme court/i.test(
+      t
+    )
+  ) {
     return "POLITICS";
   }
-  if (/fed|rate|inflation|cpi|interest|gdp|recession|treasury|yield|cuts|debt|unemployment|jobs|payroll|temperature|high/i.test(t)) {
+  if (
+    /fed|rate|inflation|cpi|interest|gdp|recession|treasury|yield|cuts|debt|unemployment|jobs|payroll|temperature|high/i.test(
+      t
+    )
+  ) {
     return "MACRO";
   }
-  if (/vs\.?|game|spread|over\/under|total points|yards|touchdown|td|nfl|nba|mlb|nhl|fifa|uefa|mls|premier league|champions league|quarterback|receptions|goals|puck|score/i.test(t)) {
+  if (
+    /vs\.?|game|spread|over\/under|total points|yards|touchdown|td|nfl|nba|mlb|nhl|fifa|uefa|mls|premier league|champions league|quarterback|receptions|goals|puck|score/i.test(
+      t
+    )
+  ) {
     return "SPORTS";
   }
   return "CULTURE";
@@ -34,11 +63,11 @@ function categorizeTitle(title) {
 
 function getPerpsFallback() {
   const meta = {
-    "GOLD": { name: "Gold", unit: "/oz", lev: "15.9x", bias: 54, vol: "$3.4M", oi: "$1.1M" },
-    "SILVER": { name: "Silver", unit: "/oz", lev: "12.5x", bias: 48, vol: "$1.6M", oi: "$720K" },
-    "BTC": { name: "Bitcoin", unit: "", lev: "20.0x", bias: 58, vol: "$16.8M", oi: "$6.4M" },
-    "ETH": { name: "Ethereum", unit: "", lev: "18.5x", bias: 51, vol: "$9.1M", oi: "$3.5M" },
-    "SOL": { name: "Solana", unit: "", lev: "10.0x", bias: 62, vol: "$4.6M", oi: "$2.1M" }
+    GOLD: { name: "Gold", unit: "/oz", lev: "15.9x", bias: 54, vol: "$3.4M", oi: "$1.1M" },
+    SILVER: { name: "Silver", unit: "/oz", lev: "12.5x", bias: 48, vol: "$1.6M", oi: "$720K" },
+    BTC: { name: "Bitcoin", unit: "", lev: "20.0x", bias: 58, vol: "$16.8M", oi: "$6.4M" },
+    ETH: { name: "Ethereum", unit: "", lev: "18.5x", bias: 51, vol: "$9.1M", oi: "$3.5M" },
+    SOL: { name: "Solana", unit: "", lev: "10.0x", bias: 62, vol: "$4.6M", oi: "$2.1M" },
   };
   const perps = {};
   for (const [key, m] of Object.entries(meta)) {
@@ -58,8 +87,8 @@ function getPerpsFallback() {
         "1D": { dir: isUp ? "RISE" : "FALL", bias: m.bias + 4, pct: "+2.2%", target: "Book", chart: [m.bias - 4, m.bias + 1, m.bias + 4] },
         "1W": { dir: isUp ? "RISE" : "FALL", bias: m.bias + 7, pct: "+4.5%", target: "Book", chart: [m.bias - 6, m.bias + 2, m.bias + 7] },
         "1M": { dir: isUp ? "RISE" : "FALL", bias: m.bias + 11, pct: "+7.8%", target: "Book", chart: [m.bias - 8, m.bias + 4, m.bias + 11] },
-        "1Y": { dir: isUp ? "RISE" : "FALL", bias: m.bias + 16, pct: "+17.2%", target: "Book", chart: [m.bias - 10, m.bias + 8, m.bias + 16] }
-      }
+        "1Y": { dir: isUp ? "RISE" : "FALL", bias: m.bias + 16, pct: "+17.2%", target: "Book", chart: [m.bias - 10, m.bias + 8, m.bias + 16] },
+      },
     };
   }
   return perps;
@@ -78,6 +107,7 @@ export default {
     const url = new URL(request.url);
 
     try {
+      // 1. Live Public Market Aggregator
       if (url.pathname === "/api/live-data" || url.pathname === "/") {
         const isBypass = url.searchParams.has("t") || url.searchParams.has("fresh");
         const cache = caches.default;
@@ -89,7 +119,7 @@ export default {
         }
 
         const freshResponse = await handleLiveData();
-        
+
         if (!isBypass) {
           const resToCache = new Response(freshResponse.body, freshResponse);
           resToCache.headers.set("Cache-Control", "public, max-age=12");
@@ -100,43 +130,137 @@ export default {
         return freshResponse;
       }
 
+      // 2. Automated Ko-fi Webhook Endpoint
+      if (url.pathname === "/api/kofi-webhook" && request.method === "POST") {
+        return await handleKofiWebhook(request, env);
+      }
+
       return new Response(JSON.stringify({ error: "Endpoint not found" }), {
         status: 404,
         headers: CORS_HEADERS,
       });
     } catch (err) {
-      return new Response(JSON.stringify({
-        status: "degraded",
-        error: err.message,
-        timestamp: new Date().toISOString(),
-        portfolio: {
-          isPublic: true,
-          polyBalance: 0.00,
-          kalshiBalance: 0.00,
-          totalCash: 0.00,
-          activeExposure: 0.00,
-          activeContracts: 0,
-          positions: []
-        },
-        polymarket: [],
-        kalshi: [],
-        perps: getPerpsFallback()
-      }), { status: 200, headers: CORS_HEADERS });
+      return new Response(
+        JSON.stringify({
+          status: "degraded",
+          error: err.message,
+          timestamp: new Date().toISOString(),
+          portfolio: {
+            isPublic: true,
+            polyBalance: 0.0,
+            kalshiBalance: 0.0,
+            totalCash: 0.0,
+            activeExposure: 0.0,
+            activeContracts: 0,
+            positions: [],
+          },
+          polymarket: [],
+          kalshi: [],
+          perps: getPerpsFallback(),
+        }),
+        { status: 200, headers: CORS_HEADERS }
+      );
     }
-  }
+  },
 };
 
+// Webhook Engine: Ko-fi sends form-encoded payload with `data` containing the JSON
+async function handleKofiWebhook(request, env) {
+  try {
+    const formData = await request.formData();
+    const rawData = formData.get("data");
+
+    if (!rawData) {
+      return new Response(JSON.stringify({ error: "Missing data payload" }), {
+        status: 400,
+        headers: CORS_HEADERS,
+      });
+    }
+
+    const payload = JSON.parse(rawData);
+
+    // Verify Ko-fi Verification Token if configured in Cloudflare Secrets
+    if (env.KOFI_VERIFICATION_TOKEN) {
+      if (payload.verification_token !== env.KOFI_VERIFICATION_TOKEN) {
+        return new Response(JSON.stringify({ error: "Unauthorized token" }), {
+          status: 401,
+          headers: CORS_HEADERS,
+        });
+      }
+    }
+
+    const amount = parseFloat(payload.amount || "0");
+    const email = (payload.email || "").toLowerCase().trim();
+
+    // Check minimum threshold ($5.00)
+    if (amount >= 5.0 && email) {
+      const generatedKey = await generateSupporterKey(email);
+
+      // Log success in Cloudflare worker logs for easy audit
+      console.log(`[KO-FI SUCCESS] Generated Key: ${generatedKey} for Supporter: ${email}`);
+
+      // If you configure a Resend API key in Cloudflare secrets, send the email instantly:
+      if (env.RESEND_API_KEY) {
+        await fetch("https://api.resend.com/emails", {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${env.RESEND_API_KEY}`,
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            from: "Cosmic Terminal <terminal@cosmictrollgaming.com>",
+            to: email,
+            subject: "Your Cosmic Terminal Ad-Free License Key ⭐",
+            html: `
+              <p>Hey ${payload.from_name || "there"},</p>
+              <p>Thank you for supporting the development of Cosmic Terminal!</p>
+              <p>Here is your permanent cross-device activation key:</p>
+              <h2 style="letter-spacing: 2px; background: #eee; padding: 10px; display: inline-block;">${generatedKey}</h2>
+              <p><b>How to activate:</b></p>
+              <ol>
+                <li>Open the <a href="https://cosmictroll.github.io/Cosmic-Parlays/">Cosmic Terminal</a>.</li>
+                <li>Go to the <b>Vault</b> tab.</li>
+                <li>Under <i>Supporter Pro Activation</i>, enter this email (<b>${email}</b>) and key <b>${generatedKey}</b>.</li>
+              </ol>
+              <p>This permanently disables all sponsor banners on this and any other device you use.</p>
+            `
+          })
+        });
+      }
+
+      return new Response(
+        JSON.stringify({
+          status: "success",
+          license: generatedKey,
+          email: email,
+        }),
+        { status: 200, headers: CORS_HEADERS }
+      );
+    }
+
+    return new Response(JSON.stringify({ status: "ignored_below_threshold" }), {
+      status: 200,
+      headers: CORS_HEADERS,
+    });
+  } catch (err) {
+    console.error("Ko-fi webhook error:", err);
+    return new Response(JSON.stringify({ error: err.message }), {
+      status: 500,
+      headers: CORS_HEADERS,
+    });
+  }
+}
+
 async function handleLiveData() {
-  // --- 1. Polymarket Public Gamma Catalog ---
   let polymarket = [];
   try {
     const [genRes, sportsRes] = await Promise.all([
       fetch("https://gamma-api.polymarket.com/events?closed=false&active=true&limit=60", {
-        headers: { "Accept": "application/json", "User-Agent": "CosmicTerminal/1.0" }
+        headers: { "Accept": "application/json", "User-Agent": "CosmicTerminal/1.0" },
       }),
       fetch("https://gamma-api.polymarket.com/events?closed=false&active=true&tag_id=100639&limit=60", {
-        headers: { "Accept": "application/json", "User-Agent": "CosmicTerminal/1.0" }
-      })
+        headers: { "Accept": "application/json", "User-Agent": "CosmicTerminal/1.0" },
+      }),
     ]);
 
     const polyEvents = [];
@@ -144,7 +268,7 @@ async function handleLiveData() {
     if (sportsRes.ok) polyEvents.push(...(await sportsRes.json()));
 
     const seenEvent = new Set();
-    polyEvents.forEach(e => {
+    polyEvents.forEach((e) => {
       if (!e || seenEvent.has(e.id)) return;
       seenEvent.add(e.id);
 
@@ -152,7 +276,7 @@ async function handleLiveData() {
       const rawEnd = e.endDate || e.end_date || (e.markets && e.markets[0] && e.markets[0].endDate) || null;
       const normalizedEndUtc = parseUtcIso(rawEnd);
 
-      (e.markets || []).forEach(m => {
+      (e.markets || []).forEach((m) => {
         if (!m || m.closed) return;
 
         let yes = null;
@@ -169,12 +293,12 @@ async function handleLiveData() {
         if (yes === null && m.bestBid) yes = parseFloat(m.bestBid);
         if (yes === null && m.lastTradePrice) yes = parseFloat(m.lastTradePrice);
 
-        if (yes !== null && no === null) no = 1.00 - yes;
-        if (no !== null && yes === null) yes = 1.00 - no;
+        if (yes !== null && no === null) no = 1.0 - yes;
+        if (no !== null && yes === null) yes = 1.0 - no;
 
         if (yes === null) {
-          yes = 0.50;
-          no = 0.50;
+          yes = 0.5;
+          no = 0.5;
         }
 
         let candidateName = m.groupItemTitle || "";
@@ -200,7 +324,7 @@ async function handleLiveData() {
           noAsk: Number(no.toFixed(2)),
           volume: m.volume || e.volume || 0,
           endDate: normalizedEndUtc,
-          platform: "Polymarket.us"
+          platform: "Polymarket.us",
         });
       });
     });
@@ -208,31 +332,32 @@ async function handleLiveData() {
     console.error("Polymarket public catalog error:", err);
   }
 
-  // --- 2. Kalshi Public Market Catalog (Unauthenticated Public Events) ---
   let kalshi = [];
   try {
-    const kRes = await fetch("https://external-api.kalshi.com/trade-api/v2/events?limit=100&status=open&with_nested_markets=true", {
-      headers: {
-        "Accept": "application/json",
-        "User-Agent": "CosmicTerminal/1.0"
+    const kRes = await fetch(
+      "https://external-api.kalshi.com/trade-api/v2/events?limit=100&status=open&with_nested_markets=true",
+      {
+        headers: {
+          "Accept": "application/json",
+          "User-Agent": "CosmicTerminal/1.0",
+        },
       }
-    });
+    );
 
     if (kRes.ok) {
       const kData = await kRes.json();
       const events = kData.events || [];
 
-      events.forEach(ev => {
+      events.forEach((ev) => {
         const eventTitle = ev.title || "";
-        (ev.markets || []).forEach(m => {
+        (ev.markets || []).forEach((m) => {
           if (m.status && m.status !== "open" && m.status !== "active") return;
 
           const marketTitle = m.title || eventTitle || m.ticker || "";
 
-          // Exclude combo parlays & accumulator strings
           if (
-            marketTitle.includes("+") || 
-            /\(\+\d+\s+more\s+legs\)/i.test(marketTitle) || 
+            marketTitle.includes("+") ||
+            /\(\+\d+\s+more\s+legs\)/i.test(marketTitle) ||
             /more legs/i.test(marketTitle) ||
             m.ticker.startsWith("KCOMBO") ||
             marketTitle.includes(",yes ") ||
@@ -260,16 +385,16 @@ async function handleLiveData() {
           let noVal = null;
 
           if (yAsk !== null) yesVal = yAsk;
-          else if (nBid !== null) yesVal = 1.00 - nBid;
+          else if (nBid !== null) yesVal = 1.0 - nBid;
           else if (lastP !== null) yesVal = lastP;
           else if (yBid !== null) yesVal = yBid;
 
           if (nAsk !== null) noVal = nAsk;
-          else if (yBid !== null) noVal = 1.00 - yBid;
-          else if (yesVal !== null) noVal = 1.00 - yesVal;
+          else if (yBid !== null) noVal = 1.0 - yBid;
+          else if (yesVal !== null) noVal = 1.0 - yesVal;
 
-          if (yesVal !== null && noVal === null) noVal = 1.00 - yesVal;
-          if (noVal !== null && yesVal === null) yesVal = 1.00 - noVal;
+          if (yesVal !== null && noVal === null) noVal = 1.0 - yesVal;
+          if (noVal !== null && yesVal === null) yesVal = 1.0 - noVal;
 
           if (yesVal === null && noVal === null) return;
 
@@ -279,18 +404,20 @@ async function handleLiveData() {
           }
           if (!candidate) candidate = "Consensus";
 
-          const normalizedEndUtc = parseUtcIso(m.expiration_time || m.expected_expiration_time || m.close_time || ev.expiration_time);
+          const normalizedEndUtc = parseUtcIso(
+            m.expiration_time || m.expected_expiration_time || m.close_time || ev.expiration_time
+          );
 
           kalshi.push({
             ticker: m.ticker,
             title: eventTitle || marketTitle,
             candidate: candidate,
             category: categorizeTitle(`${eventTitle} ${marketTitle}`),
-            yesAsk: Number((yesVal ?? 0.50).toFixed(2)),
-            noAsk: Number((noVal ?? 0.50).toFixed(2)),
+            yesAsk: Number((yesVal ?? 0.5).toFixed(2)),
+            noAsk: Number((noVal ?? 0.5).toFixed(2)),
             volume: m.volume || m.volume_24h || ev.volume || 0,
             endDate: normalizedEndUtc,
-            platform: "Kalshi"
+            platform: "Kalshi",
           });
         });
       });
@@ -299,27 +426,33 @@ async function handleLiveData() {
     console.error("Kalshi public catalog error:", err);
   }
 
-  // Generic neutral portfolio payload for public visitors
-  return new Response(JSON.stringify({
-    status: "healthy",
-    mode: "public_community_terminal",
-    timestamp: new Date().toISOString(),
-    portfolio: {
-      isPublic: true,
-      polyBalance: 0.00,
-      kalshiBalance: 0.00,
-      totalCash: 0.00,
-      activeExposure: 0.00,
-      activeContracts: 0,
-      positions: []
-    },
-    polymarket,
-    kalshi,
-    perps: getPerpsFallback()
-  }, null, 2), { 
-    headers: {
-      ...CORS_HEADERS,
-      "Cache-Control": "public, max-age=12"
+  return new Response(
+    JSON.stringify(
+      {
+        status: "healthy",
+        mode: "public_community_terminal",
+        timestamp: new Date().toISOString(),
+        portfolio: {
+          isPublic: true,
+          polyBalance: 0.0,
+          kalshiBalance: 0.0,
+          totalCash: 0.0,
+          activeExposure: 0.0,
+          activeContracts: 0,
+          positions: [],
+        },
+        polymarket,
+        kalshi,
+        perps: getPerpsFallback(),
+      },
+      null,
+      2
+    ),
+    {
+      headers: {
+        ...CORS_HEADERS,
+        "Cache-Control": "public, max-age=12",
+      },
     }
-  });
+  );
 }
