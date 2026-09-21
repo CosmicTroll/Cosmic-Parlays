@@ -37,6 +37,8 @@ export default {
           const hashArray = Array.from(new Uint8Array(hashBuffer));
           const supporterKey = hashArray.map(b => b.toString(16).padStart(2, '0')).join('').slice(0, 8).toUpperCase();
 
+          console.log(`[KO-FI SUCCESS] Generated Key: ${supporterKey} for Supporter: ${supporterEmail}`);
+
           if (env.RESEND_API_KEY) {
             try {
               await fetch("https://api.resend.com/emails", {
@@ -72,6 +74,7 @@ export default {
           headers: { ...corsHeaders, "Content-Type": "application/json" }
         });
       } catch (err) {
+        console.error("[KO-FI ERROR]", err);
         return new Response("Server error", { status: 500, headers: corsHeaders });
       }
     }
@@ -128,90 +131,91 @@ async function fetchKalshiPublicMarkets() {
   const seenTickers = new Set();
   const currentYear = new Date().getUTCFullYear();
 
-  let cursor = "";
-  // Fetch up to 3 pages of 100 markets each (= up to 300 active contracts)
-  for (let page = 0; page < 3; page++) {
-    try {
-      const cursorParam = cursor ? `&cursor=${encodeURIComponent(cursor)}` : "";
-      const url = `https://api.elections.kalshi.com/trade-api/v2/markets?limit=100&status=open${cursorParam}`;
+  // 1. Primary working endpoint: nested events
+  const primaryUrl = "https://api.elections.kalshi.com/trade-api/v2/events?limit=200&status=open&with_nested_markets=true";
+  
+  // 2. Secondary fallback/supplement: active flat markets
+  const secondaryUrl = "https://api.elections.kalshi.com/trade-api/v2/markets?limit=100";
 
-      const res = await fetch(url, {
-        headers: {
-          "Accept": "application/json",
-          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
-        }
+  const responses = await Promise.allSettled([
+    fetch(primaryUrl, {
+      headers: {
+        "Accept": "application/json",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+      }
+    }).then(r => r.ok ? r.json() : null).catch(() => null),
+    fetch(secondaryUrl, {
+      headers: {
+        "Accept": "application/json",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+      }
+    }).then(r => r.ok ? r.json() : null).catch(() => null)
+  ]);
+
+  // Process Primary (Events with nested markets)
+  const eventsData = responses[0].value;
+  if (eventsData && Array.isArray(eventsData.events)) {
+    eventsData.events.forEach(ev => {
+      const evTitle = ev.title || "";
+      if (/conjecture|hypothesis|swinnerton|millennium prize|riemann|p versus np|hodge/i.test(evTitle)) return;
+
+      (ev.markets || []).forEach(m => {
+        addMarketItem(m, evTitle, ev.category);
       });
+    });
+  }
 
-      if (!res.ok) break;
-      const data = await res.json();
-      const markets = data.markets || [];
-      if (!markets.length) break;
+  // Process Secondary (Flat markets)
+  const marketsData = responses[1].value;
+  if (marketsData && Array.isArray(marketsData.markets)) {
+    marketsData.markets.forEach(m => {
+      addMarketItem(m, m.title || m.yes_sub_title || m.ticker, m.category);
+    });
+  }
 
-      markets.forEach(m => {
-        if (!m || !m.ticker || seenTickers.has(m.ticker)) return;
+  function addMarketItem(m, fallbackTitle, category) {
+    if (!m || !m.ticker || seenTickers.has(m.ticker)) return;
 
-        // In Kalshi /markets, the display name can be in title, yes_sub_title, or ticker
-        const rawTitle = m.title || m.yes_sub_title || m.ticker || "";
-        if (rawTitle.includes(",yes") || rawTitle.includes(",no")) return;
+    const titleStr = fallbackTitle || m.title || m.ticker || "";
+    if (titleStr.includes(",yes") || titleStr.includes(",no")) return;
 
-        // Skip theoretical math questions
-        if (/conjecture|hypothesis|swinnerton|millennium prize|riemann|p versus np|hodge/i.test(rawTitle)) return;
+    const expTime = m.expiration_time || m.close_time || "";
+    if (expTime && new Date(expTime).getUTCFullYear() > currentYear + 1) return;
 
-        // Filter out placeholder markets dated beyond next year
-        const expTime = m.expiration_time || m.close_time || "";
-        if (expTime && new Date(expTime).getUTCFullYear() > currentYear + 1) return;
+    let yesPrice = null;
+    if (typeof m.yes_ask === 'number' && m.yes_ask > 0) yesPrice = m.yes_ask / 100;
+    else if (m.yes_ask_dollars) yesPrice = parseFloat(m.yes_ask_dollars);
+    else if (typeof m.no_bid === 'number' && m.no_bid > 0) yesPrice = (100 - m.no_bid) / 100;
+    else if (typeof m.last_price === 'number' && m.last_price > 0) yesPrice = m.last_price / 100;
+    else if (m.last_price_dollars) yesPrice = parseFloat(m.last_price_dollars);
+    else if (typeof m.yes_bid === 'number' && m.yes_bid > 0) yesPrice = (m.yes_bid + 2) / 100;
+    else yesPrice = 0.50;
 
-        // Pricing extraction across cents and dollars
-        let yesPrice = null;
-        if (typeof m.yes_ask === 'number' && m.yes_ask > 0) yesPrice = m.yes_ask / 100;
-        else if (m.yes_ask_dollars) yesPrice = parseFloat(m.yes_ask_dollars);
-        else if (typeof m.no_bid === 'number' && m.no_bid > 0) yesPrice = (100 - m.no_bid) / 100;
-        else if (typeof m.last_price === 'number' && m.last_price > 0) yesPrice = m.last_price / 100;
-        else if (m.last_price_dollars) yesPrice = parseFloat(m.last_price_dollars);
-        else if (typeof m.yes_bid === 'number' && m.yes_bid > 0) yesPrice = (m.yes_bid + 2) / 100;
-        else yesPrice = 0.50;
+    let noPrice = null;
+    if (typeof m.no_ask === 'number' && m.no_ask > 0) noPrice = m.no_ask / 100;
+    else if (m.no_ask_dollars) noPrice = parseFloat(m.no_ask_dollars);
+    else noPrice = 1.00 - yesPrice;
 
-        let noPrice = null;
-        if (typeof m.no_ask === 'number' && m.no_ask > 0) noPrice = m.no_ask / 100;
-        else if (m.no_ask_dollars) noPrice = parseFloat(m.no_ask_dollars);
-        else noPrice = 1.00 - yesPrice;
+    yesPrice = Number(yesPrice.toFixed(2));
+    noPrice = Number(noPrice.toFixed(2));
 
-        yesPrice = Number(yesPrice.toFixed(2));
-        noPrice = Number(noPrice.toFixed(2));
+    if (yesPrice <= 0.01 || yesPrice >= 0.99) return;
 
-        if (yesPrice <= 0.01 || yesPrice >= 0.99) return;
-
-        seenTickers.add(m.ticker);
-        cleanList.push({
-          id: m.ticker,
-          title: formatKalshiMarketTitle(m),
-          candidate: m.yes_sub_title || m.subtitle || "Consensus",
-          platform: "KALSHI",
-          category: categorizeMarket(rawTitle, m.category || ""),
-          yesAsk: yesPrice,
-          noAsk: noPrice,
-          volume: m.volume_24h || m.volume || 0,
-          endDate: expTime || null
-        });
-      });
-
-      cursor = data.cursor || "";
-      if (!cursor) break;
-
-      await new Promise(r => setTimeout(r, 60));
-    } catch (err) {
-      break;
-    }
+    seenTickers.add(m.ticker);
+    cleanList.push({
+      id: m.ticker,
+      title: titleStr,
+      candidate: m.subtitle || m.yes_sub_title || "Consensus",
+      platform: "KALSHI",
+      category: categorizeMarket(titleStr, category || m.category || ""),
+      yesAsk: yesPrice,
+      noAsk: noPrice,
+      volume: m.volume_24h || m.volume || 0,
+      endDate: expTime || null
+    });
   }
 
   return cleanList;
-}
-
-function formatKalshiMarketTitle(m) {
-  if (m.title && m.title.trim().length > 0) return m.title;
-  if (m.yes_sub_title && m.yes_sub_title.trim().length > 0) return m.yes_sub_title;
-  // Convert ticker KXBTCD-26SEP21-T82000 into readable context
-  return m.ticker.replace(/-/g, ' ');
 }
 
 async function fetchPolymarketCombined() {
