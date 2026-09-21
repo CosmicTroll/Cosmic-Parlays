@@ -156,94 +156,101 @@ async function fetchKalshiPublicMarkets() {
   const seenTickers = new Set();
   const currentYear = new Date().getUTCFullYear();
 
-  // Query up to 1000 open markets directly in parallel with nested event contracts
-  const endpoints = [
-    "https://api.elections.kalshi.com/trade-api/v2/markets?limit=1000&status=open",
-    "https://api.elections.kalshi.com/trade-api/v2/events?limit=200&status=open&with_nested_markets=true"
+  // Query broad catalog endpoints and targeted liquid series simultaneously
+  const seriesTickers = [
+    "KXFED", "KXCPI", "KXGDP", "KXRECESSION", "KXUNRATE", 
+    "KXPRES", "KXSENATE", "KXHOUSE", "KXGOV", "KXUKRAINE", 
+    "KXBTC", "KXETH", "KXSP500", "KXNASDAQ", "KXTIKTOK",
+    "KXRET", "KXNFL", "KXNBA", "KXMLB", "KXWEATHER"
   ];
 
-  for (const url of endpoints) {
-    try {
-      const res = await fetch(url, {
+  const requests = [
+    "https://api.elections.kalshi.com/trade-api/v2/events?limit=200&status=open&with_nested_markets=true",
+    "https://api.elections.kalshi.com/trade-api/v2/markets?limit=200&status=open",
+    ...seriesTickers.map(s => `https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=${s}&status=open&limit=100`)
+  ];
+
+  const results = await Promise.allSettled(
+    requests.map(url =>
+      fetch(url, {
         headers: {
           "Accept": "application/json",
           "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
         }
-      });
+      }).then(r => r.ok ? r.json() : null).catch(() => null)
+    )
+  );
 
-      if (!res.ok) continue;
-      const data = await res.json();
+  for (const res of results) {
+    if (!res.value) continue;
+    const data = res.value;
 
-      let marketArray = [];
-      if (Array.isArray(data.markets)) {
-        marketArray = data.markets;
-      } else if (Array.isArray(data.events)) {
-        data.events.forEach(ev => {
-          (ev.markets || []).forEach(m => {
-            marketArray.push({
-              ...m,
-              eventTitle: ev.title,
-              eventCategory: ev.category
-            });
+    let marketBatch = [];
+    if (Array.isArray(data.markets)) {
+      marketBatch = data.markets;
+    } else if (Array.isArray(data.events)) {
+      data.events.forEach(ev => {
+        (ev.markets || []).forEach(m => {
+          marketBatch.push({
+            ...m,
+            eventTitle: ev.title,
+            eventCategory: ev.category
           });
         });
+      });
+    }
+
+    marketBatch.forEach(m => {
+      if (!m || !m.ticker || seenTickers.has(m.ticker)) return;
+
+      const titleStr = m.title || m.eventTitle || m.ticker || "";
+      if (titleStr.includes(",yes") || titleStr.includes(",no")) return;
+
+      // Filter math conjectures
+      if (/conjecture|hypothesis|swinnerton|millennium prize|riemann|p versus np|hodge/i.test(titleStr)) {
+        return;
       }
 
-      marketArray.forEach(m => {
-        if (seenTickers.has(m.ticker)) return;
+      // Filter far-future ghost placeholders
+      const expTime = m.expiration_time || m.close_time || "";
+      if (expTime) {
+        const expYear = new Date(expTime).getUTCFullYear();
+        if (expYear > currentYear + 1) return;
+      }
 
-        const titleStr = m.title || m.eventTitle || m.ticker || "";
-        // Exclude raw multi-leg parlay combos
-        if (titleStr.includes(",yes") || titleStr.includes(",no")) return;
+      // Robust price extraction across string dollars and legacy cents
+      let yesPrice = null;
+      if (m.yes_ask_dollars) yesPrice = parseFloat(m.yes_ask_dollars);
+      else if (m.last_price_dollars) yesPrice = parseFloat(m.last_price_dollars);
+      else if (typeof m.yes_ask === 'number' && m.yes_ask > 0) yesPrice = m.yes_ask / 100;
+      else if (typeof m.no_bid === 'number' && m.no_bid > 0) yesPrice = (100 - m.no_bid) / 100;
+      else if (typeof m.last_price === 'number' && m.last_price > 0) yesPrice = m.last_price / 100;
+      else if (typeof m.yes_bid === 'number' && m.yes_bid > 0) yesPrice = (m.yes_bid + 2) / 100;
+      else yesPrice = 0.50;
 
-        // Exclude long-term unsolvable math/millennium questions
-        if (/conjecture|hypothesis|swinnerton|millennium prize|riemann|p versus np|hodge/i.test(titleStr)) {
-          return;
-        }
+      let noPrice = null;
+      if (m.no_ask_dollars) noPrice = parseFloat(m.no_ask_dollars);
+      else if (typeof m.no_ask === 'number' && m.no_ask > 0) noPrice = m.no_ask / 100;
+      else noPrice = 1.00 - yesPrice;
 
-        // Drop far-future ghost contracts (2070/2099)
-        const expTime = m.expiration_time || m.close_time || "";
-        if (expTime) {
-          const expYear = new Date(expTime).getUTCFullYear();
-          if (expYear > currentYear + 1) return;
-        }
+      yesPrice = Number(yesPrice.toFixed(2));
+      noPrice = Number(noPrice.toFixed(2));
 
-        // Support both fixed-point string fields and legacy integer cents
-        let yesPrice = null;
-        if (m.yes_ask_dollars) yesPrice = parseFloat(m.yes_ask_dollars);
-        else if (m.last_price_dollars) yesPrice = parseFloat(m.last_price_dollars);
-        else if (typeof m.yes_ask === 'number' && m.yes_ask > 0) yesPrice = m.yes_ask / 100;
-        else if (typeof m.no_bid === 'number' && m.no_bid > 0) yesPrice = (100 - m.no_bid) / 100;
-        else if (typeof m.last_price === 'number' && m.last_price > 0) yesPrice = m.last_price / 100;
-        else if (typeof m.yes_bid === 'number' && m.yes_bid > 0) yesPrice = (m.yes_bid + 2) / 100;
-        else yesPrice = 0.50;
+      if (yesPrice <= 0.01 || yesPrice >= 0.99) return;
 
-        let noPrice = null;
-        if (m.no_ask_dollars) noPrice = parseFloat(m.no_ask_dollars);
-        else if (typeof m.no_ask === 'number' && m.no_ask > 0) noPrice = m.no_ask / 100;
-        else noPrice = 1.00 - yesPrice;
-
-        yesPrice = Number(yesPrice.toFixed(2));
-        noPrice = Number(noPrice.toFixed(2));
-
-        if (yesPrice <= 0.01 || yesPrice >= 0.99) return;
-
-        seenTickers.add(m.ticker);
-        cleanList.push({
-          id: m.ticker,
-          title: m.eventTitle || m.title || m.ticker,
-          candidate: m.subtitle || m.yes_sub_title || "Consensus",
-          platform: "KALSHI",
-          category: categorizeMarket(titleStr, m.category || m.eventCategory),
-          yesAsk: yesPrice,
-          noAsk: noPrice,
-          volume: m.volume_24h || m.volume || 0,
-          endDate: expTime || null
-        });
+      seenTickers.add(m.ticker);
+      cleanList.push({
+        id: m.ticker,
+        title: m.eventTitle || m.title || m.ticker,
+        candidate: m.subtitle || m.yes_sub_title || "Consensus",
+        platform: "KALSHI",
+        category: categorizeMarket(titleStr, m.category || m.eventCategory),
+        yesAsk: yesPrice,
+        noAsk: noPrice,
+        volume: m.volume_24h || m.volume || 0,
+        endDate: expTime || null
       });
-    } catch (err) {
-      console.error("Kalshi fetch error:", err);
-    }
+    });
   }
 
   return cleanList;
