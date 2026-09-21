@@ -31,7 +31,7 @@
     /* Top Navigation Tabs */
     .nav-tabs { max-width: 900px; margin: 0 auto 0.5rem; display: flex; gap: 0.5rem; overflow-x: auto; scrollbar-width: none; padding-bottom: 0.25rem; }
     .nav-tabs::-webkit-scrollbar { display: none; }
-    .nav-btn { background: rgba(255,255,255,0.03); border: 1px solid var(--border); color: var(--muted); padding: 0.45rem 0.85rem; border-radius: 8px; font-size: 0.8rem; font-weight: 600; cursor: pointer; white-space: nowrap; transition: all 0.15s ease; }
+    .nav-btn { background: rgba(255,255,255,0.03); border: 1px solid var(--border); color: var(--muted); padding: 0.45rem 0.85rem; border-radius: 8px; font-size: 0.8rem; font-weight: 600; cursor: pointer; white-space: nowrap; transition: all 0.15s ease; position: relative; }
     .nav-btn.active { background: rgba(99, 102, 241, 0.2); border-color: var(--accent); color: #fff; }
 
     /* Interactive Sort Bar */
@@ -107,10 +107,31 @@
 
     .empty { color: var(--muted); font-size: 0.8rem; text-align: center; padding: 2rem 1rem; }
 
+    /* Alert Badge for Live Arbitrage Spreads */
+    .spread-badge {
+      display: none;
+      background: var(--green);
+      color: #000;
+      font-size: 0.62rem;
+      font-weight: 800;
+      padding: 1px 5px;
+      border-radius: 9999px;
+      margin-left: 4px;
+      vertical-align: middle;
+      box-shadow: 0 0 8px rgba(0, 208, 132, 0.6);
+      animation: pulse 1.8s infinite;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.1); }
+      100% { transform: scale(1); }
+    }
+
     /* Persistent Bottom Navigation Dock */
     .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: #0b0f19; border-top: 1px solid var(--border); display: flex; justify-content: space-around; padding: 0.5rem 0.25rem; z-index: 100; max-width: 900px; margin: 0 auto; }
-    .bottom-tab { background: none; border: none; color: var(--muted); display: flex; flex-direction: column; align-items: center; gap: 0.2rem; font-size: 0.65rem; font-weight: 600; cursor: pointer; flex: 1; }
-    .bottom-tab span.icon { font-size: 1.1rem; }
+    .bottom-tab { background: none; border: none; color: var(--muted); display: flex; flex-direction: column; align-items: center; gap: 0.2rem; font-size: 0.65rem; font-weight: 600; cursor: pointer; flex: 1; position: relative; }
+    .bottom-tab span.icon { font-size: 1.1rem; position: relative; }
     .bottom-tab.active { color: var(--cyan); }
   </style>
 </head>
@@ -133,7 +154,9 @@
     <button class="nav-btn" onclick="switchView('perps')">⚡ Kalshi Perps</button>
     <button class="nav-btn" onclick="switchView('poly')">🟣 Poly.us</button>
     <button class="nav-btn" onclick="switchView('kalshi')">🟢 Kalshi</button>
-    <button class="nav-btn" onclick="switchView('spreads')">⚖️ Spreads</button>
+    <button class="nav-btn" onclick="switchView('spreads')">
+      ⚖️ Spreads <span class="spread-badge" id="top-spread-badge">0</span>
+    </button>
     <button class="nav-btn" onclick="switchView('vault')">💼 Vault</button>
   </div>
 
@@ -179,7 +202,7 @@
           <span style="font-size: 0.75rem; color: var(--cyan);">Live Consensus</span>
         </div>
         <p style="font-size: 0.75rem; color: var(--muted); margin-bottom: 0.85rem;">
-          Real-time order book analysis dynamically ranked across political & cultural lines.
+          Real-time order book analysis dynamically ranked across political & cultural lines with verified order volume.
         </p>
         <div class="item-list" id="macro-container">
           <div class="empty">Scanning live order books for political & cultural lines...</div>
@@ -372,7 +395,10 @@
       <span>Kalshi</span>
     </button>
     <button class="bottom-tab" onclick="switchView('spreads')">
-      <span class="icon">⚖️</span>
+      <span class="icon">
+        ⚖️
+        <span class="spread-badge" id="bottom-spread-badge" style="position: absolute; top: -4px; right: -8px;">0</span>
+      </span>
       <span>Spreads</span>
     </button>
     <button class="bottom-tab" onclick="switchView('vault')">
@@ -416,7 +442,7 @@
       renderAllViews();
     }
 
-    // Calculates capital efficiency: balances nominal ROI, time to expiry, and order book volume
+    // Capital efficiency engine: balances nominal ROI, time horizon, and active liquidity
     function calculateAnnualizedScore(roiVal, endDateStr, volume) {
       const now = Date.now();
       const end = endDateStr ? Date.parse(endDateStr) : now + (365 * 24 * 3600 * 1000);
@@ -424,10 +450,10 @@
       
       const annualizedRoi = (roiVal / daysRemaining) * 365;
 
-      // Exponential decay for dates far into the future (e.g. 2030-2035)
-      const timePenalty = daysRemaining > 450 ? Math.pow(450 / daysRemaining, 1.8) : 1.0;
+      // Penalize contracts ending more than 400 days out (e.g. 2028-2035)
+      const timePenalty = daysRemaining > 400 ? Math.pow(400 / daysRemaining, 1.8) : 1.0;
 
-      // Positive multiplier for active contracts with verified order book volume
+      // Volume weight: scale by verified market turnover
       const safeVol = typeof volume === 'number' ? volume : parseFloat(volume) || 0;
       const volMultiplier = 1 + (Math.log10(Math.max(1, safeVol)) / 4);
 
@@ -440,14 +466,12 @@
         const scoreB = (b.rec && b.rec.edgeScore !== undefined) ? b.rec.edgeScore : 0;
         const roiA = (a.rec && a.rec.roiVal !== undefined) ? a.rec.roiVal : 0;
         const roiB = (b.rec && b.rec.roiVal !== undefined) ? b.rec.roiVal : 0;
-        const probA = (a.rec && a.rec.probVal !== undefined) ? a.rec.probVal : 50;
-        const probB = (b.rec && b.rec.probVal !== undefined) ? b.rec.probVal : 50;
 
         if (currentSort === 'roi-desc') {
           return scoreB - scoreA;
         }
         if (currentSort === 'roi-asc') return roiA - roiB;
-        if (currentSort === 'prob-desc') return probB - probA;
+        if (currentSort === 'prob-desc') return (b.rec?.probVal || 50) - (a.rec?.probVal || 50);
         if (currentSort === 'time-asc') {
           const tA = a.endDate ? Date.parse(a.endDate) : 9999999999999;
           const tB = b.endDate ? Date.parse(b.endDate) : 9999999999999;
@@ -714,7 +738,16 @@
       const container = document.getElementById('macro-container');
       const all = [...poly, ...kalshi];
 
-      const macroMarkets = all.filter(m => m.category === 'POLITICS' || m.category === 'MACRO' || m.category === 'CULTURE');
+      // Volume Floor: Filter out illiquid tail-risk contracts
+      const hasVolumeData = all.some(m => (m.volume || 0) > 0);
+      const macroMarkets = all.filter(m => {
+        const isCat = m.category === 'POLITICS' || m.category === 'MACRO' || m.category === 'CULTURE';
+        if (!isCat) return false;
+        if (hasVolumeData && m.volume !== undefined) {
+          return Number(m.volume) >= 100;
+        }
+        return true;
+      });
 
       const scored = [];
       macroMarkets.forEach(m => {
@@ -723,7 +756,7 @@
       });
 
       if (scored.length === 0) {
-        container.innerHTML = `<div class="empty">No active presidential/macro edge lines meeting probability thresholds.</div>`;
+        container.innerHTML = `<div class="empty">No active presidential/macro edge lines meeting volume and probability thresholds.</div>`;
         return;
       }
 
@@ -759,8 +792,17 @@
         return;
       }
 
+      // Feature 1: Volume Floor to weed out untraded/unfillable academic math conjectures
+      const anyWithVol = markets.some(m => (m.volume || 0) > 0);
+      const filteredMarkets = markets.filter(m => {
+        if (anyWithVol && m.volume !== undefined) {
+          return Number(m.volume) >= 150;
+        }
+        return true;
+      });
+
       const scored = [];
-      markets.forEach(m => {
+      filteredMarkets.forEach(m => {
         const rec = evaluateMarketRecommendation(m);
         if (rec) {
           scored.push({
@@ -771,6 +813,11 @@
       });
 
       const sorted = sortCandidates(scored);
+
+      if (sorted.length === 0) {
+        container.innerHTML = `<div class="empty">0 liquid single contracts currently clearing volume thresholds on ${platform}.</div>`;
+        return;
+      }
 
       container.innerHTML = sorted.slice(0, 30).map(item => `
         <div class="opp-card">
@@ -792,7 +839,7 @@
       `).join('');
     }
 
-    // Strict Cross-Exchange Arbitrage Matcher with Enforced Year Verification
+    // Strict Cross-Exchange Arbitrage Matcher with Alert Badge Trigger
     function renderSpreads(kalshi, poly) {
       const container = document.getElementById('spread-container');
       const spreadList = [];
@@ -836,8 +883,6 @@
 
           // 2. Candidate & Entity Alignment
           const pCand = (p.candidate || "").toLowerCase().trim();
-          const pTokens = extractTokens(p.title);
-
           const candidateMatch = (!kCand || kCand === "consensus" || !pCand || pCand === "consensus") 
             ? true 
             : (kCand.includes(pCand) || pCand.includes(kCand));
@@ -845,6 +890,7 @@
           if (!candidateMatch) return;
 
           // 3. Multi-token Semantic Overlap
+          const pTokens = extractTokens(p.title);
           const sharedTokens = kTokens.filter(t => pTokens.includes(t));
           const titleMatch = sharedTokens.length >= 3 || (sharedTokens.length >= 2 && sharedTokens.length / Math.min(kTokens.length, pTokens.length) >= 0.6);
 
@@ -869,6 +915,20 @@
           }
         });
       });
+
+      // Feature 2: Update dynamic spread alert badges
+      const topBadge = document.getElementById('top-spread-badge');
+      const bottomBadge = document.getElementById('bottom-spread-badge');
+      
+      if (spreadList.length > 0) {
+        topBadge.textContent = spreadList.length;
+        topBadge.style.display = "inline-block";
+        bottomBadge.textContent = spreadList.length;
+        bottomBadge.style.display = "inline-block";
+      } else {
+        topBadge.style.display = "none";
+        bottomBadge.style.display = "none";
+      }
 
       const sorted = sortCandidates(spreadList);
 
