@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Cosmic Parlays Terminal</title>
+  <title>Cosmic Terminal - Live Prediction Market Intelligence</title>
   <style>
     :root {
       --bg: #090d16;
@@ -21,13 +21,14 @@
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    body { background-color: var(--bg); color: var(--text); padding: 0.75rem; padding-bottom: 5.5rem; }
+    body { background-color: var(--bg); color: var(--text); padding: 0.75rem; padding-bottom: 6rem; }
 
-    header { max-width: 900px; margin: 0 auto 0.75rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 0.75rem; }
+    header { max-width: 900px; margin: 0 auto 0.75rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 0.75rem; gap: 0.5rem; }
     .brand h1 { font-size: 1.15rem; font-weight: 700; color: #fff; }
-    .controls { display: flex; align-items: center; gap: 0.5rem; }
+    .controls { display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap; }
     .status-badge { font-size: 0.7rem; padding: 0.2rem 0.5rem; border-radius: 9999px; background: rgba(0, 208, 132, 0.15); color: var(--green); border: 1px solid rgba(0, 208, 132, 0.3); white-space: nowrap; }
     .refresh-btn { background: var(--accent); color: #fff; border: none; padding: 0.35rem 0.75rem; border-radius: 6px; font-weight: 600; font-size: 0.75rem; cursor: pointer; }
+    .support-btn { background: rgba(245, 158, 11, 0.15); color: var(--gold); border: 1px solid rgba(245, 158, 11, 0.4); padding: 0.35rem 0.65rem; border-radius: 6px; font-weight: 700; font-size: 0.75rem; text-decoration: none; display: inline-flex; align-items: center; gap: 0.25rem; }
 
     /* Top Navigation Tabs */
     .nav-tabs { max-width: 900px; margin: 0 auto 0.5rem; display: flex; gap: 0.5rem; overflow-x: auto; scrollbar-width: none; padding-bottom: 0.25rem; }
@@ -112,9 +113,20 @@
     .tag-platform { font-size: 0.65rem; padding: 0.15rem 0.4rem; border-radius: 4px; background: rgba(255, 255, 255, 0.08); font-weight: 600; }
     .tag-esports { background: rgba(168, 85, 247, 0.15); color: var(--purple); border: 1px solid rgba(168, 85, 247, 0.3); }
 
+    /* Forms & Vault Setup */
+    .form-group { display: flex; flex-direction: column; gap: 0.35rem; margin-bottom: 0.75rem; }
+    .form-label { font-size: 0.72rem; color: var(--muted); font-weight: 600; }
+    .form-input { background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: 6px; padding: 0.55rem 0.7rem; color: #fff; font-size: 0.8rem; outline: none; }
+    .form-input:focus { border-color: var(--cyan); }
+    .vault-btn-row { display: flex; gap: 0.5rem; margin-top: 0.5rem; }
+    .btn-save { background: var(--green); color: #000; border: none; padding: 0.5rem 1rem; border-radius: 6px; font-weight: 700; font-size: 0.75rem; cursor: pointer; }
+    .btn-clear { background: rgba(255, 77, 77, 0.15); color: var(--red); border: 1px solid rgba(255, 77, 77, 0.3); padding: 0.5rem 1rem; border-radius: 6px; font-weight: 700; font-size: 0.75rem; cursor: pointer; }
+
+    .support-card { background: linear-gradient(135deg, rgba(245, 158, 11, 0.08) 0%, rgba(99, 102, 241, 0.08) 100%); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 12px; padding: 1rem; margin-top: 1rem; display: flex; flex-direction: column; gap: 0.5rem; }
+
     .empty { color: var(--muted); font-size: 0.8rem; text-align: center; padding: 2rem 1rem; }
 
-    /* Alert Badge for Live Arbitrage Spreads */
+    /* Dynamic Arbitrage Badge */
     .spread-badge {
       display: none;
       background: var(--green);
@@ -149,6 +161,10 @@
       <h1>🚀 Cosmic Terminal</h1>
     </div>
     <div class="controls">
+      <!-- UPDATE HREF TO YOUR KO-FI OR DONATION URL -->
+      <a href="https://ko-fi.com" target="_blank" rel="noopener noreferrer" class="support-btn">
+        ☕ <span>Support</span>
+      </a>
       <span class="status-badge" id="bot-status">Edge Engine Active</span>
       <button class="refresh-btn" onclick="fetchLiveData(true)">Refresh</button>
     </div>
@@ -184,27 +200,27 @@
     <section id="view-picks" class="view-panel active">
       <div class="card">
         <div class="card-header">
-          <h2 class="card-title">🎟️ Active Exchange Orders & Slips</h2>
-          <span style="font-size: 0.75rem; color: var(--green);" id="live-ticket-sync">Live Exchange Sync</span>
+          <h2 class="card-title">🎟️ Active Slips & Local Exposure</h2>
+          <span style="font-size: 0.75rem; color: var(--green);" id="live-ticket-sync">Client-Side Vault Sync</span>
         </div>
         <div class="item-list" id="tickets-container">
-          <div class="empty">Checking exchange accounts for active filled contracts...</div>
+          <div class="empty">Connect your exchange API keys in the Vault tab to track open positions.</div>
         </div>
       </div>
 
-      <!-- ESPORTS TOP 3 CHUNK -->
+      <!-- ESPORTS PREVIEW CHUNK -->
       <div class="card">
         <div class="card-header clickable-header" onclick="switchView('esports')">
           <h2 class="card-title">🎮 Esports Desk (Top 3 Picks)</h2>
           <span style="font-size: 0.75rem; color: var(--purple); font-weight: 700;">Open Hub &rarr;</span>
         </div>
         <div class="item-list" id="esports-preview-container">
-          <div class="empty">Scanning live books for esports lines...</div>
+          <div class="empty">Scanning live books for competitive gaming lines...</div>
         </div>
         <div class="view-more-btn" onclick="switchView('esports')">View Full Esports Desk (All Matches) &rarr;</div>
       </div>
 
-      <!-- TRADITIONAL SPORTS TOP 3 CHUNK -->
+      <!-- TRADITIONAL SPORTS PREVIEW CHUNK -->
       <div class="card">
         <div class="card-header clickable-header" onclick="switchView('sports')">
           <h2 class="card-title">🏈 Game Lines & Props (Top 3 Picks)</h2>
@@ -225,7 +241,7 @@
           <span style="font-size: 0.75rem; color: var(--purple);" id="esports-full-count">0 Markets</span>
         </div>
         <p style="font-size: 0.75rem; color: var(--muted); margin-bottom: 0.85rem;">
-          Real-time series & map lines ranked by probability and edge across tier-1 tournaments.
+          Real-time series & map lines ranked by probability and edge across major events.
         </p>
         <div class="item-list" id="esports-full-container">
           <div class="empty">Loading esports matches...</div>
@@ -241,7 +257,7 @@
           <span style="font-size: 0.75rem; color: var(--gold);" id="sports-full-count">0 Markets</span>
         </div>
         <p style="font-size: 0.75rem; color: var(--muted); margin-bottom: 0.85rem;">
-          Traditional game moneylines, spreads, over/unders, and player props.
+          Traditional game moneylines, spreads, totals, and player props.
         </p>
         <div class="item-list" id="props-full-container">
           <div class="empty">Loading traditional sports lines...</div>
@@ -257,7 +273,7 @@
           <span style="font-size: 0.75rem; color: var(--cyan);">Live Consensus</span>
         </div>
         <p style="font-size: 0.75rem; color: var(--muted); margin-bottom: 0.85rem;">
-          Real-time order book analysis dynamically ranked across political & cultural lines with verified order volume.
+          Real-time order book analysis dynamically ranked across political & cultural lines.
         </p>
         <div class="item-list" id="macro-container">
           <div class="empty">Scanning live order books for political & cultural lines...</div>
@@ -372,57 +388,81 @@
       </div>
     </section>
 
-    <!-- TAB 7: Vault (Live Balances & Dynamic Ledger) -->
+    <!-- TAB 7: Client-Side BYOK Vault -->
     <section id="view-vault" class="view-panel">
       <div class="card">
         <div class="card-header">
-          <h2 class="card-title">💼 Live Portfolio Cash State</h2>
-          <span style="font-size: 0.75rem; color: var(--green);" id="vault-sync-status">All Exchange APIs Connected</span>
+          <h2 class="card-title">💼 Local Portfolio & Balance State</h2>
+          <span style="font-size: 0.75rem; color: var(--green);" id="vault-mode-badge">Visitor Mode</span>
         </div>
         <div class="balance-grid">
           <div class="metric">
-            <div class="metric-label">Polymarket.us (Available)</div>
-            <div class="metric-value" id="vault-poly-bal">$2.57</div>
+            <div class="metric-label">Polymarket.us (Cash)</div>
+            <div class="metric-value" id="vault-poly-bal">$0.00</div>
           </div>
           <div class="metric">
-            <div class="metric-label">Kalshi (Live Cash)</div>
+            <div class="metric-label">Kalshi (Cash)</div>
             <div class="metric-value" id="vault-kalshi-bal">$0.00</div>
           </div>
           <div class="metric">
             <div class="metric-label">Net Available</div>
-            <div class="metric-value" id="vault-net-bal" style="color: var(--cyan);">$2.57</div>
+            <div class="metric-value" id="vault-net-bal" style="color: var(--cyan);">$0.00</div>
           </div>
           <div class="metric">
-            <div class="metric-label">Execution Guard</div>
-            <div class="metric-value" style="color: var(--gold);">$10.00 Cap</div>
+            <div class="metric-label">Security Shield</div>
+            <div class="metric-value" style="color: var(--gold); font-size: 0.95rem;">Client-Side BYOK</div>
           </div>
         </div>
       </div>
 
+      <!-- Settings Form: Browser LocalStorage Only -->
       <div class="card">
         <div class="card-header">
-          <h2 class="card-title">📊 Live Portfolio Ledger</h2>
-          <span style="font-size: 0.75rem; color: var(--muted);">Audited In Real-Time</span>
+          <h2 class="card-title">🔐 Bring Your Own Key (BYOK) Settings</h2>
+          <span style="font-size: 0.75rem; color: var(--cyan);">100% Client-Side</span>
         </div>
-        <div class="balance-grid" style="margin-bottom: 0.85rem;">
-          <div class="metric">
-            <div class="metric-label">Active Exposure</div>
-            <div class="metric-value" id="ledger-exposure">$0.00</div>
-          </div>
-          <div class="metric">
-            <div class="metric-label">Active Orders / Contracts</div>
-            <div class="metric-value" id="ledger-active-count">0</div>
-          </div>
-          <div class="metric">
-            <div class="metric-label">Polymarket.us Status</div>
-            <div class="metric-value" id="ledger-poly-status" style="font-size: 0.95rem; color: var(--green);">Connected</div>
-          </div>
-          <div class="metric">
-            <div class="metric-label">Kalshi Status</div>
-            <div class="metric-value" id="ledger-kalshi-status" style="font-size: 0.95rem; color: var(--green);">Connected</div>
-          </div>
+        <p style="font-size: 0.75rem; color: var(--muted); margin-bottom: 0.85rem; line-height: 1.4;">
+          Your credentials are saved <b>strictly in your local browser storage</b>. They never touch a remote server. Enter read-only or trading keys below to personalize your terminal:
+        </p>
+
+        <div class="form-group">
+          <label class="form-label" for="input-kalshi-id">Kalshi Key ID</label>
+          <input class="form-input" id="input-kalshi-id" type="text" placeholder="e.g. 1a2b3c4d-xxxx-xxxx-xxxx" />
         </div>
-        <div class="item-list" id="live-positions-list"></div>
+
+        <div class="form-group">
+          <label class="form-label" for="input-kalshi-pem">Kalshi Private Key (RSA PEM)</label>
+          <textarea class="form-input" id="input-kalshi-pem" rows="3" placeholder="-----BEGIN RSA PRIVATE KEY-----&#10;...&#10;-----END RSA PRIVATE KEY-----"></textarea>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="input-poly-wallet">Polymarket.us Account / Wallet</label>
+          <input class="form-input" id="input-poly-wallet" type="text" placeholder="0x... or Polymarket Username" />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="input-discord-hook">Personal Discord Webhook URL (For Real-Time Spread Alerts)</label>
+          <input class="form-input" id="input-discord-hook" type="password" placeholder="https://discord.com/api/webhooks/..." />
+        </div>
+
+        <div class="vault-btn-row">
+          <button class="btn-save" onclick="saveLocalVaultSettings()">Save Locally in Browser</button>
+          <button class="btn-clear" onclick="clearLocalVaultSettings()">Purge / Disconnect</button>
+        </div>
+      </div>
+
+      <!-- Creator Support / Community Donation Hub -->
+      <div class="support-card">
+        <div style="font-size: 0.85rem; font-weight: 700; color: #fff;">☕ Enjoying Cosmic Terminal?</div>
+        <p style="font-size: 0.75rem; color: var(--muted); line-height: 1.4;">
+          Cosmic Terminal is an open-source community tool built to scan market inefficiencies and edge opportunities across prediction markets. If this project helped you catch a profitable spread or trade, consider buying a coffee to support continued development!
+        </p>
+        <div style="display: flex; gap: 0.5rem; margin-top: 0.25rem;">
+          <!-- UPDATE HREF TO YOUR KO-FI OR DONATION URL -->
+          <a href="https://ko-fi.com" target="_blank" rel="noopener noreferrer" class="support-btn" style="padding: 0.5rem 0.9rem;">
+            ☕ Tip via Ko-fi
+          </a>
+        </div>
       </div>
     </section>
   </main>
@@ -469,9 +509,10 @@
       polymarket: [],
       perps: {},
       portfolio: {
-        polyBalance: 2.57,
+        isPublic: true,
+        polyBalance: 0.00,
         kalshiBalance: 0.00,
-        totalCash: 2.57,
+        totalCash: 0.00,
         activeExposure: 0.00,
         activeContracts: 0,
         positions: []
@@ -703,13 +744,12 @@
     function renderAllViews() {
       const kalshi = latestData.kalshi || [];
       const poly = latestData.polymarket || [];
-      const portfolio = latestData.portfolio || {};
 
       document.getElementById('scan-count').textContent = `${kalshi.length} Kalshi / ${poly.length} Poly.us`;
       document.getElementById('poly-count').textContent = `${poly.length} Markets`;
       document.getElementById('kalshi-count').textContent = `${kalshi.length} Markets`;
 
-      renderTickets(portfolio.positions || []);
+      renderTickets();
       renderEsportsHub(poly, kalshi);
       renderSportsHub(poly, kalshi);
       renderMacroHub(poly, kalshi);
@@ -720,32 +760,30 @@
       renderVaultLive();
     }
 
-    function renderTickets(positions) {
+    function renderTickets() {
       const container = document.getElementById('tickets-container');
-      if (!positions || positions.length === 0) {
-        container.innerHTML = `<div class="empty">0 open positions active on exchange order books. Ready for execution.</div>`;
+      const savedKalshi = localStorage.getItem('cp_kalshi_key_id');
+      const savedPoly = localStorage.getItem('cp_poly_wallet');
+
+      if (!savedKalshi && !savedPoly) {
+        container.innerHTML = `<div class="empty">0 open positions synced. Tap <b>Vault</b> below to link your read-only exchange keys.</div>`;
         return;
       }
 
-      container.innerHTML = positions.map(pos => {
-        const contractCount = (pos.count !== undefined && pos.count !== null && !isNaN(pos.count)) ? pos.count : 1;
-        const capitalExposure = (typeof pos.exposure === 'number' && !isNaN(pos.exposure)) ? pos.exposure.toFixed(2) : '0.00';
-        return `
-          <div class="list-item">
-            <div class="item-top">
-              <span class="item-title">${pos.title}</span>
-              <span class="tag tag-settled">${pos.status || 'Active'}</span>
-            </div>
-            <div class="item-meta">
-              <span>Size: <b>${contractCount} contract${contractCount > 1 ? 's' : ''}</b> &bull; Capital: $${capitalExposure}</span>
-              <span class="tag-platform">${pos.platform || 'Exchange'}</span>
-            </div>
+      container.innerHTML = `
+        <div class="list-item" style="border-left: 3px solid var(--green);">
+          <div class="item-top">
+            <span class="item-title">BYOK Private Vault Connected</span>
+            <span class="tag tag-settled">Local Session</span>
           </div>
-        `;
-      }).join('');
+          <div class="item-meta">
+            <span>Kalshi: <b>${savedKalshi ? 'Linked' : 'Not Linked'}</b> &bull; Poly: <b>${savedPoly ? 'Linked' : 'Not Linked'}</b></span>
+            <span class="tag-platform">Client Encrypted</span>
+          </div>
+        </div>
+      `;
     }
 
-    // Combined Esports Engine: Renders Top 3 Preview AND Dedicated Full View
     function renderEsportsHub(poly, kalshi) {
       const previewContainer = document.getElementById('esports-preview-container');
       const fullContainer = document.getElementById('esports-full-container');
@@ -794,13 +832,10 @@
         </div>
       `;
 
-      // Top 3 for Dashboard Preview
       previewContainer.innerHTML = sorted.slice(0, 3).map(renderCard).join('');
-      // Complete view for Dedicated Tab
       fullContainer.innerHTML = sorted.slice(0, 40).map(renderCard).join('');
     }
 
-    // Combined Sports Engine: Renders Top 3 Preview AND Dedicated Full View
     function renderSportsHub(poly, kalshi) {
       const previewContainer = document.getElementById('props-preview-container');
       const fullContainer = document.getElementById('props-full-container');
@@ -853,9 +888,7 @@
         </div>
       `;
 
-      // Top 3 for Dashboard Preview
       previewContainer.innerHTML = sorted.slice(0, 3).map(renderCard).join('');
-      // Complete view for Dedicated Tab
       fullContainer.innerHTML = sorted.slice(0, 40).map(renderCard).join('');
     }
 
@@ -935,12 +968,7 @@
       const scored = [];
       filteredMarkets.forEach(m => {
         const rec = evaluateMarketRecommendation(m);
-        if (rec) {
-          scored.push({
-            ...m,
-            rec: rec
-          });
-        }
+        if (rec) scored.push({ ...m, rec });
       });
 
       const sorted = sortCandidates(scored);
@@ -1082,66 +1110,68 @@
       }
     }
 
+    function saveLocalVaultSettings() {
+      const kId = document.getElementById('input-kalshi-id').value.trim();
+      const kPem = document.getElementById('input-kalshi-pem').value.trim();
+      const pWallet = document.getElementById('input-poly-wallet').value.trim();
+      const dHook = document.getElementById('input-discord-hook').value.trim();
+
+      if (kId) localStorage.setItem('cp_kalshi_key_id', kId);
+      if (kPem) localStorage.setItem('cp_kalshi_pem', kPem);
+      if (pWallet) localStorage.setItem('cp_poly_wallet', pWallet);
+      if (dHook) localStorage.setItem('cp_discord_hook', dHook);
+
+      alert('Credentials securely stored in your local browser storage.');
+      renderVaultLive();
+      renderTickets();
+    }
+
+    function clearLocalVaultSettings() {
+      localStorage.removeItem('cp_kalshi_key_id');
+      localStorage.removeItem('cp_kalshi_pem');
+      localStorage.removeItem('cp_poly_wallet');
+      localStorage.removeItem('cp_discord_hook');
+
+      document.getElementById('input-kalshi-id').value = '';
+      document.getElementById('input-kalshi-pem').value = '';
+      document.getElementById('input-poly-wallet').value = '';
+      document.getElementById('input-discord-hook').value = '';
+
+      alert('Local credentials purged. Terminal reset to Visitor Mode.');
+      renderVaultLive();
+      renderTickets();
+    }
+
+    function loadLocalVaultInputs() {
+      const kId = localStorage.getItem('cp_kalshi_key_id') || '';
+      const kPem = localStorage.getItem('cp_kalshi_pem') || '';
+      const pWallet = localStorage.getItem('cp_poly_wallet') || '';
+      const dHook = localStorage.getItem('cp_discord_hook') || '';
+
+      const kIdEl = document.getElementById('input-kalshi-id');
+      const kPemEl = document.getElementById('input-kalshi-pem');
+      const pWalletEl = document.getElementById('input-poly-wallet');
+      const dHookEl = document.getElementById('input-discord-hook');
+
+      if (kIdEl) kIdEl.value = kId;
+      if (kPemEl) kPemEl.value = kPem;
+      if (pWalletEl) pWalletEl.value = pWallet;
+      if (dHookEl) dHookEl.value = dHook;
+    }
+
     function renderVaultLive() {
-      const portfolio = latestData.portfolio || {};
-      const polyBal = typeof portfolio.polyBalance === 'number' ? portfolio.polyBalance : 2.57;
-      const kalshiBal = typeof portfolio.kalshiBalance === 'number' ? portfolio.kalshiBalance : 0.00;
-      const total = polyBal + kalshiBal;
+      loadLocalVaultInputs();
 
-      document.getElementById('vault-poly-bal').textContent = `$${polyBal.toFixed(2)}`;
-      document.getElementById('vault-kalshi-bal').textContent = `$${kalshiBal.toFixed(2)}`;
-      document.getElementById('vault-net-bal').textContent = `$${total.toFixed(2)}`;
+      const kId = localStorage.getItem('cp_kalshi_key_id');
+      const pWallet = localStorage.getItem('cp_poly_wallet');
+      const badge = document.getElementById('vault-mode-badge');
 
-      const positions = portfolio.positions || [];
-      const totalContracts = typeof portfolio.activeContracts === 'number' 
-        ? portfolio.activeContracts 
-        : positions.length;
-
-      const totalExposure = typeof portfolio.activeExposure === 'number'
-        ? portfolio.activeExposure
-        : positions.reduce((acc, p) => acc + Number(p.exposure || 0), 0);
-
-      document.getElementById('ledger-active-count').textContent = totalContracts;
-      document.getElementById('ledger-exposure').textContent = `$${totalExposure.toFixed(2)}`;
-
-      const polyStatusEl = document.getElementById('ledger-poly-status');
-      if (portfolio.polyAuth !== false) {
-        polyStatusEl.textContent = "Connected";
-        polyStatusEl.style.color = "var(--green)";
+      if (kId || pWallet) {
+        badge.textContent = "Trader Mode (BYOK Active)";
+        badge.style.color = "var(--green)";
       } else {
-        polyStatusEl.textContent = "Standby";
-        polyStatusEl.style.color = "var(--gold)";
-      }
-
-      const kalshiStatusEl = document.getElementById('ledger-kalshi-status');
-      if (portfolio.kalshiAuth) {
-        kalshiStatusEl.textContent = "Connected";
-        kalshiStatusEl.style.color = "var(--green)";
-      } else {
-        kalshiStatusEl.textContent = "Not Configured";
-        kalshiStatusEl.style.color = "var(--muted)";
-      }
-
-      const listContainer = document.getElementById('live-positions-list');
-      if (positions.length === 0) {
-        listContainer.innerHTML = `<div class="empty">0 open positions active on exchange order books.</div>`;
-      } else {
-        listContainer.innerHTML = positions.map(pos => {
-          const contractCount = (pos.count !== undefined && pos.count !== null && !isNaN(pos.count)) ? pos.count : 1;
-          const capitalExposure = (typeof pos.exposure === 'number' && !isNaN(pos.exposure)) ? pos.exposure.toFixed(2) : '0.00';
-          return `
-            <div class="list-item">
-              <div class="item-top">
-                <span class="item-title">${pos.title}</span>
-                <span class="tag tag-settled">${pos.status || 'Active'}</span>
-              </div>
-              <div class="item-meta">
-                <span>Size: <b>${contractCount} contract${contractCount > 1 ? 's' : ''}</b> &bull; Capital: $${capitalExposure}</span>
-                <span class="tag-platform">${pos.platform || 'Exchange'}</span>
-              </div>
-            </div>
-          `;
-        }).join('');
+        badge.textContent = "Visitor Mode (Public)";
+        badge.style.color = "var(--cyan)";
       }
     }
 
