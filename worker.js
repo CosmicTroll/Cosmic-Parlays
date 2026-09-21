@@ -1,6 +1,6 @@
 // Cloudflare Worker: worker.js
-// Production Hardened Architecture: In-Memory Key Caching, Resilient Date Parsing,
-// Comma-Safe Kalshi Parsing, Micro-Nonce Replay Protection & Execution Risk Guards
+// Production Hardened: Real Polymarket Candidate Extraction, Clean Single-Market Kalshi Filter,
+// Reciprocal Order Book Math & Execution Risk Guards
 
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",
@@ -267,28 +267,45 @@ async function handleLiveData(env) {
       seenEvent.add(e.id);
 
       const title = e.title || "";
-      if (title.includes(",") && title.split(",").length > 2) return;
-
       const rawEnd = e.endDate || e.end_date || (e.markets && e.markets[0] && e.markets[0].endDate) || null;
       const normalizedEndUtc = parseUtcIso(rawEnd);
 
-      (e.markets || []).slice(0, 3).forEach(m => {
+      (e.markets || []).forEach(m => {
         if (!m || m.closed) return;
-        let yes = 0.50, no = 0.50;
-        try {
-          if (m.outcomePrices) {
-            const p = JSON.parse(m.outcomePrices);
-            yes = parseFloat(p[0]) || 0.50;
-            no = parseFloat(p[1]) || 0.50;
-          }
-        } catch (_) {}
 
-        // Resolve generic Party A / Group labels
+        let yes = null;
+        let no = null;
+
+        if (m.outcomePrices) {
+          try {
+            const p = JSON.parse(m.outcomePrices);
+            if (p[0] !== undefined && parseFloat(p[0]) > 0) yes = parseFloat(p[0]);
+            if (p[1] !== undefined && parseFloat(p[1]) > 0) no = parseFloat(p[1]);
+          } catch (_) {}
+        }
+
+        if (yes === null && m.bestBid) yes = parseFloat(m.bestBid);
+        if (yes === null && m.lastTradePrice) yes = parseFloat(m.lastTradePrice);
+
+        if (yes !== null && no === null) no = 1.00 - yes;
+        if (no !== null && yes === null) yes = 1.00 - no;
+
+        if (yes === null) {
+          yes = 0.50;
+          no = 0.50;
+        }
+
+        // Extract real candidate or party name
         let candidateName = m.groupItemTitle || "";
+        if (!candidateName && m.question && m.question !== title) {
+          candidateName = m.question;
+        }
         if (!candidateName && m.outcomes) {
           try {
-            const outcomesArr = JSON.parse(m.outcomes);
-            candidateName = outcomesArr[0] || "Consensus";
+            const outArr = JSON.parse(m.outcomes);
+            if (outArr && outArr[0] && outArr[0].toLowerCase() !== "yes") {
+              candidateName = outArr[0];
+            }
           } catch (_) {}
         }
         if (!candidateName) candidateName = "Consensus";
@@ -344,6 +361,11 @@ async function handleLiveData(env) {
 
         const fullTitle = m.title || m.ticker;
 
+        // Skip internal Kalshi multi-market accumulators
+        if (/\(\+\d+\s+more\s+legs\)/i.test(fullTitle) || fullTitle.split(" + ").length > 2) {
+          return;
+        }
+
         const parsePrice = (v) => {
           if (v === undefined || v === null || v === "") return null;
           const num = parseFloat(v);
@@ -372,14 +394,12 @@ async function handleLiveData(env) {
         if (yesVal !== null && noVal === null) noVal = 1.00 - yesVal;
         if (noVal !== null && yesVal === null) yesVal = 1.00 - noVal;
 
-        // Realistic probability distribution baseline if resting orderbook is blank
         if (yesVal === null) {
-          const pseudoVariance = ((m.ticker.charCodeAt(0) % 20) - 10) / 100;
-          yesVal = 0.50 + pseudoVariance;
-          noVal = 1.00 - yesVal;
+          yesVal = 0.50;
+          noVal = 0.50;
         }
 
-        const candidate = m.subtitle || m.sub_title || m.yes_sub_title || m.ticker;
+        const candidate = m.subtitle || m.sub_title || m.yes_sub_title || "Consensus";
         const normalizedEndUtc = parseUtcIso(m.expected_expiration_time || m.expiration_time || m.close_time);
 
         kalshi.push({
