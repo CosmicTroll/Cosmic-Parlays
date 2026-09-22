@@ -17,6 +17,7 @@
       --accent-green: #00f5a0;
       --accent-pink: #ff007a;
       --accent-gold: #ffe600;
+      --accent-red: #ff3344;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -200,6 +201,11 @@
       color: #000;
       border: none;
     }
+    .btn-danger {
+      background: rgba(255, 51, 68, 0.15);
+      color: var(--accent-red);
+      border: 1px solid var(--accent-red);
+    }
 
     .ticket-card {
       background: #080c18;
@@ -251,7 +257,6 @@
       border-radius: 8px;
     }
 
-    /* Tab content view toggles */
     .tab-view { display: none; }
     .tab-view.active { display: flex; flex-direction: column; gap: 12px; }
   </style>
@@ -285,16 +290,16 @@
         <span>🎟️ Active Slips &amp; Local Exposure</span>
         <span class="tag">Client-Side Sync</span>
       </div>
-      <div style="background: #090e1f; border: 1px solid var(--accent-green); border-radius: 8px; padding: 10px; display: flex; justify-content: space-between; align-items: center;">
+      <div id="vault-status-box" style="background: #090e1f; border: 1px solid var(--border-color); border-radius: 8px; padding: 10px; display: flex; justify-content: space-between; align-items: center;">
         <div>
-          <div style="font-size: 11px; font-weight: 800; color: #fff;">BYOK Private Vault Connected</div>
-          <div style="font-size: 10px; color: var(--text-muted); margin-top: 2px;">Kalshi: Linked • Poly: Linked</div>
+          <div id="vault-status-title" style="font-size: 11px; font-weight: 800; color: #fff;">BYOK Vault: Standby</div>
+          <div id="vault-status-desc" style="font-size: 10px; color: var(--text-muted); margin-top: 2px;">Checking local keys...</div>
         </div>
-        <span class="tag" style="background: rgba(0,245,160,0.15); color: var(--accent-green);">LOCAL SESSION</span>
+        <span id="vault-status-tag" class="tag" style="background: #151a2d; color: var(--text-muted);">LOCAL SESSION</span>
       </div>
     </div>
 
-    <!-- Live Esports Feed Example -->
+    <!-- Esports Sample Feed -->
     <div class="card">
       <div class="card-header">
         <span>🎮 Esports Desk (Top Picks)</span>
@@ -361,12 +366,12 @@
     </div>
   </div>
 
-  <!-- VIEW 3: BYOK VAULT & SECURITY (PASSWORD MASKED) -->
+  <!-- VIEW 3: BYOK VAULT & SECURITY -->
   <div class="tab-view" id="view-vault">
     <div class="card">
       <div class="card-header">
         <span>💼 Local Portfolio State</span>
-        <span class="tag" style="color: var(--accent-green);">Trader Mode Active</span>
+        <span id="trader-mode-tag" class="tag" style="color: var(--text-muted);">Disconnected</span>
       </div>
       <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px;">
         <div class="stat-box">
@@ -386,7 +391,7 @@
         <span class="tag">100% Client-Side</span>
       </div>
       <p style="font-size: 10px; color: var(--text-muted); margin-bottom: 10px; line-height: 1.4;">
-        Your credentials are saved strictly in your local browser storage. They never touch a remote server.
+        Your credentials are saved strictly in your local browser storage [source: 12]. They never touch a remote server [source: 12].
       </p>
 
       <div class="input-group">
@@ -405,7 +410,18 @@
         </div>
       </div>
 
-      <button class="btn btn-gold" style="width: 100%; margin-top: 4px;" onclick="saveVaultCredentials()">Save Credentials Locally</button>
+      <div class="input-group">
+        <label class="stat-label">Polymarket.us User ID / API Key</label>
+        <div class="password-wrapper">
+          <input type="password" id="poly-key-id" placeholder="Paste Polymarket ID..." autocomplete="off">
+          <button type="button" class="toggle-visibility" onclick="toggleMask('poly-key-id')">👁</button>
+        </div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 8px;">
+        <button class="btn btn-gold" onclick="saveVaultCredentials()">Save Credentials Locally</button>
+        <button class="btn btn-danger" onclick="clearLocalStorageVault()">⚠️ Clear All Keys &amp; Slips from Storage</button>
+      </div>
     </div>
   </div>
 
@@ -429,7 +445,7 @@
 </div>
 
 <script>
-// --- TAB NAVIGATION SYSTEM ---
+// --- NAVIGATION TABS ---
 function switchNavTab(viewId, element) {
   document.querySelectorAll('.tab-view').forEach(v => v.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
@@ -443,30 +459,86 @@ function switchSubFilter(button) {
   button.classList.add('active');
 }
 
-// --- BYOK CREDENTIAL STORAGE & PASSWORD MASKING ---
+// --- BYOK CREDENTIALS & PURGE SYSTEM ---
 function toggleMask(fieldId) {
   const el = document.getElementById(fieldId);
   if (el) el.type = el.type === 'password' ? 'text' : 'password';
 }
 
 function saveVaultCredentials() {
-  const keyId = document.getElementById('kalshi-key-id').value.trim();
-  const privKey = document.getElementById('kalshi-private-key').value.trim();
+  const kKey = document.getElementById('kalshi-key-id').value.trim();
+  const kPriv = document.getElementById('kalshi-private-key').value.trim();
+  const pKey = document.getElementById('poly-key-id').value.trim();
 
-  if (keyId) localStorage.setItem('kalshi_key_id', keyId);
-  if (privKey) localStorage.setItem('kalshi_private_key', privKey);
-  alert("Credentials securely encrypted and locked in your local browser sandbox.");
+  if (kKey) localStorage.setItem('kalshi_key_id', kKey);
+  if (kPriv) localStorage.setItem('kalshi_private_key', kPriv);
+  if (pKey) localStorage.setItem('poly_key_id', pKey);
+
+  alert("Credentials securely locked into local browser storage.");
+  updateVaultStatusUI();
+}
+
+function clearLocalStorageVault() {
+  if (confirm("Are you sure you want to completely wipe all saved keys, slips, and session data from this device?")) {
+    localStorage.clear();
+    document.getElementById('kalshi-key-id').value = '';
+    document.getElementById('kalshi-private-key').value = '';
+    document.getElementById('poly-key-id').value = '';
+    renderFleetTickets();
+    updateVaultStatusUI();
+    alert("Local storage wiped completely.");
+  }
+}
+
+function updateVaultStatusUI() {
+  const kKey = localStorage.getItem('kalshi_key_id');
+  const pKey = localStorage.getItem('poly_key_id');
+
+  const statusBox = document.getElementById('vault-status-box');
+  const statusTitle = document.getElementById('vault-status-title');
+  const statusDesc = document.getElementById('vault-status-desc');
+  const statusTag = document.getElementById('vault-status-tag');
+  const traderTag = document.getElementById('trader-mode-tag');
+
+  const kalshiLinked = !!kKey;
+  const polyLinked = !!pKey;
+
+  if (kalshiLinked || polyLinked) {
+    statusTitle.textContent = "BYOK Private Vault Connected";
+    statusDesc.textContent = `Kalshi: ${kalshiLinked ? 'Linked' : 'Disconnected'} • Poly: ${polyLinked ? 'Linked' : 'Disconnected'}`;
+    statusBox.style.borderColor = "var(--accent-green)";
+    statusTag.style.background = "rgba(0, 245, 160, 0.15)";
+    statusTag.style.color = "var(--accent-green)";
+    if (traderTag) {
+      traderTag.textContent = "Trader Mode Active";
+      traderTag.style.color = "var(--accent-green)";
+    }
+  } else {
+    statusTitle.textContent = "BYOK Vault: Disconnected";
+    statusDesc.textContent = "Kalshi: Disconnected • Poly: Disconnected";
+    statusBox.style.borderColor = "var(--border-color)";
+    statusTag.style.background = "#151a2d";
+    statusTag.style.color = "var(--text-muted)";
+    if (traderTag) {
+      traderTag.textContent = "No Keys Saved";
+      traderTag.style.color = "var(--text-muted)";
+    }
+  }
 }
 
 function loadVaultCredentials() {
-  const keyId = localStorage.getItem('kalshi_key_id') || localStorage.getItem('kalshi-key-id');
-  const privKey = localStorage.getItem('kalshi_private_key') || localStorage.getItem('kalshi-private-key');
+  const kKey = localStorage.getItem('kalshi_key_id');
+  const kPriv = localStorage.getItem('kalshi_private_key');
+  const pKey = localStorage.getItem('poly_key_id');
 
-  if (keyId && document.getElementById('kalshi-key-id')) document.getElementById('kalshi-key-id').value = keyId;
-  if (privKey && document.getElementById('kalshi-private-key')) document.getElementById('kalshi-private-key').value = privKey;
+  if (kKey && document.getElementById('kalshi-key-id')) document.getElementById('kalshi-key-id').value = kKey;
+  if (kPriv && document.getElementById('kalshi-private-key')) document.getElementById('kalshi-private-key').value = kPriv;
+  if (pKey && document.getElementById('poly-key-id')) document.getElementById('poly-key-id').value = pKey;
+
+  updateVaultStatusUI();
 }
 
-// --- FLEET TRACKER & INGESTION ---
+// --- FLEET TRACKER & METRICS ---
 function getOrCreateClientUuid() {
   let uuid = localStorage.getItem('cosmic_fleet_uuid');
   if (!uuid) {
@@ -551,6 +623,7 @@ function removeSlip(index) {
   saveLocalFleetTickets(tickets);
 }
 
+// --- POLLING & INGESTION ---
 async function pollSharedSlips() {
   const uuid = getOrCreateClientUuid();
   try {
@@ -565,7 +638,7 @@ async function pollSharedSlips() {
       saveLocalFleetTickets(current);
     }
   } catch (err) {
-    console.warn("Slip poll deferred:", err);
+    console.warn("Poll deferred:", err);
   }
 }
 
@@ -618,8 +691,8 @@ function checkIncomingShareTarget() {
 
 // --- INITIALIZATION ---
 window.addEventListener('DOMContentLoaded', () => {
-  loadVaultCredentials();
   getOrCreateClientUuid();
+  loadVaultCredentials();
   const ttlSelect = document.getElementById('user-ttl-select');
   if (ttlSelect) ttlSelect.value = getUserTtl();
   renderFleetTickets();
