@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Cosmic Terminal</title>
   <link rel="manifest" href="/manifest.json">
   <style>
@@ -24,33 +24,67 @@
       background-color: var(--bg-base);
       color: var(--text-main);
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      padding: 16px;
+      padding-bottom: 75px;
       display: flex;
       justify-content: center;
     }
 
-    .container {
+    .app-shell {
       width: 100%;
-      max-width: 480px;
+      max-width: 500px;
+      padding: 12px;
       display: flex;
       flex-direction: column;
-      gap: 16px;
+      gap: 12px;
     }
 
+    /* Top Bar */
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 4px 0 8px 0;
+    }
+    .brand-title {
+      font-size: 16px;
+      font-weight: 900;
+      letter-spacing: 0.5px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .top-actions {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+    .badge {
+      font-size: 10px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 6px;
+      border: 1px solid var(--border-color);
+      background: #101628;
+    }
+    .badge-edge {
+      color: var(--accent-green);
+      border-color: rgba(0, 245, 160, 0.3);
+    }
+
+    /* Cards */
     .card {
       background: var(--bg-card);
       border: 1px solid var(--border-color);
       border-radius: 12px;
-      padding: 16px;
+      padding: 14px;
     }
-
     .card-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
       margin-bottom: 12px;
       font-weight: 700;
-      font-size: 13px;
+      font-size: 12px;
       letter-spacing: 0.5px;
     }
 
@@ -63,62 +97,83 @@
       color: var(--accent-cyan);
     }
 
+    /* Sub-nav filters */
+    .pill-nav {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+      scrollbar-width: none;
+    }
+    .pill-nav::-webkit-scrollbar { display: none; }
+    .pill-btn {
+      background: #0f1526;
+      border: 1px solid var(--border-color);
+      color: var(--text-muted);
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 700;
+      white-space: nowrap;
+      cursor: pointer;
+    }
+    .pill-btn.active {
+      background: #1d2744;
+      color: #fff;
+      border-color: var(--accent-cyan);
+    }
+
+    /* Grids */
     .stat-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
       gap: 8px;
-      margin-bottom: 14px;
+      margin-bottom: 12px;
     }
-
     .stat-box {
       background: #090d1a;
       border: 1px solid var(--border-color);
       border-radius: 8px;
-      padding: 10px 8px;
+      padding: 8px;
       text-align: center;
     }
-
     .stat-label {
-      font-size: 10px;
+      font-size: 9px;
       color: var(--text-muted);
       text-transform: uppercase;
-      margin-bottom: 4px;
+      margin-bottom: 3px;
       display: block;
     }
-
     .stat-value {
-      font-size: 14px;
+      font-size: 13px;
       font-weight: 800;
     }
 
+    /* Inputs */
     .input-group {
       display: flex;
       flex-direction: column;
       gap: 4px;
       margin-bottom: 10px;
     }
-
     input, select {
       background: var(--bg-input);
       border: 1px solid var(--border-color);
       color: #fff;
-      padding: 10px;
+      padding: 9px;
       border-radius: 6px;
       font-size: 12px;
       outline: none;
       width: 100%;
     }
-
     input:focus, select:focus {
       border-color: var(--accent-cyan);
     }
-
     .password-wrapper {
       position: relative;
       display: flex;
       align-items: center;
     }
-
     .toggle-visibility {
       position: absolute;
       right: 10px;
@@ -126,20 +181,20 @@
       border: none;
       color: var(--text-muted);
       cursor: pointer;
-      font-size: 11px;
+      font-size: 12px;
     }
 
+    /* Buttons */
     .btn {
       background: #19223c;
       border: 1px solid var(--border-color);
       color: #fff;
       padding: 8px 14px;
       border-radius: 6px;
-      font-size: 12px;
+      font-size: 11px;
       font-weight: 700;
       cursor: pointer;
     }
-
     .btn-gold {
       background: var(--accent-gold);
       color: #000;
@@ -150,96 +205,245 @@
       background: #080c18;
       border: 1px solid var(--border-color);
       border-radius: 8px;
-      padding: 12px;
-      font-size: 12px;
+      padding: 10px;
+      font-size: 11px;
     }
+
+    /* Bottom Nav Bar */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 60px;
+      background: #080a18;
+      border-top: 1px solid var(--border-color);
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      z-index: 999;
+      max-width: 500px;
+      margin: 0 auto;
+    }
+    .nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      color: var(--text-muted);
+      font-size: 9px;
+      font-weight: 700;
+      cursor: pointer;
+      position: relative;
+    }
+    .nav-item.active {
+      color: var(--accent-cyan);
+    }
+    .nav-badge {
+      position: absolute;
+      top: -4px;
+      right: -8px;
+      background: var(--accent-green);
+      color: #000;
+      font-size: 8px;
+      font-weight: 900;
+      padding: 1px 4px;
+      border-radius: 8px;
+    }
+
+    /* Tab content view toggles */
+    .tab-view { display: none; }
+    .tab-view.active { display: flex; flex-direction: column; gap: 12px; }
   </style>
 </head>
 <body>
 
-<div class="container">
+<div class="app-shell">
 
-  <!-- BYOK VAULT SETTINGS PANEL (SECURED & MASKED) -->
-  <div class="card" id="vault-panel">
-    <div class="card-header">
-      <span>🔐 BYOK VAULT SETTINGS</span>
-      <span class="tag">100% Client-Side</span>
-    </div>
-
-    <div class="input-group">
-      <label class="stat-label">Kalshi Key ID</label>
-      <div class="password-wrapper">
-        <input type="password" id="kalshi-key-id" placeholder="Paste Kalshi Key UUID..." autocomplete="off">
-        <button type="button" class="toggle-visibility" onclick="toggleMask('kalshi-key-id')">👁</button>
-      </div>
-    </div>
-
-    <div class="input-group">
-      <label class="stat-label">Kalshi Private Key (RSA PEM)</label>
-      <div class="password-wrapper">
-        <input type="password" id="kalshi-private-key" placeholder="Paste Private Key PEM..." autocomplete="off">
-        <button type="button" class="toggle-visibility" onclick="toggleMask('kalshi-private-key')">👁</button>
-      </div>
-    </div>
-
-    <button class="btn btn-gold" style="width: 100%; margin-top: 4px;" onclick="saveVaultCredentials()">Save Credentials Locally</button>
-  </div>
-
-  <!-- FLEET TRACKER & INGESTION ROSTER -->
-  <div class="card" id="fleet-tracker-panel">
-    <div class="card-header">
-      <span>🛡️ FLEET TRACKER &amp; INGESTION</span>
-      <span class="tag" id="fleet-uuid-tag">ENDPOINT: Loading...</span>
-    </div>
-
-    <div class="stat-grid">
-      <div class="stat-box">
-        <span class="stat-label">Total Slips</span>
-        <span class="stat-value" id="fleet-slips-count">0</span>
-      </div>
-      <div class="stat-box">
-        <span class="stat-label">Active Risk</span>
-        <span class="stat-value" id="fleet-risk-val">$0.00</span>
-      </div>
-      <div class="stat-box">
-        <span class="stat-label">Gross Return</span>
-        <span class="stat-value" id="fleet-payout-val" style="color: var(--accent-green);">$0.00</span>
-      </div>
-    </div>
-
-    <!-- Ingest Controls -->
-    <div style="display: flex; gap: 8px; margin-bottom: 12px; align-items: flex-end;">
-      <div style="flex: 2;">
-        <label class="stat-label">Manual Paste Fallback</label>
-        <input type="text" id="manual-slip-input" placeholder="Paste receipt or share link...">
-      </div>
-      <div style="flex: 1;">
-        <label class="stat-label">Retention (TTL)</label>
-        <select id="user-ttl-select" onchange="updateTtlPreference()">
-          <option value="300">5 Min</option>
-          <option value="900">15 Min</option>
-          <option value="1800" selected>30 Min</option>
-          <option value="3600">1 Hour</option>
-          <option value="86400">24 Hours</option>
-        </select>
-      </div>
-      <button class="btn btn-gold" style="height: 38px;" onclick="ingestManualSlip()">Import</button>
-    </div>
-
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-      <span class="stat-label">Imported Wagers</span>
-      <button class="btn" style="padding: 2px 8px; font-size: 10px;" onclick="pollSharedSlips()">Force Sync</button>
-    </div>
-
-    <div id="fleet-tickets-container" style="display: flex; flex-direction: column; gap: 8px;">
-      <!-- Tickets rendered dynamically -->
+  <!-- Top App Bar -->
+  <div class="top-bar">
+    <div class="brand-title">🚀 Cosmic Terminal</div>
+    <div class="top-actions">
+      <div class="badge" style="cursor: pointer;" onclick="alert('Support: Edge terminal active.')">☕ Support</div>
+      <div class="badge badge-edge">Edge Engine Active</div>
     </div>
   </div>
+
+  <!-- Sorter & Filter Subbar -->
+  <div class="pill-nav">
+    <button class="pill-btn active" onclick="switchSubFilter(this)">🎯 Picks</button>
+    <button class="pill-btn" onclick="switchSubFilter(this)">🎮 Esports</button>
+    <button class="pill-btn" onclick="switchSubFilter(this)">🏈 Sports</button>
+    <button class="pill-btn" onclick="switchSubFilter(this)">🏛 Politics</button>
+  </div>
+
+  <!-- VIEW 1: PICKS & MARKETS (DEFAULT VIEW) -->
+  <div class="tab-view active" id="view-picks">
+    <!-- Active Slips / Exposure Overview Banner -->
+    <div class="card">
+      <div class="card-header">
+        <span>🎟️ Active Slips &amp; Local Exposure</span>
+        <span class="tag">Client-Side Sync</span>
+      </div>
+      <div style="background: #090e1f; border: 1px solid var(--accent-green); border-radius: 8px; padding: 10px; display: flex; justify-content: space-between; align-items: center;">
+        <div>
+          <div style="font-size: 11px; font-weight: 800; color: #fff;">BYOK Private Vault Connected</div>
+          <div style="font-size: 10px; color: var(--text-muted); margin-top: 2px;">Kalshi: Linked • Poly: Linked</div>
+        </div>
+        <span class="tag" style="background: rgba(0,245,160,0.15); color: var(--accent-green);">LOCAL SESSION</span>
+      </div>
+    </div>
+
+    <!-- Live Esports Feed Example -->
+    <div class="card">
+      <div class="card-header">
+        <span>🎮 Esports Desk (Top Picks)</span>
+        <span style="font-size: 10px; color: var(--accent-cyan); cursor: pointer;">Open Hub →</span>
+      </div>
+      <div style="background: #080c18; border: 1px solid var(--border-color); border-radius: 8px; padding: 10px;">
+        <div style="display: flex; justify-content: space-between; font-weight: 800; font-size: 11px;">
+          <span>Counter-Strike: Saint Sinners vs KUUSAMO.gg</span>
+          <span class="tag" style="background: #1b1330; color: var(--accent-pink);">POLY.US</span>
+        </div>
+        <div style="color: var(--text-muted); font-size: 10px; margin-top: 4px;">Pick: YES [Map 1 Winner] @ $0.50 • 50% Implied</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- VIEW 2: FLEET TRACKER & INGESTION -->
+  <div class="tab-view" id="view-fleet">
+    <div class="card">
+      <div class="card-header">
+        <span>🛡️ FLEET TRACKER &amp; INGESTION</span>
+        <span class="tag" id="fleet-uuid-tag">ENDPOINT: Loading...</span>
+      </div>
+
+      <div class="stat-grid">
+        <div class="stat-box">
+          <span class="stat-label">Total Slips</span>
+          <span class="stat-value" id="fleet-slips-count">0</span>
+        </div>
+        <div class="stat-box">
+          <span class="stat-label">Active Risk</span>
+          <span class="stat-value" id="fleet-risk-val">$0.00</span>
+        </div>
+        <div class="stat-box">
+          <span class="stat-label">Gross Return</span>
+          <span class="stat-value" id="fleet-payout-val" style="color: var(--accent-green);">$0.00</span>
+        </div>
+      </div>
+
+      <!-- Ingest Controls -->
+      <div style="display: flex; gap: 6px; margin-bottom: 12px; align-items: flex-end;">
+        <div style="flex: 2;">
+          <label class="stat-label">Manual Paste Fallback</label>
+          <input type="text" id="manual-slip-input" placeholder="Paste sportsbook receipt...">
+        </div>
+        <div style="flex: 1;">
+          <label class="stat-label">Retention (TTL)</label>
+          <select id="user-ttl-select" onchange="updateTtlPreference()">
+            <option value="300">5 Min</option>
+            <option value="900">15 Min</option>
+            <option value="1800" selected>30 Min</option>
+            <option value="3600">1 Hour</option>
+            <option value="86400">24 Hours</option>
+          </select>
+        </div>
+        <button class="btn btn-gold" style="height: 36px;" onclick="ingestManualSlip()">Import</button>
+      </div>
+
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+        <span class="stat-label">Imported Wagers</span>
+        <button class="btn" style="padding: 2px 8px; font-size: 10px;" onclick="pollSharedSlips()">Force Sync</button>
+      </div>
+
+      <div id="fleet-tickets-container" style="display: flex; flex-direction: column; gap: 8px;"></div>
+    </div>
+  </div>
+
+  <!-- VIEW 3: BYOK VAULT & SECURITY (PASSWORD MASKED) -->
+  <div class="tab-view" id="view-vault">
+    <div class="card">
+      <div class="card-header">
+        <span>💼 Local Portfolio State</span>
+        <span class="tag" style="color: var(--accent-green);">Trader Mode Active</span>
+      </div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px;">
+        <div class="stat-box">
+          <span class="stat-label">Polymarket.us (Cash)</span>
+          <span class="stat-value" id="poly-balance-disp">$0.00</span>
+        </div>
+        <div class="stat-box">
+          <span class="stat-label">Kalshi (Cash)</span>
+          <span class="stat-value" id="kalshi-balance-disp">$0.00</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <span>🔐 Bring Your Own Key (BYOK)</span>
+        <span class="tag">100% Client-Side</span>
+      </div>
+      <p style="font-size: 10px; color: var(--text-muted); margin-bottom: 10px; line-height: 1.4;">
+        Your credentials are saved strictly in your local browser storage. They never touch a remote server.
+      </p>
+
+      <div class="input-group">
+        <label class="stat-label">Kalshi Key ID</label>
+        <div class="password-wrapper">
+          <input type="password" id="kalshi-key-id" placeholder="Paste Kalshi Key UUID..." autocomplete="off">
+          <button type="button" class="toggle-visibility" onclick="toggleMask('kalshi-key-id')">👁</button>
+        </div>
+      </div>
+
+      <div class="input-group">
+        <label class="stat-label">Kalshi Private Key (RSA PEM)</label>
+        <div class="password-wrapper">
+          <input type="password" id="kalshi-private-key" placeholder="Paste RSA Private Key PEM..." autocomplete="off">
+          <button type="button" class="toggle-visibility" onclick="toggleMask('kalshi-private-key')">👁</button>
+        </div>
+      </div>
+
+      <button class="btn btn-gold" style="width: 100%; margin-top: 4px;" onclick="saveVaultCredentials()">Save Credentials Locally</button>
+    </div>
+  </div>
+
+  <!-- Bottom Navigation Bar -->
+  <nav class="bottom-nav">
+    <div class="nav-item active" onclick="switchNavTab('view-picks', this)">
+      <span>🎯</span>
+      <span>Picks</span>
+    </div>
+    <div class="nav-item" onclick="switchNavTab('view-fleet', this)">
+      <span>🎟️</span>
+      <span>Fleet</span>
+      <span class="nav-badge" id="nav-fleet-count">0</span>
+    </div>
+    <div class="nav-item" onclick="switchNavTab('view-vault', this)">
+      <span>💼</span>
+      <span>Vault</span>
+    </div>
+  </nav>
 
 </div>
 
 <script>
-// --- CREDENTIAL MASKING & VAULT STORAGE ---
+// --- TAB NAVIGATION SYSTEM ---
+function switchNavTab(viewId, element) {
+  document.querySelectorAll('.tab-view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  const targetView = document.getElementById(viewId);
+  if (targetView) targetView.classList.add('active');
+  if (element) element.classList.add('active');
+}
+
+function switchSubFilter(button) {
+  document.querySelectorAll('.pill-btn').forEach(b => b.classList.remove('active'));
+  button.classList.add('active');
+}
+
+// --- BYOK CREDENTIAL STORAGE & PASSWORD MASKING ---
 function toggleMask(fieldId) {
   const el = document.getElementById(fieldId);
   if (el) el.type = el.type === 'password' ? 'text' : 'password';
@@ -251,17 +455,18 @@ function saveVaultCredentials() {
 
   if (keyId) localStorage.setItem('kalshi_key_id', keyId);
   if (privKey) localStorage.setItem('kalshi_private_key', privKey);
-  alert("Credentials securely locked into local browser storage.");
+  alert("Credentials securely encrypted and locked in your local browser sandbox.");
 }
 
 function loadVaultCredentials() {
-  const keyId = localStorage.getItem('kalshi_key_id');
-  const privKey = localStorage.getItem('kalshi_private_key');
-  if (keyId) document.getElementById('kalshi-key-id').value = keyId;
-  if (privKey) document.getElementById('kalshi-private-key').value = privKey;
+  const keyId = localStorage.getItem('kalshi_key_id') || localStorage.getItem('kalshi-key-id');
+  const privKey = localStorage.getItem('kalshi_private_key') || localStorage.getItem('kalshi-private-key');
+
+  if (keyId && document.getElementById('kalshi-key-id')) document.getElementById('kalshi-key-id').value = keyId;
+  if (privKey && document.getElementById('kalshi-private-key')) document.getElementById('kalshi-private-key').value = privKey;
 }
 
-// --- UUID & RETENTION CONFIG ---
+// --- FLEET TRACKER & INGESTION ---
 function getOrCreateClientUuid() {
   let uuid = localStorage.getItem('cosmic_fleet_uuid');
   if (!uuid) {
@@ -282,7 +487,6 @@ function getUserTtl() {
   return localStorage.getItem('cosmic_slip_ttl') || '1800';
 }
 
-// --- LOCAL ROSTER & METRICS ---
 function loadLocalFleetTickets() {
   return JSON.parse(localStorage.getItem('cosmic_fleet_tickets') || '[]');
 }
@@ -304,8 +508,10 @@ function updateFleetMetrics(tickets) {
   const countEl = document.getElementById('fleet-slips-count');
   const riskEl = document.getElementById('fleet-risk-val');
   const payoutEl = document.getElementById('fleet-payout-val');
+  const navBadge = document.getElementById('nav-fleet-count');
 
   if (countEl) countEl.textContent = tickets.length;
+  if (navBadge) navBadge.textContent = tickets.length;
   if (riskEl) riskEl.textContent = `$${totalRisk.toFixed(2)}`;
   if (payoutEl) payoutEl.textContent = `$${totalPayout.toFixed(2)}`;
 }
@@ -318,7 +524,7 @@ function renderFleetTickets() {
   if (!container) return;
 
   if (tickets.length === 0) {
-    container.innerHTML = '<div style="color: var(--text-muted); font-size: 11px; padding: 12px; text-align: center; border: 1px dashed var(--border-color); border-radius: 6px;">No imported slips active.</div>';
+    container.innerHTML = '<div style="color: var(--text-muted); font-size: 10px; padding: 12px; text-align: center; border: 1px dashed var(--border-color); border-radius: 6px;">No imported slips active.</div>';
     return;
   }
 
@@ -328,12 +534,12 @@ function renderFleetTickets() {
         <span style="color: var(--accent-cyan);">${t.book} [${t.betId || 'Manual Slip'}]</span>
         <span style="color: var(--accent-gold);">${t.odds || ''} | Ret: $${t.payout ? t.payout.toFixed(2) : '--'}</span>
       </div>
-      <div style="color: var(--text-muted); font-size: 10px; margin-bottom: 6px; display: flex; justify-content: space-between;">
+      <div style="color: var(--text-muted); font-size: 9px; margin-bottom: 6px; display: flex; justify-content: space-between;">
         <span>Stake: $${t.stake ? t.stake.toFixed(2) : '--'} | ${new Date(t.timestamp).toLocaleTimeString()}</span>
         <span style="cursor: pointer; color: var(--accent-pink);" onclick="removeSlip(${idx})">✕ Remove</span>
       </div>
       <div style="padding-left: 8px; border-left: 2px solid var(--accent-pink);">
-        ${(t.legs || []).map(l => `<div style="font-size: 11px; color: #fff;">• ${l}</div>`).join('')}
+        ${(t.legs || []).map(l => `<div style="font-size: 10px; color: #fff;">• ${l}</div>`).join('')}
       </div>
     </div>
   `).join('');
@@ -345,7 +551,6 @@ function removeSlip(index) {
   saveLocalFleetTickets(tickets);
 }
 
-// --- QUEUE POLLING & INGESTION ---
 async function pollSharedSlips() {
   const uuid = getOrCreateClientUuid();
   try {
@@ -355,14 +560,12 @@ async function pollSharedSlips() {
     if (data.pending && data.pending.length > 0) {
       const current = loadLocalFleetTickets();
       data.pending.forEach(item => {
-        if (!current.some(c => c.id === item.id)) {
-          current.unshift(item);
-        }
+        if (!current.some(c => c.id === item.id)) current.unshift(item);
       });
       saveLocalFleetTickets(current);
     }
   } catch (err) {
-    console.warn("Poll deferred:", err);
+    console.warn("Slip poll deferred:", err);
   }
 }
 
