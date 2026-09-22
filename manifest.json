@@ -1,0 +1,29 @@
+{
+  "name": "Cosmic Terminal",
+  "short_name": "Cosmic",
+  "start_url": "/index.html",
+  "display": "standalone",
+  "background_color": "#060712",
+  "theme_color": "#060712",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  "share_target": {
+    "action": "/index.html",
+    "method": "GET",
+    "params": {
+      "title": "share_title",
+      "text": "share_text",
+      "url": "share_url"
+    }
+  }
+}
