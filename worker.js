@@ -1,5 +1,5 @@
 // ============================================================================
-// COSMIC TERMINAL EDGE WORKER (v2.1)
+// COSMIC TERMINAL / PARLAYS - PRODUCTION WORKER (v2.1)
 // Zero-Trust Proxy & Ephemeral Telemetry Pipeline
 // ============================================================================
 
@@ -9,6 +9,7 @@ const CORS_HEADERS = {
   "Access-Control-Allow-Headers": "Content-Type, Authorization, KALSHI-ACCESS-KEY, KALSHI-ACCESS-TIMESTAMP, KALSHI-ACCESS-SIGNATURE, X-Passkey, X-Slip-TTL",
 };
 
+// Normalized regex parsing engine for incoming bet share text & URLs
 function parseSportsbookPayload(rawText, sourceUrl = "") {
   const result = {
     book: "Unknown",
@@ -22,7 +23,7 @@ function parseSportsbookPayload(rawText, sourceUrl = "") {
 
   const combined = `${rawText} ${sourceUrl}`;
 
-  // 1. Bookmaker Detection
+  // 1. Detect Bookmaker Source
   if (/draftkings\.com/i.test(combined) || /DraftKings/i.test(rawText)) {
     result.book = "DraftKings";
     const idMatch = combined.match(/DK\d{10,25}/i) || combined.match(/slip\/([a-zA-Z0-9_-]+)/);
@@ -33,18 +34,18 @@ function parseSportsbookPayload(rawText, sourceUrl = "") {
     if (idMatch) result.betId = idMatch[0];
   }
 
-  // 2. American Odds
+  // 2. Extract American Odds
   const oddsMatch = rawText.match(/([+-]\d{3,4})\b/);
   if (oddsMatch) result.odds = oddsMatch[1];
 
-  // 3. Stake and Payout
+  // 3. Extract Stake and Payout
   const stakeMatch = rawText.match(/(?:Wager|Stake|Amount):\s*\$([0-9.]+)/i);
   if (stakeMatch) result.stake = parseFloat(stakeMatch[1]);
 
   const payoutMatch = rawText.match(/(?:Payout|To Win|Return):\s*\$([0-9.]+)/i);
   if (payoutMatch) result.payout = parseFloat(payoutMatch[1]);
 
-  // 4. Normalized Legs
+  // 4. Split and normalize distinct legs
   const lines = rawText.split("\n").map(l => l.trim()).filter(l => l.length > 0);
   lines.forEach(line => {
     if (/[+-\d]|\b(Under|Over|Spread|ML|Run Line|Strikeouts)\b/i.test(line) && !line.includes("Payout") && !line.includes("Wager")) {
@@ -56,9 +57,10 @@ function parseSportsbookPayload(rawText, sourceUrl = "") {
 }
 
 export default {
-  async fetch(request, env) {
+  async fetch(request, env, ctx) {
     const url = new URL(request.url);
 
+    // Handle CORS Pre-flight Options
     if (request.method === "OPTIONS") {
       return new Response(null, { headers: CORS_HEADERS });
     }
@@ -70,7 +72,7 @@ export default {
       });
     }
 
-    // 2. Kalshi Perpetuals Proxy
+    // 2. Kalshi Perpetuals Markets Proxy
     if (url.pathname === "/api/kalshi/perps") {
       try {
         const response = await fetch("https://api.elections.kalshi.com/trade-api/v2/perpetuals/markets", {
@@ -89,7 +91,7 @@ export default {
       }
     }
 
-    // 3. Kalshi Trade & Balance RSA Relay
+    // 3. Kalshi Authenticated RSA Relay (Order Execution & Balance Inquiry)
     if (url.pathname.startsWith("/api/kalshi/trade/")) {
       const kalshiPath = url.pathname.replace("/api/kalshi/trade", "");
       const targetUrl = `https://api.elections.kalshi.com/trade-api/v2${kalshiPath}${url.search}`;
@@ -128,7 +130,7 @@ export default {
       }
     }
 
-    // 4. Polymarket Gamma Events Proxy
+    // 4. Polymarket Gamma / CLOB Proxy
     if (url.pathname === "/api/polymarket/markets") {
       try {
         const target = `https://gamma-api.polymarket.com/events?closed=false&limit=20${url.search.replace("?", "&")}`;
@@ -156,7 +158,7 @@ export default {
         parsedTicket.timestamp = Date.now();
         parsedTicket.id = parsedTicket.betId || `slip_${Date.now()}`;
 
-        // Read user TTL header; bound strictly between 60s and 86400s (defaults to 1800s / 30m)
+        // Read user-customized TTL header (min 60s, max 86400s; defaults to 1800s / 30m)
         let userTtl = parseInt(request.headers.get("X-Slip-TTL") || "1800", 10);
         if (isNaN(userTtl) || userTtl < 60) userTtl = 60;
         if (userTtl > 86400) userTtl = 86400;
@@ -190,7 +192,7 @@ export default {
         const data = await env.FLEET_KV.get(key.name);
         if (data) {
           pending.push(JSON.parse(data));
-          await env.FLEET_KV.delete(key.name); // Immediate burn on read
+          await env.FLEET_KV.delete(key.name); // Read-and-burn on retrieval
         }
       }
 
