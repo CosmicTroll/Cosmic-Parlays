@@ -96,7 +96,6 @@
       flex-direction: column;
       gap: 4px;
       margin-bottom: 10px;
-      position: relative;
     }
 
     input, select {
@@ -208,7 +207,7 @@
       </div>
     </div>
 
-    <!-- User Ingest Controls -->
+    <!-- Ingest Controls -->
     <div style="display: flex; gap: 8px; margin-bottom: 12px; align-items: flex-end;">
       <div style="flex: 2;">
         <label class="stat-label">Manual Paste Fallback</label>
@@ -262,7 +261,7 @@ function loadVaultCredentials() {
   if (privKey) document.getElementById('kalshi-private-key').value = privKey;
 }
 
-// --- UUID & USER CONFIG ---
+// --- UUID & RETENTION CONFIG ---
 function getOrCreateClientUuid() {
   let uuid = localStorage.getItem('cosmic_fleet_uuid');
   if (!uuid) {
@@ -283,7 +282,7 @@ function getUserTtl() {
   return localStorage.getItem('cosmic_slip_ttl') || '1800';
 }
 
-// --- LOCAL ROSTER & DYNAMIC CALCULATIONS ---
+// --- LOCAL ROSTER & METRICS ---
 function loadLocalFleetTickets() {
   return JSON.parse(localStorage.getItem('cosmic_fleet_tickets') || '[]');
 }
@@ -346,7 +345,7 @@ function removeSlip(index) {
   saveLocalFleetTickets(tickets);
 }
 
-// --- POLLING & PARSING ---
+// --- QUEUE POLLING & INGESTION ---
 async function pollSharedSlips() {
   const uuid = getOrCreateClientUuid();
   try {
