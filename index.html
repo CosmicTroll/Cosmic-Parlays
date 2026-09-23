@@ -573,6 +573,7 @@
 
       <!-- 18-Asset Crypto Perpetual Suite -->
       <div id="perp-sub-crypto" style="display: flex; flex-direction: column; gap: 10px;">
+        <!-- Asset 1: BTC -->
         <div class="market-card sortable-card" data-sport="crypto">
           <div class="market-card-head"><span>Bitcoin (BTCPERP) • Max 6.3x</span><span class="tag" style="background: #12281a; color: var(--accent-green);">8h: +0.012%</span></div>
           <div class="market-card-meta"><span>Spot: $85,029.68 • Margin Yield: 3.25%</span><span style="color: var(--accent-cyan); font-weight: bold;">Basis: +$4.20</span></div>
@@ -584,6 +585,8 @@
           </div>
           <div class="ai-agent-box" id="crypto-ai-btc"></div>
         </div>
+
+        <!-- Asset 2: ETH -->
         <div class="market-card sortable-card" data-sport="crypto">
           <div class="market-card-head"><span>Ethereum (ETHPERP) • Max 4.8x</span><span class="tag" style="background: #12281a; color: var(--accent-green);">8h: +0.008%</span></div>
           <div class="market-card-meta"><span>Spot: $2,720.82 • Margin Yield: 3.25%</span><span style="color: var(--accent-cyan); font-weight: bold;">Basis: +$0.60</span></div>
@@ -595,6 +598,8 @@
           </div>
           <div class="ai-agent-box" id="crypto-ai-eth"></div>
         </div>
+
+        <!-- Asset 3: SOL -->
         <div class="market-card sortable-card" data-sport="crypto">
           <div class="market-card-head"><span>Solana (SOLPERP) • Max 3.0x</span><span class="tag" style="background: #12281a; color: var(--accent-green);">8h: +0.015%</span></div>
           <div class="market-card-meta"><span>Spot: $184.40 • Margin Yield: 3.25%</span><span style="color: var(--accent-cyan); font-weight: bold;">Basis: +$0.12</span></div>
@@ -606,6 +611,8 @@
           </div>
           <div class="ai-agent-box" id="crypto-ai-sol"></div>
         </div>
+
+        <!-- Asset 4: XRP -->
         <div class="market-card sortable-card" data-sport="crypto">
           <div class="market-card-head"><span>XRP Continuous (XRPPERP) • Max 2.8x</span><span class="tag" style="background: #252010; color: var(--accent-gold);">8h: +0.005%</span></div>
           <div class="market-card-meta"><span>Spot: $0.584 • High Liquidity</span><span style="color: var(--accent-cyan); font-weight: bold;">Margin: 3.25%</span></div>
@@ -616,6 +623,8 @@
           </div>
           <div class="ai-agent-box" id="crypto-ai-xrp"></div>
         </div>
+
+        <!-- Asset 5: DOGE -->
         <div class="market-card sortable-card" data-sport="crypto">
           <div class="market-card-head"><span>Dogecoin Continuous (DOGEPERP) • Max 2.8x</span><span class="tag" style="background: #12281a; color: var(--accent-green);">8h: +0.019%</span></div>
           <div class="market-card-meta"><span>Spot: $0.128 • Active Momentum</span><span style="color: var(--accent-cyan); font-weight: bold;">Margin: 3.25%</span></div>
@@ -626,9 +635,165 @@
           </div>
           <div class="ai-agent-box" id="crypto-ai-doge"></div>
         </div>
+
+        <!-- Asset 6: ADA -->
+        <div class="market-card sortable-card" data-sport="crypto">
+          <div class="market-card-head"><span>Cardano Continuous (ADAPERP) • Max 3.1x</span><span class="tag" style="background: #12281a; color: var(--accent-green);">8h: +0.007%</span></div>
+          <div class="market-card-meta"><span>Spot: $0.382 • Proof of Stake</span><span style="color: var(--accent-cyan); font-weight: bold;">Margin: 3.25%</span></div>
+          <div class="action-tray">
+            <button class="btn btn-green" onclick="openOrderModal('ADAPERP Long', 0.382, 'LONG', 'kalshi')">Long ADA</button>
+            <button class="btn btn-red" onclick="openOrderModal('ADAPERP Short', 0.382, 'SHORT', 'kalshi')">Short ADA</button>
+            <button class="btn btn-ai-inline" onclick="executeInlineMarketAnalysis('Cardano (ADAPERP)', 'Spot: $0.382', 'crypto-ai-ada')">🤖 Ask Gemini</button>
+          </div>
+          <div class="ai-agent-box" id="crypto-ai-ada"></div>
+        </div>
+
+        <!-- Asset 7: LINK -->
+        <div class="market-card sortable-card" data-sport="crypto">
+          <div class="market-card-head"><span>Chainlink (LINKPERP) • Max 3.7x</span><span class="tag" style="background: #12281a; color: var(--accent-green);">8h: +0.010%</span></div>
+          <div class="market-card-meta"><span>Spot: $12.45 • Oracle Network</span><span style="color: var(--accent-cyan); font-weight: bold;">Margin: 3.25%</span></div>
+          <div class="action-tray">
+            <button class="btn btn-green" onclick="openOrderModal('LINKPERP Long', 12.45, 'LONG', 'kalshi')">Long LINK</button>
+            <button class="btn btn-red" onclick="openOrderModal('LINKPERP Short', 12.45, 'SHORT', 'kalshi')">Short LINK</button>
+            <button class="btn btn-ai-inline" onclick="executeInlineMarketAnalysis('Chainlink (LINKPERP)', 'Spot: $12.45', 'crypto-ai-link')">🤖 Ask Gemini</button>
+          </div>
+          <div class="ai-agent-box" id="crypto-ai-link"></div>
+        </div>
+
+        <!-- Asset 8: AVAX -->
+        <div class="market-card sortable-card" data-sport="crypto">
+          <div class="market-card-head"><span>Avalanche (AVAXPERP) • Max 3.0x</span><span class="tag" style="background: #12281a; color: var(--accent-green);">8h: +0.009%</span></div>
+          <div class="market-card-meta"><span>Spot: $28.10 • Subnet L1</span><span style="color: var(--accent-cyan); font-weight: bold;">Margin: 3.25%</span></div>
+          <div class="action-tray">
+            <button class="btn btn-green" onclick="openOrderModal('AVAXPERP Long', 28.10, 'LONG', 'kalshi')">Long AVAX</button>
+            <button class="btn btn-red" onclick="openOrderModal('AVAXPERP Short', 28.10, 'SHORT', 'kalshi')">Short AVAX</button>
+            <button class="btn btn-ai-inline" onclick="executeInlineMarketAnalysis('Avalanche (AVAXPERP)', 'Spot: $28.10', 'crypto-ai-avax')">🤖 Ask Gemini</button>
+          </div>
+          <div class="ai-agent-box" id="crypto-ai-avax"></div>
+        </div>
+
+        <!-- Asset 9: SUI -->
+        <div class="market-card sortable-card" data-sport="crypto">
+          <div class="market-card-head"><span>Sui Continuous (SUIPERP) • Max 2.4x</span><span class="tag" style="background: #12281a; color: var(--accent-green);">8h: +0.022%</span></div>
+          <div class="market-card-meta"><span>Spot: $1.82 • High Beta</span><span style="color: var(--accent-cyan); font-weight: bold;">Margin: 3.25%</span></div>
+          <div class="action-tray">
+            <button class="btn btn-green" onclick="openOrderModal('SUIPERP Long', 1.82, 'LONG', 'kalshi')">Long SUI</button>
+            <button class="btn btn-red" onclick="openOrderModal('SUIPERP Short', 1.82, 'SHORT', 'kalshi')">Short SUI</button>
+            <button class="btn btn-ai-inline" onclick="executeInlineMarketAnalysis('Sui (SUIPERP)', 'Spot: $1.82', 'crypto-ai-sui')">🤖 Ask Gemini</button>
+          </div>
+          <div class="ai-agent-box" id="crypto-ai-sui"></div>
+        </div>
+
+        <!-- Asset 10: LTC -->
+        <div class="market-card sortable-card" data-sport="crypto">
+          <div class="market-card-head"><span>Litecoin (LTCPERP) • Max 3.9x</span><span class="tag" style="background: #12281a; color: var(--accent-green);">8h: +0.004%</span></div>
+          <div class="market-card-meta"><span>Spot: $68.40 • PoW Benchmark</span><span style="color: var(--accent-cyan); font-weight: bold;">Margin: 3.25%</span></div>
+          <div class="action-tray">
+            <button class="btn btn-green" onclick="openOrderModal('LTCPERP Long', 68.40, 'LONG', 'kalshi')">Long LTC</button>
+            <button class="btn btn-red" onclick="openOrderModal('LTCPERP Short', 68.40, 'SHORT', 'kalshi')">Short LTC</button>
+            <button class="btn btn-ai-inline" onclick="executeInlineMarketAnalysis('Litecoin (LTCPERP)', 'Spot: $68.40', 'crypto-ai-ltc')">🤖 Ask Gemini</button>
+          </div>
+          <div class="ai-agent-box" id="crypto-ai-ltc"></div>
+        </div>
+
+        <!-- Asset 11: BNB -->
+        <div class="market-card sortable-card" data-sport="crypto">
+          <div class="market-card-head"><span>BNB Continuous (BNBPERP) • Max 3.5x</span><span class="tag" style="background: #12281a; color: var(--accent-green);">8h: +0.011%</span></div>
+          <div class="market-card-meta"><span>Spot: $590.20 • Exchange Base</span><span style="color: var(--accent-cyan); font-weight: bold;">Margin: 3.25%</span></div>
+          <div class="action-tray">
+            <button class="btn btn-green" onclick="openOrderModal('BNBPERP Long', 590.20, 'LONG', 'kalshi')">Long BNB</button>
+            <button class="btn btn-red" onclick="openOrderModal('BNBPERP Short', 590.20, 'SHORT', 'kalshi')">Short BNB</button>
+            <button class="btn btn-ai-inline" onclick="executeInlineMarketAnalysis('BNB (BNBPERP)', 'Spot: $590.20', 'crypto-ai-bnb')">🤖 Ask Gemini</button>
+          </div>
+          <div class="ai-agent-box" id="crypto-ai-bnb"></div>
+        </div>
+
+        <!-- Asset 12: NEAR -->
+        <div class="market-card sortable-card" data-sport="crypto">
+          <div class="market-card-head"><span>Near Protocol (NEARPERP) • Max 2.5x</span><span class="tag" style="background: #12281a; color: var(--accent-green);">8h: +0.014%</span></div>
+          <div class="market-card-meta"><span>Spot: $4.92 • Sharding L1</span><span style="color: var(--accent-cyan); font-weight: bold;">Margin: 3.25%</span></div>
+          <div class="action-tray">
+            <button class="btn btn-green" onclick="openOrderModal('NEARPERP Long', 4.92, 'LONG', 'kalshi')">Long NEAR</button>
+            <button class="btn btn-red" onclick="openOrderModal('NEARPERP Short', 4.92, 'SHORT', 'kalshi')">Short NEAR</button>
+            <button class="btn btn-ai-inline" onclick="executeInlineMarketAnalysis('Near (NEARPERP)', 'Spot: $4.92', 'crypto-ai-near')">🤖 Ask Gemini</button>
+          </div>
+          <div class="ai-agent-box" id="crypto-ai-near"></div>
+        </div>
+
+        <!-- Asset 13: AAVE -->
+        <div class="market-card sortable-card" data-sport="crypto">
+          <div class="market-card-head"><span>Aave Continuous (AAVEPERP) • Max 2.6x</span><span class="tag" style="background: #12281a; color: var(--accent-green);">8h: +0.016%</span></div>
+          <div class="market-card-meta"><span>Spot: $155.10 • DeFi Liquidity</span><span style="color: var(--accent-cyan); font-weight: bold;">Margin: 3.25%</span></div>
+          <div class="action-tray">
+            <button class="btn btn-green" onclick="openOrderModal('AAVEPERP Long', 155.10, 'LONG', 'kalshi')">Long AAVE</button>
+            <button class="btn btn-red" onclick="openOrderModal('AAVEPERP Short', 155.10, 'SHORT', 'kalshi')">Short AAVE</button>
+            <button class="btn btn-ai-inline" onclick="executeInlineMarketAnalysis('Aave (AAVEPERP)', 'Spot: $155.10', 'crypto-ai-aave')">🤖 Ask Gemini</button>
+          </div>
+          <div class="ai-agent-box" id="crypto-ai-aave"></div>
+        </div>
+
+        <!-- Asset 14: BCH -->
+        <div class="market-card sortable-card" data-sport="crypto">
+          <div class="market-card-head"><span>Bitcoin Cash (BCHPERP) • Max 3.2x</span><span class="tag" style="background: #12281a; color: var(--accent-green);">8h: +0.006%</span></div>
+          <div class="market-card-meta"><span>Spot: $340.50 • PoW Hard Fork</span><span style="color: var(--accent-cyan); font-weight: bold;">Margin: 3.25%</span></div>
+          <div class="action-tray">
+            <button class="btn btn-green" onclick="openOrderModal('BCHPERP Long', 340.50, 'LONG', 'kalshi')">Long BCH</button>
+            <button class="btn btn-red" onclick="openOrderModal('BCHPERP Short', 340.50, 'SHORT', 'kalshi')">Short BCH</button>
+            <button class="btn btn-ai-inline" onclick="executeInlineMarketAnalysis('Bitcoin Cash (BCHPERP)', 'Spot: $340.50', 'crypto-ai-bch')">🤖 Ask Gemini</button>
+          </div>
+          <div class="ai-agent-box" id="crypto-ai-bch"></div>
+        </div>
+
+        <!-- Asset 15: DOT -->
+        <div class="market-card sortable-card" data-sport="crypto">
+          <div class="market-card-head"><span>Polkadot (DOTPERP) • Max 2.9x</span><span class="tag" style="background: #12281a; color: var(--accent-green);">8h: +0.008%</span></div>
+          <div class="market-card-meta"><span>Spot: $4.25 • Parachain Hub</span><span style="color: var(--accent-cyan); font-weight: bold;">Margin: 3.25%</span></div>
+          <div class="action-tray">
+            <button class="btn btn-green" onclick="openOrderModal('DOTPERP Long', 4.25, 'LONG', 'kalshi')">Long DOT</button>
+            <button class="btn btn-red" onclick="openOrderModal('DOTPERP Short', 4.25, 'SHORT', 'kalshi')">Short DOT</button>
+            <button class="btn btn-ai-inline" onclick="executeInlineMarketAnalysis('Polkadot (DOTPERP)', 'Spot: $4.25', 'crypto-ai-dot')">🤖 Ask Gemini</button>
+          </div>
+          <div class="ai-agent-box" id="crypto-ai-dot"></div>
+        </div>
+
+        <!-- Asset 16: HYPE -->
+        <div class="market-card sortable-card" data-sport="crypto">
+          <div class="market-card-head"><span>Hyperliquid (HYPEPERP) • Max 2.2x</span><span class="tag" style="background: #12281a; color: var(--accent-green);">8h: +0.025%</span></div>
+          <div class="market-card-meta"><span>Spot: $32.40 • L1 Orderbook</span><span style="color: var(--accent-cyan); font-weight: bold;">Margin: 3.25%</span></div>
+          <div class="action-tray">
+            <button class="btn btn-green" onclick="openOrderModal('HYPEPERP Long', 32.40, 'LONG', 'kalshi')">Long HYPE</button>
+            <button class="btn btn-red" onclick="openOrderModal('HYPEPERP Short', 32.40, 'SHORT', 'kalshi')">Short HYPE</button>
+            <button class="btn btn-ai-inline" onclick="executeInlineMarketAnalysis('Hyperliquid (HYPEPERP)', 'Spot: $32.40', 'crypto-ai-hype')">🤖 Ask Gemini</button>
+          </div>
+          <div class="ai-agent-box" id="crypto-ai-hype"></div>
+        </div>
+
+        <!-- Asset 17: UNI -->
+        <div class="market-card sortable-card" data-sport="crypto">
+          <div class="market-card-head"><span>Uniswap Continuous (UNIPERP) • Max 2.7x</span><span class="tag" style="background: #12281a; color: var(--accent-green);">8h: +0.010%</span></div>
+          <div class="market-card-meta"><span>Spot: $7.85 • AMM Protocol</span><span style="color: var(--accent-cyan); font-weight: bold;">Margin: 3.25%</span></div>
+          <div class="action-tray">
+            <button class="btn btn-green" onclick="openOrderModal('UNIPERP Long', 7.85, 'LONG', 'kalshi')">Long UNI</button>
+            <button class="btn btn-red" onclick="openOrderModal('UNIPERP Short', 7.85, 'SHORT', 'kalshi')">Short UNI</button>
+            <button class="btn btn-ai-inline" onclick="executeInlineMarketAnalysis('Uniswap (UNIPERP)', 'Spot: $7.85', 'crypto-ai-uni')">🤖 Ask Gemini</button>
+          </div>
+          <div class="ai-agent-box" id="crypto-ai-uni"></div>
+        </div>
+
+        <!-- Asset 18: POL -->
+        <div class="market-card sortable-card" data-sport="crypto">
+          <div class="market-card-head"><span>Polygon (POLPERP) • Max 3.0x</span><span class="tag" style="background: #12281a; color: var(--accent-green);">8h: +0.007%</span></div>
+          <div class="market-card-meta"><span>Spot: $0.395 • AggLayer Base</span><span style="color: var(--accent-cyan); font-weight: bold;">Margin: 3.25%</span></div>
+          <div class="action-tray">
+            <button class="btn btn-green" onclick="openOrderModal('POLPERP Long', 0.395, 'LONG', 'kalshi')">Long POL</button>
+            <button class="btn btn-red" onclick="openOrderModal('POLPERP Short', 0.395, 'SHORT', 'kalshi')">Short POL</button>
+            <button class="btn btn-ai-inline" onclick="executeInlineMarketAnalysis('Polygon (POLPERP)', 'Spot: $0.395', 'crypto-ai-pol')">🤖 Ask Gemini</button>
+          </div>
+          <div class="ai-agent-box" id="crypto-ai-pol"></div>
+        </div>
       </div>
 
-      <!-- Commodities Suite -->
+      <!-- Commodities Suite (5 Continuous Contracts) -->
       <div id="perp-sub-commodities" style="display: none; flex-direction: column; gap: 10px;">
         <div class="market-card sortable-card" data-sport="macro">
           <div class="market-card-head"><span>Gold Continuous (GOLDPERP) • Max 15.2x</span><span class="tag" style="background: #252010; color: var(--accent-gold);">Daily: -0.004%</span></div>
@@ -662,14 +827,39 @@
           </div>
           <div class="ai-agent-box" id="comm-ai-wti"></div>
         </div>
+        <div class="market-card sortable-card" data-sport="macro">
+          <div class="market-card-head"><span>RBOB Gasoline Continuous</span><span class="tag" style="background: #12281a; color: var(--accent-green);">Energy Desk</span></div>
+          <div class="market-card-meta"><span>Spot: $2.45 / gallon</span><span style="color: var(--accent-cyan); font-weight: bold;">CFTC Monitored</span></div>
+          <div class="action-tray">
+            <button class="btn btn-green" onclick="openOrderModal('RBOB Long', 2.45, 'LONG', 'kalshi')">Long Gas</button>
+            <button class="btn btn-red" onclick="openOrderModal('RBOB Short', 2.45, 'SHORT', 'kalshi')">Short Gas</button>
+            <button class="btn btn-ai-inline" onclick="executeInlineMarketAnalysis('RBOB Gasoline', 'Spot: $2.45/gal', 'comm-ai-rbob')">🤖 Ask Gemini</button>
+          </div>
+          <div class="ai-agent-box" id="comm-ai-rbob"></div>
+        </div>
+        <div class="market-card sortable-card" data-sport="macro">
+          <div class="market-card-head"><span>Natural Gas Continuous (NGPERP)</span><span class="tag" style="background: #252010; color: var(--accent-gold);">Energy Desk</span></div>
+          <div class="market-card-meta"><span>Spot: $2.85 / MMBtu</span><span style="color: var(--accent-cyan); font-weight: bold;">Daily Rollover</span></div>
+          <div class="action-tray">
+            <button class="btn btn-green" onclick="openOrderModal('NGPERP Long', 2.85, 'LONG', 'kalshi')">Long NatGas</button>
+            <button class="btn btn-red" onclick="openOrderModal('NGPERP Short', 2.85, 'SHORT', 'kalshi')">Short NatGas</button>
+            <button class="btn btn-ai-inline" onclick="executeInlineMarketAnalysis('Natural Gas (NGPERP)', 'Spot: $2.85/MMBtu', 'comm-ai-ng')">🤖 Ask Gemini</button>
+          </div>
+          <div class="ai-agent-box" id="comm-ai-ng"></div>
+        </div>
       </div>
 
-      <!-- 15-Minute Fast Markets Desk (8 Active Series) -->
+      <!-- 15-Minute Fast Markets Desk (Full 8-Asset Suite) -->
       <div id="perp-sub-15m" style="display: none; flex-direction: column; gap: 10px;">
         <div style="font-size: 11px; color: var(--text-muted); line-height: 1.4; margin-bottom: 6px;">
-          Settles strictly on clock quarter-hours (<strong>:00, :15, :30, :45</strong>)[span_7](start_span)[span_7](end_span).
+          Settles strictly on clock quarter-hours (<strong>:00, :15, :30, :45</strong>). The countdown timer updates live across all 8 series.
         </div>
 
+        <div style="font-weight: 800; font-size: 10px; color: var(--accent-gold); text-transform: uppercase;">
+          🛢️ 15-Min Commodities &amp; Energy
+        </div>
+
+        <!-- 1. Gold 15m -->
         <div class="market-card sortable-card" data-sport="macro">
           <div class="market-card-head"><span>Gold 15-Min (KXGOLD15M) — Target: $4,349.63</span><span class="tag live-15m-timer" style="background: #2d1616; color: var(--accent-red); font-weight: 800;">● 15:00</span></div>
           <div class="market-card-meta"><span>Current: $4,343.59 (-$6.04 below)</span><span style="color: var(--accent-cyan); font-weight: bold;">CFTC Series</span></div>
@@ -681,6 +871,35 @@
           <div class="ai-agent-box" id="ai-box-gold"></div>
         </div>
 
+        <!-- 2. Silver 15m -->
+        <div class="market-card sortable-card" data-sport="macro">
+          <div class="market-card-head"><span>Silver 15-Min (KXSLV15M) — Target: $66.82</span><span class="tag live-15m-timer" style="background: #2d1616; color: var(--accent-red); font-weight: 800;">● 15:00</span></div>
+          <div class="market-card-meta"><span>Current: $66.84 (+$0.02 above)</span><span style="color: var(--accent-cyan); font-weight: bold;">CFTC Series</span></div>
+          <div class="action-tray">
+            <button class="btn btn-green" onclick="openOrderModal('Silver 15m Above', 0.58, 'BUY ABOVE', 'kalshi')">Above 58% (58¢)</button>
+            <button class="btn btn-red" onclick="openOrderModal('Silver 15m Below', 0.43, 'BUY BELOW', 'kalshi')">Below 43% (43¢)</button>
+            <button class="btn btn-ai-inline" onclick="executeInlineMarketAnalysis('Silver 15-Min', 'Current: $66.84 vs Target: $66.82', 'ai-box-slv')">🤖 Ask Gemini</button>
+          </div>
+          <div class="ai-agent-box" id="ai-box-slv"></div>
+        </div>
+
+        <!-- 3. WTI Crude 15m -->
+        <div class="market-card sortable-card" data-sport="macro">
+          <div class="market-card-head"><span>WTI Crude 15-Min (KXWTI15M) — Target: $90.28</span><span class="tag live-15m-timer" style="background: #2d1616; color: var(--accent-red); font-weight: 800;">● 15:00</span></div>
+          <div class="market-card-meta"><span>Current: $90.15 (-$0.13 below)</span><span style="color: var(--accent-cyan); font-weight: bold;">CFTC Series</span></div>
+          <div class="action-tray">
+            <button class="btn btn-green" onclick="openOrderModal('Crude 15m Above', 0.42, 'BUY ABOVE', 'kalshi')">Above 42% (42¢)</button>
+            <button class="btn btn-red" onclick="openOrderModal('Crude 15m Below', 0.59, 'BUY BELOW', 'kalshi')">Below 59% (59¢)</button>
+            <button class="btn btn-ai-inline" onclick="executeInlineMarketAnalysis('WTI Crude 15-Min', 'Current: $90.15 vs Target: $90.28', 'ai-box-wti15m')">🤖 Ask Gemini</button>
+          </div>
+          <div class="ai-agent-box" id="ai-box-wti15m"></div>
+        </div>
+
+        <div style="font-weight: 800; font-size: 10px; color: var(--accent-cyan); text-transform: uppercase; margin-top: 6px;">
+          🪙 15-Min Crypto Series
+        </div>
+
+        <!-- 4. BTC 15m -->
         <div class="market-card sortable-card" data-sport="crypto">
           <div class="market-card-head"><span>BTC 15-Min (KXBTC15M) — Target: $85,029.68</span><span class="tag live-15m-timer" style="background: #2d1616; color: var(--accent-red); font-weight: 800;">● 15:00</span></div>
           <div class="market-card-meta"><span>Spot: $85,062.10 (+$32.42 above)</span><span style="color: var(--accent-cyan); font-weight: bold;">CFTC Series</span></div>
@@ -690,6 +909,54 @@
             <button class="btn btn-ai-inline" onclick="executeInlineMarketAnalysis('BTC 15-Min (KXBTC15M)', 'Spot: $85,062.10 vs Target: $85,029.68', 'ai-box-btc')">🤖 Ask Gemini</button>
           </div>
           <div class="ai-agent-box" id="ai-box-btc"></div>
+        </div>
+
+        <!-- 5. ETH 15m -->
+        <div class="market-card sortable-card" data-sport="crypto">
+          <div class="market-card-head"><span>ETH 15-Min (KXETH15M) — Target: $2,720.82</span><span class="tag live-15m-timer" style="background: #2d1616; color: var(--accent-red); font-weight: 800;">● 15:00</span></div>
+          <div class="market-card-meta"><span>Spot: $2,722.15 (+$1.33 above)</span><span style="color: var(--accent-cyan); font-weight: bold;">CFTC Series</span></div>
+          <div class="action-tray">
+            <button class="btn btn-green" onclick="openOrderModal('ETH 15m Above', 0.54, 'BUY ABOVE', 'kalshi')">Above 54% (54¢)</button>
+            <button class="btn btn-red" onclick="openOrderModal('ETH 15m Below', 0.47, 'BUY BELOW', 'kalshi')">Below 47% (47¢)</button>
+            <button class="btn btn-ai-inline" onclick="executeInlineMarketAnalysis('ETH 15-Min (KXETH15M)', 'Spot: $2,722.15 vs Target: $2,720.82', 'ai-box-eth15m')">🤖 Ask Gemini</button>
+          </div>
+          <div class="ai-agent-box" id="ai-box-eth15m"></div>
+        </div>
+
+        <!-- 6. SOL 15m -->
+        <div class="market-card sortable-card" data-sport="crypto">
+          <div class="market-card-head"><span>SOL 15-Min (KXSOL15M) — Target: $184.40</span><span class="tag live-15m-timer" style="background: #2d1616; color: var(--accent-red); font-weight: 800;">● 15:00</span></div>
+          <div class="market-card-meta"><span>Spot: $184.18 (-$0.22 below)</span><span style="color: var(--accent-cyan); font-weight: bold;">CFTC Series</span></div>
+          <div class="action-tray">
+            <button class="btn btn-green" onclick="openOrderModal('SOL 15m Above', 0.46, 'BUY ABOVE', 'kalshi')">Above 46% (46¢)</button>
+            <button class="btn btn-red" onclick="openOrderModal('SOL 15m Below', 0.55, 'BUY BELOW', 'kalshi')">Below 55% (55¢)</button>
+            <button class="btn btn-ai-inline" onclick="executeInlineMarketAnalysis('SOL 15-Min (KXSOL15M)', 'Spot: $184.18 vs Target: $184.40', 'ai-box-sol15m')">🤖 Ask Gemini</button>
+          </div>
+          <div class="ai-agent-box" id="ai-box-sol15m"></div>
+        </div>
+
+        <!-- 7. XRP 15m -->
+        <div class="market-card sortable-card" data-sport="crypto">
+          <div class="market-card-head"><span>XRP 15-Min (KXXRP15M) — Target: $0.5840</span><span class="tag live-15m-timer" style="background: #2d1616; color: var(--accent-red); font-weight: 800;">● 15:00</span></div>
+          <div class="market-card-meta"><span>Spot: $0.5844 (+$0.0004 above)</span><span style="color: var(--accent-cyan); font-weight: bold;">CFTC Series</span></div>
+          <div class="action-tray">
+            <button class="btn btn-green" onclick="openOrderModal('XRP 15m Above', 0.52, 'BUY ABOVE', 'kalshi')">Above 52% (52¢)</button>
+            <button class="btn btn-red" onclick="openOrderModal('XRP 15m Below', 0.49, 'BUY BELOW', 'kalshi')">Below 49% (49¢)</button>
+            <button class="btn btn-ai-inline" onclick="executeInlineMarketAnalysis('XRP 15-Min (KXXRP15M)', 'Spot: $0.5844 vs Target: $0.5840', 'ai-box-xrp15m')">🤖 Ask Gemini</button>
+          </div>
+          <div class="ai-agent-box" id="ai-box-xrp15m"></div>
+        </div>
+
+        <!-- 8. DOGE 15m -->
+        <div class="market-card sortable-card" data-sport="crypto">
+          <div class="market-card-head"><span>DOGE 15-Min (KXDOGE15M) — Target: $0.1280</span><span class="tag live-15m-timer" style="background: #2d1616; color: var(--accent-red); font-weight: 800;">● 15:00</span></div>
+          <div class="market-card-meta"><span>Spot: $0.1283 (+$0.0003 above)</span><span style="color: var(--accent-cyan); font-weight: bold;">CFTC Series</span></div>
+          <div class="action-tray">
+            <button class="btn btn-green" onclick="openOrderModal('DOGE 15m Above', 0.53, 'BUY ABOVE', 'kalshi')">Above 53% (53¢)</button>
+            <button class="btn btn-red" onclick="openOrderModal('DOGE 15m Below', 0.48, 'BUY BELOW', 'kalshi')">Below 48% (48¢)</button>
+            <button class="btn btn-ai-inline" onclick="executeInlineMarketAnalysis('DOGE 15-Min (KXDOGE15M)', 'Spot: $0.1283 vs Target: $0.1280', 'ai-box-doge15m')">🤖 Ask Gemini</button>
+          </div>
+          <div class="ai-agent-box" id="ai-box-doge15m"></div>
         </div>
       </div>
     </div>
@@ -831,6 +1098,78 @@
       </div>
     </div>
 
+    <!-- Historical PnL Hub -->
+    <div class="card">
+      <div class="card-header">
+        <span>📊 Historical Performance Hub</span>
+        <span class="tag" style="color: var(--accent-green);">All Desks</span>
+      </div>
+      <div class="stat-grid-3" style="margin-bottom: 12px;">
+        <div class="stat-box">
+          <span class="stat-label">Total Net PnL</span>
+          <span class="stat-value" id="vault-total-pnl" style="color: var(--accent-green);">+$0.00</span>
+        </div>
+        <div class="stat-box">
+          <span class="stat-label">Win Rate</span>
+          <span class="stat-value" id="vault-win-rate">0%</span>
+        </div>
+        <div class="stat-box">
+          <span class="stat-label">Wagers Settled</span>
+          <span class="stat-value" id="vault-settled-count">0</span>
+        </div>
+      </div>
+
+      <div style="font-weight: 800; font-size: 10px; color: var(--text-muted); margin-bottom: 8px; text-transform: uppercase;">
+        Earnings By Platform
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px;">
+        <div style="background: #080c1a; border: 1px solid var(--border-color); border-radius: 8px; padding: 10px; display: flex; justify-content: space-between; align-items: center;">
+          <div>
+            <div style="font-weight: 800; font-size: 11px; color: var(--accent-pink);">Polymarket.us</div>
+            <div style="font-size: 9px; color: var(--text-muted);">Prediction Markets • 0 Fees</div>
+          </div>
+          <div style="text-align: right;">
+            <div style="font-weight: 800; font-size: 11px; color: var(--accent-green);" id="pnl-poly">+$0.00</div>
+            <div style="font-size: 9px; color: var(--text-muted);" id="stats-poly">0 Slips • 0% Win</div>
+          </div>
+        </div>
+
+        <div style="background: #080c1a; border: 1px solid var(--border-color); border-radius: 8px; padding: 10px; display: flex; justify-content: space-between; align-items: center;">
+          <div>
+            <div style="font-weight: 800; font-size: 11px; color: var(--accent-green);">Kalshi Domestic</div>
+            <div style="font-size: 9px; color: var(--text-muted);">CFTC DCM</div>
+          </div>
+          <div style="text-align: right;">
+            <div style="font-weight: 800; font-size: 11px; color: var(--accent-green);" id="pnl-kalshi">+$0.00</div>
+            <div style="font-size: 9px; color: var(--text-muted);" id="stats-kalshi">0 Slips • 0% Win</div>
+          </div>
+        </div>
+
+        <div style="background: #080c1a; border: 1px solid var(--border-color); border-radius: 8px; padding: 10px; display: flex; justify-content: space-between; align-items: center;">
+          <div>
+            <div style="font-weight: 800; font-size: 11px; color: var(--accent-cyan);">Sportsbooks (DK / FD)</div>
+            <div style="font-size: 9px; color: var(--text-muted);">Fleet Imported Parlays</div>
+          </div>
+          <div style="text-align: right;">
+            <div style="font-weight: 800; font-size: 11px; color: var(--accent-green);" id="pnl-books">+$0.00</div>
+            <div style="font-size: 9px; color: var(--text-muted);" id="stats-books">0 Slips • 0% Win</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- UI Resizing & Display Scaling Controls -->
+    <div class="card">
+      <div class="card-header">
+        <span>⚙️ Display Scaling &amp; Font Zoom</span>
+        <span class="tag" id="zoom-level-tag">100%</span>
+      </div>
+      <div class="input-group">
+        <label class="stat-label">Scale Factor (80% – 140%)</label>
+        <input type="range" id="ui-zoom-slider" min="0.8" max="1.4" step="0.05" value="1" oninput="updateUiZoom(this.value)">
+      </div>
+    </div>
+
     <!-- Risk & Circuit Breaker Settings -->
     <div class="card">
       <div class="card-header">
@@ -840,10 +1179,12 @@
       <div class="input-group">
         <label class="stat-label">Large Order Circuit-Breaker Ceiling ($)</label>
         <input type="number" id="risk-ceiling-input" value="25.00" step="1.00" onchange="saveRiskSettings()">
+        <span style="font-size: 9px; color: var(--text-muted); margin-top: 2px;">Orders exceeding this amount require manual confirmation.</span>
       </div>
       <div class="input-group">
         <label class="stat-label">Autonomous Salvage Floor (%)</label>
         <input type="number" id="salvage-floor-input" value="20" min="5" max="50" onchange="saveRiskSettings()">
+        <span style="font-size: 9px; color: var(--text-muted); margin-top: 2px;">Programmatically liquidates contracts before zero equity is reached.</span>
       </div>
     </div>
 
@@ -853,6 +1194,11 @@
         <span>🔐 Bring Your Own Key (BYOK) API Credentials</span>
         <span class="tag">100% Client-Side</span>
       </div>
+      <p style="font-size: 10px; color: var(--text-muted); margin-bottom: 12px; line-height: 1.4;">
+        API keys and private signatures are stored exclusively in your browser sandbox. They never touch a remote server.
+      </p>
+
+      <div style="font-weight: 800; font-size: 11px; color: var(--accent-green); margin-bottom: 6px;">🟢 Kalshi Domestic Trading API</div>
       <div class="input-group">
         <label class="stat-label">Kalshi Key ID</label>
         <div class="password-wrapper">
@@ -860,13 +1206,16 @@
           <button type="button" class="toggle-visibility" onclick="toggleMask('kalshi-key-id')">👁</button>
         </div>
       </div>
-      <div class="input-group">
+
+      <div class="input-group" style="margin-bottom: 14px;">
         <label class="stat-label">Kalshi Private Key (RSA PEM)</label>
         <div class="password-wrapper">
           <input type="password" id="kalshi-private-key" placeholder="Paste RSA Private Key PEM..." autocomplete="off">
           <button type="button" class="toggle-visibility" onclick="toggleMask('kalshi-private-key')">👁</button>
         </div>
       </div>
+
+      <div style="font-weight: 800; font-size: 11px; color: var(--accent-pink); margin-bottom: 6px;">🟣 Polymarket.us Domestic Trading API</div>
       <div class="input-group">
         <label class="stat-label">Polymarket.us API Key ID</label>
         <div class="password-wrapper">
@@ -874,13 +1223,24 @@
           <button type="button" class="toggle-visibility" onclick="toggleMask('poly-key-id')">👁</button>
         </div>
       </div>
+
+      <div class="input-group" style="margin-bottom: 14px;">
+        <label class="stat-label">Polymarket.us Private Signing Key</label>
+        <div class="password-wrapper">
+          <input type="password" id="poly-private-key" placeholder="Paste Private Key / Secret..." autocomplete="off">
+          <button type="button" class="toggle-visibility" onclick="toggleMask('poly-private-key')">👁</button>
+        </div>
+      </div>
+
+      <div style="font-weight: 800; font-size: 11px; color: var(--accent-cyan); margin-bottom: 6px;">🤖 Gemini Agentic Copilot API</div>
       <div class="input-group">
-        <label class="stat-label">Google Gemini API Key (Quant Analyst Engine)</label>
+        <label class="stat-label">Google Gemini API Key (Client-Side AI Insights)</label>
         <div class="password-wrapper">
           <input type="password" id="gemini-api-key" placeholder="Paste Gemini API Key (AIza...)" autocomplete="off">
           <button type="button" class="toggle-visibility" onclick="toggleMask('gemini-api-key')">👁</button>
         </div>
       </div>
+
       <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 10px;">
         <button class="btn btn-gold" onclick="saveVaultCredentials()">Save API Credentials Locally</button>
         <button class="btn btn-danger" onclick="clearLocalStorageVault()">⚠️ Clear All Keys &amp; Slips from Storage</button>
@@ -918,17 +1278,19 @@
 
 </div>
 
-<!-- DIRECT ACTION ORDER MODAL SHEET -->
+<!-- DIRECT ACTION ORDER MODAL SHEET WITH CONFIRM CIRCUIT-BREAKER -->
 <div id="order-modal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 10001; padding: 20px; overflow-y: auto; justify-content: center; align-items: center;">
-  <div style="background: #0d1224; border: 1px solid var(--border-color); border-radius: 14px; max-width: 440px; width: 100%; padding: 18px; color: #fff; font-size: 12px; display: flex; flex-direction: column; gap: 12px;">
+  <div style="background: #0d1224; border: 1px solid var(--border-color); border-radius: 14px; max-width: 440px; width: 100%; padding: 18px; color: #fff; font-size: 12px; display: flex; flex-direction: column; gap: 12px; box-shadow: 0 0 30px rgba(0, 242, 254, 0.2);">
     <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">
       <span style="font-weight: 900; font-size: 14px; color: var(--accent-cyan);" id="order-modal-title">Confirm Execution</span>
       <span style="cursor: pointer; font-size: 16px; color: var(--text-muted);" onclick="closeOrderModal()">✕</span>
     </div>
+
     <div class="input-group">
       <label class="stat-label">Market Target</label>
-      <input type="text" id="modal-market-target" readonly style="background: #080c18; font-weight: bold;">
+      <input type="text" id="modal-market-target" readonly style="background: #080c18; border-color: #1a2340; color: #fff; font-weight: bold;">
     </div>
+
     <div style="display: flex; gap: 8px;">
       <div class="input-group" style="flex: 1;">
         <label class="stat-label">Price / Odds</label>
@@ -939,6 +1301,8 @@
         <input type="number" id="modal-shares" value="1" min="1" step="1" oninput="updateOrderCalculations()">
       </div>
     </div>
+
+    <!-- Auto Take-Profit Configuration -->
     <div class="input-group">
       <label class="stat-label">Auto Take-Profit on Fill</label>
       <div style="display: flex; gap: 6px;">
@@ -949,22 +1313,99 @@
       </div>
       <div id="tp-target-desc" style="font-size: 10px; color: var(--text-muted); margin-top: 2px;">Hold to final settlement.</div>
     </div>
+
     <div class="stat-grid-3" style="margin-bottom: 0;">
-      <div class="stat-box"><span class="stat-label">Total Outlay</span><span class="stat-value" id="modal-outlay-disp">$0.00</span></div>
-      <div class="stat-box"><span class="stat-label">Est. Return</span><span class="stat-value" id="modal-return-disp" style="color: var(--accent-green);">$0.00</span></div>
-      <div class="stat-box"><span class="stat-label">Pre-Flight</span><span class="stat-value" id="modal-guardrail-disp" style="color: var(--accent-cyan); font-size: 10px;">PASSED</span></div>
+      <div class="stat-box">
+        <span class="stat-label">Total Outlay</span>
+        <span class="stat-value" id="modal-outlay-disp">$0.00</span>
+      </div>
+      <div class="stat-box">
+        <span class="stat-label">Est. Return</span>
+        <span class="stat-value" id="modal-return-disp" style="color: var(--accent-green);">$0.00</span>
+      </div>
+      <div class="stat-box">
+        <span class="stat-label">Pre-Flight</span>
+        <span class="stat-value" id="modal-guardrail-disp" style="color: var(--accent-cyan); font-size: 10px;">PASSED</span>
+      </div>
     </div>
+
+    <!-- Large Order Circuit Breaker Challenge -->
+    <div id="modal-circuit-breaker-box" style="display: none; background: rgba(255, 51, 68, 0.1); border: 1px solid var(--accent-red); border-radius: 8px; padding: 10px;">
+      <div style="color: var(--accent-red); font-weight: 800; font-size: 11px; margin-bottom: 4px;">⚠️ LARGE TRANSACTION DETECTED</div>
+      <div style="font-size: 10px; color: var(--text-muted); margin-bottom: 6px;">
+        Outlay exceeds your configured ceiling ($<span id="modal-ceiling-indicator">25.00</span>). Type <strong>CONFIRM</strong> to release safety interlock.
+      </div>
+      <input type="text" id="modal-confirm-input" placeholder="Type CONFIRM..." oninput="checkConfirmChallenge()" style="background: #060814; border-color: var(--accent-red);">
+    </div>
+
     <button class="btn btn-gold" id="modal-submit-btn" style="width: 100%; height: 38px; font-weight: 800;" onclick="submitOrderExecution()">Submit Limit Order</button>
   </div>
 </div>
 
+<!-- SETUP INSTRUCTIONS MODAL SHEET -->
+<div id="setup-modal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 10000; padding: 20px; overflow-y: auto; justify-content: center; align-items: center;">
+  <div style="background: #0d1224; border: 1px solid var(--border-color); border-radius: 14px; max-width: 440px; width: 100%; padding: 18px; color: #fff; font-size: 12px; display: flex; flex-direction: column; gap: 14px; box-shadow: 0 0 30px rgba(0, 242, 254, 0.2);">
+    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">
+      <span style="font-weight: 900; font-size: 14px; color: var(--accent-cyan);">🚀 Terminal Mobile Setup Guide</span>
+      <span style="cursor: pointer; font-size: 16px; color: var(--text-muted);" onclick="closeSetupModal()">✕</span>
+    </div>
+    <div>
+      <div style="font-weight: 800; color: var(--accent-gold); margin-bottom: 4px;">1. Add to Home Screen (PWA Mode)</div>
+      <p style="color: var(--text-muted); font-size: 11px; line-height: 1.4;">
+        1. Open this URL in mobile Safari.<br>
+        2. Tap the <strong>Share</strong> button at the bottom.<br>
+        3. Scroll down and tap <strong>Add to Home Screen</strong>.<br>
+        4. Tap <strong>Add</strong> in the top right. Launch directly from your home screen.
+      </p>
+    </div>
+    <div>
+      <div style="font-weight: 800; color: var(--accent-green); margin-bottom: 4px;">2. Setup 1-Tap Sportsbook Share (iOS)</div>
+      <ol style="padding-left: 16px; color: var(--text-muted); font-size: 11px; line-height: 1.5;">
+        <li>Open the <strong>Shortcuts</strong> app and tap <strong>+</strong>.</li>
+        <li>Rename it to <code>Cosmic Terminal</code>.</li>
+        <li>Tap the info <strong>(i)</strong> icon at the bottom and toggle ON <strong>Show in Share Sheet</strong>.</li>
+        <li>Set input to receive <strong>URLs</strong> and <strong>Text</strong>.</li>
+        <li>Add the action <strong>Get Contents of URL</strong>.</li>
+        <li>Set Method to <strong>POST</strong>, Request Body to <strong>JSON</strong>, Header <code>Content-Type: application/json</code>, and Body Key <code>text</code> = <strong>Shortcut Input</strong>.</li>
+        <li>Paste your unique endpoint URL into the URL field:</li>
+      </ol>
+      <div style="margin-top: 8px; background: #060812; border: 1px solid #1a2340; padding: 8px; border-radius: 6px; font-family: monospace; font-size: 10px; color: var(--accent-cyan); word-break: break-all;" id="modal-endpoint-copy">
+        Loading...
+      </div>
+      <button class="btn btn-gold" style="width: 100%; margin-top: 6px; padding: 6px; font-size: 11px;" onclick="copyEndpointUrl()">Copy My Private URL</button>
+    </div>
+    <button class="btn" style="width: 100%; background: #19223c; margin-top: 4px;" onclick="closeSetupModal()">Got It</button>
+  </div>
+</div>
+
 <script>
+// --- WORKER EDGE HOST CONFIGURATION ---
 const WORKER_BASE = 'https://cosmic-parlays.cosmictrollgaming.workers.dev';
 
 let currentTpMode = null;
 let activeOrderVenue = 'poly';
 let isCarouselPaused = false;
 let currentSportFilter = 'all';
+
+// --- AUDIO CHIME SYNTHESIZER (WEB AUDIO API) ---
+function playAlertChime() {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(880, ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(440, ctx.currentTime + 0.3);
+    gain.gain.setValueAtTime(0.3, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start();
+    osc.stop(ctx.currentTime + 0.3);
+  } catch (e) {
+    console.warn("Audio chime suppressed:", e);
+  }
+}
 
 // --- DATA POOLS (9 SCREENED MATCHUPS) ---
 const SPORTS_PICKS_POOL = [
@@ -1229,6 +1670,25 @@ function switchDeskFilter(desk, button) {
   }
 }
 
+// --- DISPLAY SCALING & UI ZOOM ---
+function updateUiZoom(val) {
+  document.documentElement.style.setProperty('--ui-zoom', val);
+  const tag = document.getElementById('zoom-level-tag');
+  if (tag) tag.textContent = `${Math.round(val * 100)}%`;
+  localStorage.setItem('cosmic_ui_zoom', val);
+}
+
+function loadUiZoom() {
+  const saved = localStorage.getItem('cosmic_ui_zoom');
+  if (saved) {
+    document.documentElement.style.setProperty('--ui-zoom', saved);
+    const slider = document.getElementById('ui-zoom-slider');
+    const tag = document.getElementById('zoom-level-tag');
+    if (slider) slider.value = saved;
+    if (tag) tag.textContent = `${Math.round(saved * 100)}%`;
+  }
+}
+
 // --- PERPETUALS SUB-DESK ---
 function switchPerpSubCategory(sub) {
   document.getElementById('perp-sub-crypto').style.display = sub === 'crypto' ? 'flex' : 'none';
@@ -1316,13 +1776,16 @@ async function executeInlineMarketAnalysis(title, meta, outputBoxId) {
   }
 }
 
-// --- DIRECT EXECUTION ORDER MODAL ---
+// --- DIRECT EXECUTION ORDER MODAL WITH CIRCUIT BREAKER ---
 function openOrderModal(target, defaultPrice, actionLabel, venue) {
   activeOrderVenue = venue;
   document.getElementById('order-modal-title').textContent = `${actionLabel} [${venue.toUpperCase()}]`;
   document.getElementById('modal-market-target').value = target;
   document.getElementById('modal-market-price').value = defaultPrice;
   document.getElementById('modal-shares').value = 1;
+  document.getElementById('modal-confirm-input').value = '';
+  document.getElementById('modal-circuit-breaker-box').style.display = 'none';
+
   selectAutoTp(null, document.getElementById('tp-none'));
   updateOrderCalculations();
   document.getElementById('order-modal').style.display = 'flex';
@@ -1361,14 +1824,89 @@ function updateOrderCalculations() {
 
   document.getElementById('modal-outlay-disp').textContent = `$${outlay.toFixed(2)}`;
   document.getElementById('modal-return-disp').textContent = `$${estReturn.toFixed(2)}`;
+
+  const deployable = parseFloat(document.getElementById('net-available-disp').textContent.replace('$', '')) || 7.00;
+  const ceiling = parseFloat(localStorage.getItem('risk_ceiling') || '25.00');
+  const guardrail = document.getElementById('modal-guardrail-disp');
+  const btn = document.getElementById('modal-submit-btn');
+  const breakerBox = document.getElementById('modal-circuit-breaker-box');
+
+  document.getElementById('modal-ceiling-indicator').textContent = ceiling.toFixed(2);
+
+  if (outlay > deployable) {
+    guardrail.textContent = 'EXCEEDS CASH';
+    guardrail.style.color = 'var(--accent-red)';
+    btn.disabled = true;
+    btn.style.opacity = '0.5';
+    breakerBox.style.display = 'none';
+  } else if (outlay > ceiling) {
+    guardrail.textContent = 'CONFIRM REQ';
+    guardrail.style.color = 'var(--accent-gold)';
+    breakerBox.style.display = 'block';
+    checkConfirmChallenge();
+  } else {
+    guardrail.textContent = 'PASSED';
+    guardrail.style.color = 'var(--accent-cyan)';
+    btn.disabled = false;
+    btn.style.opacity = '1';
+    breakerBox.style.display = 'none';
+  }
+}
+
+function checkConfirmChallenge() {
+  const input = document.getElementById('modal-confirm-input').value.trim();
+  const btn = document.getElementById('modal-submit-btn');
+  if (input === 'CONFIRM') {
+    btn.disabled = false;
+    btn.style.opacity = '1';
+  } else {
+    btn.disabled = true;
+    btn.style.opacity = '0.5';
+  }
 }
 
 async function submitOrderExecution() {
   const target = document.getElementById('modal-market-target').value;
   const price = parseFloat(document.getElementById('modal-market-price').value);
   const shares = parseInt(document.getElementById('modal-shares').value, 10);
-  alert(`Order submitted for ${shares} contracts of ${target} at $${price.toFixed(2)}.`);
+  const outlay = price * shares;
+
+  alert(`Order submitted for ${shares} contracts of ${target} at $${price.toFixed(2)} (Outlay: $${outlay.toFixed(2)}). Auto-exit: ${currentTpMode ? (currentTpMode === 'even' ? 'Break-Even' : `+${currentTpMode * 100}%`) : 'Hold'}.`);
   closeOrderModal();
+}
+
+function saveRiskSettings() {
+  const ceiling = document.getElementById('risk-ceiling-input').value;
+  const floor = document.getElementById('salvage-floor-input').value;
+  if (ceiling) localStorage.setItem('risk_ceiling', ceiling);
+  if (floor) localStorage.setItem('salvage_floor', floor);
+}
+
+function loadRiskSettings() {
+  const ceiling = localStorage.getItem('risk_ceiling');
+  const floor = localStorage.getItem('salvage_floor');
+  if (ceiling && document.getElementById('risk-ceiling-input')) document.getElementById('risk-ceiling-input').value = ceiling;
+  if (floor && document.getElementById('salvage-floor-input')) document.getElementById('salvage-floor-input').value = floor;
+}
+
+// --- DUAL-EXCHANGE LIVE BALANCE POLLING ---
+async function fetchLiveExchangeBalances() {
+  try {
+    const kRes = await fetch(`${WORKER_BASE}/api/kalshi/trade/portfolio/balance`).catch(() => null);
+    const kData = kRes && kRes.ok ? await kRes.json() : { balance: 0 };
+    const pRes = await fetch(`${WORKER_BASE}/api/poly/balance`).catch(() => null);
+    const pData = pRes && pRes.ok ? await pRes.json() : { balance: 7.00 };
+
+    const kBal = (kData.balance || 0) / 100;
+    const pBal = pData.balance || 7.00;
+    const total = kBal + pBal;
+
+    document.getElementById('kalshi-balance-disp').textContent = `$${kBal.toFixed(2)}`;
+    document.getElementById('poly-balance-disp').textContent = `$${pBal.toFixed(2)}`;
+    document.getElementById('net-available-disp').textContent = `$${total.toFixed(2)}`;
+  } catch (err) {
+    console.warn("Balance poller deferred:", err);
+  }
 }
 
 // --- BYOK VAULT & INITIALIZATION ---
@@ -1381,35 +1919,317 @@ function saveVaultCredentials() {
   const kKey = document.getElementById('kalshi-key-id')?.value.trim();
   const kPriv = document.getElementById('kalshi-private-key')?.value.trim();
   const pKey = document.getElementById('poly-key-id')?.value.trim();
+  const pPriv = document.getElementById('poly-private-key')?.value.trim();
   const gKey = document.getElementById('gemini-api-key')?.value.trim();
 
   if (kKey) localStorage.setItem('kalshi_key_id', kKey);
   if (kPriv) localStorage.setItem('kalshi_private_key', kPriv);
   if (pKey) localStorage.setItem('poly_key_id', pKey);
+  if (pPriv) localStorage.setItem('poly_private_key', pPriv);
   if (gKey) localStorage.setItem('gemini_api_key', gKey);
 
   alert("Credentials securely locked into local browser storage.");
+  updateVaultStatusUI();
+}
+
+function clearLocalStorageVault() {
+  if (confirm("Completely wipe all saved keys, slips, and session data from this device?")) {
+    localStorage.clear();
+    document.getElementById('kalshi-key-id').value = '';
+    document.getElementById('kalshi-private-key').value = '';
+    document.getElementById('poly-key-id').value = '';
+    document.getElementById('poly-private-key').value = '';
+    document.getElementById('gemini-api-key').value = '';
+    renderFleetTickets();
+    updateVaultStatusUI();
+    alert("Storage wiped completely.");
+  }
+}
+
+function updateVaultStatusUI() {
+  const kKey = localStorage.getItem('kalshi_key_id');
+  const pKey = localStorage.getItem('poly_key_id');
+  const traderTag = document.getElementById('trader-mode-tag');
+
+  const kalshiLinked = !!kKey;
+  const polyLinked = !!pKey;
+
+  if (traderTag) {
+    if (kalshiLinked || polyLinked) {
+      traderTag.textContent = "Trader Mode Active";
+      traderTag.style.color = "var(--accent-green)";
+    } else {
+      traderTag.textContent = "Disconnected";
+      traderTag.style.color = "var(--text-muted)";
+    }
+  }
 }
 
 function loadVaultCredentials() {
   const kKey = localStorage.getItem('kalshi_key_id');
   const kPriv = localStorage.getItem('kalshi_private_key');
   const pKey = localStorage.getItem('poly_key_id');
+  const pPriv = localStorage.getItem('poly_private_key');
   const gKey = localStorage.getItem('gemini_api_key');
 
   if (kKey && document.getElementById('kalshi-key-id')) document.getElementById('kalshi-key-id').value = kKey;
   if (kPriv && document.getElementById('kalshi-private-key')) document.getElementById('kalshi-private-key').value = kPriv;
   if (pKey && document.getElementById('poly-key-id')) document.getElementById('poly-key-id').value = pKey;
+  if (pPriv && document.getElementById('poly-private-key')) document.getElementById('poly-private-key').value = pPriv;
   if (gKey && document.getElementById('gemini-api-key')) document.getElementById('gemini-api-key').value = gKey;
+
+  updateVaultStatusUI();
+}
+
+// --- FLEET TRACKER & ZERO-PATH SALVAGE ENGINE ---
+function getOrCreateClientUuid() {
+  let uuid = localStorage.getItem('cosmic_fleet_uuid');
+  if (!uuid) {
+    uuid = 'cpt_' + crypto.randomUUID().slice(0, 12);
+    localStorage.setItem('cosmic_fleet_uuid', uuid);
+  }
+  const tag = document.getElementById('fleet-uuid-tag');
+  if (tag) tag.textContent = `ENDPOINT: ${uuid}`;
+  return uuid;
+}
+
+function updateTtlPreference() {
+  const select = document.getElementById('user-ttl-select');
+  if (select) localStorage.setItem('cosmic_slip_ttl', select.value);
+}
+
+function loadLocalFleetTickets() {
+  return JSON.parse(localStorage.getItem('cosmic_fleet_tickets') || '[]');
+}
+
+function saveLocalFleetTickets(tickets) {
+  localStorage.setItem('cosmic_fleet_tickets', JSON.stringify(tickets));
+  renderFleetTickets();
+}
+
+function updateFleetMetrics(tickets) {
+  let totalRisk = 0;
+  let totalPayout = 0;
+
+  tickets.forEach(t => {
+    if (typeof t.stake === 'number' && !isNaN(t.stake)) totalRisk += t.stake;
+    if (typeof t.payout === 'number' && !isNaN(t.payout)) totalPayout += t.payout;
+  });
+
+  const countEl = document.getElementById('fleet-slips-count');
+  const riskEl = document.getElementById('fleet-risk-val');
+  const payoutEl = document.getElementById('fleet-payout-val');
+  const navBadge = document.getElementById('nav-fleet-count');
+
+  if (countEl) countEl.textContent = tickets.length;
+  if (navBadge) navBadge.textContent = tickets.length;
+  if (riskEl) riskEl.textContent = `$${totalRisk.toFixed(2)}`;
+  if (payoutEl) payoutEl.textContent = `$${totalPayout.toFixed(2)}`;
+}
+
+function renderFleetTickets() {
+  const container = document.getElementById('fleet-tickets-container');
+  const tickets = loadLocalFleetTickets();
+  updateFleetMetrics(tickets);
+
+  if (!container) return;
+
+  if (tickets.length === 0) {
+    container.innerHTML = '<div style="color: var(--text-muted); font-size: 10px; padding: 12px; text-align: center; border: 1px dashed var(--border-color); border-radius: 6px;">No imported slips active.</div>';
+    return;
+  }
+
+  container.innerHTML = tickets.map((t, idx) => `
+    <div class="ticket-card ${t.danger ? 'ticket-danger' : ''}">
+      <div style="display: flex; justify-content: space-between; font-weight: bold; margin-bottom: 4px;">
+        <span style="color: var(--accent-cyan);">${t.book} [${t.betId || 'Slip'}]</span>
+        <span style="color: var(--accent-gold);">${t.odds ? (t.odds.startsWith('+') || t.odds.startsWith('-') ? t.odds : '+' + t.odds) : ''} | Ret: $${t.payout ? t.payout.toFixed(2) : '--'}</span>
+      </div>
+      <div style="color: var(--text-muted); font-size: 9px; margin-bottom: 6px; display: flex; justify-content: space-between;">
+        <span>Stake: $${t.stake ? t.stake.toFixed(2) : '--'} | ${new Date(t.timestamp).toLocaleTimeString()}</span>
+        <span style="cursor: pointer; color: var(--accent-pink);" onclick="removeSlip(${idx})">✕ Remove</span>
+      </div>
+      <div style="padding-left: 8px; border-left: 2px solid ${t.danger ? 'var(--accent-red)' : 'var(--accent-pink)'};">
+        ${(t.legs || []).map(l => `<div style="font-size: 10px; color: #fff;">• ${l}</div>`).join('')}
+      </div>
+      ${t.dangerReason ? `<div style="color: var(--accent-red); font-size: 9px; margin-top: 4px; font-weight: bold;">🚨 AUTO-SALVAGE: ${t.dangerReason}</div>` : ''}
+    </div>
+  `).join('');
+}
+
+function removeSlip(index) {
+  const tickets = loadLocalFleetTickets();
+  tickets.splice(index, 1);
+  saveLocalFleetTickets(tickets);
+}
+
+async function pollSharedSlips() {
+  const uuid = getOrCreateClientUuid();
+  try {
+    const res = await fetch(`${WORKER_BASE}/api/fleet/pull/${uuid}`);
+    if (!res.ok) return;
+    const data = await res.json();
+    if (data.pending && data.pending.length > 0) {
+      const current = loadLocalFleetTickets();
+      data.pending.forEach(item => {
+        if (!current.some(c => c.id === item.id)) current.unshift(item);
+      });
+      saveLocalFleetTickets(current);
+    }
+  } catch (err) {
+    console.warn("Slip poll deferred:", err);
+  }
+}
+
+function parseSanitizedSlipText(rawText) {
+  const result = {
+    book: /draftkings/i.test(rawText) ? 'DraftKings' : /fanduel/i.test(rawText) ? 'FanDuel' : /polymarket/i.test(rawText) ? 'Polymarket' : 'Sportsbook',
+    legs: []
+  };
+
+  const textWithoutUrls = (rawText || "").replace(/https?:\/\/[^\s]+/g, "");
+  const oddsMatch = textWithoutUrls.match(/(?:^|\s)([+-]\d{3,4})\b/);
+  if (oddsMatch) result.odds = oddsMatch[1].trim();
+
+  const stakeMatch = (rawText || "").match(/(?:Wager|Stake|Amount):\s*\$([0-9.]+)/i);
+  if (stakeMatch) result.stake = parseFloat(stakeMatch[1]);
+
+  const payoutMatch = (rawText || "").match(/(?:Payout|To Win|Return):\s*\$([0-9.]+)/i);
+  if (payoutMatch) result.payout = parseFloat(payoutMatch[1]);
+
+  const lines = (rawText || "").split("\n").map(l => l.trim()).filter(l => l.length > 0);
+  lines.forEach(line => {
+    if (/[+-\d]|\b(Under|Over|Spread|ML|Run Line|Strikeouts|Total)\b/i.test(line) && !line.includes("Payout") && !line.includes("Wager") && !line.includes("Stake") && !line.startsWith("http")) {
+      result.legs.push(line);
+    }
+  });
+
+  if (result.legs.length === 0 && rawText) {
+    result.legs.push(rawText.length > 120 ? rawText.slice(0, 120) + "..." : rawText);
+  }
+
+  return result;
+}
+
+function ingestManualSlip() {
+  const input = document.getElementById('manual-slip-input');
+  if (!input || !input.value.trim()) return;
+
+  const raw = input.value.trim();
+  const parsed = parseSanitizedSlipText(raw);
+  const ticket = {
+    id: `manual_${Date.now()}`,
+    book: parsed.book,
+    raw: raw,
+    timestamp: Date.now(),
+    legs: parsed.legs,
+    odds: parsed.odds,
+    stake: parsed.stake,
+    payout: parsed.payout
+  };
+
+  const current = loadLocalFleetTickets();
+  current.unshift(ticket);
+  saveLocalFleetTickets(current);
+  input.value = '';
+}
+
+function promptAdPasskey() {
+  const passkey = prompt("Enter Pro Passkey to Remove Ads:");
+  if (passkey) {
+    localStorage.setItem('cosmic_ad_free', 'true');
+    const banner = document.getElementById('sponsor-banner');
+    if (banner) banner.style.display = 'none';
+    alert("Cosmic Pro Active: Ads Removed!");
+  }
+}
+
+function checkAdState() {
+  if (localStorage.getItem('cosmic_ad_free') === 'true') {
+    const banner = document.getElementById('sponsor-banner');
+    if (banner) banner.style.display = 'none';
+  }
+}
+
+function openSetupModal() {
+  const uuid = getOrCreateClientUuid();
+  const endpointEl = document.getElementById('modal-endpoint-copy');
+  if (endpointEl) endpointEl.textContent = `${WORKER_BASE}/api/fleet/ingest/${uuid}`;
+  const modal = document.getElementById('setup-modal');
+  if (modal) modal.style.display = 'flex';
+}
+
+function closeSetupModal() {
+  const modal = document.getElementById('setup-modal');
+  if (modal) modal.style.display = 'none';
+}
+
+function copyEndpointUrl() {
+  const uuid = getOrCreateClientUuid();
+  const url = `${WORKER_BASE}/api/fleet/ingest/${uuid}`;
+  navigator.clipboard.writeText(url).then(() => {
+    alert("Private endpoint URL copied to clipboard!");
+  }).catch(() => {
+    prompt("Copy your private endpoint URL:", url);
+  });
+}
+
+function refreshCurrentTab() {
+  const activeTab = document.querySelector('.tab-view.active');
+  if (!activeTab) return;
+  if (activeTab.id === 'view-fleet') pollSharedSlips();
+  if (activeTab.id === 'view-poly') fetchLivePoly();
+}
+
+async function fetchLivePoly() {
+  const container = document.getElementById('poly-live-feed');
+  try {
+    const res = await fetch(`${WORKER_BASE}/api/polymarket/markets`);
+    if (!res.ok) throw new Error("Poly unavailable");
+    const data = await res.json();
+    if (Array.isArray(data) && data.length > 0) {
+      container.innerHTML = data.slice(0, 8).map((ev, idx) => {
+        return `
+          <div class="market-card">
+            <div class="market-card-head">
+              <span>${ev.title}</span>
+              <span class="tag" style="background: #1b1330; color: var(--accent-pink);">POLY.US</span>
+            </div>
+            <div class="market-card-meta">
+              <span>Volume: $${Math.round(ev.volume || 0).toLocaleString()}</span>
+              <span style="color: var(--accent-green); font-weight: 800;">CLOB Active</span>
+            </div>
+            <div class="action-tray">
+              <button class="btn btn-green" onclick="openOrderModal('${ev.title.replace(/'/g, "\\'")}', 0.50, 'BUY YES', 'poly')">Buy YES</button>
+              <button class="btn btn-red" onclick="openOrderModal('${ev.title.replace(/'/g, "\\'")}', 0.50, 'BUY NO', 'poly')">Buy NO</button>
+              <button class="btn btn-ai-inline" onclick="executeInlineMarketAnalysis('${ev.title.replace(/'/g, "\\'")}', 'Volume: $${Math.round(ev.volume || 0).toLocaleString()}', 'poly-ai-${idx}')">🤖 Ask Gemini</button>
+            </div>
+            <div class="ai-agent-box" id="poly-ai-${idx}"></div>
+          </div>
+        `;
+      }).join('');
+    }
+  } catch (err) {
+    container.innerHTML = '<div style="font-size: 11px; color: var(--text-muted); text-align: center; padding: 10px;">Polymarket CLOB proxy active.</div>';
+  }
 }
 
 // --- INITIALIZATION ---
 window.addEventListener('DOMContentLoaded', () => {
+  loadUiZoom();
+  loadRiskSettings();
+  checkAdState();
+  getOrCreateClientUuid();
   loadVaultCredentials();
+  fetchLiveExchangeBalances();
+  renderFleetTickets();
+
   renderCarouselSet(SPORTS_PICKS_POOL, 0, 'sports-picks-container', 'sports-dots', 'SPORTS');
   renderCarouselSet(ESPORTS_PICKS_POOL, 0, 'esports-picks-container', 'esports-dots', 'ESPORTS');
 
   setInterval(rotateCarousels, 6000);
+  setInterval(pollSharedSlips, 10000);
+  setInterval(fetchLiveExchangeBalances, 30000);
   updateSynchronized15MinTimers();
   setInterval(updateSynchronized15MinTimers, 1000);
 });
