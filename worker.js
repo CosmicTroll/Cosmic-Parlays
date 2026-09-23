@@ -1,8 +1,8 @@
 // ============================================================================
-// COSMIC TERMINAL - MASTER WORKER (v3.3.0-expanded-fast-desk)
+// COSMIC TERMINAL - MASTER WORKER (v3.3.1-unfiltered-quant-edge)
 // Sovereign Edge Execution, Defensive Schema Proving, Anti-Stale Circuit Breaker,
 // Kalshi Full 8-Asset 15M Live Resolver, Polymarket US Domestic Balance Relay,
-// Autonomous Salvage/Sniper Engine & Thin-Book Partial Fill Management
+// Quant-Restricted Gemini Relay with Moderation Bypass & Autonomous 60s Sentinel
 // ============================================================================
 
 const CORS_HEADERS = {
@@ -130,7 +130,7 @@ export default {
 
       try {
         const mlbRes = await fetch("https://statsapi.mlb.com/api/v1/schedule?sportId=1&hydrate=linescore,team", {
-          headers: { "Accept": "application/json", "User-Agent": "CosmicTerminal/3.3.0" }
+          headers: { "Accept": "application/json", "User-Agent": "CosmicTerminal/3.3.1" }
         });
         if (mlbRes.ok) {
           const mlbData = await mlbRes.json();
@@ -142,7 +142,7 @@ export default {
 
       try {
         const nflRes = await fetch("https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard", {
-          headers: { "Accept": "application/json", "User-Agent": "CosmicTerminal/3.3.0" }
+          headers: { "Accept": "application/json", "User-Agent": "CosmicTerminal/3.3.1" }
         });
         if (nflRes.ok) {
           const nflData = await nflRes.json();
@@ -254,7 +254,7 @@ export default {
       return new Response(JSON.stringify({ 
         status: "healthy", 
         env: "production", 
-        build: "3.3.0-expanded-fast-desk",
+        build: "3.3.1-unfiltered-quant-edge",
         edgeAutonomous: true
       }), {
         headers: { ...CORS_HEADERS, "Content-Type": "application/json" }
@@ -285,7 +285,7 @@ export default {
       if (sport === "mlb") {
         try {
           const res = await fetch("https://statsapi.mlb.com/api/v1/schedule?sportId=1&hydrate=linescore,team", {
-            headers: { "Accept": "application/json", "User-Agent": "CosmicTerminal/3.3.0" }
+            headers: { "Accept": "application/json", "User-Agent": "CosmicTerminal/3.3.1" }
           });
           return new Response(await res.text(), {
             headers: { ...CORS_HEADERS, "Content-Type": "application/json" }
@@ -298,7 +298,7 @@ export default {
       if (sport === "nfl") {
         try {
           const res = await fetch("https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard", {
-            headers: { "Accept": "application/json", "User-Agent": "CosmicTerminal/3.3.0" }
+            headers: { "Accept": "application/json", "User-Agent": "CosmicTerminal/3.3.1" }
           });
           return new Response(await res.text(), {
             headers: { ...CORS_HEADERS, "Content-Type": "application/json" }
@@ -311,7 +311,7 @@ export default {
       if (sport === "nba") {
         try {
           const res = await fetch("https://site.api.espn.com/apis/site/v2/sports/basketball/nba/scoreboard", {
-            headers: { "Accept": "application/json", "User-Agent": "CosmicTerminal/3.3.0" }
+            headers: { "Accept": "application/json", "User-Agent": "CosmicTerminal/3.3.1" }
           });
           return new Response(await res.text(), {
             headers: { ...CORS_HEADERS, "Content-Type": "application/json" }
@@ -336,7 +336,7 @@ export default {
         const fetchPromises = seriesList.map(async (seriesTicker) => {
           try {
             const res = await fetch(`https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=${seriesTicker}&status=open&limit=1`, {
-              headers: { "Accept": "application/json", "User-Agent": "CosmicTerminal/3.3.0" }
+              headers: { "Accept": "application/json", "User-Agent": "CosmicTerminal/3.3.1" }
             });
             if (!res.ok) return null;
             const data = await res.json();
@@ -425,7 +425,7 @@ export default {
             "X-PM-Access-Key": pmKey,
             "X-PM-Signature": pmSig || "",
             "X-PM-Timestamp": pmTs,
-            "User-Agent": "CosmicTerminal/3.3.0"
+            "User-Agent": "CosmicTerminal/3.3.1"
           }
         });
 
@@ -450,7 +450,7 @@ export default {
       try {
         const target = `https://gamma-api.polymarket.com/events?closed=false&limit=20${url.search.replace("?", "&")}`;
         const polyRes = await fetch(target, { 
-          headers: { "Accept": "application/json", "User-Agent": "CosmicTerminal/3.3.0" } 
+          headers: { "Accept": "application/json", "User-Agent": "CosmicTerminal/3.3.1" } 
         });
         return new Response(await polyRes.text(), {
           headers: { ...CORS_HEADERS, "Content-Type": "application/json" }
@@ -533,7 +533,7 @@ export default {
     }
 
     // ------------------------------------------------------------------------
-    // 10. Quant-Restricted Gemini Relay
+    // 10. Quant-Restricted Gemini Relay with Moderation Bypass
     // ------------------------------------------------------------------------
     if (url.pathname === "/api/agent/gemini" && request.method === "POST") {
       try {
@@ -564,14 +564,34 @@ Instructions:
 3. Provide exactly two factual sentences on momentum and price distance relative to target.
 Do NOT use conversational filler. Deliver raw quantitative analysis only.`;
 
+        // Explicit BLOCK_NONE safety thresholds to prevent false-positive blocks on betting/probability terms
+        const safetySettings = [
+          { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" },
+          { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_NONE" },
+          { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_NONE" },
+          { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_NONE" }
+        ];
+
         const geminiRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${clientApiKey}`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ contents: [{ parts: [{ text: promptText }] }] })
+          body: JSON.stringify({ 
+            contents: [{ parts: [{ text: promptText }] }],
+            safetySettings: safetySettings
+          })
         });
 
         const geminiData = await geminiRes.json();
-        const outputText = geminiData?.candidates?.[0]?.content?.parts?.[0]?.text || "No inference returned.";
+
+        if (geminiData.error) {
+          return new Response(JSON.stringify({ error: geminiData.error.message }), {
+            status: 400,
+            headers: { ...CORS_HEADERS, "Content-Type": "application/json" }
+          });
+        }
+
+        const outputText = geminiData?.candidates?.[0]?.content?.parts?.[0]?.text || 
+                           (geminiData?.candidates?.[0]?.finishReason ? `Blocked: ${geminiData.candidates[0].finishReason}` : "No inference returned.");
 
         return new Response(JSON.stringify({ analysis: outputText }), {
           headers: { ...CORS_HEADERS, "Content-Type": "application/json" }
