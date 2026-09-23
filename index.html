@@ -506,7 +506,7 @@
 
   <!-- VIEW 1: PICKS & MULTI-DESK -->
   <div class="tab-view active" id="view-picks">
-    <!-- Capital Shielding & Sniper Telemetry Bar (Zero Hardcoded Values) -->
+    <!-- Capital Shielding & Sniper Telemetry Bar (Dynamic Hydration) -->
     <div class="card" style="border-color: rgba(0, 242, 254, 0.3);">
       <div class="card-header">
         <span>⚡ Auto-Sniper &amp; Shielded Capital</span>
@@ -1524,6 +1524,77 @@ async function syncConfigToEdge() {
   }
 }
 
+// --- AUTOMATED DUAL-EXCHANGE BALANCE INGESTION ---
+async function fetchLiveExchangeBalances() {
+  const kKey = localStorage.getItem('kalshi_key_id');
+  const pKey = localStorage.getItem('poly_key_id');
+  const pPriv = localStorage.getItem('poly_private_key');
+
+  let kalshiCash = 0.00;
+  let polyCash = 0.00;
+  let hasLiveConnection = false;
+
+  // 1. Fetch Kalshi Balance via Worker RSA Relay
+  if (kKey) {
+    try {
+      const res = await fetch('/api/kalshi/trade/portfolio/balance', {
+        headers: {
+          'KALSHI-ACCESS-KEY': kKey,
+          'KALSHI-ACCESS-TIMESTAMP': Date.now().toString()
+        }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (typeof data.balance === 'number') {
+          kalshiCash = data.balance / 100;
+          hasLiveConnection = true;
+          const kEl = document.getElementById('pnl-kalshi');
+          if (kEl) kEl.textContent = `$${kalshiCash.toFixed(2)}`;
+        }
+      }
+    } catch (e) {
+      console.warn("[Auto-Balance] Kalshi balance deferred:", e.message);
+    }
+  }
+
+  // 2. Fetch Polymarket US Balance via Authenticated Route
+  if (pKey) {
+    try {
+      const res = await fetch('/api/poly/balance', {
+        headers: {
+          'X-PM-Access-Key': pKey,
+          'X-PM-Signature': pPriv || '',
+          'X-PM-Timestamp': Date.now().toString()
+        }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        const bal = parseFloat(data.balance || data.cash || data.available || 0);
+        if (!isNaN(bal)) {
+          polyCash = bal;
+          hasLiveConnection = true;
+          const pEl = document.getElementById('pnl-poly');
+          if (pEl) pEl.textContent = `$${polyCash.toFixed(2)}`;
+        }
+      }
+    } catch (e) {
+      console.warn("[Auto-Balance] Poly.us balance deferred:", e.message);
+    }
+  }
+
+  // 3. Update Global State if active exchange accounts respond
+  if (hasLiveConnection) {
+    const totalLiquid = (kalshiCash + polyCash).toFixed(2);
+    localStorage.setItem('cosmic_total_funds', totalLiquid);
+    
+    const inputEl = document.getElementById('total-funds-input');
+    if (inputEl) inputEl.value = totalLiquid;
+
+    updateCapitalShieldDisplay();
+    syncConfigToEdge();
+  }
+}
+
 // --- DYNAMIC QUEUE POOLS ---
 const nowMs = Date.now();
 
@@ -2134,6 +2205,7 @@ function refreshCurrentTab() {
   }
   if (activeTab.id === 'view-perps') pollLive15MinMarkets();
   if (activeTab.id === 'view-vault') calculateVaultEarnings();
+  fetchLiveExchangeBalances();
 }
 
 function promptAdPasskey() {
@@ -2225,6 +2297,7 @@ function saveVaultCredentials() {
   alert("Credentials saved locally and synced to Edge Sentinel.");
   updateVaultStatusUI();
   syncConfigToEdge();
+  fetchLiveExchangeBalances();
 }
 
 function clearLocalStorageVault() {
@@ -2495,6 +2568,9 @@ window.addEventListener('DOMContentLoaded', () => {
 
   verifyAllLivePositions();
   setInterval(verifyAllLivePositions, 10000);
+
+  fetchLiveExchangeBalances();
+  setInterval(fetchLiveExchangeBalances, 15000);
 
   switchDeskFilter('all', document.getElementById('desk-btn-all'));
 });
