@@ -1861,16 +1861,15 @@ async function executeInlineMarketAnalysis(title, meta, outputBoxId) {
     } else {
       throw new Error("No response");
     }
-  } catch (err) {
+    } catch (err) {
     box.innerHTML = `
-      <div style="color: var(--accent-green); font-weight: 800;">Recommendation: High-Probability Limit Entry</div>
+      <div style="color: var(--accent-red); font-weight: 800;">⚠️ Gemini Live Inference Error</div>
       <div style="color: var(--text-muted); font-size: 10px; margin-top: 4px;">
-        • Edge Verified: Target pricing sits within quantitative safety parameters.<br>
-        • Execution Discipline: Post maker limit orders inside resting spread to avoid taker fee drag.<br>
-        • Capital Protection: Set Auto-TP to +50% or hold to final settlement.
+        ${err.message || 'Check your Gemini API Key in the Vault tab.'}
       </div>
     `;
   }
+
 }
 
 // --- DIRECT EXECUTION ORDER MODAL WITH CIRCUIT BREAKER ---
