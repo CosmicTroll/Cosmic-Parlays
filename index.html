@@ -96,7 +96,7 @@
       margin-right: 6px;
     }
 
-    /* Filter & Sorter Bars */
+    /* Navigation & Sorter Bars */
     .pill-nav, .sort-nav {
       display: flex;
       gap: 6px;
@@ -381,16 +381,16 @@
     <button class="pill-btn" onclick="switchCategoryFilter('politics', this)">🏛 Politics</button>
   </div>
 
-  <!-- Secondary Sorter Bar -->
+  <!-- Active Dynamic Sorter Bar -->
   <div class="sort-nav">
     <span class="sort-label">SORT:</span>
     <button class="sort-btn active" onclick="switchSortOrder('roi-high', this)">🔥 Top ROI</button>
     <button class="sort-btn" onclick="switchSortOrder('roi-low', this)">📉 Low ROI</button>
     <button class="sort-btn" onclick="switchSortOrder('ending', this)">⏳ Ending Soonest</button>
-    <button class="sort-btn" onclick="switchSortOrder('today', this)">📅 Today</button>
+    <button class="sort-btn" onclick="switchSortOrder('today', this)">📅 Upcoming Slate</button>
   </div>
 
-  <!-- VIEW 1: PICKS & EV BOARD -->
+  <!-- VIEW 1: PICKS & EV BOARD (FRESH UNSTARTED GAMES) -->
   <div class="tab-view active" id="view-picks">
     <div class="card">
       <div class="card-header">
@@ -406,81 +406,87 @@
       </div>
     </div>
 
-    <!-- Sports EV Board -->
+    <!-- Sports EV Board (Fresh Unstarted MLB & NFL Slate) -->
     <div class="card market-section" id="section-sports">
       <div class="card-header">
         <span>🏈 Top 3 Sports Picks (MLB / NFL EV)</span>
         <span class="tag" style="color: var(--accent-cyan);">Edge Screened</span>
       </div>
-      <div style="display: flex; flex-direction: column; gap: 8px;">
-        <div class="market-card">
+      <div id="sports-picks-container" style="display: flex; flex-direction: column; gap: 8px;">
+        <!-- Card 1 -->
+        <div class="market-card sortable-card" data-roi="28.2" data-expiry="1727111400000">
           <div class="market-card-head">
-            <span>Brewers @ Phillies — First 5 Under 6.5 Total Runs</span>
+            <span>Nationals @ Tigers — First 5 Under 4.5 Total Runs</span>
             <span class="tag" style="background: #1b1330; color: var(--accent-pink);">POLY.US</span>
           </div>
           <div class="market-card-meta">
-            <span>Pick: YES Under 6.5 F5 @ $0.83 (83% Implied)</span>
-            <span style="color: var(--accent-green); font-weight: 800;">+20.4% ROI</span>
+            <span>Pick: YES Under 4.5 F5 @ $0.78 (78% Implied) • 1:10 PM ET</span>
+            <span style="color: var(--accent-green); font-weight: 800;">+28.2% ROI</span>
           </div>
         </div>
-        <div class="market-card">
+        <!-- Card 2 -->
+        <div class="market-card sortable-card" data-roi="22.0" data-expiry="1727112900000">
           <div class="market-card-head">
-            <span>Rays @ Yankees (G2) — First 5 Under 6.5 Total Runs</span>
-            <span class="tag" style="background: #1b1330; color: var(--accent-pink);">POLY.US</span>
-          </div>
-          <div class="market-card-meta">
-            <span>Pick: YES Under 6.5 F5 @ $0.85 (85% Implied)</span>
-            <span style="color: var(--accent-green); font-weight: 800;">+17.6% ROI</span>
-          </div>
-        </div>
-        <div class="market-card">
-          <div class="market-card-head">
-            <span>Mets @ Rangers — Texas Rangers +2.5 Runline</span>
+            <span>Blue Jays @ Orioles — Baltimore Orioles Moneyline</span>
             <span class="tag" style="background: #12281a; color: var(--accent-green);">KALSHI</span>
           </div>
           <div class="market-card-meta">
-            <span>Pick: YES Rangers +2.5 @ $0.78 (78% Implied)</span>
-            <span style="color: var(--accent-green); font-weight: 800;">+28.2% ROI</span>
+            <span>Pick: YES Orioles ML @ $0.82 (82% Implied) • 1:35 PM ET</span>
+            <span style="color: var(--accent-green); font-weight: 800;">+22.0% ROI</span>
+          </div>
+        </div>
+        <!-- Card 3 -->
+        <div class="market-card sortable-card" data-roi="19.0" data-expiry="1727223300000">
+          <div class="market-card-head">
+            <span>NFL TNF: Falcons @ Packers — Over 44.5 Total Points</span>
+            <span class="tag" style="background: #1b1330; color: var(--accent-pink);">POLY.US</span>
+          </div>
+          <div class="market-card-meta">
+            <span>Pick: YES Over 44.5 @ $0.84 (84% Implied) • Thursday 8:15 PM ET</span>
+            <span style="color: var(--accent-green); font-weight: 800;">+19.0% ROI</span>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Esports EV Board -->
+    <!-- Esports EV Board (Fresh Unstarted CS2 Matches) -->
     <div class="card market-section" id="section-esports">
       <div class="card-header">
         <span>🎮 Esports Desk (Top 3 Picks)</span>
         <span style="font-size: 10px; color: var(--accent-cyan); cursor: pointer;" onclick="switchCategoryFilter('esports', document.querySelectorAll('.pill-btn')[1])">Open Hub →</span>
       </div>
-      <div style="display: flex; flex-direction: column; gap: 8px;">
-        <div class="market-card">
+      <div id="esports-picks-container" style="display: flex; flex-direction: column; gap: 8px;">
+        <!-- Card 1 -->
+        <div class="market-card sortable-card" data-roi="88.0" data-expiry="1727078400000">
           <div class="market-card-head">
-            <span>CS2: Saint Sinners vs KUUSAMO.gg (BO3)</span>
+            <span>CS2: G2 Ares vs INOX Division (BO3)</span>
             <span class="tag" style="background: #1b1330; color: var(--accent-pink);">POLY.US</span>
           </div>
           <div class="market-card-meta">
-            <span>Pick: YES [Map 1 Winner] @ $0.50 (50% Implied)</span>
-            <span style="color: var(--accent-green); font-weight: 800;">+100% ROI</span>
+            <span>Pick: YES G2 Ares Winner @ $0.53 (53% Implied) • 4:00 AM ET</span>
+            <span style="color: var(--accent-green); font-weight: 800;">+88.7% ROI</span>
           </div>
         </div>
-        <div class="market-card">
+        <!-- Card 2 -->
+        <div class="market-card sortable-card" data-roi="40.8" data-expiry="1727104500000">
           <div class="market-card-head">
-            <span>CS2: Saint Sinners vs KUUSAMO.gg — Rounds Spread</span>
+            <span>CS2: Optibet vs Four Magic (BO3)</span>
             <span class="tag" style="background: #1b1330; color: var(--accent-pink);">POLY.US</span>
           </div>
           <div class="market-card-meta">
-            <span>Pick: YES [Map 1 Rounds Handicap -2.5] @ $0.55</span>
-            <span style="color: var(--accent-green); font-weight: 800;">+81.8% ROI</span>
+            <span>Pick: YES Optibet [Map 1 Winner] @ $0.71 (71% Implied) • 11:15 AM ET</span>
+            <span style="color: var(--accent-green); font-weight: 800;">+40.8% ROI</span>
           </div>
         </div>
-        <div class="market-card">
+        <!-- Card 3 -->
+        <div class="market-card sortable-card" data-roi="25.0" data-expiry="1727125200000">
           <div class="market-card-head">
-            <span>Dota 2: MOUZ vs Hokori — Match Winner</span>
+            <span>CS2: Procyon Gaming vs ODDIK</span>
             <span class="tag" style="background: #12281a; color: var(--accent-green);">KALSHI</span>
           </div>
           <div class="market-card-meta">
-            <span>Pick: YES MOUZ Winner @ $0.83 (83% Implied)</span>
-            <span style="color: var(--accent-green); font-weight: 800;">+20.5% ROI</span>
+            <span>Pick: YES ODDIK Winner @ $0.80 (80% Implied) • 5:00 PM ET</span>
+            <span style="color: var(--accent-green); font-weight: 800;">+25.0% ROI</span>
           </div>
         </div>
       </div>
@@ -494,8 +500,8 @@
         <span>🏛️ MACRO &amp; MONETARY DESK</span>
         <span class="tag">CFTC Contracts</span>
       </div>
-      <div style="display: flex; flex-direction: column; gap: 8px;">
-        <div class="market-card">
+      <div id="macro-picks-container" style="display: flex; flex-direction: column; gap: 8px;">
+        <div class="market-card sortable-card" data-roi="19.0" data-expiry="1730000000000">
           <div class="market-card-head">
             <span>Fed Funds Target Rate Cut ≥ 25 bps</span>
             <span class="tag" style="background: #12281a; color: var(--accent-green);">KALSHI</span>
@@ -505,7 +511,7 @@
             <span style="color: var(--accent-green); font-weight: 800;">YES @ $0.84</span>
           </div>
         </div>
-        <div class="market-card">
+        <div class="market-card sortable-card" data-roi="47.0" data-expiry="1731000000000">
           <div class="market-card-head">
             <span>US Core CPI Inflation &lt; 3.0% Annualized</span>
             <span class="tag" style="background: #12281a; color: var(--accent-green);">KALSHI</span>
@@ -515,7 +521,7 @@
             <span style="color: var(--accent-green); font-weight: 800;">YES @ $0.68</span>
           </div>
         </div>
-        <div class="market-card">
+        <div class="market-card sortable-card" data-roi="8.7" data-expiry="1732000000000">
           <div class="market-card-head">
             <span>US Debt Ceiling Extension Resolution</span>
             <span class="tag" style="background: #1b1330; color: var(--accent-pink);">POLY.US</span>
@@ -529,7 +535,7 @@
     </div>
   </div>
 
-  <!-- VIEW 3: KALSHI PERPETUALS, SUB-CATEGORIZED COMMODITIES & 15-MIN COPILOT -->
+  <!-- VIEW 3: KALSHI PERPETUALS, COMMODITIES & 15-MIN COPILOT DESK -->
   <div class="tab-view" id="view-perps">
     <div class="card">
       <div class="card-header">
@@ -552,13 +558,13 @@
       </div>
 
       <!-- Desk Sub-Selectors -->
-      <div style="display: flex; gap: 6px; margin-bottom: 12px; overflow-x: auto; scrollbar-width: none;">
+      <div style="display: flex; gap: 6px; margin-bottom: 12px; overflow-x: auto; scrollbar-width: none; padding-bottom: 4px;">
         <button class="pill-btn active" id="btn-perp-crypto" onclick="switchPerpSubCategory('crypto')">🪙 Crypto (18)</button>
         <button class="pill-btn" id="btn-perp-commodities" onclick="switchPerpSubCategory('commodities')">🛢️ Commodities Suite</button>
         <button class="pill-btn" id="btn-perp-15m" onclick="switchPerpSubCategory('15min')">⏱️ 15-Min Fast Copilot</button>
       </div>
 
-      <!-- SECTION A: CRYPTO PERPETUALS SUITE -->
+      <!-- SECTION A: CRYPTO PERPETUALS (18 ASSETS) -->
       <div id="perp-sub-crypto" style="display: flex; flex-direction: column; gap: 10px;">
         <div style="display: flex; gap: 6px; margin-bottom: 4px;">
           <span class="sort-label">FILTER:</span>
@@ -645,17 +651,15 @@
 
       <!-- SECTION B: SUB-CATEGORIZED COMMODITIES SUITE -->
       <div id="perp-sub-commodities" style="display: none; flex-direction: column; gap: 10px;">
-        
-        <!-- Category Filter for Commodities -->
-        <div style="display: flex; gap: 6px; margin-bottom: 4px;">
+        <div style="display: flex; gap: 6px; margin-bottom: 4px; overflow-x: auto; scrollbar-width: none;">
           <span class="sort-label">SECTOR:</span>
-          <button class="sort-btn active" onclick="filterCommodities('all', this)">All Commodities</button>
+          <button class="sort-btn active" onclick="filterCommodities('all', this)">All</button>
           <button class="sort-btn" onclick="filterCommodities('metals', this)">⛏️ Metals</button>
           <button class="sort-btn" onclick="filterCommodities('energy', this)">🛢️ Energy</button>
           <button class="sort-btn" onclick="filterCommodities('agri', this)">🌾 Agri / Other</button>
         </div>
 
-        <!-- 1. Gold -->
+        <!-- Gold -->
         <div class="market-card comm-item comm-metals">
           <div class="market-card-head">
             <span>Gold Continuous (GOLDPERP) • Max 15.2x</span>
@@ -670,7 +674,7 @@
           </svg>
         </div>
 
-        <!-- 2. Silver -->
+        <!-- Silver -->
         <div class="market-card comm-item comm-metals">
           <div class="market-card-head">
             <span>Silver Continuous (SILVERPERP) • Max 8.0x</span>
@@ -685,7 +689,7 @@
           </svg>
         </div>
 
-        <!-- 3. WTI Crude Oil -->
+        <!-- WTI Crude Oil -->
         <div class="market-card comm-item comm-energy">
           <div class="market-card-head">
             <span>WTI Crude Oil Continuous • 10 Active Contracts</span>
@@ -700,7 +704,7 @@
           </svg>
         </div>
 
-        <!-- 4. RBOB Gasoline -->
+        <!-- RBOB Gasoline -->
         <div class="market-card comm-item comm-energy">
           <div class="market-card-head">
             <span>RBOB Gasoline Continuous • 11 Active Contracts</span>
@@ -715,7 +719,7 @@
           </svg>
         </div>
 
-        <!-- 5. Natural Gas -->
+        <!-- Natural Gas -->
         <div class="market-card comm-item comm-energy">
           <div class="market-card-head">
             <span>Henry Hub Natural Gas Continuous</span>
@@ -730,7 +734,7 @@
           </svg>
         </div>
 
-        <!-- 6. Corn & Agriculture -->
+        <!-- Corn -->
         <div class="market-card comm-item comm-agri">
           <div class="market-card-head">
             <span>Corn Futures Index (CORN) • Monthly Settle</span>
@@ -743,7 +747,7 @@
         </div>
       </div>
 
-      <!-- SECTION C: 15-MINUTE FAST MARKETS + GEMINI QUANT COPILOT -->
+      <!-- SECTION C: 15-MINUTE FAST MARKETS -->
       <div id="perp-sub-15m" style="display: none; flex-direction: column; gap: 10px;">
         <div style="font-size: 11px; color: var(--text-muted); line-height: 1.4; margin-bottom: 6px;">
           All Kalshi 15-minute CFTC brackets settle strictly on clock quarter-hours (<strong>:00, :15, :30, :45</strong>). The countdown timer below updates live and tracks remaining candle duration across all markets.
@@ -956,7 +960,7 @@
         <span class="tag">100% Client-Side</span>
       </div>
       <p style="font-size: 10px; color: var(--text-muted); margin-bottom: 12px; line-height: 1.4;">
-        API keys and private signatures are stored exclusively in your browser sandbox. They never touch a remote server [source: 33].
+        API keys and private signatures are stored exclusively in your browser sandbox. They never touch a remote server.
       </p>
 
       <!-- KALSHI CREDENTIALS -->
@@ -1122,9 +1126,36 @@ function switchCategoryFilter(category, button) {
   }
 }
 
+// --- DYNAMIC SORTING ENGINE ---
 function switchSortOrder(order, button) {
   document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
   button.classList.add('active');
+
+  const containers = [
+    document.getElementById('sports-picks-container'),
+    document.getElementById('esports-picks-container'),
+    document.getElementById('macro-picks-container')
+  ];
+
+  containers.forEach(container => {
+    if (!container) return;
+    const cards = Array.from(container.querySelectorAll('.sortable-card'));
+
+    cards.sort((a, b) => {
+      const roiA = parseFloat(a.dataset.roi) || 0;
+      const roiB = parseFloat(b.dataset.roi) || 0;
+      const expA = parseInt(a.dataset.expiry, 10) || 0;
+      const expB = parseInt(b.dataset.expiry, 10) || 0;
+
+      if (order === 'roi-high') return roiB - roiA;
+      if (order === 'roi-low') return roiA - roiB;
+      if (order === 'ending') return expA - expB;
+      if (order === 'today') return expA - expB;
+      return 0;
+    });
+
+    cards.forEach(card => container.appendChild(card));
+  });
 }
 
 // PERPETUALS SUB-DESK CONTROLS
@@ -1591,7 +1622,6 @@ window.addEventListener('DOMContentLoaded', () => {
   checkIncomingShareTarget();
   setInterval(pollSharedSlips, 10000);
 
-  // Initialize and run the synchronized :00/:15/:30/:45 clock
   updateSynchronized15MinTimers();
   setInterval(updateSynchronized15MinTimers, 1000);
 });
