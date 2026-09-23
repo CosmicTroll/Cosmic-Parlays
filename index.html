@@ -592,7 +592,7 @@
     </div>
   </div>
 
-  <!-- VIEW 2: MACRO DESK (DYNAMIC LIVE TIMESTAMPS) -->
+  <!-- VIEW 2: MACRO DESK -->
   <div class="tab-view" id="view-macro">
     <div class="card">
       <div class="card-header">
@@ -863,7 +863,7 @@
     </div>
   </div>
 
-  <!-- VIEW 4: SPREADS & ARBITRAGE (DYNAMIC DOM SORTING) -->
+  <!-- VIEW 4: SPREADS & ARBITRAGE -->
   <div class="tab-view" id="view-spreads">
     <div class="card">
       <div class="card-header">
@@ -905,7 +905,7 @@
     </div>
   </div>
 
-  <!-- VIEW 5: VAULT (LIFETIME METRICS) -->
+  <!-- VIEW 5: VAULT -->
   <div class="tab-view" id="view-vault">
     <div class="card">
       <div class="card-header">
@@ -970,7 +970,7 @@
     </div>
   </div>
 
-  <!-- VIEW 6: SETTINGS (ZOOM SLIDER & KEYS) -->
+  <!-- VIEW 6: SETTINGS -->
   <div class="tab-view" id="view-settings">
     <div class="card">
       <div class="card-header">
@@ -1047,7 +1047,7 @@
     </div>
   </div>
 
-  <!-- Bottom Navigation Bar (5 Primary Operations) -->
+  <!-- Bottom Navigation Bar (5 Operations) -->
   <nav class="bottom-nav">
     <div class="nav-item active" onclick="switchNavTab('view-picks', this)">
       <span>🎯</span>
@@ -1908,6 +1908,7 @@ function renderFleetTickets() {
         <span>Stake: $${t.stake ? t.stake.toFixed(2) : '--'} | ${new Date(t.timestamp).toLocaleTimeString()}</span>
         <span style="cursor: pointer; color: var(--accent-pink);" onclick="removeSlip(${idx})">✕ Remove</span>
       </div>
+      ${t.liveStatus ? `<div style="color: var(--accent-green); font-size: 0.75rem; margin-bottom: 6px; font-weight: 800;">${t.liveStatus}</div>` : ''}
       <div style="padding-left: 8px; border-left: 2px solid var(--accent-pink);">
         ${(t.legs || []).map(l => `<div style="font-size: 0.78rem; color: #fff;">• ${l}</div>`).join('')}
       </div>
@@ -1919,6 +1920,92 @@ function removeSlip(index) {
   const tickets = loadLocalFleetTickets();
   tickets.splice(index, 1);
   saveLocalFleetTickets(tickets);
+}
+
+// --- UNIVERSAL VERIFICATION POLLING LOOP (ZERO-HALLUCINATION) ---
+async function verifyAllLivePositions() {
+  const tickets = loadLocalFleetTickets();
+  if (!tickets || tickets.length === 0) return;
+
+  let stateChanged = false;
+
+  for (let ticket of tickets) {
+    if (ticket.settled) continue;
+
+    // A. MLB Official Feed Polling
+    if (/mlb|baseball|phillies|brewers|yankees|rangers|mets/i.test(ticket.raw)) {
+      try {
+        const res = await fetch("/api/verify/mlb");
+        if (!res.ok) continue;
+        const data = await res.json();
+        const games = data.dates?.[0]?.games || [];
+
+        games.forEach(game => {
+          const home = game.teams.home.team.name.toLowerCase();
+          const away = game.teams.away.team.name.toLowerCase();
+          const rawLower = ticket.raw.toLowerCase();
+
+          if (rawLower.includes(home) || rawLower.includes(away)) {
+            const isFinal = game.status.abstractGameState === "Final";
+            const homeScore = game.teams.home.score;
+            const awayScore = game.teams.away.score;
+
+            if (isFinal) {
+              ticket.settled = true;
+              if (ticket.raw.includes("+2.5")) {
+                const diff = (rawLower.includes(home) ? homeScore : awayScore) - (rawLower.includes(home) ? awayScore : homeScore);
+                ticket.won = (diff + 2.5) > 0;
+              }
+              ticket.liveStatus = `Final: ${game.teams.away.team.abbreviation} ${awayScore} - ${game.teams.home.team.abbreviation} ${homeScore} (${ticket.won ? 'WON' : 'LOST'})`;
+              stateChanged = true;
+            } else {
+              ticket.liveStatus = `● Live (${game.linescore?.currentInningOrdinal || 'In Progress'}): ${game.teams.away.team.abbreviation} ${awayScore} @ ${game.teams.home.team.abbreviation} ${homeScore}`;
+              stateChanged = true;
+            }
+          }
+        });
+      } catch (err) {
+        console.warn("MLB verification tick delayed:", err);
+      }
+    }
+
+    // B. NFL Official Feed Polling
+    if (/nfl|football|packers|falcons|chiefs|eagles/i.test(ticket.raw)) {
+      try {
+        const res = await fetch("/api/verify/nfl");
+        if (!res.ok) continue;
+        const data = await res.json();
+        const events = data.events || [];
+
+        events.forEach(evt => {
+          const competition = evt.competitions?.[0];
+          const homeTeam = competition.competitors.find(c => c.homeAway === "home");
+          const awayTeam = competition.competitors.find(c => c.homeAway === "away");
+          const rawLower = ticket.raw.toLowerCase();
+
+          if (rawLower.includes(homeTeam.team.name.toLowerCase()) || rawLower.includes(awayTeam.team.name.toLowerCase())) {
+            const isCompleted = evt.status.type.completed;
+            if (isCompleted) {
+              ticket.settled = true;
+              ticket.liveStatus = `Final: ${awayTeam.score} - ${homeTeam.score}`;
+              stateChanged = true;
+            } else {
+              ticket.liveStatus = `● Live Q${evt.status.period} ${evt.status.displayClock}: ${awayTeam.score} - ${homeTeam.score}`;
+              stateChanged = true;
+            }
+          }
+        });
+      } catch (err) {
+        console.warn("NFL verification tick delayed:", err);
+      }
+    }
+  }
+
+  if (stateChanged) {
+    saveLocalFleetTickets(tickets);
+    renderFleetTickets();
+    calculateVaultEarnings();
+  }
 }
 
 // --- INITIALIZATION ---
@@ -1939,6 +2026,10 @@ window.addEventListener('DOMContentLoaded', () => {
 
   pollLive15MinMarkets();
   setInterval(pollLive15MinMarkets, 3000);
+
+  // Score verification interval loop (every 10s)
+  verifyAllLivePositions();
+  setInterval(verifyAllLivePositions, 10000);
 });
 </script>
 
