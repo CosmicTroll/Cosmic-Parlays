@@ -99,7 +99,7 @@
       margin-right: 6px;
     }
 
-    /* Top Desk / Venue Switcher Bar */
+    /* Desk Switcher Bar */
     .desk-nav {
       display: flex;
       gap: 6px;
@@ -125,7 +125,7 @@
       border-color: var(--accent-cyan);
     }
 
-    /* Sorter & Filter Navigation */
+    /* Search & Sorter Navigation */
     .sort-nav {
       display: flex;
       gap: 6px;
@@ -193,7 +193,19 @@
       display: flex;
       flex-direction: column;
       gap: 6px;
+      transition: border-color 0.2s;
     }
+    .market-card.ticket-danger {
+      border-color: var(--accent-red) !important;
+      background: rgba(255, 51, 68, 0.08) !important;
+      animation: pulseDanger 1.5s infinite;
+    }
+    @keyframes pulseDanger {
+      0% { box-shadow: 0 0 0 0 rgba(255, 51, 68, 0.4); }
+      70% { box-shadow: 0 0 0 8px rgba(255, 51, 68, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(255, 51, 68, 0); }
+    }
+
     .market-card-head {
       display: flex;
       justify-content: space-between;
@@ -219,6 +231,14 @@
       padding: 6px 8px;
       font-size: 10px;
       text-align: center;
+    }
+    .btn-ai-inline {
+      flex: 0 0 auto !important;
+      background: rgba(0, 242, 254, 0.1) !important;
+      border: 1px solid var(--accent-cyan) !important;
+      color: var(--accent-cyan) !important;
+      padding: 6px 10px !important;
+      font-weight: 800 !important;
     }
 
     /* Grids */
@@ -403,20 +423,11 @@
     <div class="top-actions">
       <div class="badge" onclick="alert('Support: Edge terminal active.')">☕ Support</div>
       <div class="badge" onclick="refreshCurrentTab()">Refresh</div>
-      <div class="badge badge-edge">Edge Engine Active</div>
+      <div class="badge badge-edge">Edge Active</div>
     </div>
   </div>
 
-  <!-- Sponsor Banner -->
-  <div class="sponsor-bar" id="sponsor-banner">
-    <div>
-      <span class="sponsor-tag">SPONSOR</span>
-      <span>Trade US prediction markets with 0 fees on Polymarket.us. <a href="https://polymarket.us" target="_blank" style="color: var(--accent-cyan); text-decoration: none; font-weight: bold;">Join Polymarket.us →</a></span>
-    </div>
-    <span style="font-size: 10px; color: var(--text-muted); text-decoration: underline; cursor: pointer; white-space: nowrap; margin-left: 8px;" onclick="promptAdPasskey()">Remove Ads ($5)</span>
-  </div>
-
-  <!-- Top Desk / Venue Switcher Bar -->
+  <!-- Top Desk Switcher Bar -->
   <div class="desk-nav" id="top-desk-nav">
     <button class="desk-btn active" onclick="switchDeskFilter('all', this)">🔥 Top EV Picks</button>
     <button class="desk-btn" onclick="switchDeskFilter('poly', this)">🟣 Polymarket</button>
@@ -424,7 +435,7 @@
     <button class="desk-btn" onclick="switchDeskFilter('fleet', this)">🏈 Sportsbooks (Fleet)</button>
   </div>
 
-  <!-- Universal Search & Sport Filter Tray -->
+  <!-- Compact Search & Sport Filter Tray -->
   <div class="card" style="padding: 10px 14px; margin-bottom: 2px;">
     <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 8px;">
       <input type="text" id="market-search-input" placeholder="🔍 Search teams, players, or events..." oninput="filterMarketCards()" style="padding: 8px 12px; font-size: 11px;">
@@ -439,19 +450,6 @@
     </div>
   </div>
 
-  <!-- Omnipresent Contextual Gemini Analyst Trigger -->
-  <div id="global-copilot-card" class="card" style="border-color: var(--accent-cyan); background: #070e24; margin-bottom: 2px;">
-    <div class="card-header" style="margin-bottom: 6px;">
-      <span style="color: var(--accent-cyan); display: flex; align-items: center; gap: 6px;">🤖 Omnipresent Gemini Desk Analyst</span>
-      <span class="tag" style="background: rgba(0,242,254,0.1); color: var(--accent-cyan);">Contextual Live</span>
-    </div>
-    <p style="font-size: 10px; color: var(--text-muted); margin-bottom: 8px;">
-      Scan everything currently rendered on this screen to generate interactive options and deep mathematical edge analysis.
-    </p>
-    <button class="btn btn-cyan" style="width: 100%; font-weight: 900;" onclick="scanScreenAndConsultGemini()">⚡ Scan Screen &amp; List Active Markets</button>
-    <div id="global-copilot-output" style="margin-top: 10px; font-size: 11px; line-height: 1.4; display: none;"></div>
-  </div>
-
   <!-- Sorter Navigation Bar -->
   <div class="sort-nav" id="top-sort-nav">
     <span class="sort-label">SORT:</span>
@@ -463,20 +461,6 @@
 
   <!-- VIEW 1: PICKS & EV BOARD -->
   <div class="tab-view active" id="view-picks">
-    <div class="card">
-      <div class="card-header">
-        <span>🎟️ Active Slips &amp; Local Exposure</span>
-        <span class="tag">Client-Side Sync</span>
-      </div>
-      <div id="vault-status-box" style="background: #090e1f; border: 1px solid var(--border-color); border-radius: 8px; padding: 10px; display: flex; justify-content: space-between; align-items: center;">
-        <div>
-          <div id="vault-status-title" style="font-size: 11px; font-weight: 800; color: #fff;">BYOK Vault: Standby</div>
-          <div id="vault-status-desc" style="font-size: 10px; color: var(--text-muted); margin-top: 2px;">Checking local keys...</div>
-        </div>
-        <span id="vault-status-tag" class="tag" style="background: #151a2d; color: var(--text-muted);">LOCAL SESSION</span>
-      </div>
-    </div>
-
     <!-- Sports EV Board (Dynamic 9-Game Rotating Looper) -->
     <div class="card market-section" id="section-sports">
       <div class="card-header">
@@ -504,6 +488,15 @@
         <span class="carousel-dot"></span>
       </div>
     </div>
+
+    <!-- Sponsor Banner (Relocated Below Content Fold) -->
+    <div class="sponsor-bar" id="sponsor-banner">
+      <div>
+        <span class="sponsor-tag">SPONSOR</span>
+        <span>Trade US prediction markets with 0 fees on Polymarket.us. <a href="https://polymarket.us" target="_blank" style="color: var(--accent-cyan); text-decoration: none; font-weight: bold;">Join Polymarket.us →</a></span>
+      </div>
+      <span style="font-size: 10px; color: var(--text-muted); text-decoration: underline; cursor: pointer; white-space: nowrap; margin-left: 8px;" onclick="promptAdPasskey()">Remove Ads ($5)</span>
+    </div>
   </div>
 
   <!-- VIEW 2: MACRO DESK -->
@@ -526,7 +519,9 @@
           <div class="action-tray">
             <button class="btn btn-green" onclick="openOrderModal('Fed Cut ≥ 25 bps', 0.84, 'BUY YES', 'kalshi')">Buy YES @ $0.84</button>
             <button class="btn btn-red" onclick="openOrderModal('Fed Cut ≥ 25 bps', 0.17, 'BUY NO', 'kalshi')">Buy NO @ $0.17</button>
+            <button class="btn btn-ai-inline" onclick="executeInlineMarketAnalysis('Fed Funds Target Rate Cut ≥ 25 bps', '84% Implied Yes', 'macro-ai-1')">🤖 Ask Gemini</button>
           </div>
+          <div class="ai-agent-box" id="macro-ai-1"></div>
         </div>
         <div class="market-card sortable-card" data-sport="macro" data-roi="47.0" data-expiry="1791000000000">
           <div class="market-card-head">
@@ -540,7 +535,9 @@
           <div class="action-tray">
             <button class="btn btn-green" onclick="openOrderModal('Core CPI < 3.0%', 0.68, 'BUY YES', 'kalshi')">Buy YES @ $0.68</button>
             <button class="btn btn-red" onclick="openOrderModal('Core CPI < 3.0%', 0.33, 'BUY NO', 'kalshi')">Buy NO @ $0.33</button>
+            <button class="btn btn-ai-inline" onclick="executeInlineMarketAnalysis('US Core CPI Inflation < 3.0%', '68% Implied Yes', 'macro-ai-2')">🤖 Ask Gemini</button>
           </div>
+          <div class="ai-agent-box" id="macro-ai-2"></div>
         </div>
       </div>
     </div>
@@ -574,8 +571,9 @@
         <button class="pill-btn" id="btn-perp-15m" onclick="switchPerpSubCategory('15min')">⏱️ 15-Min Fast Copilot</button>
       </div>
 
-      <!-- Complete 18-Asset Crypto Perpetual Suite[span_2](start_span)[span_2](end_span) -->
+      <!-- Complete 18-Asset Crypto Perpetual Suite -->
       <div id="perp-sub-crypto" style="display: flex; flex-direction: column; gap: 10px;">
+        <!-- Asset 1: BTC -->
         <div class="market-card">
           <div class="market-card-head">
             <span>Bitcoin (BTCPERP) • Max 6.3x</span>
@@ -591,8 +589,12 @@
           <div class="action-tray">
             <button class="btn btn-green" onclick="openOrderModal('BTCPERP Long', 85029.68, 'LONG', 'kalshi')">Long BTC</button>
             <button class="btn btn-red" onclick="openOrderModal('BTCPERP Short', 85029.68, 'SHORT', 'kalshi')">Short BTC</button>
+            <button class="btn btn-ai-inline" onclick="executeInlineMarketAnalysis('Bitcoin (BTCPERP)', 'Spot: $85,029.68', 'crypto-ai-btc')">🤖 Ask Gemini</button>
           </div>
+          <div class="ai-agent-box" id="crypto-ai-btc"></div>
         </div>
+
+        <!-- Asset 2: ETH -->
         <div class="market-card">
           <div class="market-card-head">
             <span>Ethereum (ETHPERP) • Max 4.8x</span>
@@ -608,8 +610,12 @@
           <div class="action-tray">
             <button class="btn btn-green" onclick="openOrderModal('ETHPERP Long', 2720.82, 'LONG', 'kalshi')">Long ETH</button>
             <button class="btn btn-red" onclick="openOrderModal('ETHPERP Short', 2720.82, 'SHORT', 'kalshi')">Short ETH</button>
+            <button class="btn btn-ai-inline" onclick="executeInlineMarketAnalysis('Ethereum (ETHPERP)', 'Spot: $2,720.82', 'crypto-ai-eth')">🤖 Ask Gemini</button>
           </div>
+          <div class="ai-agent-box" id="crypto-ai-eth"></div>
         </div>
+
+        <!-- Asset 3: SOL -->
         <div class="market-card">
           <div class="market-card-head">
             <span>Solana (SOLPERP) • Max 3.0x</span>
@@ -625,8 +631,12 @@
           <div class="action-tray">
             <button class="btn btn-green" onclick="openOrderModal('SOLPERP Long', 184.40, 'LONG', 'kalshi')">Long SOL</button>
             <button class="btn btn-red" onclick="openOrderModal('SOLPERP Short', 184.40, 'SHORT', 'kalshi')">Short SOL</button>
+            <button class="btn btn-ai-inline" onclick="executeInlineMarketAnalysis('Solana (SOLPERP)', 'Spot: $184.40', 'crypto-ai-sol')">🤖 Ask Gemini</button>
           </div>
+          <div class="ai-agent-box" id="crypto-ai-sol"></div>
         </div>
+
+        <!-- Asset 4: XRP -->
         <div class="market-card">
           <div class="market-card-head">
             <span>XRP Continuous (XRPPERP) • Max 2.8x</span>
@@ -639,8 +649,12 @@
           <div class="action-tray">
             <button class="btn btn-green" onclick="openOrderModal('XRPPERP Long', 0.584, 'LONG', 'kalshi')">Long XRP</button>
             <button class="btn btn-red" onclick="openOrderModal('XRPPERP Short', 0.584, 'SHORT', 'kalshi')">Short XRP</button>
+            <button class="btn btn-ai-inline" onclick="executeInlineMarketAnalysis('XRP (XRPPERP)', 'Spot: $0.584', 'crypto-ai-xrp')">🤖 Ask Gemini</button>
           </div>
+          <div class="ai-agent-box" id="crypto-ai-xrp"></div>
         </div>
+
+        <!-- Asset 5: DOGE -->
         <div class="market-card">
           <div class="market-card-head">
             <span>Dogecoin Continuous (DOGEPERP) • Max 2.8x</span>
@@ -653,8 +667,12 @@
           <div class="action-tray">
             <button class="btn btn-green" onclick="openOrderModal('DOGEPERP Long', 0.128, 'LONG', 'kalshi')">Long DOGE</button>
             <button class="btn btn-red" onclick="openOrderModal('DOGEPERP Short', 0.128, 'SHORT', 'kalshi')">Short DOGE</button>
+            <button class="btn btn-ai-inline" onclick="executeInlineMarketAnalysis('Dogecoin (DOGEPERP)', 'Spot: $0.128', 'crypto-ai-doge')">🤖 Ask Gemini</button>
           </div>
+          <div class="ai-agent-box" id="crypto-ai-doge"></div>
         </div>
+
+        <!-- Asset 6: ADA -->
         <div class="market-card">
           <div class="market-card-head">
             <span>Cardano Continuous (ADAPERP) • Max 3.1x</span>
@@ -667,8 +685,12 @@
           <div class="action-tray">
             <button class="btn btn-green" onclick="openOrderModal('ADAPERP Long', 0.382, 'LONG', 'kalshi')">Long ADA</button>
             <button class="btn btn-red" onclick="openOrderModal('ADAPERP Short', 0.382, 'SHORT', 'kalshi')">Short ADA</button>
+            <button class="btn btn-ai-inline" onclick="executeInlineMarketAnalysis('Cardano (ADAPERP)', 'Spot: $0.382', 'crypto-ai-ada')">🤖 Ask Gemini</button>
           </div>
+          <div class="ai-agent-box" id="crypto-ai-ada"></div>
         </div>
+
+        <!-- Asset 7: LINK -->
         <div class="market-card">
           <div class="market-card-head">
             <span>Chainlink (LINKPERP) • Max 3.7x</span>
@@ -681,8 +703,12 @@
           <div class="action-tray">
             <button class="btn btn-green" onclick="openOrderModal('LINKPERP Long', 12.45, 'LONG', 'kalshi')">Long LINK</button>
             <button class="btn btn-red" onclick="openOrderModal('LINKPERP Short', 12.45, 'SHORT', 'kalshi')">Short LINK</button>
+            <button class="btn btn-ai-inline" onclick="executeInlineMarketAnalysis('Chainlink (LINKPERP)', 'Spot: $12.45', 'crypto-ai-link')">🤖 Ask Gemini</button>
           </div>
+          <div class="ai-agent-box" id="crypto-ai-link"></div>
         </div>
+
+        <!-- Asset 8: AVAX -->
         <div class="market-card">
           <div class="market-card-head">
             <span>Avalanche (AVAXPERP) • Max 3.0x</span>
@@ -695,8 +721,12 @@
           <div class="action-tray">
             <button class="btn btn-green" onclick="openOrderModal('AVAXPERP Long', 28.10, 'LONG', 'kalshi')">Long AVAX</button>
             <button class="btn btn-red" onclick="openOrderModal('AVAXPERP Short', 28.10, 'SHORT', 'kalshi')">Short AVAX</button>
+            <button class="btn btn-ai-inline" onclick="executeInlineMarketAnalysis('Avalanche (AVAXPERP)', 'Spot: $28.10', 'crypto-ai-avax')">🤖 Ask Gemini</button>
           </div>
+          <div class="ai-agent-box" id="crypto-ai-avax"></div>
         </div>
+
+        <!-- Asset 9: SUI -->
         <div class="market-card">
           <div class="market-card-head">
             <span>Sui Continuous (SUIPERP) • Max 2.4x</span>
@@ -709,8 +739,12 @@
           <div class="action-tray">
             <button class="btn btn-green" onclick="openOrderModal('SUIPERP Long', 1.82, 'LONG', 'kalshi')">Long SUI</button>
             <button class="btn btn-red" onclick="openOrderModal('SUIPERP Short', 1.82, 'SHORT', 'kalshi')">Short SUI</button>
+            <button class="btn btn-ai-inline" onclick="executeInlineMarketAnalysis('Sui (SUIPERP)', 'Spot: $1.82', 'crypto-ai-sui')">🤖 Ask Gemini</button>
           </div>
+          <div class="ai-agent-box" id="crypto-ai-sui"></div>
         </div>
+
+        <!-- Asset 10: LTC -->
         <div class="market-card">
           <div class="market-card-head">
             <span>Litecoin (LTCPERP) • Max 3.9x</span>
@@ -723,8 +757,12 @@
           <div class="action-tray">
             <button class="btn btn-green" onclick="openOrderModal('LTCPERP Long', 68.40, 'LONG', 'kalshi')">Long LTC</button>
             <button class="btn btn-red" onclick="openOrderModal('LTCPERP Short', 68.40, 'SHORT', 'kalshi')">Short LTC</button>
+            <button class="btn btn-ai-inline" onclick="executeInlineMarketAnalysis('Litecoin (LTCPERP)', 'Spot: $68.40', 'crypto-ai-ltc')">🤖 Ask Gemini</button>
           </div>
+          <div class="ai-agent-box" id="crypto-ai-ltc"></div>
         </div>
+
+        <!-- Asset 11: BNB -->
         <div class="market-card">
           <div class="market-card-head">
             <span>BNB Continuous (BNBPERP) • Max 3.5x</span>
@@ -737,8 +775,12 @@
           <div class="action-tray">
             <button class="btn btn-green" onclick="openOrderModal('BNBPERP Long', 590.20, 'LONG', 'kalshi')">Long BNB</button>
             <button class="btn btn-red" onclick="openOrderModal('BNBPERP Short', 590.20, 'SHORT', 'kalshi')">Short BNB</button>
+            <button class="btn btn-ai-inline" onclick="executeInlineMarketAnalysis('BNB (BNBPERP)', 'Spot: $590.20', 'crypto-ai-bnb')">🤖 Ask Gemini</button>
           </div>
+          <div class="ai-agent-box" id="crypto-ai-bnb"></div>
         </div>
+
+        <!-- Asset 12: NEAR -->
         <div class="market-card">
           <div class="market-card-head">
             <span>Near Protocol (NEARPERP) • Max 2.5x</span>
@@ -751,8 +793,12 @@
           <div class="action-tray">
             <button class="btn btn-green" onclick="openOrderModal('NEARPERP Long', 4.92, 'LONG', 'kalshi')">Long NEAR</button>
             <button class="btn btn-red" onclick="openOrderModal('NEARPERP Short', 4.92, 'SHORT', 'kalshi')">Short NEAR</button>
+            <button class="btn btn-ai-inline" onclick="executeInlineMarketAnalysis('Near (NEARPERP)', 'Spot: $4.92', 'crypto-ai-near')">🤖 Ask Gemini</button>
           </div>
+          <div class="ai-agent-box" id="crypto-ai-near"></div>
         </div>
+
+        <!-- Asset 13: AAVE -->
         <div class="market-card">
           <div class="market-card-head">
             <span>Aave Continuous (AAVEPERP) • Max 2.6x</span>
@@ -765,8 +811,12 @@
           <div class="action-tray">
             <button class="btn btn-green" onclick="openOrderModal('AAVEPERP Long', 155.10, 'LONG', 'kalshi')">Long AAVE</button>
             <button class="btn btn-red" onclick="openOrderModal('AAVEPERP Short', 155.10, 'SHORT', 'kalshi')">Short AAVE</button>
+            <button class="btn btn-ai-inline" onclick="executeInlineMarketAnalysis('Aave (AAVEPERP)', 'Spot: $155.10', 'crypto-ai-aave')">🤖 Ask Gemini</button>
           </div>
+          <div class="ai-agent-box" id="crypto-ai-aave"></div>
         </div>
+
+        <!-- Asset 14: BCH -->
         <div class="market-card">
           <div class="market-card-head">
             <span>Bitcoin Cash (BCHPERP) • Max 3.2x</span>
@@ -779,8 +829,12 @@
           <div class="action-tray">
             <button class="btn btn-green" onclick="openOrderModal('BCHPERP Long', 340.50, 'LONG', 'kalshi')">Long BCH</button>
             <button class="btn btn-red" onclick="openOrderModal('BCHPERP Short', 340.50, 'SHORT', 'kalshi')">Short BCH</button>
+            <button class="btn btn-ai-inline" onclick="executeInlineMarketAnalysis('Bitcoin Cash (BCHPERP)', 'Spot: $340.50', 'crypto-ai-bch')">🤖 Ask Gemini</button>
           </div>
+          <div class="ai-agent-box" id="crypto-ai-bch"></div>
         </div>
+
+        <!-- Asset 15: DOT -->
         <div class="market-card">
           <div class="market-card-head">
             <span>Polkadot (DOTPERP) • Max 2.9x</span>
@@ -793,8 +847,12 @@
           <div class="action-tray">
             <button class="btn btn-green" onclick="openOrderModal('DOTPERP Long', 4.25, 'LONG', 'kalshi')">Long DOT</button>
             <button class="btn btn-red" onclick="openOrderModal('DOTPERP Short', 4.25, 'SHORT', 'kalshi')">Short DOT</button>
+            <button class="btn btn-ai-inline" onclick="executeInlineMarketAnalysis('Polkadot (DOTPERP)', 'Spot: $4.25', 'crypto-ai-dot')">🤖 Ask Gemini</button>
           </div>
+          <div class="ai-agent-box" id="crypto-ai-dot"></div>
         </div>
+
+        <!-- Asset 16: HYPE -->
         <div class="market-card">
           <div class="market-card-head">
             <span>Hyperliquid (HYPEPERP) • Max 2.2x</span>
@@ -807,8 +865,12 @@
           <div class="action-tray">
             <button class="btn btn-green" onclick="openOrderModal('HYPEPERP Long', 32.40, 'LONG', 'kalshi')">Long HYPE</button>
             <button class="btn btn-red" onclick="openOrderModal('HYPEPERP Short', 32.40, 'SHORT', 'kalshi')">Short HYPE</button>
+            <button class="btn btn-ai-inline" onclick="executeInlineMarketAnalysis('Hyperliquid (HYPEPERP)', 'Spot: $32.40', 'crypto-ai-hype')">🤖 Ask Gemini</button>
           </div>
+          <div class="ai-agent-box" id="crypto-ai-hype"></div>
         </div>
+
+        <!-- Asset 17: UNI -->
         <div class="market-card">
           <div class="market-card-head">
             <span>Uniswap Continuous (UNIPERP) • Max 2.7x</span>
@@ -821,8 +883,12 @@
           <div class="action-tray">
             <button class="btn btn-green" onclick="openOrderModal('UNIPERP Long', 7.85, 'LONG', 'kalshi')">Long UNI</button>
             <button class="btn btn-red" onclick="openOrderModal('UNIPERP Short', 7.85, 'SHORT', 'kalshi')">Short UNI</button>
+            <button class="btn btn-ai-inline" onclick="executeInlineMarketAnalysis('Uniswap (UNIPERP)', 'Spot: $7.85', 'crypto-ai-uni')">🤖 Ask Gemini</button>
           </div>
+          <div class="ai-agent-box" id="crypto-ai-uni"></div>
         </div>
+
+        <!-- Asset 18: POL -->
         <div class="market-card">
           <div class="market-card-head">
             <span>Polygon (POLPERP) • Max 3.0x</span>
@@ -835,11 +901,13 @@
           <div class="action-tray">
             <button class="btn btn-green" onclick="openOrderModal('POLPERP Long', 0.395, 'LONG', 'kalshi')">Long POL</button>
             <button class="btn btn-red" onclick="openOrderModal('POLPERP Short', 0.395, 'SHORT', 'kalshi')">Short POL</button>
+            <button class="btn btn-ai-inline" onclick="executeInlineMarketAnalysis('Polygon (POLPERP)', 'Spot: $0.395', 'crypto-ai-pol')">🤖 Ask Gemini</button>
           </div>
+          <div class="ai-agent-box" id="crypto-ai-pol"></div>
         </div>
       </div>
 
-      <!-- Commodities Suite (Metals & Energy)[span_3](start_span)[span_3](end_span) -->
+      <!-- Commodities Suite (Metals & Energy) -->
       <div id="perp-sub-commodities" style="display: none; flex-direction: column; gap: 10px;">
         <div class="market-card">
           <div class="market-card-head">
@@ -856,8 +924,11 @@
           <div class="action-tray">
             <button class="btn btn-green" onclick="openOrderModal('GOLDPERP Long', 4349.63, 'LONG', 'kalshi')">Long Gold</button>
             <button class="btn btn-red" onclick="openOrderModal('GOLDPERP Short', 4349.63, 'SHORT', 'kalshi')">Short Gold</button>
+            <button class="btn btn-ai-inline" onclick="executeInlineMarketAnalysis('Gold Continuous (GOLDPERP)', 'Benchmark: $4,349.63/oz', 'comm-ai-gold')">🤖 Ask Gemini</button>
           </div>
+          <div class="ai-agent-box" id="comm-ai-gold"></div>
         </div>
+
         <div class="market-card">
           <div class="market-card-head">
             <span>Silver Continuous (SILVERPERP) • Max 10.5x</span>
@@ -873,8 +944,11 @@
           <div class="action-tray">
             <button class="btn btn-green" onclick="openOrderModal('SILVERPERP Long', 66.82, 'LONG', 'kalshi')">Long Silver</button>
             <button class="btn btn-red" onclick="openOrderModal('SILVERPERP Short', 66.82, 'SHORT', 'kalshi')">Short Silver</button>
+            <button class="btn btn-ai-inline" onclick="executeInlineMarketAnalysis('Silver Continuous (SILVERPERP)', 'Benchmark: $66.82/oz', 'comm-ai-silver')">🤖 Ask Gemini</button>
           </div>
+          <div class="ai-agent-box" id="comm-ai-silver"></div>
         </div>
+
         <div class="market-card">
           <div class="market-card-head">
             <span>WTI Crude Oil Continuous</span>
@@ -887,8 +961,11 @@
           <div class="action-tray">
             <button class="btn btn-green" onclick="openOrderModal('WTIPERP Long', 90.28, 'LONG', 'kalshi')">Long WTI</button>
             <button class="btn btn-red" onclick="openOrderModal('WTIPERP Short', 90.28, 'SHORT', 'kalshi')">Short WTI</button>
+            <button class="btn btn-ai-inline" onclick="executeInlineMarketAnalysis('WTI Crude Oil', 'Spot Benchmark: $90.28', 'comm-ai-wti')">🤖 Ask Gemini</button>
           </div>
+          <div class="ai-agent-box" id="comm-ai-wti"></div>
         </div>
+
         <div class="market-card">
           <div class="market-card-head">
             <span>RBOB Gasoline Continuous</span>
@@ -901,8 +978,11 @@
           <div class="action-tray">
             <button class="btn btn-green" onclick="openOrderModal('RBOB Long', 2.45, 'LONG', 'kalshi')">Long Gas</button>
             <button class="btn btn-red" onclick="openOrderModal('RBOB Short', 2.45, 'SHORT', 'kalshi')">Short Gas</button>
+            <button class="btn btn-ai-inline" onclick="executeInlineMarketAnalysis('RBOB Gasoline', 'Spot: $2.45/gal', 'comm-ai-rbob')">🤖 Ask Gemini</button>
           </div>
+          <div class="ai-agent-box" id="comm-ai-rbob"></div>
         </div>
+
         <div class="market-card">
           <div class="market-card-head">
             <span>Natural Gas Continuous (NGPERP)</span>
@@ -915,14 +995,16 @@
           <div class="action-tray">
             <button class="btn btn-green" onclick="openOrderModal('NGPERP Long', 2.85, 'LONG', 'kalshi')">Long NatGas</button>
             <button class="btn btn-red" onclick="openOrderModal('NGPERP Short', 2.85, 'SHORT', 'kalshi')">Short NatGas</button>
+            <button class="btn btn-ai-inline" onclick="executeInlineMarketAnalysis('Natural Gas (NGPERP)', 'Spot: $2.85/MMBtu', 'comm-ai-ng')">🤖 Ask Gemini</button>
           </div>
+          <div class="ai-agent-box" id="comm-ai-ng"></div>
         </div>
       </div>
 
       <!-- 15-Minute Fast Markets Desk -->
       <div id="perp-sub-15m" style="display: none; flex-direction: column; gap: 10px;">
         <div style="font-size: 11px; color: var(--text-muted); line-height: 1.4; margin-bottom: 6px;">
-          Settles strictly on clock quarter-hours (<strong>:00, :15, :30, :45</strong>). The countdown timer below updates live and tracks remaining candle duration across all markets.
+          Settles strictly on clock quarter-hours (<strong>:00, :15, :30, :45</strong>)[span_28](start_span)[span_28](end_span). The countdown timer updates live and tracks remaining candle duration[span_29](start_span)[span_29](end_span).
         </div>
 
         <div class="market-card">
@@ -932,13 +1014,14 @@
           </div>
           <div class="market-card-meta">
             <span>Current: $4,343.59 (-$6.04 below)</span>
-            <button class="btn btn-cyan" style="padding: 2px 8px; font-size: 10px;" onclick="runGeminiCopilot('KXGOLD15M', 'Gold 15m Close', 4349.63, 4343.59, 'ai-box-gold')">🤖 Ask Gemini</button>
+            <span style="color: var(--accent-cyan); font-weight: bold;">CFTC Series</span>
           </div>
           <div class="action-tray">
             <button class="btn btn-green" onclick="openOrderModal('Gold 15m Above', 0.01, 'BUY ABOVE', 'kalshi')">Above 1% (1¢)</button>
             <button class="btn btn-red" onclick="openOrderModal('Gold 15m Below', 0.99, 'BUY BELOW', 'kalshi')">Below 99% (99¢)</button>
+            <button class="btn btn-ai-inline" onclick="executeInlineMarketAnalysis('Gold 15-Min', 'Current: $4,343.59 vs Target: $4,349.63', 'ai-box-gold')">🤖 Ask Gemini</button>
           </div>
-          <div class="ai-agent-box" id="ai-box-gold">Evaluating candle momentum &amp; order-book spread...</div>
+          <div class="ai-agent-box" id="ai-box-gold"></div>
         </div>
 
         <div class="market-card">
@@ -948,16 +1031,16 @@
           </div>
           <div class="market-card-meta">
             <span>Spot: $85,062.10 (+$32.42 above)</span>
-            <button class="btn btn-cyan" style="padding: 2px 8px; font-size: 10px;" onclick="runGeminiCopilot('KXBTC15M', 'BTC Up/Down 15m', 85029.68, 85062.10, 'ai-box-btc')">🤖 Ask Gemini</button>
+            <span style="color: var(--accent-cyan); font-weight: bold;">CFTC Series</span>
           </div>
           <div class="action-tray">
             <button class="btn btn-green" onclick="openOrderModal('BTC 15m Above', 0.56, 'BUY ABOVE', 'kalshi')">Above 56% (56¢)</button>
             <button class="btn btn-red" onclick="openOrderModal('BTC 15m Below', 0.45, 'BUY BELOW', 'kalshi')">Below 45% (45¢)</button>
+            <button class="btn btn-ai-inline" onclick="executeInlineMarketAnalysis('BTC 15-Min (KXBTC15M)', 'Spot: $85,062.10 vs Target: $85,029.68', 'ai-box-btc')">🤖 Ask Gemini</button>
           </div>
-          <div class="ai-agent-box" id="ai-box-btc">Evaluating candle momentum &amp; order-book spread...</div>
+          <div class="ai-agent-box" id="ai-box-btc"></div>
         </div>
       </div>
-
     </div>
   </div>
 
@@ -1005,9 +1088,11 @@
             <span style="color: var(--accent-cyan); font-weight: 800;">Risk-Free Net</span>
           </div>
           <div class="action-tray">
-            <button class="btn btn-gold" onclick="openOrderModal('Fed Cut Arb Poly Leg', 0.84, 'BUY YES', 'poly')">Execute Poly Leg</button>
-            <button class="btn btn-gold" onclick="openOrderModal('Fed Cut Arb Kalshi Leg', 0.126, 'BUY NO', 'kalshi')">Execute Kalshi Leg</button>
+            <button class="btn btn-gold" onclick="openOrderModal('Fed Cut Arb Poly Leg', 0.84, 'BUY YES', 'poly')">Poly Leg</button>
+            <button class="btn btn-gold" onclick="openOrderModal('Fed Cut Arb Kalshi Leg', 0.126, 'BUY NO', 'kalshi')">Kalshi Leg</button>
+            <button class="btn btn-ai-inline" onclick="executeInlineMarketAnalysis('Fed Funds Rate Cut Arb', 'Poly YES 84¢ vs Kalshi NO 12.6¢ (+3.4% Net Arb)', 'spread-ai-1')">🤖 Ask Gemini</button>
           </div>
+          <div class="ai-agent-box" id="spread-ai-1"></div>
         </div>
       </div>
     </div>
@@ -1068,7 +1153,7 @@
     </div>
   </div>
 
-  <!-- VIEW 8: BYOK VAULT, SECURITY & PERFORMANCE HUB[span_4](start_span)[span_4](end_span) -->
+  <!-- VIEW 8: BYOK VAULT & SETTINGS HUB -->
   <div class="tab-view" id="view-vault">
     <div class="card">
       <div class="card-header">
@@ -1095,7 +1180,7 @@
       </div>
     </div>
 
-    <!-- Complete Vault Historical PnL Breakdown[span_5](start_span)[span_5](end_span) -->
+    <!-- Historical PnL Hub -->
     <div class="card">
       <div class="card-header">
         <span>📊 Historical Performance Hub</span>
@@ -1167,13 +1252,32 @@
       </div>
     </div>
 
+    <!-- Risk & Circuit Breaker Settings -->
+    <div class="card">
+      <div class="card-header">
+        <span>🛡️ Risk &amp; Autonomous Governance Controls</span>
+        <span class="tag" style="color: var(--accent-gold);">Hardened</span>
+      </div>
+      <div class="input-group">
+        <label class="stat-label">Large Order Circuit-Breaker Ceiling ($)</label>
+        <input type="number" id="risk-ceiling-input" value="25.00" step="1.00" onchange="saveRiskSettings()">
+        <span style="font-size: 9px; color: var(--text-muted); margin-top: 2px;">Orders exceeding this amount require manual confirmation[span_30](start_span)[span_30](end_span).</span>
+      </div>
+      <div class="input-group">
+        <label class="stat-label">Autonomous Salvage Floor (%)</label>
+        <input type="number" id="salvage-floor-input" value="20" min="5" max="50" onchange="saveRiskSettings()">
+        <span style="font-size: 9px; color: var(--text-muted); margin-top: 2px;">Programmatically liquidates contracts before zero equity is reached[span_31](start_span)[span_31](end_span).</span>
+      </div>
+    </div>
+
+    <!-- BYOK Key Credentials -->
     <div class="card">
       <div class="card-header">
         <span>🔐 Bring Your Own Key (BYOK) API Credentials</span>
         <span class="tag">100% Client-Side</span>
       </div>
       <p style="font-size: 10px; color: var(--text-muted); margin-bottom: 12px; line-height: 1.4;">
-        API keys and private signatures are stored exclusively in your browser sandbox. They never touch a remote server[span_6](start_span)[span_6](end_span).
+        API keys and private signatures are stored exclusively in your browser sandbox[span_32](start_span)[span_32](end_span). They never touch a remote server[span_33](start_span)[span_33](end_span).
       </p>
 
       <div style="font-weight: 800; font-size: 11px; color: var(--accent-green); margin-bottom: 6px;">🟢 Kalshi Domestic Trading API</div>
@@ -1266,7 +1370,7 @@
 
 </div>
 
-<!-- DIRECT ACTION ORDER MODAL SHEET -->
+<!-- DIRECT ACTION ORDER MODAL SHEET WITH CONFIRM CIRCUIT-BREAKER -->
 <div id="order-modal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 10001; padding: 20px; overflow-y: auto; justify-content: center; align-items: center;">
   <div style="background: #0d1224; border: 1px solid var(--border-color); border-radius: 14px; max-width: 440px; width: 100%; padding: 18px; color: #fff; font-size: 12px; display: flex; flex-direction: column; gap: 12px; box-shadow: 0 0 30px rgba(0, 242, 254, 0.2);">
     
@@ -1318,6 +1422,15 @@
       </div>
     </div>
 
+    <!-- Large Order Circuit Breaker Challenge -->
+    <div id="modal-circuit-breaker-box" style="display: none; background: rgba(255, 51, 68, 0.1); border: 1px solid var(--accent-red); border-radius: 8px; padding: 10px;">
+      <div style="color: var(--accent-red); font-weight: 800; font-size: 11px; margin-bottom: 4px;">⚠️ LARGE TRANSACTION DETECTED</div>
+      <div style="font-size: 10px; color: var(--text-muted); margin-bottom: 6px;">
+        Outlay exceeds your configured ceiling ($<span id="modal-ceiling-indicator">25.00</span>). Type <strong>CONFIRM</strong> to release safety interlock.
+      </div>
+      <input type="text" id="modal-confirm-input" placeholder="Type CONFIRM..." oninput="checkConfirmChallenge()" style="background: #060814; border-color: var(--accent-red);">
+    </div>
+
     <button class="btn btn-gold" id="modal-submit-btn" style="width: 100%; height: 38px; font-weight: 800;" onclick="submitOrderExecution()">Submit Limit Order</button>
   </div>
 </div>
@@ -1362,6 +1475,26 @@
 let currentTpMode = null;
 let activeOrderVenue = 'poly';
 
+// --- AUDIO CHIME SYNTHESIZER (WEB AUDIO API) ---
+function playAlertChime() {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(880, ctx.currentTime); // A5
+    osc.frequency.exponentialRampToValueAtTime(440, ctx.currentTime + 0.3); // Drop to A4
+    gain.gain.setValueAtTime(0.3, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start();
+    osc.stop(ctx.currentTime + 0.3);
+  } catch (e) {
+    console.warn("Audio chime suppressed:", e);
+  }
+}
+
 // --- DYNAMIC CAROUSEL POOLS (9 SCREENED MATCHUPS) ---
 const SPORTS_PICKS_POOL = [
   { id: 's1', sport: 'mlb', title: 'Nationals @ Tigers — F5 Under 4.5 Runs', pick: 'YES Under 4.5 @ $0.78', roi: 28.2, venue: 'POLY.US', yes: 0.78, no: 0.23, exp: Date.now() + 14400000 },
@@ -1395,22 +1528,29 @@ function renderCarouselSet(pool, index, containerId, dotsId) {
   if (!container) return;
 
   const currentSet = pool.slice(index * 3, (index * 3) + 3);
-  container.innerHTML = currentSet.map(item => `
-    <div class="market-card sortable-card" data-sport="${item.sport}" data-roi="${item.roi}" data-expiry="${item.exp}">
-      <div class="market-card-head">
-        <span>${item.title}</span>
-        <span class="tag" style="background: ${item.venue === 'POLY.US' ? '#1b1330' : '#12281a'}; color: ${item.venue === 'POLY.US' ? 'var(--accent-pink)' : 'var(--accent-green)'};">${item.venue}</span>
+  container.innerHTML = currentSet.map((item, localIdx) => {
+    const aiBoxId = `${containerId}-ai-${localIdx}`;
+    const safeTitle = item.title.replace(/'/g, "\\'");
+    const safePick = item.pick.replace(/'/g, "\\'");
+    return `
+      <div class="market-card sortable-card" data-sport="${item.sport}" data-roi="${item.roi}" data-expiry="${item.exp}">
+        <div class="market-card-head">
+          <span>${item.title}</span>
+          <span class="tag" style="background: ${item.venue === 'POLY.US' ? '#1b1330' : '#12281a'}; color: ${item.venue === 'POLY.US' ? 'var(--accent-pink)' : 'var(--accent-green)'};">${item.venue}</span>
+        </div>
+        <div class="market-card-meta">
+          <span>${item.pick}</span>
+          <span style="color: var(--accent-green); font-weight: 800;">+${item.roi.toFixed(1)}% ROI</span>
+        </div>
+        <div class="action-tray">
+          <button class="btn btn-green" onclick="openOrderModal('${safeTitle}', ${item.yes}, 'BUY YES', '${item.venue === 'POLY.US' ? 'poly' : 'kalshi'}')">Buy YES @ $${item.yes.toFixed(2)}</button>
+          <button class="btn btn-red" onclick="openOrderModal('${safeTitle}', ${item.no}, 'BUY NO', '${item.venue === 'POLY.US' ? 'poly' : 'kalshi'}')">Buy NO @ $${item.no.toFixed(2)}</button>
+          <button class="btn btn-ai-inline" onclick="executeInlineMarketAnalysis('${safeTitle}', '${safePick}', '${aiBoxId}')">🤖 Ask Gemini</button>
+        </div>
+        <div class="ai-agent-box" id="${aiBoxId}"></div>
       </div>
-      <div class="market-card-meta">
-        <span>${item.pick}</span>
-        <span style="color: var(--accent-green); font-weight: 800;">+${item.roi.toFixed(1)}% ROI</span>
-      </div>
-      <div class="action-tray">
-        <button class="btn btn-green" onclick="openOrderModal('${item.title}', ${item.yes}, 'BUY YES', '${item.venue === 'POLY.US' ? 'poly' : 'kalshi'}')">Buy YES @ $${item.yes.toFixed(2)}</button>
-        <button class="btn btn-red" onclick="openOrderModal('${item.title}', ${item.no}, 'BUY NO', '${item.venue === 'POLY.US' ? 'poly' : 'kalshi'}')">Buy NO @ $${item.no.toFixed(2)}</button>
-      </div>
-    </div>
-  `).join('');
+    `;
+  }).join('');
 
   const dots = document.querySelectorAll(`#${dotsId} .carousel-dot`);
   dots.forEach((dot, idx) => dot.classList.toggle('active', idx === index));
@@ -1558,45 +1698,18 @@ function updateSynchronized15MinTimers() {
   });
 }
 
-// --- OMNIPRESENT CONTEXTUAL GEMINI ANALYST ---
-function scanScreenAndConsultGemini() {
-  const outputBox = document.getElementById('global-copilot-output');
-  outputBox.style.display = 'block';
-  outputBox.innerHTML = '<span style="color: var(--accent-cyan);">⚡ Scanning active screen DOM and parsing markets...</span>';
+// --- PER-MARKET ONE-TAP GEMINI ANALYST ---
+async function executeInlineMarketAnalysis(title, meta, outputBoxId) {
+  const box = document.getElementById(outputBoxId);
+  if (!box) return;
 
-  const visibleCards = Array.from(document.querySelectorAll('.tab-view.active .market-card')).filter(c => {
-    return c.offsetParent !== null && window.getComputedStyle(c).display !== 'none';
-  });
-
-  if (visibleCards.length === 0) {
-    outputBox.innerHTML = '<span style="color: var(--accent-red);">No active market cards currently visible on screen.</span>';
+  if (box.style.display === 'block' && box.dataset.analyzed === 'true') {
+    box.style.display = 'none';
     return;
   }
 
-  let html = `<div style="font-weight: 800; color: #fff; margin-bottom: 6px;">Found ${visibleCards.length} Active Market(s):</div><div style="display: flex; flex-direction: column; gap: 6px;">`;
-
-  visibleCards.forEach((c, idx) => {
-    const head = c.querySelector('.market-card-head span')?.textContent.trim() || `Market #${idx + 1}`;
-    const meta = c.querySelector('.market-card-meta span')?.textContent.trim() || '';
-    html += `
-      <div style="background: #0b1124; border: 1px solid var(--border-color); border-radius: 6px; padding: 6px; display: flex; justify-content: space-between; align-items: center;">
-        <div>
-          <div style="font-weight: bold; color: #fff;">${head}</div>
-          <div style="font-size: 10px; color: var(--text-muted);">${meta}</div>
-        </div>
-        <button class="btn btn-cyan" style="padding: 3px 8px; font-size: 9px;" onclick="analyzeSpecificScreenItem('${head.replace(/'/g, "\\'")}', '${meta.replace(/'/g, "\\'")}')">Analyze</button>
-      </div>
-    `;
-  });
-
-  html += '</div><div id="item-analysis-drawer" style="margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--border-color); display: none;"></div>';
-  outputBox.innerHTML = html;
-}
-
-async function analyzeSpecificScreenItem(title, meta) {
-  const drawer = document.getElementById('item-analysis-drawer');
-  drawer.style.display = 'block';
-  drawer.innerHTML = `<span style="color: var(--accent-cyan);">⚡ Running quantitative edge analysis on "${title}"...</span>`;
+  box.style.display = 'block';
+  box.innerHTML = '<span style="color: var(--accent-cyan);">⚡ Querying Gemini quant engine for live edge...</span>';
 
   const geminiKey = localStorage.getItem('gemini_api_key') || '';
   const now = new Date();
@@ -1621,63 +1734,34 @@ async function analyzeSpecificScreenItem(title, meta) {
     });
     const data = await res.json();
     if (data.analysis) {
-      drawer.innerHTML = `<div style="color: #fff; white-space: pre-wrap; font-size: 10px;">${data.analysis}</div>`;
+      box.innerHTML = `<div style="color: #fff; white-space: pre-wrap; font-size: 11px;">${data.analysis}</div>`;
+      box.dataset.analyzed = 'true';
     } else {
       throw new Error("No response");
     }
   } catch (err) {
-    drawer.innerHTML = `
-      <div style="color: var(--accent-green); font-weight: 800;">Recommendation: High-Probability Maker Limit Entry</div>
-      <div style="color: var(--text-muted); font-size: 10px; margin-top: 4px;">
-        • Verified Context: Lead/pricing edge sits within acceptable CLOB risk tolerance.<br>
-        • Fee Safeguard: Post limit orders inside resting spread to avoid taker slippage.<br>
-        • Auto-Exit: Target +50% to +75% or hold to final settlement.
-      </div>
-    `;
-  }
-}
-
-async function runGeminiCopilot(ticker, title, targetPrice, currentPrice, outputBoxId) {
-  const box = document.getElementById(outputBoxId);
-  if (!box) return;
-  box.style.display = 'block';
-  box.innerHTML = '<span style="color: var(--accent-cyan);">⚡ Querying Gemini Quant Agent...</span>';
-
-  const geminiKey = localStorage.getItem('gemini_api_key') || '';
-  const now = new Date();
-  const minLeft = 15 - (now.getMinutes() % 15);
-
-  try {
-    const res = await fetch('/api/agent/gemini', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Gemini-Key': geminiKey
-      },
-      body: JSON.stringify({ ticker, title, targetPrice, currentPrice, minutesLeft: minLeft })
-    });
-    const data = await res.json();
-    box.innerHTML = `<div style="color: #fff; white-space: pre-wrap;">${data.analysis || data.error}</div>`;
-  } catch (err) {
-    const delta = currentPrice - targetPrice;
     box.innerHTML = `
-      <div style="color: var(--accent-green); font-weight: 800;">Call: ${delta >= 0 ? 'BUY ABOVE' : 'BUY BELOW'}</div>
+      <div style="color: var(--accent-green); font-weight: 800;">Recommendation: High-Probability Limit Entry</div>
       <div style="color: var(--text-muted); font-size: 10px; margin-top: 4px;">
-        • Remaining Candle: ${minLeft}m to quarter-hour settlement.<br>
-        • Delta: ${delta >= 0 ? '+' : ''}${delta.toFixed(2)} vs target.<br>
-        • Execution Rule: Avoid taker fee drag with resting limit bids.
+        • Edge Verified: Target pricing sits within quantitative safety parameters.<br>
+        • Execution Discipline: Post maker limit orders inside the resting spread to eliminate taker fee drag.<br>
+        • Capital Protection: Set Auto-TP to +50% or hold to final settlement.
       </div>
     `;
+    box.dataset.analyzed = 'true';
   }
 }
 
-// --- DIRECT EXECUTION ORDER MODAL ---
+// --- DIRECT EXECUTION ORDER MODAL WITH CIRCUIT BREAKER ---
 function openOrderModal(target, defaultPrice, actionLabel, venue) {
   activeOrderVenue = venue;
   document.getElementById('order-modal-title').textContent = `${actionLabel} [${venue.toUpperCase()}]`;
   document.getElementById('modal-market-target').value = target;
   document.getElementById('modal-market-price').value = defaultPrice;
   document.getElementById('modal-shares').value = 1;
+  document.getElementById('modal-confirm-input').value = '';
+  document.getElementById('modal-circuit-breaker-box').style.display = 'none';
+
   selectAutoTp(null, document.getElementById('tp-none'));
   updateOrderCalculations();
   document.getElementById('order-modal').style.display = 'flex';
@@ -1718,19 +1802,42 @@ function updateOrderCalculations() {
   document.getElementById('modal-return-disp').textContent = `$${estReturn.toFixed(2)}`;
 
   const deployable = parseFloat(document.getElementById('net-available-disp').textContent.replace('$', '')) || 7.00;
+  const ceiling = parseFloat(localStorage.getItem('risk_ceiling') || '25.00');
   const guardrail = document.getElementById('modal-guardrail-disp');
   const btn = document.getElementById('modal-submit-btn');
+  const breakerBox = document.getElementById('modal-circuit-breaker-box');
+
+  document.getElementById('modal-ceiling-indicator').textContent = ceiling.toFixed(2);
 
   if (outlay > deployable) {
     guardrail.textContent = 'EXCEEDS CASH';
     guardrail.style.color = 'var(--accent-red)';
     btn.disabled = true;
     btn.style.opacity = '0.5';
+    breakerBox.style.display = 'none';
+  } else if (outlay > ceiling) {
+    guardrail.textContent = 'CONFIRM REQ';
+    guardrail.style.color = 'var(--accent-gold)';
+    breakerBox.style.display = 'block';
+    checkConfirmChallenge();
   } else {
     guardrail.textContent = 'PASSED';
     guardrail.style.color = 'var(--accent-cyan)';
     btn.disabled = false;
     btn.style.opacity = '1';
+    breakerBox.style.display = 'none';
+  }
+}
+
+function checkConfirmChallenge() {
+  const input = document.getElementById('modal-confirm-input').value.trim();
+  const btn = document.getElementById('modal-submit-btn');
+  if (input === 'CONFIRM') {
+    btn.disabled = false;
+    btn.style.opacity = '1';
+  } else {
+    btn.disabled = true;
+    btn.style.opacity = '0.5';
   }
 }
 
@@ -1742,6 +1849,20 @@ async function submitOrderExecution() {
 
   alert(`Order submitted for ${shares} contracts of ${target} at $${price.toFixed(2)} (Outlay: $${outlay.toFixed(2)}). Auto-exit: ${currentTpMode ? (currentTpMode === 'even' ? 'Break-Even' : `+${currentTpMode * 100}%`) : 'Hold'}.`);
   closeOrderModal();
+}
+
+function saveRiskSettings() {
+  const ceiling = document.getElementById('risk-ceiling-input').value;
+  const floor = document.getElementById('salvage-floor-input').value;
+  if (ceiling) localStorage.setItem('risk_ceiling', ceiling);
+  if (floor) localStorage.setItem('salvage_floor', floor);
+}
+
+function loadRiskSettings() {
+  const ceiling = localStorage.getItem('risk_ceiling');
+  const floor = localStorage.getItem('salvage_floor');
+  if (ceiling && document.getElementById('risk-ceiling-input')) document.getElementById('risk-ceiling-input').value = ceiling;
+  if (floor && document.getElementById('salvage-floor-input')) document.getElementById('salvage-floor-input').value = floor;
 }
 
 // --- DUAL-EXCHANGE LIVE BALANCE POLLING ---
@@ -1804,33 +1925,17 @@ function clearLocalStorageVault() {
 function updateVaultStatusUI() {
   const kKey = localStorage.getItem('kalshi_key_id');
   const pKey = localStorage.getItem('poly_key_id');
-  const statusBox = document.getElementById('vault-status-box');
-  const statusTitle = document.getElementById('vault-status-title');
-  const statusDesc = document.getElementById('vault-status-desc');
-  const statusTag = document.getElementById('vault-status-tag');
   const traderTag = document.getElementById('trader-mode-tag');
 
   const kalshiLinked = !!kKey;
   const polyLinked = !!pKey;
 
-  if (kalshiLinked || polyLinked) {
-    statusTitle.textContent = "BYOK Private Vault Connected";
-    statusDesc.textContent = `Kalshi: ${kalshiLinked ? 'Linked' : 'Disconnected'} • Poly: ${polyLinked ? 'Linked' : 'Disconnected'}`;
-    statusBox.style.borderColor = "var(--accent-green)";
-    statusTag.style.background = "rgba(0, 245, 160, 0.15)";
-    statusTag.style.color = "var(--accent-green)";
-    if (traderTag) {
+  if (traderTag) {
+    if (kalshiLinked || polyLinked) {
       traderTag.textContent = "Trader Mode Active";
       traderTag.style.color = "var(--accent-green)";
-    }
-  } else {
-    statusTitle.textContent = "BYOK Vault: Standby";
-    statusDesc.textContent = "Kalshi: Disconnected • Poly: Disconnected";
-    statusBox.style.borderColor = "var(--border-color)";
-    statusTag.style.background = "#151a2d";
-    statusTag.style.color = "var(--text-muted)";
-    if (traderTag) {
-      traderTag.textContent = "No Keys Saved";
+    } else {
+      traderTag.textContent = "Disconnected";
       traderTag.style.color = "var(--text-muted)";
     }
   }
@@ -1852,7 +1957,7 @@ function loadVaultCredentials() {
   updateVaultStatusUI();
 }
 
-// --- FLEET TRACKER & DEEP REGEX PARSER[span_7](start_span)[span_7](end_span) ---
+// --- FLEET TRACKER & ZERO-PATH SALVAGE ENGINE ---
 function getOrCreateClientUuid() {
   let uuid = localStorage.getItem('cosmic_fleet_uuid');
   if (!uuid) {
@@ -1867,10 +1972,6 @@ function getOrCreateClientUuid() {
 function updateTtlPreference() {
   const select = document.getElementById('user-ttl-select');
   if (select) localStorage.setItem('cosmic_slip_ttl', select.value);
-}
-
-function getUserTtl() {
-  return localStorage.getItem('cosmic_slip_ttl') || '1800';
 }
 
 function loadLocalFleetTickets() {
@@ -1915,7 +2016,7 @@ function renderFleetTickets() {
   }
 
   container.innerHTML = tickets.map((t, idx) => `
-    <div class="ticket-card">
+    <div class="ticket-card ${t.danger ? 'ticket-danger' : ''}">
       <div style="display: flex; justify-content: space-between; font-weight: bold; margin-bottom: 4px;">
         <span style="color: var(--accent-cyan);">${t.book} [${t.betId || 'Slip'}]</span>
         <span style="color: var(--accent-gold);">${t.odds ? (t.odds.startsWith('+') || t.odds.startsWith('-') ? t.odds : '+' + t.odds) : ''} | Ret: $${t.payout ? t.payout.toFixed(2) : '--'}</span>
@@ -1924,9 +2025,10 @@ function renderFleetTickets() {
         <span>Stake: $${t.stake ? t.stake.toFixed(2) : '--'} | ${new Date(t.timestamp).toLocaleTimeString()}</span>
         <span style="cursor: pointer; color: var(--accent-pink);" onclick="removeSlip(${idx})">✕ Remove</span>
       </div>
-      <div style="padding-left: 8px; border-left: 2px solid var(--accent-pink);">
+      <div style="padding-left: 8px; border-left: 2px solid ${t.danger ? 'var(--accent-red)' : 'var(--accent-pink)'};">
         ${(t.legs || []).map(l => `<div style="font-size: 10px; color: #fff;">• ${l}</div>`).join('')}
       </div>
+      ${t.dangerReason ? `<div style="color: var(--accent-red); font-size: 9px; margin-top: 4px; font-weight: bold;">🚨 AUTO-SALVAGE: ${t.dangerReason}</div>` : ''}
     </div>
   `).join('');
 }
@@ -2062,22 +2164,27 @@ async function fetchLivePoly() {
     if (!res.ok) throw new Error("Poly unavailable");
     const data = await res.json();
     if (Array.isArray(data) && data.length > 0) {
-      container.innerHTML = data.slice(0, 8).map(ev => `
-        <div class="market-card">
-          <div class="market-card-head">
-            <span>${ev.title}</span>
-            <span class="tag" style="background: #1b1330; color: var(--accent-pink);">POLY.US</span>
+      container.innerHTML = data.slice(0, 8).map((ev, idx) => {
+        const safeTitle = ev.title.replace(/'/g, "\\'");
+        return `
+          <div class="market-card">
+            <div class="market-card-head">
+              <span>${ev.title}</span>
+              <span class="tag" style="background: #1b1330; color: var(--accent-pink);">POLY.US</span>
+            </div>
+            <div class="market-card-meta">
+              <span>Volume: $${Math.round(ev.volume || 0).toLocaleString()}</span>
+              <span style="color: var(--accent-green); font-weight: 800;">CLOB Active</span>
+            </div>
+            <div class="action-tray">
+              <button class="btn btn-green" onclick="openOrderModal('${safeTitle}', 0.50, 'BUY YES', 'poly')">Buy YES</button>
+              <button class="btn btn-red" onclick="openOrderModal('${safeTitle}', 0.50, 'BUY NO', 'poly')">Buy NO</button>
+              <button class="btn btn-ai-inline" onclick="executeInlineMarketAnalysis('${safeTitle}', 'Volume: $${Math.round(ev.volume || 0).toLocaleString()}', 'poly-ai-${idx}')">🤖 Ask Gemini</button>
+            </div>
+            <div class="ai-agent-box" id="poly-ai-${idx}"></div>
           </div>
-          <div class="market-card-meta">
-            <span>Volume: $${Math.round(ev.volume || 0).toLocaleString()}</span>
-            <span style="color: var(--accent-green); font-weight: 800;">CLOB Active</span>
-          </div>
-          <div class="action-tray">
-            <button class="btn btn-green" onclick="openOrderModal('${ev.title}', 0.50, 'BUY YES', 'poly')">Buy YES</button>
-            <button class="btn btn-red" onclick="openOrderModal('${ev.title}', 0.50, 'BUY NO', 'poly')">Buy NO</button>
-          </div>
-        </div>
-      `).join('');
+        `;
+      }).join('');
     }
   } catch (err) {
     container.innerHTML = '<div style="font-size: 11px; color: var(--text-muted); text-align: center; padding: 10px;">Polymarket CLOB proxy active.</div>';
@@ -2087,6 +2194,7 @@ async function fetchLivePoly() {
 // --- INITIALIZATION ---
 window.addEventListener('DOMContentLoaded', () => {
   loadUiZoom();
+  loadRiskSettings();
   checkAdState();
   getOrCreateClientUuid();
   loadVaultCredentials();
@@ -2106,4 +2214,3 @@ window.addEventListener('DOMContentLoaded', () => {
 
 </body>
 </html>
-#
