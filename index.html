@@ -1569,11 +1569,13 @@ async function analyzeSelectedScreenMarket(marketText) {
         'X-Gemini-Key': geminiKey
       },
       body: JSON.stringify({ 
-        ticker: "SCREEN_MARKET", 
+        ticker: "DESK_PICK", 
         title: marketText, 
-        targetPrice: "N/A", 
-        currentPrice: "N/A", 
-        minutesLeft: 60 
+        targetPrice: "Market Implied", 
+        currentPrice: "Live CLOB", 
+        minutesLeft: 60,
+        yesOdds: "50",
+        noOdds: "50"
       })
     });
 
