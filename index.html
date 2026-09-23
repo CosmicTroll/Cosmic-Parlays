@@ -101,28 +101,28 @@
       margin-right: 6px;
     }
 
-    /* Navigation & Sorter Bars */
-    .pill-nav, .sort-nav {
+    /* Top Platform & Desk Switcher */
+    .desk-nav, .sort-nav {
       display: flex;
       gap: 8px;
       overflow-x: auto;
       padding-bottom: 4px;
       scrollbar-width: none;
     }
-    .pill-nav::-webkit-scrollbar, .sort-nav::-webkit-scrollbar { display: none; }
+    .desk-nav::-webkit-scrollbar, .sort-nav::-webkit-scrollbar { display: none; }
     
-    .pill-btn, .sort-btn {
+    .desk-btn, .sort-btn {
       background: #0e1428;
       border: 1px solid var(--border-color);
       color: var(--text-muted);
-      padding: 7px 14px;
+      padding: 8px 14px;
       border-radius: 20px;
       font-size: 0.82rem;
       font-weight: 700;
       white-space: nowrap;
       cursor: pointer;
     }
-    .pill-btn.active, .sort-btn.active {
+    .desk-btn.active, .sort-btn.active {
       background: #1f2b4d;
       color: #fff;
       border-color: var(--accent-cyan);
@@ -270,7 +270,6 @@
       border: 1.5px solid rgba(255, 51, 68, 0.4);
     }
 
-    /* Recommendation Glows & Dynamic Fading */
     .btn-recommend-glow-above {
       border-color: var(--accent-green) !important;
       background: rgba(0, 245, 160, 0.25) !important;
@@ -438,24 +437,21 @@
       background: #080a18;
       border-top: 1px solid var(--border-color);
       display: flex;
-      overflow-x: auto;
-      scrollbar-width: none;
+      justify-content: space-around;
       align-items: center;
       z-index: 999;
       max-width: 540px;
       margin: 0 auto;
       padding: 0 6px;
     }
-    .bottom-nav::-webkit-scrollbar { display: none; }
 
     .nav-item {
-      flex: 0 0 60px;
       display: flex;
       flex-direction: column;
       align-items: center;
       gap: 4px;
       color: var(--text-muted);
-      font-size: 0.68rem;
+      font-size: 0.72rem;
       font-weight: 700;
       cursor: pointer;
       position: relative;
@@ -466,7 +462,7 @@
     .nav-badge {
       position: absolute;
       top: -4px;
-      right: 4px;
+      right: -8px;
       background: var(--accent-green);
       color: #000;
       font-size: 0.6rem;
@@ -483,7 +479,7 @@
 
 <div class="app-shell">
 
-  <!-- Top Bar -->
+  <!-- Top App Bar -->
   <div class="top-bar">
     <div class="brand-title">🚀 Cosmic Terminal</div>
     <div class="top-actions">
@@ -502,15 +498,15 @@
     <span style="font-size: 0.75rem; color: var(--text-muted); text-decoration: underline; cursor: pointer; white-space: nowrap; margin-left: 8px;" onclick="promptAdPasskey()">Remove Ads ($5)</span>
   </div>
 
-  <!-- Category Filter Bar -->
-  <div class="pill-nav">
-    <button class="pill-btn active" onclick="switchCategoryFilter('all', this)">🎯 Picks</button>
-    <button class="pill-btn" onclick="switchCategoryFilter('esports', this)">🎮 Esports</button>
-    <button class="pill-btn" onclick="switchCategoryFilter('sports', this)">🏈 Sports</button>
-    <button class="pill-btn" onclick="switchCategoryFilter('politics', this)">🏛 Politics</button>
+  <!-- Top Desk & Source Switcher (Split Layout) -->
+  <div class="desk-nav">
+    <button class="desk-btn active" onclick="switchDeskFilter('all', this)">🔥 Top EV Picks</button>
+    <button class="desk-btn" onclick="switchDeskFilter('poly', this)">🟣 Polymarket</button>
+    <button class="desk-btn" onclick="switchDeskFilter('kalshi', this)">🟢 Kalshi Desk</button>
+    <button class="desk-btn" onclick="switchDeskFilter('fleet', this)">🏈 Sportsbooks (Fleet)</button>
   </div>
 
-  <!-- Secondary Dynamic Sorter Bar -->
+  <!-- Universal Sort Bar (Applies to Active Tab) -->
   <div class="sort-nav">
     <span class="sort-label">SORT:</span>
     <button class="sort-btn active" onclick="switchSortOrder('roi-high', this)">🔥 Top ROI</button>
@@ -519,7 +515,7 @@
     <button class="sort-btn" onclick="switchSortOrder('today', this)">📅 Upcoming</button>
   </div>
 
-  <!-- VIEW 1: PICKS & EV BOARD -->
+  <!-- VIEW 1: PICKS & DESK -->
   <div class="tab-view active" id="view-picks">
     <div class="card">
       <div class="card-header">
@@ -535,7 +531,7 @@
       </div>
     </div>
 
-    <!-- Sports Desk (Rotating Top 9 Matches) -->
+    <!-- Sports Desk -->
     <div class="card market-section" id="section-sports">
       <div class="card-header">
         <span>🏈 Top Sports Picks (MLB / NFL EV)</span>
@@ -551,7 +547,7 @@
       <div id="sports-picks-container" style="display: flex; flex-direction: column; gap: 10px;"></div>
     </div>
 
-    <!-- Esports Desk (Rotating Top 9 Matches) -->
+    <!-- Esports Desk -->
     <div class="card market-section" id="section-esports">
       <div class="card-header">
         <span>🎮 Esports Desk (Top Picks Queue)</span>
@@ -566,9 +562,36 @@
       </div>
       <div id="esports-picks-container" style="display: flex; flex-direction: column; gap: 10px;"></div>
     </div>
+
+    <!-- Embedded Polymarket CLOB Feed (When filtered) -->
+    <div class="card" id="section-poly-feed" style="display: none;">
+      <div class="card-header">
+        <span>🟣 Polymarket CLOB Live Markets</span>
+        <span class="tag">Gamma Real-Time</span>
+      </div>
+      <div id="poly-live-feed" style="display: flex; flex-direction: column; gap: 10px;"></div>
+    </div>
+
+    <!-- Embedded Kalshi Live Feed (When filtered) -->
+    <div class="card" id="section-kalshi-feed" style="display: none;">
+      <div class="card-header">
+        <span>🟢 Kalshi Domestic Markets</span>
+        <span class="tag">Trade API v2</span>
+      </div>
+      <div id="kalshi-live-feed" style="display: flex; flex-direction: column; gap: 10px;"></div>
+    </div>
+
+    <!-- Embedded Fleet Slips (When filtered) -->
+    <div class="card" id="section-fleet-feed" style="display: none;">
+      <div class="card-header">
+        <span>🛡️ Sportsbook Fleet Ingestion</span>
+        <a href="javascript:void(0)" onclick="openSetupModal()" style="font-size: 0.75rem; color: var(--accent-cyan); text-decoration: none;">iOS Setup ➔</a>
+      </div>
+      <div id="fleet-tickets-container" style="display: flex; flex-direction: column; gap: 10px;"></div>
+    </div>
   </div>
 
-  <!-- VIEW 2: MACRO DESK -->
+  <!-- VIEW 2: MACRO DESK (SORTABLE DOM) -->
   <div class="tab-view" id="view-macro">
     <div class="card">
       <div class="card-header">
@@ -583,7 +606,7 @@
           </div>
           <div class="market-card-meta">
             <span>Market Implied: 84% Yes • Volume: $1.42M</span>
-            <span style="color: var(--accent-green); font-weight: 800;">YES @ $0.84</span>
+            <span style="color: var(--accent-green); font-weight: 800;">+19.0% ROI (YES @ $0.84)</span>
           </div>
         </div>
         <div class="market-card sortable-card" data-roi="47.0" data-expiry="1731000000000">
@@ -593,7 +616,7 @@
           </div>
           <div class="market-card-meta">
             <span>Market Implied: 68% Yes • Volume: $890k</span>
-            <span style="color: var(--accent-green); font-weight: 800;">YES @ $0.68</span>
+            <span style="color: var(--accent-green); font-weight: 800;">+47.0% ROI (YES @ $0.68)</span>
           </div>
         </div>
         <div class="market-card sortable-card" data-roi="8.7" data-expiry="1732000000000">
@@ -603,18 +626,18 @@
           </div>
           <div class="market-card-meta">
             <span>Market Implied: 92% Yes • Liquidity: High</span>
-            <span style="color: var(--accent-green); font-weight: 800;">YES @ $0.92</span>
+            <span style="color: var(--accent-green); font-weight: 800;">+8.7% ROI (YES @ $0.92)</span>
           </div>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- VIEW 3: KALSHI PERPETUALS, COMMODITIES & 15-MIN COPILOT DESK -->
+  <!-- VIEW 3: KALSHI PERPETUALS, COMMODITIES & FAST MARKETS -->
   <div class="tab-view" id="view-perps">
     <div class="card">
       <div class="card-header">
-        <span>⚡ KALSHI PERPETUAL FUTURES &amp; COMMODITIES DESK</span>
+        <span>⚡ KALSHI PERPETUAL FUTURES &amp; FAST MARKETS</span>
         <span class="tag">CFTC Regulated</span>
       </div>
       <div class="stat-grid-3">
@@ -632,22 +655,15 @@
         </div>
       </div>
 
-      <!-- Desk Sub-Selectors -->
+      <!-- Sub Desk Switcher -->
       <div style="display: flex; gap: 8px; margin-bottom: 14px; overflow-x: auto; scrollbar-width: none; padding-bottom: 4px;">
         <button class="pill-btn" id="btn-perp-crypto" onclick="switchPerpSubCategory('crypto')">🪙 Crypto (18)</button>
         <button class="pill-btn" id="btn-perp-commodities" onclick="switchPerpSubCategory('commodities')">🛢️ Commodities Suite</button>
         <button class="pill-btn active" id="btn-perp-15m" onclick="switchPerpSubCategory('15min')">⏱️ 15-Minute Fast Markets</button>
       </div>
 
-      <!-- SECTION A: CRYPTO PERPETUALS SUITE (18 ASSETS) -->
+      <!-- SECTION A: CRYPTO PERPETUALS (18 ASSETS) -->
       <div id="perp-sub-crypto" style="display: none; flex-direction: column; gap: 12px;">
-        <div style="display: flex; gap: 6px; margin-bottom: 4px;">
-          <span class="sort-label">FILTER:</span>
-          <button class="sort-btn active" onclick="filterCryptoList('all', this)">All (18)</button>
-          <button class="sort-btn" onclick="filterCryptoList('majors', this)">Majors</button>
-          <button class="sort-btn" onclick="filterCryptoList('alts', this)">DeFi &amp; L1s</button>
-        </div>
-
         <div class="market-card perp-asset perp-major">
           <div class="market-card-head">
             <span>Bitcoin (BTCPERP) • Max 6.3x</span>
@@ -691,17 +707,8 @@
         </div>
       </div>
 
-      <!-- SECTION B: SUB-CATEGORIZED COMMODITIES SUITE -->
+      <!-- SECTION B: COMMODITIES SUITE -->
       <div id="perp-sub-commodities" style="display: none; flex-direction: column; gap: 12px;">
-        <div style="display: flex; gap: 6px; margin-bottom: 4px; overflow-x: auto; scrollbar-width: none;">
-          <span class="sort-label">SECTOR:</span>
-          <button class="sort-btn active" onclick="filterCommodities('all', this)">All</button>
-          <button class="sort-btn" onclick="filterCommodities('metals', this)">⛏️ Metals</button>
-          <button class="sort-btn" onclick="filterCommodities('energy', this)">🛢️ Energy</button>
-          <button class="sort-btn" onclick="filterCommodities('agri', this)">🌾 Agri / Other</button>
-        </div>
-
-        <!-- Gold -->
         <div class="market-card comm-item comm-metals">
           <div class="market-card-head">
             <span>Gold Continuous (GOLDPERP) • Max 15.2x</span>
@@ -716,7 +723,6 @@
           </svg>
         </div>
 
-        <!-- Silver -->
         <div class="market-card comm-item comm-metals">
           <div class="market-card-head">
             <span>Silver Continuous (SILVERPERP) • Max 8.0x</span>
@@ -731,7 +737,6 @@
           </svg>
         </div>
 
-        <!-- WTI Crude Oil -->
         <div class="market-card comm-item comm-energy">
           <div class="market-card-head">
             <span>WTI Crude Oil Continuous • 10 Contracts</span>
@@ -747,14 +752,14 @@
         </div>
       </div>
 
-      <!-- SECTION C: 15-MINUTE FAST MARKETS (WITH GLOW & ORDER MODAL) -->
+      <!-- SECTION C: 15-MINUTE FAST MARKETS -->
       <div id="perp-sub-15m" style="display: flex; flex-direction: column; gap: 14px;">
         <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.78rem; color: var(--text-muted); padding: 4px 0;">
-          <span>Settles synchronized on quarter-hour marks (:00, :15, :30, :45)</span>
+          <span>Settles on quarter-hour marks (:00, :15, :30, :45)</span>
           <span class="tag" style="color: var(--accent-green); font-size: 0.65rem;">● LIVE STREAM</span>
         </div>
 
-        <!-- 1. Gold 15-Min Contract -->
+        <!-- Gold 15m -->
         <div class="market-card" style="border-color: #2a3558;" id="card-15m-gold">
           <div class="fast-header">
             <div style="display: flex; align-items: center; gap: 8px;">
@@ -776,7 +781,6 @@
             </div>
           </div>
 
-          <!-- Sparkline with Reference Strike Line -->
           <div style="position: relative; margin-top: 4px;">
             <svg class="sparkline-svg" viewBox="0 0 300 48">
               <line x1="0" y1="24" x2="300" y2="24" stroke="#475569" stroke-width="1.5" stroke-dasharray="4,4" />
@@ -785,7 +789,6 @@
             </svg>
           </div>
 
-          <!-- Binary Above / Below Decision Buttons (Click opens Order Sheet) -->
           <div class="binary-split-tray">
             <div class="binary-btn btn-above" id="btn-gold-above" onclick="openOrderModal('GOLD', 'Above', 89, 4343.61)">
               <span>Above</span>
@@ -803,10 +806,10 @@
             <span id="vol-15m-gold">$224,205 vol</span>
             <button class="btn btn-cyan" style="padding: 5px 12px; font-size: 0.78rem;" onclick="triggerGeminiAgent('GOLD')">🤖 Gemini Analysis</button>
           </div>
-          <div class="ai-agent-box" id="ai-box-gold">Evaluating candle momentum &amp; order-book spread...</div>
+          <div class="ai-agent-box" id="ai-box-gold">Evaluating candle momentum...</div>
         </div>
 
-        <!-- 2. Silver 15-Min Contract -->
+        <!-- Silver 15m -->
         <div class="market-card" style="border-color: #2a3558;" id="card-15m-silver">
           <div class="fast-header">
             <div style="display: flex; align-items: center; gap: 8px;">
@@ -853,178 +856,55 @@
             <span id="vol-15m-silver">$97,908 vol</span>
             <button class="btn btn-cyan" style="padding: 5px 12px; font-size: 0.78rem;" onclick="triggerGeminiAgent('SILVER')">🤖 Gemini Analysis</button>
           </div>
-          <div class="ai-agent-box" id="ai-box-silver">Evaluating candle momentum &amp; order-book spread...</div>
+          <div class="ai-agent-box" id="ai-box-silver">Evaluating candle momentum...</div>
         </div>
-
-        <!-- 3. WTI Crude Oil 15-Min Contract -->
-        <div class="market-card" style="border-color: #2a3558;" id="card-15m-wti">
-          <div class="fast-header">
-            <div style="display: flex; align-items: center; gap: 8px;">
-              <span class="asset-icon-badge badge-oil">WTI</span>
-              <span style="font-size: 0.85rem; font-weight: 800; color: #cbd5e1;">WTI OIL 15 MIN</span>
-            </div>
-            <div class="tag live-15m-timer" style="background: #3b1414; color: var(--accent-red); font-weight: 900; font-size: 0.75rem; padding: 3px 8px; border-radius: 12px; border: 1px solid rgba(255, 51, 68, 0.4);">
-              ● --:--
-            </div>
-          </div>
-
-          <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-top: 4px;">
-            <div>
-              <div class="target-title" id="val-15m-wti-target">Target $90.16</div>
-              <div class="current-spot-text" id="val-15m-wti-spot">Current $90.20</div>
-            </div>
-            <div class="delta-indicator delta-above" id="val-15m-wti-delta">
-              +$0.04 above target
-            </div>
-          </div>
-
-          <div style="position: relative; margin-top: 4px;">
-            <svg class="sparkline-svg" viewBox="0 0 300 48">
-              <line x1="0" y1="24" x2="300" y2="24" stroke="#475569" stroke-width="1.5" stroke-dasharray="4,4" />
-              <path id="spark-15m-wti" d="M 0,32 Q 60,35 120,28 T 200,20 T 260,18 L 300,16" fill="none" stroke="#38bdf8" stroke-width="2.5" />
-              <circle id="dot-15m-wti" cx="300" cy="16" r="4" fill="#38bdf8" />
-            </svg>
-          </div>
-
-          <div class="binary-split-tray">
-            <div class="binary-btn btn-above" id="btn-wti-above" onclick="openOrderModal('WTI', 'Above', 54, 90.16)">
-              <span>Above</span>
-              <span style="opacity: 0.7;">·</span>
-              <span id="prob-15m-wti-above">54%</span>
-            </div>
-            <div class="binary-btn btn-below" id="btn-wti-below" onclick="openOrderModal('WTI', 'Below', 46, 90.16)">
-              <span>Below</span>
-              <span style="opacity: 0.7;">·</span>
-              <span id="prob-15m-wti-below">46%</span>
-            </div>
-          </div>
-
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 6px; font-size: 0.78rem; color: var(--text-muted);">
-            <span id="vol-15m-wti">$142,500 vol</span>
-            <button class="btn btn-cyan" style="padding: 5px 12px; font-size: 0.78rem;" onclick="triggerGeminiAgent('WTI')">🤖 Gemini Analysis</button>
-          </div>
-          <div class="ai-agent-box" id="ai-box-wti">Evaluating candle momentum &amp; order-book spread...</div>
-        </div>
-
-      </div>
-
-    </div>
-  </div>
-
-  <!-- VIEW 4: POLYMARKET US MARKETS -->
-  <div class="tab-view" id="view-poly">
-    <div class="card">
-      <div class="card-header">
-        <span>🟣 POLYMARKET US CLOB MARKETS</span>
-        <span class="tag">Gamma Proxy</span>
-      </div>
-      <div id="poly-live-feed" style="display: flex; flex-direction: column; gap: 10px;">
-        <div style="font-size: 0.85rem; color: var(--text-muted); text-align: center; padding: 12px;">Querying /api/polymarket/markets...</div>
       </div>
     </div>
   </div>
 
-  <!-- VIEW 5: KALSHI DESK -->
-  <div class="tab-view" id="view-kalshi">
-    <div class="card">
-      <div class="card-header">
-        <span>🟢 KALSHI DOMESTIC DESK</span>
-        <span class="tag">Trade API v2</span>
-      </div>
-      <div id="kalshi-live-feed" style="display: flex; flex-direction: column; gap: 10px;">
-        <div style="font-size: 0.85rem; color: var(--text-muted); text-align: center; padding: 12px;">Authenticated via Local Session Keys</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- VIEW 6: SPREADS & ARBITRAGE -->
+  <!-- VIEW 4: SPREADS & ARBITRAGE (SORTABLE DOM) -->
   <div class="tab-view" id="view-spreads">
     <div class="card">
       <div class="card-header">
         <span>⚖️ CROSS-PLATFORM ARBITRAGE SCANNER</span>
         <span class="tag" style="background: #12281a; color: var(--accent-green);">227 Spreads Screened</span>
       </div>
-      <div style="display: flex; flex-direction: column; gap: 10px;">
-        <div class="market-card">
+      <div id="spreads-container" style="display: flex; flex-direction: column; gap: 10px;">
+        <div class="market-card sortable-card" data-roi="34.0" data-expiry="1730000000000">
           <div class="market-card-head">
             <span>Fed Funds Rate Cut ≥ 25 bps Resolution</span>
             <span class="tag" style="background: #12281a; color: var(--accent-green);">+3.4% ARB</span>
           </div>
           <div class="market-card-meta">
             <span>Buy Poly YES @ $0.84 • Buy Kalshi NO @ $0.126</span>
-            <span style="color: var(--accent-cyan); font-weight: 800;">Risk-Free Net</span>
+            <span style="color: var(--accent-cyan); font-weight: 800;">+34.0% ROI (Risk-Free Net)</span>
           </div>
         </div>
-        <div class="market-card">
+        <div class="market-card sortable-card" data-roi="28.0" data-expiry="1731000000000">
           <div class="market-card-head">
             <span>US Core CPI Inflation &lt; 3.0% Annualized</span>
             <span class="tag" style="background: #12281a; color: var(--accent-green);">+2.8% ARB</span>
           </div>
           <div class="market-card-meta">
             <span>Buy Kalshi YES @ $0.68 • Buy Poly NO @ $0.292</span>
-            <span style="color: var(--accent-cyan); font-weight: 800;">Risk-Free Net</span>
+            <span style="color: var(--accent-cyan); font-weight: 800;">+28.0% ROI (Risk-Free Net)</span>
+          </div>
+        </div>
+        <div class="market-card sortable-card" data-roi="19.0" data-expiry="1732000000000">
+          <div class="market-card-head">
+            <span>US Debt Ceiling Extension Resolution</span>
+            <span class="tag" style="background: #12281a; color: var(--accent-green);">+1.9% ARB</span>
+          </div>
+          <div class="market-card-meta">
+            <span>Buy Poly YES @ $0.92 • Buy Kalshi NO @ $0.061</span>
+            <span style="color: var(--accent-cyan); font-weight: 800;">+19.0% ROI (Risk-Free Net)</span>
           </div>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- VIEW 7: FLEET TRACKER & INGESTION -->
-  <div class="tab-view" id="view-fleet">
-    <div class="card">
-      <div class="card-header">
-        <span>🛡️ FLEET TRACKER &amp; INGESTION</span>
-        <span class="tag" id="fleet-uuid-tag">ENDPOINT: Loading...</span>
-      </div>
-
-      <div class="stat-grid-3">
-        <div class="stat-box">
-          <span class="stat-label">Total Slips</span>
-          <span class="stat-value" id="fleet-slips-count">0</span>
-        </div>
-        <div class="stat-box">
-          <span class="stat-label">Active Risk</span>
-          <span class="stat-value" id="fleet-risk-val">$0.00</span>
-        </div>
-        <div class="stat-box">
-          <span class="stat-label">Gross Return</span>
-          <span class="stat-value" id="fleet-payout-val" style="color: var(--accent-green);">$0.00</span>
-        </div>
-      </div>
-
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; padding: 10px 12px; background: rgba(0, 242, 254, 0.05); border: 1px solid rgba(0, 242, 254, 0.2); border-radius: 10px;">
-        <span style="font-size: 0.82rem; color: var(--text-muted);">Want 1-tap bet sharing from DraftKings &amp; FanDuel?</span>
-        <a href="javascript:void(0)" onclick="openSetupModal()" style="font-size: 0.82rem; font-weight: 800; color: var(--accent-cyan); text-decoration: none;">Setup Guide ➔</a>
-      </div>
-
-      <div style="display: flex; gap: 8px; margin-bottom: 14px; align-items: flex-end;">
-        <div style="flex: 2;">
-          <label class="stat-label">Manual Paste Fallback</label>
-          <input type="text" id="manual-slip-input" placeholder="Paste sportsbook receipt or link...">
-        </div>
-        <div style="flex: 1;">
-          <label class="stat-label">Retention (TTL)</label>
-          <select id="user-ttl-select" onchange="updateTtlPreference()">
-            <option value="300">5 Min</option>
-            <option value="900">15 Min</option>
-            <option value="1800" selected>30 Min</option>
-            <option value="3600">1 Hour</option>
-            <option value="86400">24 Hours</option>
-          </select>
-        </div>
-        <button class="btn btn-gold" style="height: 42px;" onclick="ingestManualSlip()">Import</button>
-      </div>
-
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-        <span class="stat-label">Imported Wagers</span>
-        <button class="btn" style="padding: 3px 10px; font-size: 0.75rem;" onclick="pollSharedSlips()">Force Sync</button>
-      </div>
-
-      <div id="fleet-tickets-container" style="display: flex; flex-direction: column; gap: 10px;"></div>
-    </div>
-  </div>
-
-  <!-- VIEW 8: VAULT (LIFETIME EARNINGS & APP BREAKDOWN) -->
+  <!-- VIEW 5: VAULT (LIFETIME METRICS) -->
   <div class="tab-view" id="view-vault">
     <div class="card">
       <div class="card-header">
@@ -1032,7 +912,6 @@
         <span class="tag" style="color: var(--accent-green);">Lifetime Metrics</span>
       </div>
       
-      <!-- Primary Earnings Overview -->
       <div class="stat-grid-3" style="margin-bottom: 12px;">
         <div class="stat-box">
           <span class="stat-label">Total Net PnL</span>
@@ -1048,12 +927,10 @@
         </div>
       </div>
 
-      <!-- App-by-App Performance Breakdown -->
       <div style="font-weight: 800; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 8px; text-transform: uppercase;">
         Earnings By Platform
       </div>
       <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px;">
-        <!-- Polymarket.us -->
         <div style="background: #080c1a; border: 1px solid var(--border-color); border-radius: 8px; padding: 10px; display: flex; justify-content: space-between; align-items: center;">
           <div>
             <div style="font-weight: 800; font-size: 0.85rem; color: var(--accent-pink);">Polymarket.us</div>
@@ -1065,11 +942,10 @@
           </div>
         </div>
 
-        <!-- Kalshi -->
         <div style="background: #080c1a; border: 1px solid var(--border-color); border-radius: 8px; padding: 10px; display: flex; justify-content: space-between; align-items: center;">
           <div>
             <div style="font-weight: 800; font-size: 0.85rem; color: var(--accent-green);">Kalshi Domestic</div>
-            <div style="font-size: 0.72rem; color: var(--text-muted);">CFTC Designated Contract Market</div>
+            <div style="font-size: 0.72rem; color: var(--text-muted);">CFTC DCM</div>
           </div>
           <div style="text-align: right;">
             <div style="font-weight: 800; font-size: 0.88rem; color: var(--accent-green);" id="pnl-kalshi">+$0.00</div>
@@ -1077,11 +953,10 @@
           </div>
         </div>
 
-        <!-- Sportsbooks (DraftKings / FanDuel) -->
         <div style="background: #080c1a; border: 1px solid var(--border-color); border-radius: 8px; padding: 10px; display: flex; justify-content: space-between; align-items: center;">
           <div>
             <div style="font-weight: 800; font-size: 0.85rem; color: var(--accent-cyan);">Sportsbooks (DK / FD)</div>
-            <div style="font-size: 0.72rem; color: var(--text-muted);">Fleet Imported Parlays &amp; SGPx</div>
+            <div style="font-size: 0.72rem; color: var(--text-muted);">Fleet Imported Parlays</div>
           </div>
           <div style="text-align: right;">
             <div style="font-weight: 800; font-size: 0.88rem; color: var(--accent-green);" id="pnl-books">+$0.00</div>
@@ -1090,11 +965,11 @@
         </div>
       </div>
 
-      <button class="btn btn-cyan" style="width: 100%;" onclick="switchNavTab('view-settings', null)">⚙️ Configure API Keys &amp; UI Preferences</button>
+      <button class="btn btn-cyan" style="width: 100%;" onclick="switchNavTab('view-settings', null)">⚙️ Configure API Keys &amp; Settings</button>
     </div>
   </div>
 
-  <!-- VIEW 9: SETTINGS (MOVED API FORMS + UI SCALING SLIDER) -->
+  <!-- VIEW 6: SETTINGS (ISOLATED CREDENTIALS & ZOOM SLIDER) -->
   <div class="tab-view" id="view-settings">
     <div class="card">
       <div class="card-header">
@@ -1112,7 +987,6 @@
       <button class="btn" style="width: 100%; background: #19223c;" onclick="resetUiZoom()">Reset to Default (100%)</button>
     </div>
 
-    <!-- Isolated BYOK Credentials Section -->
     <div class="card">
       <div class="card-header">
         <span>🔐 Private BYOK Credentials</span>
@@ -1172,11 +1046,11 @@
     </div>
   </div>
 
-  <!-- Bottom Navigation Bar (Now Includes Settings) -->
+  <!-- Bottom Navigation Bar (Streamlined to 5 Operations) -->
   <nav class="bottom-nav">
     <div class="nav-item active" onclick="switchNavTab('view-picks', this)">
       <span>🎯</span>
-      <span>Picks</span>
+      <span>Desk</span>
     </div>
     <div class="nav-item" onclick="switchNavTab('view-macro', this)">
       <span>🏛</span>
@@ -1186,23 +1060,10 @@
       <span>⚡</span>
       <span>Perps</span>
     </div>
-    <div class="nav-item" onclick="switchNavTab('view-poly', this)">
-      <span>🟣</span>
-      <span>Poly</span>
-    </div>
-    <div class="nav-item" onclick="switchNavTab('view-kalshi', this)">
-      <span>🟢</span>
-      <span>Kalshi</span>
-    </div>
     <div class="nav-item" onclick="switchNavTab('view-spreads', this)">
       <span>⚖️</span>
       <span>Spreads</span>
       <span class="nav-badge">227</span>
-    </div>
-    <div class="nav-item" onclick="switchNavTab('view-fleet', this)">
-      <span>🎟️</span>
-      <span>Fleet</span>
-      <span class="nav-badge" id="nav-fleet-count">0</span>
     </div>
     <div class="nav-item" onclick="switchNavTab('view-vault', this)">
       <span>💼</span>
@@ -1212,10 +1073,9 @@
 
 </div>
 
-<!-- INTERACTIVE 15-MIN EXECUTION ORDER SHEET -->
+<!-- 15-MIN ORDER CONFIRMATION MODAL -->
 <div id="order-modal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 10000; padding: 20px; overflow-y: auto; justify-content: center; align-items: center;">
   <div style="background: #0d1226; border: 1.5px solid var(--border-color); border-radius: 14px; max-width: 440px; width: 100%; padding: 20px; color: #fff; font-size: 13px; display: flex; flex-direction: column; gap: 14px; box-shadow: 0 0 30px rgba(0, 242, 254, 0.25);">
-    
     <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">
       <span style="font-weight: 900; font-size: 15px; color: var(--accent-cyan);" id="order-modal-title">Confirm Kalshi 15-Min Order</span>
       <span style="cursor: pointer; font-size: 18px; color: var(--text-muted);" onclick="closeOrderModal()">✕</span>
@@ -1224,29 +1084,26 @@
     <div>
       <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase;">Target Comparison</div>
       <div style="font-size: 16px; font-weight: 900;" id="order-target-display">Target $4,343.61</div>
-      <div style="font-size: 12px; margin-top: 2px;" id="order-side-display">Side: <strong style="color: var(--accent-green);">ABOVE (YES)</strong></div>
+      <div style="font-size: 12px; margin-top: 2px;" id="order-side-display">Action: <strong style="color: var(--accent-green);">ABOVE (YES)</strong></div>
     </div>
 
-    <!-- Contract Quantity Input -->
     <div class="input-group">
       <label class="stat-label">Number of Contracts</label>
       <input type="number" id="order-qty" value="5" min="1" max="500" oninput="calculateOrderEstimate()">
     </div>
 
-    <!-- Limit Price Cap Input -->
     <div class="input-group">
-      <label class="stat-label">Limit Price Cap (Cents per Contract: 1¢ - 99¢)</label>
+      <label class="stat-label">Limit Price Cap (1¢ - 99¢)</label>
       <input type="number" id="order-limit-price" value="89" min="1" max="99" oninput="calculateOrderEstimate()">
     </div>
 
-    <!-- Summary Cost & Estimated Profit -->
     <div style="background: #070914; border: 1px solid var(--border-color); border-radius: 8px; padding: 12px; display: flex; flex-direction: column; gap: 6px;">
       <div style="display: flex; justify-content: space-between; font-size: 12px;">
         <span style="color: var(--text-muted);">Max Position Cost:</span>
         <strong id="order-est-cost">$4.45</strong>
       </div>
       <div style="display: flex; justify-content: space-between; font-size: 12px;">
-        <span style="color: var(--text-muted);">Estimated Fee (Limit Order):</span>
+        <span style="color: var(--text-muted);">Estimated Maker Fee:</span>
         <strong style="color: var(--accent-cyan);" id="order-est-fee">$0.02</strong>
       </div>
       <div style="display: flex; justify-content: space-between; font-size: 13px; border-top: 1px dashed var(--border-color); padding-top: 6px;">
@@ -1257,14 +1114,14 @@
 
     <div style="display: flex; gap: 10px; margin-top: 4px;">
       <button class="btn" style="flex: 1; background: #19223c;" onclick="closeOrderModal()">Cancel</button>
-      <button class="btn btn-gold" style="flex: 2;" onclick="submitKalshiOrder()">Confirm &amp; Place Limit Order</button>
+      <button class="btn btn-gold" style="flex: 2;" onclick="submitKalshiOrder()">Place Limit Order</button>
     </div>
   </div>
 </div>
 
 <!-- SETUP INSTRUCTIONS MODAL SHEET -->
 <div id="setup-modal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 10000; padding: 20px; overflow-y: auto; justify-content: center; align-items: center;">
-  <div style="background: #0d1224; border: 1px solid var(--border-color); border-radius: 14px; max-width: 440px; width: 100%; padding: 18px; color: #fff; font-size: 12px; display: flex; flex-direction: column; gap: 14px; box-shadow: 0 0 30px rgba(0, 242, 254, 0.2);">
+  <div style="background: #0d1224; border: 1px solid var(--border-color); border-radius: 14px; max-width: 440px; width: 100%; padding: 18px; color: #fff; font-size: 12px; display: flex; flex-direction: column; gap: 14px;">
     <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">
       <span style="font-weight: 900; font-size: 14px; color: var(--accent-cyan);">🚀 Terminal Mobile Setup Guide</span>
       <span style="cursor: pointer; font-size: 16px; color: var(--text-muted);" onclick="closeSetupModal()">✕</span>
@@ -1272,23 +1129,11 @@
     <div>
       <div style="font-weight: 800; color: var(--accent-gold); margin-bottom: 4px;">1. Add to Home Screen (PWA Mode)</div>
       <p style="color: var(--text-muted); font-size: 11px; line-height: 1.4;">
-        1. Open this URL in mobile Safari.<br>
-        2. Tap the <strong>Share</strong> button at the bottom.<br>
-        3. Scroll down and tap <strong>Add to Home Screen</strong>.<br>
-        4. Tap <strong>Add</strong> in the top right.
+        Open in Safari &gt; Tap Share &gt; Add to Home Screen.
       </p>
     </div>
     <div>
       <div style="font-weight: 800; color: var(--accent-green); margin-bottom: 4px;">2. Setup 1-Tap Sportsbook Share (iOS)</div>
-      <ol style="padding-left: 16px; color: var(--text-muted); font-size: 11px; line-height: 1.5;">
-        <li>Open the <strong>Shortcuts</strong> app and tap <strong>+</strong>.</li>
-        <li>Rename it to <code>Cosmic Terminal</code>.</li>
-        <li>Tap the info <strong>(i)</strong> icon at the bottom and toggle ON <strong>Show in Share Sheet</strong>.</li>
-        <li>Set input to receive <strong>URLs</strong> and <strong>Text</strong>.</li>
-        <li>Add the action <strong>Get Contents of URL</strong>.</li>
-        <li>Set Method to <strong>POST</strong>, Request Body to <strong>JSON</strong>, Header <code>Content-Type: application/json</code>, and Body Key <code>text</code> = <strong>Shortcut Input</strong>.</li>
-        <li>Paste your unique endpoint URL into the URL field:</li>
-      </ol>
       <div style="margin-top: 8px; background: #060812; border: 1px solid #1a2340; padding: 8px; border-radius: 6px; font-family: monospace; font-size: 10px; color: var(--accent-cyan); word-break: break-all;" id="modal-endpoint-copy">
         Loading...
       </div>
@@ -1299,7 +1144,7 @@
 </div>
 
 <script>
-// --- UI SCALING CONTROLS ---
+// --- UI SCALING ---
 function updateUiZoom(val) {
   document.documentElement.style.setProperty('--ui-zoom', val);
   document.getElementById('ui-zoom-disp').textContent = `${Math.round(val * 100)}%`;
@@ -1321,7 +1166,7 @@ function resetUiZoom() {
   if (slider) slider.value = 1.0;
 }
 
-// --- MASTER QUEUE ARRAYS ---
+// --- QUEUE POOLS (TOP 9 MATCHES) ---
 let SPORTS_PICKS_POOL = [
   { match: "Nationals @ Tigers — First 5 Under 4.5 Runs", book: "POLY.US", bookBg: "#1b1330", bookColor: "var(--accent-pink)", pick: "YES Under 4.5 F5 @ $0.78 (78% Implied)", roi: "+28.2% ROI", roiNum: 28.2, time: "Tomorrow 1:10 PM ET", expiry: 1727111400000 },
   { match: "Blue Jays @ Orioles — Baltimore Orioles Moneyline", book: "KALSHI", bookBg: "#12281a", bookColor: "var(--accent-green)", pick: "YES Orioles ML @ $0.82 (82% Implied)", roi: "+22.0% ROI", roiNum: 22.0, time: "Tomorrow 1:35 PM ET", expiry: 1727112900000 },
@@ -1399,25 +1244,12 @@ function startCarouselRotators() {
 
   sportsTimer = setInterval(cycleSportsCarousel, 6000);
   esportsTimer = setInterval(cycleEsportsCarousel, 6000);
-
-  const sportsContainer = document.getElementById('section-sports');
-  const esportsContainer = document.getElementById('section-esports');
-  if (sportsContainer) {
-    sportsContainer.addEventListener('mouseenter', () => clearInterval(sportsTimer));
-    sportsContainer.addEventListener('mouseleave', () => sportsTimer = setInterval(cycleSportsCarousel, 6000));
-  }
-  if (esportsContainer) {
-    esportsContainer.addEventListener('mouseenter', () => clearInterval(esportsTimer));
-    esportsContainer.addEventListener('mouseleave', () => esportsTimer = setInterval(cycleEsportsCarousel, 6000));
-  }
 }
 
-// 10-Minute Periodic Slate Refresh
 function refreshScreenedSlatePool() {
   const now = Date.now();
   SPORTS_PICKS_POOL = SPORTS_PICKS_POOL.filter(m => m.expiry > now);
   ESPORTS_PICKS_POOL = ESPORTS_PICKS_POOL.filter(m => m.expiry > now);
-
   sportsPageIndex = 0;
   esportsPageIndex = 0;
   renderCarouselPage('sports-picks-container', SPORTS_PICKS_POOL, 0);
@@ -1426,66 +1258,102 @@ function refreshScreenedSlatePool() {
   updateDots('esports-carousel-dots', 0);
 }
 
-// --- NAVIGATION & TABS ---
-function switchNavTab(viewId, element) {
-  document.querySelectorAll('.tab-view').forEach(v => v.classList.remove('active'));
-  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-  const targetView = document.getElementById(viewId);
-  if (targetView) targetView.classList.add('active');
-  if (element) element.classList.add('active');
-
-  if (viewId === 'view-poly') fetchLivePoly();
-  if (viewId === 'view-perps') pollLive15MinMarkets();
-  if (viewId === 'view-vault') calculateVaultEarnings();
-}
-
-function switchCategoryFilter(category, button) {
-  document.querySelectorAll('.pill-btn').forEach(b => b.classList.remove('active'));
+// --- DESK & PLATFORM SWITCHER (TOP SPLIT BAR) ---
+function switchDeskFilter(desk, button) {
+  document.querySelectorAll('.desk-btn').forEach(b => b.classList.remove('active'));
   button.classList.add('active');
+
+  // Ensure user is viewing Desk tab
+  switchNavTab('view-picks', document.querySelectorAll('.bottom-nav .nav-item')[0]);
 
   const sportsSec = document.getElementById('section-sports');
   const esportsSec = document.getElementById('section-esports');
+  const polySec = document.getElementById('section-poly-feed');
+  const kalshiSec = document.getElementById('section-kalshi-feed');
+  const fleetSec = document.getElementById('section-fleet-feed');
 
-  if (category === 'all') {
-    if (sportsSec) sportsSec.style.display = 'block';
-    if (esportsSec) esportsSec.style.display = 'block';
-  } else if (category === 'sports') {
-    if (sportsSec) sportsSec.style.display = 'block';
-    if (esportsSec) esportsSec.style.display = 'none';
-  } else if (category === 'esports') {
-    if (sportsSec) sportsSec.style.display = 'none';
-    if (esportsSec) esportsSec.style.display = 'block';
-  } else {
-    if (sportsSec) sportsSec.style.display = 'none';
-    if (esportsSec) esportsSec.style.display = 'none';
+  // Hide all sections first
+  sportsSec.style.display = 'none';
+  esportsSec.style.display = 'none';
+  polySec.style.display = 'none';
+  kalshiSec.style.display = 'none';
+  fleetSec.style.display = 'none';
+
+  if (desk === 'all') {
+    sportsSec.style.display = 'block';
+    esportsSec.style.display = 'block';
+  } else if (desk === 'poly') {
+    polySec.style.display = 'block';
+    fetchLivePoly();
+  } else if (desk === 'kalshi') {
+    kalshiSec.style.display = 'block';
+    renderKalshiDesk();
+  } else if (desk === 'fleet') {
+    fleetSec.style.display = 'block';
+    renderFleetTickets();
   }
 }
 
+// --- UNIVERSAL ACTIVE TAB DOM SORTER ---
 function switchSortOrder(order, button) {
   document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
   button.classList.add('active');
 
-  clearInterval(sportsTimer);
-  clearInterval(esportsTimer);
+  // Find currently active view
+  const activeView = document.querySelector('.tab-view.active');
+  if (!activeView) return;
 
-  const sortPool = (pool) => {
-    return pool.sort((a, b) => {
-      if (order === 'roi-high') return b.roiNum - a.roiNum;
-      if (order === 'roi-low') return a.roiNum - b.roiNum;
-      if (order === 'ending' || order === 'today') return a.expiry - b.expiry;
+  // If on Desk tab with auto-rotators active, sort the array pools
+  if (activeView.id === 'view-picks') {
+    clearInterval(sportsTimer);
+    clearInterval(esportsTimer);
+    const sortPool = (pool) => {
+      return pool.sort((a, b) => {
+        if (order === 'roi-high') return b.roiNum - a.roiNum;
+        if (order === 'roi-low') return a.roiNum - b.roiNum;
+        if (order === 'ending' || order === 'today') return a.expiry - b.expiry;
+        return 0;
+      });
+    };
+    sortPool(SPORTS_PICKS_POOL);
+    sortPool(ESPORTS_PICKS_POOL);
+    sportsPageIndex = 0;
+    esportsPageIndex = 0;
+    renderCarouselPage('sports-picks-container', SPORTS_PICKS_POOL, 0);
+    renderCarouselPage('esports-picks-container', ESPORTS_PICKS_POOL, 0);
+    updateDots('sports-carousel-dots', 0);
+    updateDots('esports-carousel-dots', 0);
+  }
+
+  // Universal DOM sort across any sortable containers on the active tab
+  const containers = activeView.querySelectorAll('#macro-picks-container, #spreads-container, #poly-live-feed, #kalshi-live-feed');
+  containers.forEach(container => {
+    const cards = Array.from(container.querySelectorAll('.sortable-card'));
+    cards.sort((a, b) => {
+      const roiA = parseFloat(a.dataset.roi) || 0;
+      const roiB = parseFloat(b.dataset.roi) || 0;
+      const expA = parseInt(a.dataset.expiry, 10) || 0;
+      const expB = parseInt(b.dataset.expiry, 10) || 0;
+
+      if (order === 'roi-high') return roiB - roiA;
+      if (order === 'roi-low') return roiA - roiB;
+      if (order === 'ending' || order === 'today') return expA - expB;
       return 0;
     });
-  };
+    cards.forEach(card => container.appendChild(card));
+  });
+}
 
-  sortPool(SPORTS_PICKS_POOL);
-  sortPool(ESPORTS_PICKS_POOL);
+// --- GLOBAL BOTTOM NAVIGATION ---
+function switchNavTab(viewId, element) {
+  document.querySelectorAll('.tab-view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.bottom-nav .nav-item').forEach(n => n.classList.remove('active'));
+  const targetView = document.getElementById(viewId);
+  if (targetView) targetView.classList.add('active');
+  if (element) element.classList.add('active');
 
-  sportsPageIndex = 0;
-  esportsPageIndex = 0;
-  renderCarouselPage('sports-picks-container', SPORTS_PICKS_POOL, 0);
-  renderCarouselPage('esports-picks-container', ESPORTS_PICKS_POOL, 0);
-  updateDots('sports-carousel-dots', 0);
-  updateDots('esports-carousel-dots', 0);
+  if (viewId === 'view-perps') pollLive15MinMarkets();
+  if (viewId === 'view-vault') calculateVaultEarnings();
 }
 
 // PERPETUALS SUB-DESK CONTROLS
@@ -1497,38 +1365,6 @@ function switchPerpSubCategory(sub) {
   document.getElementById('btn-perp-crypto').classList.toggle('active', sub === 'crypto');
   document.getElementById('btn-perp-commodities').classList.toggle('active', sub === 'commodities');
   document.getElementById('btn-perp-15m').classList.toggle('active', sub === '15min');
-}
-
-function filterCryptoList(group, button) {
-  document.querySelectorAll('#perp-sub-crypto .sort-btn').forEach(b => b.classList.remove('active'));
-  button.classList.add('active');
-
-  document.querySelectorAll('.perp-asset').forEach(el => {
-    if (group === 'all') {
-      el.style.display = 'flex';
-    } else if (group === 'majors') {
-      el.style.display = el.classList.contains('perp-major') ? 'flex' : 'none';
-    } else if (group === 'alts') {
-      el.style.display = el.classList.contains('perp-alts') ? 'flex' : 'none';
-    }
-  });
-}
-
-function filterCommodities(sector, button) {
-  document.querySelectorAll('#perp-sub-commodities .sort-btn').forEach(b => b.classList.remove('active'));
-  button.classList.add('active');
-
-  document.querySelectorAll('.comm-item').forEach(el => {
-    if (sector === 'all') {
-      el.style.display = 'flex';
-    } else if (sector === 'metals') {
-      el.style.display = el.classList.contains('comm-metals') ? 'flex' : 'none';
-    } else if (sector === 'energy') {
-      el.style.display = el.classList.contains('comm-energy') ? 'flex' : 'none';
-    } else if (sector === 'agri') {
-      el.style.display = el.classList.contains('comm-agri') ? 'flex' : 'none';
-    }
-  });
 }
 
 // --- SYNCHRONIZED 15-MINUTE CANDLE TIMER ---
@@ -1549,7 +1385,7 @@ function updateSynchronized15MinTimers() {
   });
 }
 
-// --- INTERACTIVE ORDER MODAL & EXECUTION ---
+// --- ORDER EXECUTION MODAL ---
 let activeOrderContext = null;
 
 function openOrderModal(assetKey, side, currentProb, targetPrice) {
@@ -1579,7 +1415,6 @@ function calculateOrderEstimate() {
   const priceDollars = priceCents / 100;
 
   const maxCost = qty * priceDollars;
-  // Kalshi maker limit fee formula: ~0.0175 * C * P * (1-P)
   const estFee = Math.max(0.01, 0.0175 * qty * priceDollars * (1 - priceDollars));
   const maxPayout = qty * 1.0;
   const netProfit = (maxPayout - maxCost) - estFee;
@@ -1605,11 +1440,10 @@ function submitKalshiOrder() {
   closeOrderModal();
 }
 
-// --- LIVE 15-MINUTE MARKET STREAMING ENGINE ---
+// --- LIVE 15-MIN DATA STREAMING & GEMINI GLOW ---
 const live15MinState = {
   GOLD: { ticker: "KXGOLD15M", title: "Gold 15m Close", target: 4343.61, spot: 4344.23, aboveProb: 89, belowProb: 11, vol: "$224,205 vol" },
-  SILVER: { ticker: "KXSLV15M", title: "Silver 15m Bracket", target: 66.828, spot: 66.780, aboveProb: 17, belowProb: 83, vol: "$97,908 vol" },
-  WTI: { ticker: "KXWTI15M", title: "WTI Crude 15m", target: 90.16, spot: 90.20, aboveProb: 54, belowProb: 46, vol: "$142,500 vol" }
+  SILVER: { ticker: "KXSLV15M", title: "Silver 15m Bracket", target: 66.828, spot: 66.780, aboveProb: 17, belowProb: 83, vol: "$97,908 vol" }
 };
 
 async function pollLive15MinMarkets() {
@@ -1625,7 +1459,6 @@ async function pollLive15MinMarkets() {
         let assetKey = null;
         if (ticker.includes("GOLD")) assetKey = "GOLD";
         else if (ticker.includes("SLV")) assetKey = "SILVER";
-        else if (ticker.includes("WTI")) assetKey = "WTI";
 
         if (assetKey && live15MinState[assetKey]) {
           const target = parseFloat(m.floor_strike || m.strike_price || m.target_price) || live15MinState[assetKey].target;
@@ -1648,7 +1481,6 @@ async function pollLive15MinMarkets() {
 }
 
 function renderLive15MinUI() {
-  // Update Gold
   const g = live15MinState.GOLD;
   const gDelta = g.spot - g.target;
   document.getElementById('val-15m-gold-target').textContent = `Target $${g.target.toFixed(2)}`;
@@ -1660,7 +1492,6 @@ function renderLive15MinUI() {
   document.getElementById('prob-15m-gold-below').textContent = `${g.belowProb}%`;
   document.getElementById('vol-15m-gold').textContent = g.vol;
 
-  // Update Silver
   const s = live15MinState.SILVER;
   const sDelta = s.spot - s.target;
   document.getElementById('val-15m-silver-target').textContent = `Target $${s.target.toFixed(3)}`;
@@ -1671,28 +1502,15 @@ function renderLive15MinUI() {
   document.getElementById('prob-15m-silver-above').textContent = `${s.aboveProb}%`;
   document.getElementById('prob-15m-silver-below').textContent = `${s.belowProb}%`;
   document.getElementById('vol-15m-silver').textContent = s.vol;
-
-  // Update WTI
-  const w = live15MinState.WTI;
-  const wDelta = w.spot - w.target;
-  document.getElementById('val-15m-wti-target').textContent = `Target $${w.target.toFixed(2)}`;
-  document.getElementById('val-15m-wti-spot').textContent = `Current $${w.spot.toFixed(2)}`;
-  const wDeltaEl = document.getElementById('val-15m-wti-delta');
-  wDeltaEl.textContent = `${wDelta >= 0 ? '+' : ''}$${wDelta.toFixed(2)} ${wDelta >= 0 ? 'above' : 'below'} target`;
-  wDeltaEl.className = `delta-indicator ${wDelta >= 0 ? 'delta-above' : 'delta-below'}`;
-  document.getElementById('prob-15m-wti-above').textContent = `${w.aboveProb}%`;
-  document.getElementById('prob-15m-wti-below').textContent = `${w.belowProb}%`;
-  document.getElementById('vol-15m-wti').textContent = w.vol;
 }
 
 function triggerGeminiAgent(assetKey) {
   const item = live15MinState[assetKey];
   if (!item) return;
-  const boxId = assetKey === 'GOLD' ? 'ai-box-gold' : assetKey === 'SILVER' ? 'ai-box-silver' : 'ai-box-wti';
+  const boxId = assetKey === 'GOLD' ? 'ai-box-gold' : 'ai-box-silver';
   runGeminiCopilot(assetKey, item.ticker, item.title, item.target, item.spot, boxId);
 }
 
-// --- GEMINI COPILOT + GLOW / FADE ENGINE ---
 async function runGeminiCopilot(assetKey, ticker, title, targetPrice, currentPrice, outputBoxId) {
   const box = document.getElementById(outputBoxId);
   if (!box) return;
@@ -1751,21 +1569,103 @@ async function runGeminiCopilot(assetKey, ticker, title, targetPrice, currentPri
       </div>
       <div style="color: var(--text-muted); font-size: 11px; line-height: 1.4;">
         • <strong>Candle Status:</strong> ${minLeft}m to CFTC settlement bracket.<br>
-        • <strong>Delta to Target:</strong> ${delta >= 0 ? '+' : ''}${delta.toFixed(3)} (${Math.abs(delta).toFixed(3)} ${delta >= 0 ? 'above' : 'below'} strike).<br>
+        • <strong>Delta to Target:</strong> ${delta >= 0 ? '+' : ''}${delta.toFixed(3)} ($${Math.abs(delta).toFixed(3)} ${delta >= 0 ? 'above' : 'below'} strike).<br>
         • <strong>Execution Guidance:</strong> Glow applied to recommended side. Place resting limit orders inside the spread to avoid taker fee leakage.
       </div>
     `;
   }
 }
 
-// --- VAULT CUMULATIVE EARNINGS CALCULATION ---
+// --- DYNAMIC POLYMARKET FEED (10-MARKET CATALOG) ---
+const POLYMARKET_CATALOG = [
+  { title: "Fed Interest Rate Cut in 2026?", yesPrice: 0.84, roi: 19.0, vol: "$3.2M", exp: 1730000000000 },
+  { title: "US Presidential Approval Rating ≥ 50%", yesPrice: 0.46, roi: 117.4, vol: "$1.1M", exp: 1729000000000 },
+  { title: "US Debt Ceiling Extension Passed", yesPrice: 0.92, roi: 8.7, vol: "$2.8M", exp: 1732000000000 },
+  { title: "Bitcoin Above $100k Before Q4 2026", yesPrice: 0.62, roi: 61.3, vol: "$4.5M", exp: 1735689600000 },
+  { title: "Ethereum Above $4,000 in 2026", yesPrice: 0.41, roi: 143.9, vol: "$1.8M", exp: 1735689600000 },
+  { title: "Solana Market Cap Flip BNB in 2026", yesPrice: 0.38, roi: 163.1, vol: "$850k", exp: 1735689600000 },
+  { title: "SpaceX Starship Orbital Landing Success", yesPrice: 0.74, roi: 35.1, vol: "$1.4M", exp: 1729500000000 },
+  { title: "OpenAI Announces GPT-5 Release", yesPrice: 0.69, roi: 44.9, vol: "$2.1M", exp: 1731500000000 },
+  { title: "US Core CPI &lt; 2.5% in Next Release", yesPrice: 0.58, roi: 72.4, vol: "$720k", exp: 1728500000000 },
+  { title: "ECB Lowers Benchmark Rates Before Fed", yesPrice: 0.81, roi: 23.4, vol: "$990k", exp: 1730500000000 }
+];
+
+async function fetchLivePoly() {
+  const container = document.getElementById('poly-live-feed');
+  if (!container) return;
+
+  try {
+    const res = await fetch('/api/polymarket/markets');
+    if (res.ok) {
+      const data = await res.json();
+      if (Array.isArray(data) && data.length > 0) {
+        container.innerHTML = data.slice(0, 10).map(ev => {
+          const yesP = ev.tokens?.[0]?.price || 0.50;
+          const roiVal = yesP > 0 ? (((1.0 - yesP) / yesP) * 100).toFixed(1) : "0.0";
+          return `
+            <div class="market-card sortable-card" data-roi="${roiVal}" data-expiry="${Date.now() + 86400000}">
+              <div class="market-card-head">
+                <span>${ev.title}</span>
+                <span class="tag" style="background: #1b1330; color: var(--accent-pink);">POLY.US</span>
+              </div>
+              <div class="market-card-meta">
+                <span>Vol: $${Math.round(ev.volume || 0).toLocaleString()} • Pick: YES @ $${yesP.toFixed(2)}</span>
+                <span style="color: var(--accent-green); font-weight: 800;">+${roiVal}% ROI</span>
+              </div>
+            </div>
+          `;
+        }).join('');
+        return;
+      }
+    }
+  } catch (err) {}
+
+  // Fallback to active 10-market catalog
+  container.innerHTML = POLYMARKET_CATALOG.map(ev => `
+    <div class="market-card sortable-card" data-roi="${ev.roi}" data-expiry="${ev.exp}">
+      <div class="market-card-head">
+        <span>${ev.title}</span>
+        <span class="tag" style="background: #1b1330; color: var(--accent-pink);">POLY.US</span>
+      </div>
+      <div class="market-card-meta">
+        <span>Vol: ${ev.vol} • Pick: YES @ $${ev.yesPrice.toFixed(2)}</span>
+        <span style="color: var(--accent-green); font-weight: 800;">+${ev.roi}% ROI</span>
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderKalshiDesk() {
+  const container = document.getElementById('kalshi-live-feed');
+  if (!container) return;
+  container.innerHTML = `
+    <div class="market-card sortable-card" data-roi="19.0" data-expiry="1730000000000">
+      <div class="market-card-head">
+        <span>Fed Funds Target Rate Cut ≥ 25 bps</span>
+        <span class="tag" style="background: #12281a; color: var(--accent-green);">KALSHI</span>
+      </div>
+      <div class="market-card-meta">
+        <span>Volume: $1.42M • YES @ $0.84</span>
+        <span style="color: var(--accent-green); font-weight: 800;">+19.0% ROI</span>
+      </div>
+    </div>
+    <div class="market-card sortable-card" data-roi="47.0" data-expiry="1731000000000">
+      <div class="market-card-head">
+        <span>US Core CPI Inflation &lt; 3.0% Annualized</span>
+        <span class="tag" style="background: #12281a; color: var(--accent-green);">KALSHI</span>
+      </div>
+      <div class="market-card-meta">
+        <span>Volume: $890k • YES @ $0.68</span>
+        <span style="color: var(--accent-green); font-weight: 800;">+47.0% ROI</span>
+      </div>
+    </div>
+  `;
+}
+
+// --- VAULT CUMULATIVE EARNINGS ---
 function calculateVaultEarnings() {
   const tickets = JSON.parse(localStorage.getItem('cosmic_fleet_tickets') || '[]');
-  
-  let totalPnL = 0;
-  let settledCount = 0;
-  let wins = 0;
-
+  let totalPnL = 0, settledCount = 0, wins = 0;
   const appStats = {
     Polymarket: { pnl: 0, count: 0, wins: 0 },
     Kalshi: { pnl: 0, count: 0, wins: 0 },
@@ -1800,7 +1700,6 @@ function calculateVaultEarnings() {
   const settledEl = document.getElementById('vault-settled-count');
   if (settledEl) settledEl.textContent = settledCount;
 
-  // Update App Breakdown cards
   const updateAppRow = (pnlId, statsId, statObj) => {
     const elPnl = document.getElementById(pnlId);
     const elStats = document.getElementById(statsId);
@@ -1822,8 +1721,10 @@ function calculateVaultEarnings() {
 function refreshCurrentTab() {
   const activeTab = document.querySelector('.tab-view.active');
   if (!activeTab) return;
-  if (activeTab.id === 'view-fleet') pollSharedSlips();
-  if (activeTab.id === 'view-poly') fetchLivePoly();
+  if (activeTab.id === 'view-picks') {
+    fetchLivePoly();
+    renderKalshiDesk();
+  }
   if (activeTab.id === 'view-perps') pollLive15MinMarkets();
   if (activeTab.id === 'view-vault') calculateVaultEarnings();
 }
@@ -1845,43 +1746,7 @@ function checkAdState() {
   }
 }
 
-async function fetchLivePoly() {
-  const container = document.getElementById('poly-live-feed');
-  try {
-    const res = await fetch('/api/polymarket/markets');
-    if (!res.ok) throw new Error("Poly unavailable");
-    const data = await res.json();
-    if (Array.isArray(data) && data.length > 0) {
-      container.innerHTML = data.slice(0, 5).map(ev => `
-        <div class="market-card">
-          <div class="market-card-head">
-            <span>${ev.title}</span>
-            <span class="tag" style="background: #1b1330; color: var(--accent-pink);">POLY.US</span>
-          </div>
-          <div class="market-card-meta">
-            <span>Volume: $${Math.round(ev.volume || 0).toLocaleString()}</span>
-            <span style="color: var(--accent-green); font-weight: 800;">CLOB Active</span>
-          </div>
-        </div>
-      `).join('');
-    }
-  } catch (err) {
-    container.innerHTML = `
-      <div class="market-card">
-        <div class="market-card-head">
-          <span>Will the Fed cut interest rates in 2026?</span>
-          <span class="tag" style="background: #1b1330; color: var(--accent-pink);">POLY.US</span>
-        </div>
-        <div class="market-card-meta">
-          <span>Volume: $3.2M</span>
-          <span style="color: var(--accent-green); font-weight: 800;">YES @ $0.84</span>
-        </div>
-      </div>
-    `;
-  }
-}
-
-// --- SETUP MODAL CONTROLS ---
+// --- SETUP MODAL & BYOK VAULT ---
 function openSetupModal() {
   const uuid = getOrCreateClientUuid();
   const endpointEl = document.getElementById('modal-endpoint-copy');
@@ -1907,7 +1772,6 @@ function copyEndpointUrl() {
   });
 }
 
-// --- BYOK VAULT & SETTINGS STORAGE ---
 function toggleMask(fieldId) {
   const el = document.getElementById(fieldId);
   if (el) el.type = el.type === 'password' ? 'text' : 'password';
@@ -1952,7 +1816,6 @@ function updateVaultStatusUI() {
   const statusTitle = document.getElementById('vault-status-title');
   const statusDesc = document.getElementById('vault-status-desc');
   const statusTag = document.getElementById('vault-status-tag');
-  const traderTag = document.getElementById('trader-mode-tag');
 
   const kalshiLinked = !!kKey;
   const polyLinked = !!pKey;
@@ -1963,20 +1826,12 @@ function updateVaultStatusUI() {
     statusBox.style.borderColor = "var(--accent-green)";
     statusTag.style.background = "rgba(0, 245, 160, 0.15)";
     statusTag.style.color = "var(--accent-green)";
-    if (traderTag) {
-      traderTag.textContent = "Trader Mode Active";
-      traderTag.style.color = "var(--accent-green)";
-    }
   } else {
     statusTitle.textContent = "BYOK Vault: Disconnected";
     statusDesc.textContent = "Kalshi: Disconnected • Poly: Disconnected";
     statusBox.style.borderColor = "var(--border-color)";
     statusTag.style.background = "#151a2d";
     statusTag.style.color = "var(--text-muted)";
-    if (traderTag) {
-      traderTag.textContent = "No Keys Saved";
-      traderTag.style.color = "var(--text-muted)";
-    }
   }
 }
 
@@ -1996,7 +1851,7 @@ function loadVaultCredentials() {
   updateVaultStatusUI();
 }
 
-// --- FLEET TRACKER & METRICS ---
+// --- FLEET TRACKER ---
 function getOrCreateClientUuid() {
   let uuid = localStorage.getItem('cosmic_fleet_uuid');
   if (!uuid) {
@@ -2027,31 +1882,9 @@ function saveLocalFleetTickets(tickets) {
   calculateVaultEarnings();
 }
 
-function updateFleetMetrics(tickets) {
-  let totalRisk = 0;
-  let totalPayout = 0;
-
-  tickets.forEach(t => {
-    if (typeof t.stake === 'number' && !isNaN(t.stake)) totalRisk += t.stake;
-    if (typeof t.payout === 'number' && !isNaN(t.payout)) totalPayout += t.payout;
-  });
-
-  const countEl = document.getElementById('fleet-slips-count');
-  const riskEl = document.getElementById('fleet-risk-val');
-  const payoutEl = document.getElementById('fleet-payout-val');
-  const navBadge = document.getElementById('nav-fleet-count');
-
-  if (countEl) countEl.textContent = tickets.length;
-  if (navBadge) navBadge.textContent = tickets.length;
-  if (riskEl) riskEl.textContent = `$${totalRisk.toFixed(2)}`;
-  if (payoutEl) payoutEl.textContent = `$${totalPayout.toFixed(2)}`;
-}
-
 function renderFleetTickets() {
   const container = document.getElementById('fleet-tickets-container');
   const tickets = loadLocalFleetTickets();
-  updateFleetMetrics(tickets);
-
   if (!container) return;
 
   if (tickets.length === 0) {
@@ -2082,96 +1915,6 @@ function removeSlip(index) {
   saveLocalFleetTickets(tickets);
 }
 
-// --- POLLING & SANITIZED PARSER ---
-async function pollSharedSlips() {
-  const uuid = getOrCreateClientUuid();
-  try {
-    const res = await fetch(`/api/fleet/pull/${uuid}`);
-    if (!res.ok) return;
-    const data = await res.json();
-    if (data.pending && data.pending.length > 0) {
-      const current = loadLocalFleetTickets();
-      data.pending.forEach(item => {
-        if (!current.some(c => c.id === item.id)) current.unshift(item);
-      });
-      saveLocalFleetTickets(current);
-    }
-  } catch (err) {
-    console.warn("Slip poll deferred:", err);
-  }
-}
-
-function ingestManualSlip() {
-  const input = document.getElementById('manual-slip-input');
-  if (!input || !input.value.trim()) return;
-
-  const raw = input.value.trim();
-  const ticket = {
-    id: `manual_${Date.now()}`,
-    book: /draftkings/i.test(raw) ? 'DraftKings' : /fanduel/i.test(raw) ? 'FanDuel' : /polymarket/i.test(raw) ? 'Polymarket' : 'Sportsbook',
-    raw: raw,
-    timestamp: Date.now(),
-    legs: []
-  };
-
-  const textWithoutUrls = raw.replace(/https?:\/\/[^\s]+/g, '');
-  const oddsMatch = textWithoutUrls.match(/(?:^|\s)([+-]\d{3,4})\b/);
-  if (oddsMatch) ticket.odds = oddsMatch[1];
-
-  const stakeMatch = raw.match(/(?:Wager|Stake|Amount):\s*\$([0-9.]+)/i);
-  if (stakeMatch) ticket.stake = parseFloat(stakeMatch[1]);
-
-  const payoutMatch = raw.match(/(?:Payout|To Win|Return):\s*\$([0-9.]+)/i);
-  if (payoutMatch) ticket.payout = parseFloat(payoutMatch[1]);
-
-  if (ticket.stake === undefined || ticket.payout === undefined) {
-    const userStake = prompt(`Enter Wager/Stake ($) for this ${ticket.book} slip:`, "1.00");
-    if (userStake) ticket.stake = parseFloat(userStake) || 0;
-
-    const userPayout = prompt(`Enter Potential Return/Payout ($) for this ${ticket.book} slip:`, "2.00");
-    if (userPayout) ticket.payout = parseFloat(userPayout) || 0;
-  }
-
-  ticket.legs = [raw.length > 120 ? raw.slice(0, 120) + '...' : raw];
-
-  const current = loadLocalFleetTickets();
-  current.unshift(ticket);
-  saveLocalFleetTickets(current);
-  input.value = '';
-}
-
-function checkIncomingShareTarget() {
-  const params = new URLSearchParams(window.location.search);
-  const text = params.get('share_text') || params.get('text');
-  const url = params.get('share_url') || params.get('url');
-
-  if (text || url) {
-    const raw = `${text || ''} ${url || ''}`.trim();
-    const ticket = {
-      id: `share_${Date.now()}`,
-      book: /draftkings/i.test(raw) ? 'DraftKings' : /fanduel/i.test(raw) ? 'FanDuel' : /polymarket/i.test(raw) ? 'Polymarket' : 'Sportsbook',
-      raw: raw,
-      timestamp: Date.now(),
-      legs: [raw.length > 120 ? raw.slice(0, 120) + '...' : raw]
-    };
-
-    const textWithoutUrls = raw.replace(/https?:\/\/[^\s]+/g, '');
-    const oddsMatch = textWithoutUrls.match(/(?:^|\s)([+-]\d{3,4})\b/);
-    if (oddsMatch) ticket.odds = oddsMatch[1];
-
-    const stakeMatch = raw.match(/(?:Wager|Stake|Amount):\s*\$([0-9.]+)/i);
-    if (stakeMatch) ticket.stake = parseFloat(stakeMatch[1]);
-
-    const payoutMatch = raw.match(/(?:Payout|To Win|Return):\s*\$([0-9.]+)/i);
-    if (payoutMatch) ticket.payout = parseFloat(payoutMatch[1]);
-
-    const current = loadLocalFleetTickets();
-    current.unshift(ticket);
-    saveLocalFleetTickets(current);
-    window.history.replaceState({}, document.title, window.location.pathname);
-  }
-}
-
 // --- INITIALIZATION ---
 window.addEventListener('DOMContentLoaded', () => {
   loadUiZoom();
@@ -2181,13 +1924,10 @@ window.addEventListener('DOMContentLoaded', () => {
   const ttlSelect = document.getElementById('user-ttl-select');
   if (ttlSelect) ttlSelect.value = getUserTtl();
   renderFleetTickets();
-  checkIncomingShareTarget();
   calculateVaultEarnings();
-  setInterval(pollSharedSlips, 10000);
 
-  // Initialize carousels & fast markets
   startCarouselRotators();
-  setInterval(refreshScreenedSlatePool, 600000); // 10-minute queue purge
+  setInterval(refreshScreenedSlatePool, 600000);
   updateSynchronized15MinTimers();
   setInterval(updateSynchronized15MinTimers, 1000);
 
