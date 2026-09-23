@@ -506,7 +506,7 @@
 
   <!-- VIEW 1: PICKS & MULTI-DESK -->
   <div class="tab-view active" id="view-picks">
-    <!-- Capital Shielding & Sniper Telemetry Bar -->
+    <!-- Capital Shielding & Sniper Telemetry Bar (Zero Hardcoded Values) -->
     <div class="card" style="border-color: rgba(0, 242, 254, 0.3);">
       <div class="card-header">
         <span>⚡ Auto-Sniper &amp; Shielded Capital</span>
@@ -515,15 +515,15 @@
       <div class="stat-grid-3" style="margin-bottom: 0;">
         <div class="stat-box">
           <span class="stat-label">Total Liquid</span>
-          <span class="stat-value" id="disp-total-funds" style="color: #fff;">$7.00</span>
+          <span class="stat-value" id="disp-total-funds" style="color: #fff;">$0.00</span>
         </div>
         <div class="stat-box">
           <span class="stat-label">Shielded Vault</span>
-          <span class="stat-value" id="disp-shielded-funds" style="color: var(--accent-gold);">$5.00</span>
+          <span class="stat-value" id="disp-shielded-funds" style="color: var(--accent-gold);">$0.00</span>
         </div>
         <div class="stat-box">
           <span class="stat-label">Deployable Max</span>
-          <span class="stat-value" id="disp-deployable-funds" style="color: var(--accent-green);">$2.00</span>
+          <span class="stat-value" id="disp-deployable-funds" style="color: var(--accent-green);">$0.00</span>
         </div>
       </div>
     </div>
@@ -1139,12 +1139,12 @@
 
       <div class="input-group">
         <label class="stat-label">Total Liquid Capital Balance ($)</label>
-        <input type="number" id="total-funds-input" value="7.00" min="0" step="1" onchange="saveFinancialSettings()">
+        <input type="number" id="total-funds-input" value="0.00" min="0" step="1" onchange="saveFinancialSettings()">
       </div>
 
       <div class="input-group">
         <label class="stat-label">Shielded Reserve Capital Floor ($ Untouchable)</label>
-        <input type="number" id="shielded-funds-input" value="5.00" min="0" step="1" onchange="saveFinancialSettings()">
+        <input type="number" id="shielded-funds-input" value="0.00" min="0" step="1" onchange="saveFinancialSettings()">
       </div>
 
       <div class="input-group">
@@ -1433,8 +1433,8 @@ function loadFinancialSettings() {
   const slippage = localStorage.getItem('cosmic_slippage_filter') !== 'false';
 
   const autoSniper = localStorage.getItem('cosmic_auto_sniper') !== 'false';
-  const totalFunds = localStorage.getItem('cosmic_total_funds') || '7.00';
-  const shieldedFunds = localStorage.getItem('cosmic_shielded_funds') || '5.00';
+  const totalFunds = localStorage.getItem('cosmic_total_funds') || '0.00';
+  const shieldedFunds = localStorage.getItem('cosmic_shielded_funds') || '0.00';
   const maxSniperTrade = localStorage.getItem('cosmic_sniper_max_trade') || '1.00';
 
   if (document.getElementById('large-order-threshold')) document.getElementById('large-order-threshold').value = threshold;
@@ -1451,8 +1451,8 @@ function loadFinancialSettings() {
 }
 
 function updateCapitalShieldDisplay() {
-  const total = parseFloat(localStorage.getItem('cosmic_total_funds') || '7.00');
-  const shielded = parseFloat(localStorage.getItem('cosmic_shielded_funds') || '5.00');
+  const total = parseFloat(localStorage.getItem('cosmic_total_funds') || '0.00');
+  const shielded = parseFloat(localStorage.getItem('cosmic_shielded_funds') || '0.00');
   const deployable = Math.max(0, total - shielded);
   const isSniperActive = localStorage.getItem('cosmic_auto_sniper') !== 'false';
 
@@ -1483,8 +1483,8 @@ function updateCapitalShieldDisplay() {
 }
 
 function getDeployableCapital() {
-  const total = parseFloat(localStorage.getItem('cosmic_total_funds') || '7.00');
-  const shielded = parseFloat(localStorage.getItem('cosmic_shielded_funds') || '5.00');
+  const total = parseFloat(localStorage.getItem('cosmic_total_funds') || '0.00');
+  const shielded = parseFloat(localStorage.getItem('cosmic_shielded_funds') || '0.00');
   return Math.max(0, total - shielded);
 }
 
@@ -1504,8 +1504,8 @@ function isAutonomousSalvageEnabled() {
 async function syncConfigToEdge() {
   const uuid = getOrCreateClientUuid();
   const config = {
-    totalFunds: parseFloat(localStorage.getItem('cosmic_total_funds') || '7.00'),
-    shieldedFunds: parseFloat(localStorage.getItem('cosmic_shielded_funds') || '5.00'),
+    totalFunds: parseFloat(localStorage.getItem('cosmic_total_funds') || '0.00'),
+    shieldedFunds: parseFloat(localStorage.getItem('cosmic_shielded_funds') || '0.00'),
     maxTrade: parseFloat(localStorage.getItem('cosmic_sniper_max_trade') || '1.00'),
     salvageFloor: parseFloat(localStorage.getItem('cosmic_salvage_floor') || '15'),
     autoSniper: localStorage.getItem('cosmic_auto_sniper') !== 'false',
