@@ -8,11 +8,11 @@
   <style>
     :root {
       --bg-base: #060712;
-      --bg-card: #0c1020;
-      --bg-input: #12182d;
-      --border-color: #1a2340;
+      --bg-card: #0c1022;
+      --bg-input: #12182f;
+      --border-color: #1e294b;
       --text-main: #ffffff;
-      --text-muted: #7987a5;
+      --text-muted: #8c9cb8;
       --accent-cyan: #00f2fe;
       --accent-green: #00f5a0;
       --accent-pink: #ff007a;
@@ -26,18 +26,19 @@
       background-color: var(--bg-base);
       color: var(--text-main);
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      padding-bottom: 75px;
+      padding-bottom: 85px;
       display: flex;
       justify-content: center;
+      -webkit-font-smoothing: antialiased;
     }
 
     .app-shell {
       width: 100%;
       max-width: 520px;
-      padding: 12px;
+      padding: 14px;
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      gap: 14px;
     }
 
     /* Top Bar */
@@ -45,26 +46,26 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 4px 0 6px 0;
+      padding: 4px 0 8px 0;
     }
     .brand-title {
-      font-size: 16px;
+      font-size: 18px;
       font-weight: 900;
       letter-spacing: 0.5px;
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 8px;
     }
     .top-actions {
       display: flex;
-      gap: 6px;
+      gap: 8px;
       align-items: center;
     }
     .badge {
-      font-size: 10px;
+      font-size: 11px;
       font-weight: 700;
-      padding: 3px 8px;
-      border-radius: 6px;
+      padding: 5px 10px;
+      border-radius: 8px;
       border: 1px solid var(--border-color);
       background: #101628;
       cursor: pointer;
@@ -77,29 +78,29 @@
 
     /* Sponsor Banner */
     .sponsor-bar {
-      background: #0e1326;
-      border: 1px solid #1c2748;
-      border-radius: 8px;
-      padding: 8px 12px;
+      background: #0e1428;
+      border: 1px solid #1f2d52;
+      border-radius: 10px;
+      padding: 10px 14px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      font-size: 11px;
+      font-size: 12px;
     }
     .sponsor-tag {
       background: var(--accent-gold);
       color: #000;
       font-weight: 900;
-      font-size: 9px;
-      padding: 1px 4px;
-      border-radius: 3px;
+      font-size: 10px;
+      padding: 2px 6px;
+      border-radius: 4px;
       margin-right: 6px;
     }
 
     /* Navigation & Sorter Bars */
     .pill-nav, .sort-nav {
       display: flex;
-      gap: 6px;
+      gap: 8px;
       overflow-x: auto;
       padding-bottom: 4px;
       scrollbar-width: none;
@@ -107,28 +108,28 @@
     .pill-nav::-webkit-scrollbar, .sort-nav::-webkit-scrollbar { display: none; }
     
     .pill-btn, .sort-btn {
-      background: #0f1526;
+      background: #0e1428;
       border: 1px solid var(--border-color);
       color: var(--text-muted);
-      padding: 5px 12px;
+      padding: 7px 14px;
       border-radius: 20px;
-      font-size: 11px;
+      font-size: 12px;
       font-weight: 700;
       white-space: nowrap;
       cursor: pointer;
     }
     .pill-btn.active, .sort-btn.active {
-      background: #1d2744;
+      background: #1f2b4d;
       color: #fff;
       border-color: var(--accent-cyan);
     }
 
     .sort-label {
-      font-size: 10px;
+      font-size: 11px;
       font-weight: 800;
       color: var(--text-muted);
       align-self: center;
-      margin-right: 2px;
+      margin-right: 4px;
       letter-spacing: 0.5px;
     }
 
@@ -136,97 +137,182 @@
     .card {
       background: var(--bg-card);
       border: 1px solid var(--border-color);
-      border-radius: 12px;
-      padding: 14px;
+      border-radius: 14px;
+      padding: 16px;
     }
     .card-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 12px;
-      font-weight: 700;
-      font-size: 12px;
+      margin-bottom: 14px;
+      font-weight: 800;
+      font-size: 13px;
       letter-spacing: 0.5px;
     }
 
     .tag {
       font-family: monospace;
-      font-size: 10px;
-      padding: 2px 6px;
-      border-radius: 4px;
+      font-size: 11px;
+      padding: 3px 8px;
+      border-radius: 6px;
       background: #141f36;
       color: var(--accent-cyan);
     }
 
     /* Market Items */
     .market-card {
-      background: #080c18;
+      background: #070a16;
       border: 1px solid var(--border-color);
-      border-radius: 8px;
-      padding: 10px;
+      border-radius: 12px;
+      padding: 14px;
       display: flex;
       flex-direction: column;
-      gap: 6px;
+      gap: 8px;
     }
     .market-card-head {
       display: flex;
       justify-content: space-between;
+      align-items: center;
       font-weight: 800;
-      font-size: 11px;
+      font-size: 13px;
+      line-height: 1.3;
     }
     .market-card-meta {
       display: flex;
       justify-content: space-between;
-      font-size: 10px;
+      align-items: center;
+      font-size: 11px;
       color: var(--text-muted);
+    }
+
+    /* 15-Minute Dedicated Layout Elements */
+    .fast-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2px;
+    }
+    .asset-icon-badge {
+      font-size: 10px;
+      font-weight: 900;
+      padding: 3px 6px;
+      border-radius: 4px;
+      display: inline-block;
+      letter-spacing: 0.5px;
+    }
+    .badge-gold { background: #eab308; color: #000; }
+    .badge-silver { background: #94a3b8; color: #000; }
+    .badge-oil { background: #3b82f6; color: #fff; }
+    .badge-btc { background: #f97316; color: #fff; }
+
+    .target-title {
+      font-size: 17px;
+      font-weight: 900;
+      color: #fff;
+      margin-top: 2px;
+    }
+    .current-spot-text {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 1px;
+    }
+    .delta-indicator {
+      font-size: 11px;
+      font-weight: 800;
+      padding: 2px 8px;
+      border-radius: 12px;
+      display: inline-flex;
+      align-items: center;
+    }
+    .delta-above {
+      background: rgba(0, 245, 160, 0.12);
+      color: var(--accent-green);
+      border: 1px solid rgba(0, 245, 160, 0.3);
+    }
+    .delta-below {
+      background: rgba(255, 51, 68, 0.12);
+      color: var(--accent-red);
+      border: 1px solid rgba(255, 51, 68, 0.3);
+    }
+
+    .binary-split-tray {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 6px;
+    }
+    .binary-btn {
+      padding: 12px 8px;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 800;
+      text-align: center;
+      cursor: pointer;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 6px;
+      transition: transform 0.1s ease;
+    }
+    .binary-btn:active { transform: scale(0.98); }
+    .btn-above {
+      background: rgba(0, 245, 160, 0.08);
+      color: var(--accent-green);
+      border: 1.5px solid rgba(0, 245, 160, 0.4);
+    }
+    .btn-below {
+      background: rgba(255, 51, 68, 0.08);
+      color: var(--accent-red);
+      border: 1.5px solid rgba(255, 51, 68, 0.4);
     }
 
     /* Grids */
     .stat-grid-4 {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
-      gap: 8px;
-      margin-bottom: 12px;
+      gap: 10px;
+      margin-bottom: 14px;
     }
     .stat-grid-3 {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      gap: 8px;
-      margin-bottom: 12px;
+      gap: 10px;
+      margin-bottom: 14px;
     }
     .stat-box {
-      background: #090d1a;
+      background: #090d1e;
       border: 1px solid var(--border-color);
-      border-radius: 8px;
-      padding: 8px;
+      border-radius: 10px;
+      padding: 10px;
       text-align: center;
     }
     .stat-label {
-      font-size: 9px;
+      font-size: 10px;
       color: var(--text-muted);
       text-transform: uppercase;
-      margin-bottom: 3px;
+      margin-bottom: 4px;
       display: block;
+      font-weight: 700;
     }
     .stat-value {
-      font-size: 13px;
-      font-weight: 800;
+      font-size: 15px;
+      font-weight: 900;
     }
 
     /* Inputs */
     .input-group {
       display: flex;
       flex-direction: column;
-      gap: 4px;
-      margin-bottom: 10px;
+      gap: 5px;
+      margin-bottom: 12px;
     }
     input, select {
       background: var(--bg-input);
       border: 1px solid var(--border-color);
       color: #fff;
-      padding: 9px;
-      border-radius: 6px;
-      font-size: 12px;
+      padding: 11px;
+      border-radius: 8px;
+      font-size: 13px;
       outline: none;
       width: 100%;
     }
@@ -240,12 +326,12 @@
     }
     .toggle-visibility {
       position: absolute;
-      right: 10px;
+      right: 12px;
       background: none;
       border: none;
       color: var(--text-muted);
       cursor: pointer;
-      font-size: 12px;
+      font-size: 14px;
     }
 
     /* Buttons */
@@ -253,10 +339,10 @@
       background: #19223c;
       border: 1px solid var(--border-color);
       color: #fff;
-      padding: 8px 14px;
-      border-radius: 6px;
-      font-size: 11px;
-      font-weight: 700;
+      padding: 9px 16px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 800;
       cursor: pointer;
     }
     .btn-gold {
@@ -278,25 +364,44 @@
     .ticket-card {
       background: #080c18;
       border: 1px solid var(--border-color);
-      border-radius: 8px;
-      padding: 10px;
-      font-size: 11px;
+      border-radius: 10px;
+      padding: 12px;
+      font-size: 12px;
     }
 
     .sparkline-svg {
       width: 100%;
-      height: 38px;
+      height: 48px;
       overflow: visible;
     }
     .ai-agent-box {
-      background: #0d132a;
+      background: #080d22;
       border: 1px dashed var(--accent-cyan);
-      border-radius: 8px;
-      padding: 10px;
-      margin-top: 6px;
-      font-size: 11px;
+      border-radius: 10px;
+      padding: 12px;
+      margin-top: 8px;
+      font-size: 12px;
       line-height: 1.4;
       display: none;
+    }
+
+    /* Carousel Pagination Indicator */
+    .carousel-indicator {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+    .dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #1e294b;
+      transition: background 0.3s ease;
+    }
+    .dot.active {
+      background: var(--accent-cyan);
+      width: 14px;
+      border-radius: 6px;
     }
 
     /* Bottom Nav Bar */
@@ -305,7 +410,7 @@
       bottom: 0;
       left: 0;
       right: 0;
-      height: 60px;
+      height: 65px;
       background: #080a18;
       border-top: 1px solid var(--border-color);
       display: flex;
@@ -315,7 +420,7 @@
       z-index: 999;
       max-width: 520px;
       margin: 0 auto;
-      padding: 0 4px;
+      padding: 0 6px;
     }
     .bottom-nav::-webkit-scrollbar { display: none; }
 
@@ -324,9 +429,9 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 3px;
+      gap: 4px;
       color: var(--text-muted);
-      font-size: 9px;
+      font-size: 10px;
       font-weight: 700;
       cursor: pointer;
       position: relative;
@@ -340,14 +445,14 @@
       right: 6px;
       background: var(--accent-green);
       color: #000;
-      font-size: 8px;
+      font-size: 9px;
       font-weight: 900;
-      padding: 1px 4px;
+      padding: 2px 5px;
       border-radius: 8px;
     }
 
     .tab-view { display: none; }
-    .tab-view.active { display: flex; flex-direction: column; gap: 12px; }
+    .tab-view.active { display: flex; flex-direction: column; gap: 14px; }
   </style>
 </head>
 <body>
@@ -360,7 +465,7 @@
     <div class="top-actions">
       <div class="badge" onclick="alert('Support: Edge terminal active.')">☕ Support</div>
       <div class="badge" onclick="refreshCurrentTab()">Refresh</div>
-      <div class="badge badge-edge">Edge Engine Active</div>
+      <div class="badge badge-edge">Edge Active</div>
     </div>
   </div>
 
@@ -370,7 +475,7 @@
       <span class="sponsor-tag">SPONSOR</span>
       <span>Trade US prediction markets with 0 fees on Polymarket.us. <a href="https://polymarket.us" target="_blank" style="color: var(--accent-cyan); text-decoration: none; font-weight: bold;">Join Polymarket.us →</a></span>
     </div>
-    <span style="font-size: 10px; color: var(--text-muted); text-decoration: underline; cursor: pointer; white-space: nowrap; margin-left: 8px;" onclick="promptAdPasskey()">Remove Ads ($5)</span>
+    <span style="font-size: 11px; color: var(--text-muted); text-decoration: underline; cursor: pointer; white-space: nowrap; margin-left: 8px;" onclick="promptAdPasskey()">Remove Ads ($5)</span>
   </div>
 
   <!-- Category Filter Bar -->
@@ -381,115 +486,61 @@
     <button class="pill-btn" onclick="switchCategoryFilter('politics', this)">🏛 Politics</button>
   </div>
 
-  <!-- Active Dynamic Sorter Bar -->
+  <!-- Secondary Dynamic Sorter Bar -->
   <div class="sort-nav">
     <span class="sort-label">SORT:</span>
     <button class="sort-btn active" onclick="switchSortOrder('roi-high', this)">🔥 Top ROI</button>
     <button class="sort-btn" onclick="switchSortOrder('roi-low', this)">📉 Low ROI</button>
     <button class="sort-btn" onclick="switchSortOrder('ending', this)">⏳ Ending Soonest</button>
-    <button class="sort-btn" onclick="switchSortOrder('today', this)">📅 Upcoming Slate</button>
+    <button class="sort-btn" onclick="switchSortOrder('today', this)">📅 Upcoming</button>
   </div>
 
-  <!-- VIEW 1: PICKS & EV BOARD (FRESH UNSTARTED GAMES) -->
+  <!-- VIEW 1: PICKS & EV BOARD (DYNAMIC ROTATING TOP 9 CAROUSEL) -->
   <div class="tab-view active" id="view-picks">
     <div class="card">
       <div class="card-header">
         <span>🎟️ Active Slips &amp; Local Exposure</span>
         <span class="tag">Client-Side Sync</span>
       </div>
-      <div id="vault-status-box" style="background: #090e1f; border: 1px solid var(--border-color); border-radius: 8px; padding: 10px; display: flex; justify-content: space-between; align-items: center;">
+      <div id="vault-status-box" style="background: #090e1f; border: 1px solid var(--border-color); border-radius: 10px; padding: 12px; display: flex; justify-content: space-between; align-items: center;">
         <div>
-          <div id="vault-status-title" style="font-size: 11px; font-weight: 800; color: #fff;">BYOK Vault: Standby</div>
-          <div id="vault-status-desc" style="font-size: 10px; color: var(--text-muted); margin-top: 2px;">Checking local keys...</div>
+          <div id="vault-status-title" style="font-size: 12px; font-weight: 800; color: #fff;">BYOK Vault: Standby</div>
+          <div id="vault-status-desc" style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">Checking local keys...</div>
         </div>
         <span id="vault-status-tag" class="tag" style="background: #151a2d; color: var(--text-muted);">LOCAL SESSION</span>
       </div>
     </div>
 
-    <!-- Sports EV Board (Fresh Unstarted MLB & NFL Slate) -->
+    <!-- Sports Desk (Dynamic 9-Pick Carousel Rotating 3 at a Time) -->
     <div class="card market-section" id="section-sports">
       <div class="card-header">
-        <span>🏈 Top 3 Sports Picks (MLB / NFL EV)</span>
-        <span class="tag" style="color: var(--accent-cyan);">Edge Screened</span>
-      </div>
-      <div id="sports-picks-container" style="display: flex; flex-direction: column; gap: 8px;">
-        <!-- Card 1 -->
-        <div class="market-card sortable-card" data-roi="28.2" data-expiry="1727111400000">
-          <div class="market-card-head">
-            <span>Nationals @ Tigers — First 5 Under 4.5 Total Runs</span>
-            <span class="tag" style="background: #1b1330; color: var(--accent-pink);">POLY.US</span>
+        <span>🏈 Top Sports Picks (MLB / NFL EV)</span>
+        <div style="display: flex; gap: 8px; align-items: center;">
+          <div class="carousel-indicator" id="sports-carousel-dots">
+            <div class="dot active"></div>
+            <div class="dot"></div>
+            <div class="dot"></div>
           </div>
-          <div class="market-card-meta">
-            <span>Pick: YES Under 4.5 F5 @ $0.78 (78% Implied) • 1:10 PM ET</span>
-            <span style="color: var(--accent-green); font-weight: 800;">+28.2% ROI</span>
-          </div>
-        </div>
-        <!-- Card 2 -->
-        <div class="market-card sortable-card" data-roi="22.0" data-expiry="1727112900000">
-          <div class="market-card-head">
-            <span>Blue Jays @ Orioles — Baltimore Orioles Moneyline</span>
-            <span class="tag" style="background: #12281a; color: var(--accent-green);">KALSHI</span>
-          </div>
-          <div class="market-card-meta">
-            <span>Pick: YES Orioles ML @ $0.82 (82% Implied) • 1:35 PM ET</span>
-            <span style="color: var(--accent-green); font-weight: 800;">+22.0% ROI</span>
-          </div>
-        </div>
-        <!-- Card 3 -->
-        <div class="market-card sortable-card" data-roi="19.0" data-expiry="1727223300000">
-          <div class="market-card-head">
-            <span>NFL TNF: Falcons @ Packers — Over 44.5 Total Points</span>
-            <span class="tag" style="background: #1b1330; color: var(--accent-pink);">POLY.US</span>
-          </div>
-          <div class="market-card-meta">
-            <span>Pick: YES Over 44.5 @ $0.84 (84% Implied) • Thursday 8:15 PM ET</span>
-            <span style="color: var(--accent-green); font-weight: 800;">+19.0% ROI</span>
-          </div>
+          <span class="tag" style="color: var(--accent-cyan);">Live Queue</span>
         </div>
       </div>
+      <div id="sports-picks-container" style="display: flex; flex-direction: column; gap: 10px;"></div>
     </div>
 
-    <!-- Esports EV Board (Fresh Unstarted CS2 Matches) -->
+    <!-- Esports Desk (Dynamic 9-Pick Carousel Rotating 3 at a Time) -->
     <div class="card market-section" id="section-esports">
       <div class="card-header">
-        <span>🎮 Esports Desk (Top 3 Picks)</span>
-        <span style="font-size: 10px; color: var(--accent-cyan); cursor: pointer;" onclick="switchCategoryFilter('esports', document.querySelectorAll('.pill-btn')[1])">Open Hub →</span>
-      </div>
-      <div id="esports-picks-container" style="display: flex; flex-direction: column; gap: 8px;">
-        <!-- Card 1 -->
-        <div class="market-card sortable-card" data-roi="88.0" data-expiry="1727078400000">
-          <div class="market-card-head">
-            <span>CS2: G2 Ares vs INOX Division (BO3)</span>
-            <span class="tag" style="background: #1b1330; color: var(--accent-pink);">POLY.US</span>
+        <span>🎮 Esports Desk (Top Picks Queue)</span>
+        <div style="display: flex; gap: 8px; align-items: center;">
+          <div class="carousel-indicator" id="esports-carousel-dots">
+            <div class="dot active"></div>
+            <div class="dot"></div>
+            <div class="dot"></div>
           </div>
-          <div class="market-card-meta">
-            <span>Pick: YES G2 Ares Winner @ $0.53 (53% Implied) • 4:00 AM ET</span>
-            <span style="color: var(--accent-green); font-weight: 800;">+88.7% ROI</span>
-          </div>
-        </div>
-        <!-- Card 2 -->
-        <div class="market-card sortable-card" data-roi="40.8" data-expiry="1727104500000">
-          <div class="market-card-head">
-            <span>CS2: Optibet vs Four Magic (BO3)</span>
-            <span class="tag" style="background: #1b1330; color: var(--accent-pink);">POLY.US</span>
-          </div>
-          <div class="market-card-meta">
-            <span>Pick: YES Optibet [Map 1 Winner] @ $0.71 (71% Implied) • 11:15 AM ET</span>
-            <span style="color: var(--accent-green); font-weight: 800;">+40.8% ROI</span>
-          </div>
-        </div>
-        <!-- Card 3 -->
-        <div class="market-card sortable-card" data-roi="25.0" data-expiry="1727125200000">
-          <div class="market-card-head">
-            <span>CS2: Procyon Gaming vs ODDIK</span>
-            <span class="tag" style="background: #12281a; color: var(--accent-green);">KALSHI</span>
-          </div>
-          <div class="market-card-meta">
-            <span>Pick: YES ODDIK Winner @ $0.80 (80% Implied) • 5:00 PM ET</span>
-            <span style="color: var(--accent-green); font-weight: 800;">+25.0% ROI</span>
-          </div>
+          <span class="tag" style="color: var(--accent-pink);">Live Queue</span>
         </div>
       </div>
+      <div id="esports-picks-container" style="display: flex; flex-direction: column; gap: 10px;"></div>
     </div>
   </div>
 
@@ -500,7 +551,7 @@
         <span>🏛️ MACRO &amp; MONETARY DESK</span>
         <span class="tag">CFTC Contracts</span>
       </div>
-      <div id="macro-picks-container" style="display: flex; flex-direction: column; gap: 8px;">
+      <div id="macro-picks-container" style="display: flex; flex-direction: column; gap: 10px;">
         <div class="market-card sortable-card" data-roi="19.0" data-expiry="1730000000000">
           <div class="market-card-head">
             <span>Fed Funds Target Rate Cut ≥ 25 bps</span>
@@ -535,7 +586,7 @@
     </div>
   </div>
 
-  <!-- VIEW 3: KALSHI PERPETUALS, COMMODITIES & 15-MIN COPILOT DESK -->
+  <!-- VIEW 3: KALSHI PERPETUALS, COMMODITIES & NATIVE 15-MIN COPILOT DESK -->
   <div class="tab-view" id="view-perps">
     <div class="card">
       <div class="card-header">
@@ -548,7 +599,7 @@
           <span class="stat-value" style="color: var(--accent-cyan);">3.25%</span>
         </div>
         <div class="stat-box">
-          <span class="stat-label">Daily Settlements</span>
+          <span class="stat-label">Settlements</span>
           <span class="stat-value" style="color: var(--accent-green);">8h / Daily</span>
         </div>
         <div class="stat-box">
@@ -558,14 +609,14 @@
       </div>
 
       <!-- Desk Sub-Selectors -->
-      <div style="display: flex; gap: 6px; margin-bottom: 12px; overflow-x: auto; scrollbar-width: none; padding-bottom: 4px;">
-        <button class="pill-btn active" id="btn-perp-crypto" onclick="switchPerpSubCategory('crypto')">🪙 Crypto (18)</button>
+      <div style="display: flex; gap: 8px; margin-bottom: 14px; overflow-x: auto; scrollbar-width: none; padding-bottom: 4px;">
+        <button class="pill-btn" id="btn-perp-crypto" onclick="switchPerpSubCategory('crypto')">🪙 Crypto (18)</button>
         <button class="pill-btn" id="btn-perp-commodities" onclick="switchPerpSubCategory('commodities')">🛢️ Commodities Suite</button>
-        <button class="pill-btn" id="btn-perp-15m" onclick="switchPerpSubCategory('15min')">⏱️ 15-Min Fast Copilot</button>
+        <button class="pill-btn active" id="btn-perp-15m" onclick="switchPerpSubCategory('15min')">⏱️ 15-Minute Fast Markets</button>
       </div>
 
-      <!-- SECTION A: CRYPTO PERPETUALS (18 ASSETS) -->
-      <div id="perp-sub-crypto" style="display: flex; flex-direction: column; gap: 10px;">
+      <!-- SECTION A: CRYPTO PERPETUALS SUITE (18 ASSETS) -->
+      <div id="perp-sub-crypto" style="display: none; flex-direction: column; gap: 12px;">
         <div style="display: flex; gap: 6px; margin-bottom: 4px;">
           <span class="sort-label">FILTER:</span>
           <button class="sort-btn active" onclick="filterCryptoList('all', this)">All (18)</button>
@@ -614,43 +665,10 @@
             <path d="M 0,35 Q 80,10 160,22 T 260,8 T 300,4" fill="none" stroke="#ff007a" stroke-width="2"/>
           </svg>
         </div>
-
-        <div class="market-card perp-asset perp-major">
-          <div class="market-card-head">
-            <span>XRP Perpetual (XRPPERP) • Max 2.8x</span>
-            <span class="tag" style="background: #12281a; color: var(--accent-green);">8h Funding: +0.010%</span>
-          </div>
-          <div class="market-card-meta">
-            <span>Spot: $0.58 • 1x Collateral</span>
-            <span style="color: var(--accent-cyan); font-weight: bold;">Margin Yield: 3.25%</span>
-          </div>
-        </div>
-
-        <div class="market-card perp-asset perp-alts">
-          <div class="market-card-head">
-            <span>Dogecoin (DOGEPERP) • Max 2.8x</span>
-            <span class="tag" style="background: #12281a; color: var(--accent-green);">8h Funding: +0.015%</span>
-          </div>
-          <div class="market-card-meta">
-            <span>Spot: $0.14 • 1x Collateral</span>
-            <span style="color: var(--accent-cyan); font-weight: bold;">Margin Yield: 3.25%</span>
-          </div>
-        </div>
-
-        <div class="market-card perp-asset perp-alts">
-          <div class="market-card-head">
-            <span>Chainlink (LINKPERP) • Max 3.7x</span>
-            <span class="tag" style="background: #12281a; color: var(--accent-green);">8h Funding: +0.009%</span>
-          </div>
-          <div class="market-card-meta">
-            <span>Spot: $12.40 • 1x Collateral</span>
-            <span style="color: var(--accent-cyan); font-weight: bold;">Margin Yield: 3.25%</span>
-          </div>
-        </div>
       </div>
 
       <!-- SECTION B: SUB-CATEGORIZED COMMODITIES SUITE -->
-      <div id="perp-sub-commodities" style="display: none; flex-direction: column; gap: 10px;">
+      <div id="perp-sub-commodities" style="display: none; flex-direction: column; gap: 12px;">
         <div style="display: flex; gap: 6px; margin-bottom: 4px; overflow-x: auto; scrollbar-width: none;">
           <span class="sort-label">SECTOR:</span>
           <button class="sort-btn active" onclick="filterCommodities('all', this)">All</button>
@@ -692,7 +710,7 @@
         <!-- WTI Crude Oil -->
         <div class="market-card comm-item comm-energy">
           <div class="market-card-head">
-            <span>WTI Crude Oil Continuous • 10 Active Contracts</span>
+            <span>WTI Crude Oil Continuous • 10 Contracts</span>
             <span class="tag" style="background: #2b1414; color: var(--accent-red);">-10.40% Today</span>
           </div>
           <div class="market-card-meta">
@@ -703,102 +721,176 @@
             <path d="M 0,10 Q 80,18 160,28 T 300,35" fill="none" stroke="#ff3344" stroke-width="2"/>
           </svg>
         </div>
-
-        <!-- RBOB Gasoline -->
-        <div class="market-card comm-item comm-energy">
-          <div class="market-card-head">
-            <span>RBOB Gasoline Continuous • 11 Active Contracts</span>
-            <span class="tag" style="background: #12281a; color: var(--accent-green);">+3.37% Today</span>
-          </div>
-          <div class="market-card-meta">
-            <span>Benchmark: $4.475 / gallon</span>
-            <span style="color: var(--accent-cyan); font-weight: bold;">Spread: Tight</span>
-          </div>
-          <svg class="sparkline-svg" viewBox="0 0 300 40">
-            <path d="M 0,35 Q 60,30 140,12 T 300,10" fill="none" stroke="#00f5a0" stroke-width="2"/>
-          </svg>
-        </div>
-
-        <!-- Natural Gas -->
-        <div class="market-card comm-item comm-energy">
-          <div class="market-card-head">
-            <span>Henry Hub Natural Gas Continuous</span>
-            <span class="tag" style="background: #12281a; color: var(--accent-green);">+3.60% Today</span>
-          </div>
-          <div class="market-card-meta">
-            <span>Benchmark: $3.174 / MMBtu</span>
-            <span style="color: var(--accent-gold); font-weight: bold;">Demand: Strong</span>
-          </div>
-          <svg class="sparkline-svg" viewBox="0 0 300 40">
-            <path d="M 0,30 Q 70,15 150,22 T 300,8" fill="none" stroke="#00f2fe" stroke-width="2"/>
-          </svg>
-        </div>
-
-        <!-- Corn -->
-        <div class="market-card comm-item comm-agri">
-          <div class="market-card-head">
-            <span>Corn Futures Index (CORN) • Monthly Settle</span>
-            <span class="tag" style="background: #12281a; color: var(--accent-green);">+0.85% Today</span>
-          </div>
-          <div class="market-card-meta">
-            <span>Benchmark: $4.18 / bushel</span>
-            <span style="color: var(--accent-green); font-weight: bold;">CFTC Certified</span>
-          </div>
-        </div>
       </div>
 
-      <!-- SECTION C: 15-MINUTE FAST MARKETS -->
-      <div id="perp-sub-15m" style="display: none; flex-direction: column; gap: 10px;">
-        <div style="font-size: 11px; color: var(--text-muted); line-height: 1.4; margin-bottom: 6px;">
-          All Kalshi 15-minute CFTC brackets settle strictly on clock quarter-hours (<strong>:00, :15, :30, :45</strong>). The countdown timer below updates live and tracks remaining candle duration across all markets.
+      <!-- SECTION C: KALSHI NATIVE 15-MINUTE FAST MARKETS + GEMINI COPILOT -->
+      <div id="perp-sub-15m" style="display: flex; flex-direction: column; gap: 14px;">
+        <div style="font-size: 12px; color: var(--text-muted); line-height: 1.5; padding: 4px 0;">
+          All Kalshi 15-minute CFTC contracts settle strictly on the quarter-hour (<strong>:00, :15, :30, :45</strong>).
         </div>
 
-        <!-- 15m Gold Contract -->
-        <div class="market-card">
-          <div class="market-card-head">
-            <span>Gold 15-Min — Target: $4,349.63</span>
-            <span class="tag live-15m-timer" style="background: #2d1616; color: var(--accent-red); font-weight: 800;">● 15:00</span>
-          </div>
-          <div class="market-card-meta">
-            <span>Current: $4,343.59 (-$6.04 below target)</span>
-            <button class="btn btn-cyan" style="padding: 2px 8px; font-size: 10px;" onclick="runGeminiCopilot('KXGOLD15M', 'Gold 15m Close', 4349.63, 4343.59, 'ai-box-gold')">🤖 Ask Gemini</button>
-          </div>
-          <div style="display: flex; gap: 8px; margin-top: 4px;">
-            <div style="flex: 1; background: rgba(0,245,160,0.1); border: 1px solid rgba(0,245,160,0.3); border-radius: 6px; padding: 6px; text-align: center; font-size: 10px; font-weight: bold; color: var(--accent-green);">
-              Up 1% (1¢)
+        <!-- 1. Gold 15-Min Contract -->
+        <div class="market-card" style="border-color: #2a3558;">
+          <div class="fast-header">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span class="asset-icon-badge badge-gold">GLD</span>
+              <span style="font-size: 13px; font-weight: 800; color: #cbd5e1; letter-spacing: 0.5px;">GOLD 15 MIN</span>
             </div>
-            <div style="flex: 1; background: rgba(255,51,68,0.1); border: 1px solid rgba(255,51,68,0.3); border-radius: 6px; padding: 6px; text-align: center; font-size: 10px; font-weight: bold; color: var(--accent-red);">
-              Down 99% (99¢)
+            <div class="tag live-15m-timer" style="background: #3b1414; color: var(--accent-red); font-weight: 900; font-size: 11px; padding: 3px 8px; border-radius: 12px; border: 1px solid rgba(255, 51, 68, 0.4);">
+              ● 00:48
             </div>
+          </div>
+
+          <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-top: 4px;">
+            <div>
+              <div class="target-title">Target $4,343.61</div>
+              <div class="current-spot-text">Current $4,344.23</div>
+            </div>
+            <div class="delta-indicator delta-above">
+              +$0.63 above target
+            </div>
+          </div>
+
+          <!-- Sparkline with Horizontal Target Dashed Line -->
+          <div style="position: relative; margin-top: 4px;">
+            <svg class="sparkline-svg" viewBox="0 0 300 48">
+              <!-- Dashed reference target line -->
+              <line x1="0" y1="24" x2="300" y2="24" stroke="#475569" stroke-width="1.5" stroke-dasharray="4,4" />
+              <!-- Price trajectory moving above target line -->
+              <path d="M 0,18 Q 40,12 80,19 T 160,26 T 220,31 T 270,33 L 300,18" fill="none" stroke="#eab308" stroke-width="2.5" />
+              <!-- Current spot head marker -->
+              <circle cx="300" cy="18" r="4" fill="#eab308" />
+            </svg>
+          </div>
+
+          <!-- Binary Above / Below Decision Buttons -->
+          <div class="binary-split-tray">
+            <div class="binary-btn btn-above" onclick="selectBinarySide('GOLD', 'Above', 89)">
+              <span>Above</span>
+              <span style="opacity: 0.7;">·</span>
+              <span>89%</span>
+            </div>
+            <div class="binary-btn btn-below" onclick="selectBinarySide('GOLD', 'Below', 11)">
+              <span>Below</span>
+              <span style="opacity: 0.7;">·</span>
+              <span>11%</span>
+            </div>
+          </div>
+
+          <!-- Gemini Copilot Trigger & Card -->
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 6px; font-size: 11px; color: var(--text-muted);">
+            <span>$224,205 vol</span>
+            <button class="btn btn-cyan" style="padding: 4px 10px; font-size: 11px;" onclick="runGeminiCopilot('KXGOLD15M', 'Gold 15m Close', 4343.61, 4344.23, 'ai-box-gold')">🤖 Gemini Analysis</button>
           </div>
           <div class="ai-agent-box" id="ai-box-gold">Evaluating candle momentum &amp; order-book spread...</div>
         </div>
 
-        <!-- 15m BTC Contract -->
-        <div class="market-card">
-          <div class="market-card-head">
-            <span>BTC 15-Min (KXBTC15M) — Target: $85,029.68</span>
-            <span class="tag live-15m-timer" style="background: #2d1616; color: var(--accent-red); font-weight: 800;">● 15:00</span>
+        <!-- 2. Silver 15-Min Contract -->
+        <div class="market-card" style="border-color: #2a3558;">
+          <div class="fast-header">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span class="asset-icon-badge badge-silver">SLV</span>
+              <span style="font-size: 13px; font-weight: 800; color: #cbd5e1; letter-spacing: 0.5px;">SILVER 15 MIN</span>
+            </div>
+            <div class="tag live-15m-timer" style="background: #3b1414; color: var(--accent-red); font-weight: 900; font-size: 11px; padding: 3px 8px; border-radius: 12px; border: 1px solid rgba(255, 51, 68, 0.4);">
+              ● 00:48
+            </div>
           </div>
-          <div class="market-card-meta">
-            <span>Spot: $85,062.10 (+$32.42 above) • YES 56¢ | NO 45¢</span>
-            <button class="btn btn-cyan" style="padding: 2px 8px; font-size: 10px;" onclick="runGeminiCopilot('KXBTC15M', 'BTC Up/Down 15m', 85029.68, 85062.10, 'ai-box-btc')">🤖 Ask Gemini</button>
-          </div>
-          <div class="ai-agent-box" id="ai-box-btc">Evaluating candle momentum &amp; order-book spread...</div>
-        </div>
 
-        <!-- 15m Silver Contract -->
-        <div class="market-card">
-          <div class="market-card-head">
-            <span>Silver 15-Min — Target: $67.42</span>
-            <span class="tag live-15m-timer" style="background: #2d1616; color: var(--accent-red); font-weight: 800;">● 15:00</span>
+          <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-top: 4px;">
+            <div>
+              <div class="target-title">Target $66.828</div>
+              <div class="current-spot-text">Current $66.780</div>
+            </div>
+            <div class="delta-indicator delta-below">
+              -$0.048 below target
+            </div>
           </div>
-          <div class="market-card-meta">
-            <span>Current: $67.45 (+$0.03 above) • YES 54¢ | NO 47¢</span>
-            <button class="btn btn-cyan" style="padding: 2px 8px; font-size: 10px;" onclick="runGeminiCopilot('KXSLV15M', 'Silver 15m Bracket', 67.42, 67.45, 'ai-box-slv')">🤖 Ask Gemini</button>
+
+          <!-- Sparkline with Horizontal Target Dashed Line -->
+          <div style="position: relative; margin-top: 4px;">
+            <svg class="sparkline-svg" viewBox="0 0 300 48">
+              <line x1="0" y1="20" x2="300" y2="20" stroke="#475569" stroke-width="1.5" stroke-dasharray="4,4" />
+              <path d="M 0,22 Q 50,18 100,25 T 180,28 T 240,38 L 300,42" fill="none" stroke="#cbd5e1" stroke-width="2.5" />
+              <circle cx="300" cy="42" r="4" fill="#cbd5e1" />
+            </svg>
+          </div>
+
+          <!-- Binary Above / Below Decision Buttons -->
+          <div class="binary-split-tray">
+            <div class="binary-btn btn-above" onclick="selectBinarySide('SILVER', 'Above', 17)">
+              <span>Above</span>
+              <span style="opacity: 0.7;">·</span>
+              <span>17%</span>
+            </div>
+            <div class="binary-btn btn-below" onclick="selectBinarySide('SILVER', 'Below', 83)">
+              <span>Below</span>
+              <span style="opacity: 0.7;">·</span>
+              <span>83%</span>
+            </div>
+          </div>
+
+          <!-- Gemini Copilot Trigger & Card -->
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 6px; font-size: 11px; color: var(--text-muted);">
+            <span>$97,908 vol</span>
+            <button class="btn btn-cyan" style="padding: 4px 10px; font-size: 11px;" onclick="runGeminiCopilot('KXSLV15M', 'Silver 15m Bracket', 66.828, 66.780, 'ai-box-slv')">🤖 Gemini Analysis</button>
           </div>
           <div class="ai-agent-box" id="ai-box-slv">Evaluating candle momentum &amp; order-book spread...</div>
         </div>
+
+        <!-- 3. WTI Crude Oil 15-Min Contract -->
+        <div class="market-card" style="border-color: #2a3558;">
+          <div class="fast-header">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span class="asset-icon-badge badge-oil">WTI</span>
+              <span style="font-size: 13px; font-weight: 800; color: #cbd5e1; letter-spacing: 0.5px;">WTI OIL 15 MIN</span>
+            </div>
+            <div class="tag live-15m-timer" style="background: #3b1414; color: var(--accent-red); font-weight: 900; font-size: 11px; padding: 3px 8px; border-radius: 12px; border: 1px solid rgba(255, 51, 68, 0.4);">
+              ● 00:48
+            </div>
+          </div>
+
+          <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-top: 4px;">
+            <div>
+              <div class="target-title">Target $90.16</div>
+              <div class="current-spot-text">Current $90.20</div>
+            </div>
+            <div class="delta-indicator delta-above">
+              +$0.04 above target
+            </div>
+          </div>
+
+          <!-- Sparkline with Horizontal Target Dashed Line -->
+          <div style="position: relative; margin-top: 4px;">
+            <svg class="sparkline-svg" viewBox="0 0 300 48">
+              <line x1="0" y1="24" x2="300" y2="24" stroke="#475569" stroke-width="1.5" stroke-dasharray="4,4" />
+              <path d="M 0,32 Q 60,35 120,28 T 200,20 T 260,18 L 300,16" fill="none" stroke="#38bdf8" stroke-width="2.5" />
+              <circle cx="300" cy="16" r="4" fill="#38bdf8" />
+            </svg>
+          </div>
+
+          <!-- Binary Above / Below Decision Buttons -->
+          <div class="binary-split-tray">
+            <div class="binary-btn btn-above" onclick="selectBinarySide('WTI', 'Above', 54)">
+              <span>Above</span>
+              <span style="opacity: 0.7;">·</span>
+              <span>54%</span>
+            </div>
+            <div class="binary-btn btn-below" onclick="selectBinarySide('WTI', 'Below', 46)">
+              <span>Below</span>
+              <span style="opacity: 0.7;">·</span>
+              <span>46%</span>
+            </div>
+          </div>
+
+          <!-- Gemini Copilot Trigger & Card -->
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 6px; font-size: 11px; color: var(--text-muted);">
+            <span>$142,500 vol</span>
+            <button class="btn btn-cyan" style="padding: 4px 10px; font-size: 11px;" onclick="runGeminiCopilot('KXWTI15M', 'WTI Crude 15m', 90.16, 90.20, 'ai-box-wti')">🤖 Gemini Analysis</button>
+          </div>
+          <div class="ai-agent-box" id="ai-box-wti">Evaluating candle momentum &amp; order-book spread...</div>
+        </div>
+
       </div>
 
     </div>
@@ -811,8 +903,8 @@
         <span>🟣 POLYMARKET US CLOB MARKETS</span>
         <span class="tag">Gamma Proxy</span>
       </div>
-      <div id="poly-live-feed" style="display: flex; flex-direction: column; gap: 8px;">
-        <div style="font-size: 11px; color: var(--text-muted); text-align: center; padding: 10px;">Querying /api/polymarket/markets...</div>
+      <div id="poly-live-feed" style="display: flex; flex-direction: column; gap: 10px;">
+        <div style="font-size: 12px; color: var(--text-muted); text-align: center; padding: 12px;">Querying /api/polymarket/markets...</div>
       </div>
     </div>
   </div>
@@ -824,8 +916,8 @@
         <span>🟢 KALSHI DOMESTIC DESK</span>
         <span class="tag">Trade API v2</span>
       </div>
-      <div id="kalshi-live-feed" style="display: flex; flex-direction: column; gap: 8px;">
-        <div style="font-size: 11px; color: var(--text-muted); text-align: center; padding: 10px;">Authenticated via Local Session Keys</div>
+      <div id="kalshi-live-feed" style="display: flex; flex-direction: column; gap: 10px;">
+        <div style="font-size: 12px; color: var(--text-muted); text-align: center; padding: 12px;">Authenticated via Local Session Keys</div>
       </div>
     </div>
   </div>
@@ -837,7 +929,7 @@
         <span>⚖️ CROSS-PLATFORM ARBITRAGE SCANNER</span>
         <span class="tag" style="background: #12281a; color: var(--accent-green);">227 Spreads Screened</span>
       </div>
-      <div style="display: flex; flex-direction: column; gap: 8px;">
+      <div style="display: flex; flex-direction: column; gap: 10px;">
         <div class="market-card">
           <div class="market-card-head">
             <span>Fed Funds Rate Cut ≥ 25 bps Resolution</span>
@@ -855,16 +947,6 @@
           </div>
           <div class="market-card-meta">
             <span>Buy Kalshi YES @ $0.68 • Buy Poly NO @ $0.292</span>
-            <span style="color: var(--accent-cyan); font-weight: 800;">Risk-Free Net</span>
-          </div>
-        </div>
-        <div class="market-card">
-          <div class="market-card-head">
-            <span>US Debt Ceiling Extension Resolution</span>
-            <span class="tag" style="background: #12281a; color: var(--accent-green);">+1.9% ARB</span>
-          </div>
-          <div class="market-card-meta">
-            <span>Buy Poly YES @ $0.92 • Buy Kalshi NO @ $0.061</span>
             <span style="color: var(--accent-cyan); font-weight: 800;">Risk-Free Net</span>
           </div>
         </div>
@@ -895,12 +977,12 @@
         </div>
       </div>
 
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding: 8px 10px; background: rgba(0, 242, 254, 0.05); border: 1px solid rgba(0, 242, 254, 0.2); border-radius: 8px;">
-        <span style="font-size: 11px; color: var(--text-muted);">Want 1-tap bet sharing from DraftKings &amp; FanDuel?</span>
-        <a href="javascript:void(0)" onclick="openSetupModal()" style="font-size: 11px; font-weight: 800; color: var(--accent-cyan); text-decoration: none;">Setup Guide ➔</a>
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; padding: 10px 12px; background: rgba(0, 242, 254, 0.05); border: 1px solid rgba(0, 242, 254, 0.2); border-radius: 10px;">
+        <span style="font-size: 12px; color: var(--text-muted);">Want 1-tap bet sharing from DraftKings &amp; FanDuel?</span>
+        <a href="javascript:void(0)" onclick="openSetupModal()" style="font-size: 12px; font-weight: 800; color: var(--accent-cyan); text-decoration: none;">Setup Guide ➔</a>
       </div>
 
-      <div style="display: flex; gap: 6px; margin-bottom: 12px; align-items: flex-end;">
+      <div style="display: flex; gap: 8px; margin-bottom: 14px; align-items: flex-end;">
         <div style="flex: 2;">
           <label class="stat-label">Manual Paste Fallback</label>
           <input type="text" id="manual-slip-input" placeholder="Paste sportsbook receipt or link...">
@@ -915,15 +997,15 @@
             <option value="86400">24 Hours</option>
           </select>
         </div>
-        <button class="btn btn-gold" style="height: 36px;" onclick="ingestManualSlip()">Import</button>
+        <button class="btn btn-gold" style="height: 42px;" onclick="ingestManualSlip()">Import</button>
       </div>
 
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
         <span class="stat-label">Imported Wagers</span>
-        <button class="btn" style="padding: 2px 8px; font-size: 10px;" onclick="pollSharedSlips()">Force Sync</button>
+        <button class="btn" style="padding: 3px 10px; font-size: 11px;" onclick="pollSharedSlips()">Force Sync</button>
       </div>
 
-      <div id="fleet-tickets-container" style="display: flex; flex-direction: column; gap: 8px;"></div>
+      <div id="fleet-tickets-container" style="display: flex; flex-direction: column; gap: 10px;"></div>
     </div>
   </div>
 
@@ -949,7 +1031,7 @@
         </div>
         <div class="stat-box">
           <span class="stat-label">Security Shield</span>
-          <span class="stat-value" style="color: var(--accent-gold); font-size: 11px;">Client BYOK</span>
+          <span class="stat-value" style="color: var(--accent-gold); font-size: 12px;">Client BYOK</span>
         </div>
       </div>
     </div>
@@ -959,12 +1041,11 @@
         <span>🔐 Bring Your Own Key (BYOK) API Credentials</span>
         <span class="tag">100% Client-Side</span>
       </div>
-      <p style="font-size: 10px; color: var(--text-muted); margin-bottom: 12px; line-height: 1.4;">
+      <p style="font-size: 11px; color: var(--text-muted); margin-bottom: 14px; line-height: 1.4;">
         API keys and private signatures are stored exclusively in your browser sandbox. They never touch a remote server.
       </p>
 
-      <!-- KALSHI CREDENTIALS -->
-      <div style="font-weight: 800; font-size: 11px; color: var(--accent-green); margin-bottom: 6px;">🟢 Kalshi Domestic Trading API</div>
+      <div style="font-weight: 800; font-size: 12px; color: var(--accent-green); margin-bottom: 6px;">🟢 Kalshi Domestic Trading API</div>
       <div class="input-group">
         <label class="stat-label">Kalshi Key ID</label>
         <div class="password-wrapper">
@@ -981,8 +1062,7 @@
         </div>
       </div>
 
-      <!-- POLYMARKET US CREDENTIALS -->
-      <div style="font-weight: 800; font-size: 11px; color: var(--accent-pink); margin-bottom: 6px;">🟣 Polymarket.us Domestic Trading API</div>
+      <div style="font-weight: 800; font-size: 12px; color: var(--accent-pink); margin-bottom: 6px;">🟣 Polymarket.us Domestic Trading API</div>
       <div class="input-group">
         <label class="stat-label">Polymarket.us API Key ID</label>
         <div class="password-wrapper">
@@ -999,17 +1079,16 @@
         </div>
       </div>
 
-      <!-- GEMINI COPILOT KEY -->
-      <div style="font-weight: 800; font-size: 11px; color: var(--accent-cyan); margin-bottom: 6px;">🤖 Gemini Agentic Copilot API</div>
+      <div style="font-weight: 800; font-size: 12px; color: var(--accent-cyan); margin-bottom: 6px;">🤖 Gemini Agentic Copilot API</div>
       <div class="input-group">
-        <label class="stat-label">Google Gemini API Key (Client-Side AI Insights)</label>
+        <label class="stat-label">Google Gemini API Key</label>
         <div class="password-wrapper">
           <input type="password" id="gemini-api-key" placeholder="Paste Gemini API Key..." autocomplete="off">
           <button type="button" class="toggle-visibility" onclick="toggleMask('gemini-api-key')">👁</button>
         </div>
       </div>
 
-      <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 10px;">
+      <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 10px;">
         <button class="btn btn-gold" onclick="saveVaultCredentials()">Save API Credentials Locally</button>
         <button class="btn btn-danger" onclick="clearLocalStorageVault()">⚠️ Clear All Keys &amp; Slips from Storage</button>
       </div>
@@ -1093,6 +1172,94 @@
 </div>
 
 <script>
+// --- MASTER QUEUE ARRAYS ---
+const SPORTS_PICKS_POOL = [
+  { match: "Nationals @ Tigers — First 5 Under 4.5 Runs", book: "POLY.US", bookBg: "#1b1330", bookColor: "var(--accent-pink)", pick: "YES Under 4.5 F5 @ $0.78 (78% Implied)", roi: "+28.2% ROI", roiNum: 28.2, time: "Tomorrow 1:10 PM ET", expiry: 1727111400000 },
+  { match: "Blue Jays @ Orioles — Baltimore Orioles Moneyline", book: "KALSHI", bookBg: "#12281a", bookColor: "var(--accent-green)", pick: "YES Orioles ML @ $0.82 (82% Implied)", roi: "+22.0% ROI", roiNum: 22.0, time: "Tomorrow 1:35 PM ET", expiry: 1727112900000 },
+  { match: "NFL TNF: Falcons @ Packers — Over 44.5 Total Points", book: "POLY.US", bookBg: "#1b1330", bookColor: "var(--accent-pink)", pick: "YES Over 44.5 @ $0.84 (84% Implied)", roi: "+19.0% ROI", roiNum: 19.0, time: "Thursday 8:15 PM ET", expiry: 1727223300000 },
+  { match: "Royals @ Guardians — Cleveland Guardians ML", book: "KALSHI", bookBg: "#12281a", bookColor: "var(--accent-green)", pick: "YES Guardians ML @ $0.76 (76% Implied)", roi: "+31.5% ROI", roiNum: 31.5, time: "Tomorrow 1:10 PM ET", expiry: 1727111400000 },
+  { match: "Padres @ Dodgers — Shohei Ohtani 1+ Hits", book: "POLY.US", bookBg: "#1b1330", bookColor: "var(--accent-pink)", pick: "YES 1+ Hits @ $0.85 (85% Implied)", roi: "+17.6% ROI", roiNum: 17.6, time: "Tomorrow 10:10 PM ET", expiry: 1727143800000 },
+  { match: "Braves @ Mets — First 5 Under 5.5 Runs", book: "POLY.US", bookBg: "#1b1330", bookColor: "var(--accent-pink)", pick: "YES Under 5.5 F5 @ $0.81 (81% Implied)", roi: "+23.4% ROI", roiNum: 23.4, time: "Tomorrow 7:10 PM ET", expiry: 1727133000000 },
+  { match: "Twins @ Red Sox — Boston Red Sox +1.5 Spread", book: "KALSHI", bookBg: "#12281a", bookColor: "var(--accent-green)", pick: "YES Sox +1.5 @ $0.87 (87% Implied)", roi: "+14.9% ROI", roiNum: 14.9, time: "Tomorrow 7:10 PM ET", expiry: 1727133000000 },
+  { match: "Phillies @ Cubs — Zack Wheeler 6+ Strikeouts", book: "POLY.US", bookBg: "#1b1330", bookColor: "var(--accent-pink)", pick: "YES 6+ Ks @ $0.79 (79% Implied)", roi: "+26.5% ROI", roiNum: 26.5, time: "Thursday 2:20 PM ET", expiry: 1727202000000 },
+  { match: "Cardinals @ Rockies — Total Runs Under 12.5", book: "KALSHI", bookBg: "#12281a", bookColor: "var(--accent-green)", pick: "YES Under 12.5 @ $0.83 (83% Implied)", roi: "+20.5% ROI", roiNum: 20.5, time: "Tomorrow 3:10 PM ET", expiry: 1727118600000 }
+];
+
+const ESPORTS_PICKS_POOL = [
+  { match: "CS2: G2 Ares vs INOX Division (BO3)", book: "POLY.US", bookBg: "#1b1330", bookColor: "var(--accent-pink)", pick: "YES G2 Ares Winner @ $0.53 (53% Implied)", roi: "+88.7% ROI", roiNum: 88.7, time: "Tomorrow 4:00 AM ET", expiry: 1727078400000 },
+  { match: "CS2: Optibet vs Four Magic (BO3)", book: "POLY.US", bookBg: "#1b1330", bookColor: "var(--accent-pink)", pick: "YES Optibet Map 1 @ $0.71 (71% Implied)", roi: "+40.8% ROI", roiNum: 40.8, time: "Tomorrow 11:15 AM ET", expiry: 1727104500000 },
+  { match: "CS2: Procyon Gaming vs ODDIK", book: "KALSHI", bookBg: "#12281a", bookColor: "var(--accent-green)", pick: "YES ODDIK Winner @ $0.80 (80% Implied)", roi: "+25.0% ROI", roiNum: 25.0, time: "Tomorrow 5:00 PM ET", expiry: 1727125200000 },
+  { match: "Dota 2: Team Spirit vs Tundra Esports", book: "POLY.US", bookBg: "#1b1330", bookColor: "var(--accent-pink)", pick: "YES Spirit Map 1 @ $0.65 (65% Implied)", roi: "+53.8% ROI", roiNum: 53.8, time: "Tomorrow 8:00 AM ET", expiry: 1727092800000 },
+  { match: "CS2: SAW vs Cloud9 — Map 1 Rounds Handicap", book: "KALSHI", bookBg: "#12281a", bookColor: "var(--accent-green)", pick: "YES SAW +3.5 Rounds @ $0.82", roi: "+22.0% ROI", roiNum: 22.0, time: "Tomorrow 1:30 PM ET", expiry: 1727112600000 },
+  { match: "LoL Worlds: Bilibili Gaming vs T1", book: "POLY.US", bookBg: "#1b1330", bookColor: "var(--accent-pink)", pick: "YES Match Over 3.5 Maps @ $0.74", roi: "+35.1% ROI", roiNum: 35.1, time: "Thursday 10:00 AM ET", expiry: 1727186400000 },
+  { match: "CS2: Astralis vs FaZe Clan (BO3)", book: "KALSHI", bookBg: "#12281a", bookColor: "var(--accent-green)", pick: "YES FaZe Clan ML @ $0.77 (77% Implied)", roi: "+29.8% ROI", roiNum: 29.8, time: "Thursday 1:00 PM ET", expiry: 1727197200000 },
+  { match: "Valorant: Sentinels vs Gen.G (Champions)", book: "POLY.US", bookBg: "#1b1330", bookColor: "var(--accent-pink)", pick: "YES Sentinels Map 1 @ $0.68", roi: "+47.0% ROI", roiNum: 47.0, time: "Thursday 4:00 PM ET", expiry: 1727208000000 },
+  { match: "Dota 2: BetBoom vs Gaimin Gladiators", book: "POLY.US", bookBg: "#1b1330", bookColor: "var(--accent-pink)", pick: "YES GG Match Winner @ $0.83", roi: "+20.5% ROI", roiNum: 20.5, time: "Friday 9:00 AM ET", expiry: 1727269200000 }
+];
+
+let sportsPageIndex = 0;
+let esportsPageIndex = 0;
+let sportsTimer = null;
+let esportsTimer = null;
+
+function renderCarouselPage(containerId, pool, pageIndex) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  const start = pageIndex * 3;
+  const pageItems = pool.slice(start, start + 3);
+
+  container.innerHTML = pageItems.map(item => `
+    <div class="market-card sortable-card" data-roi="${item.roiNum}" data-expiry="${item.expiry}">
+      <div class="market-card-head">
+        <span>${item.match}</span>
+        <span class="tag" style="background: ${item.bookBg}; color: ${item.bookColor};">${item.book}</span>
+      </div>
+      <div class="market-card-meta">
+        <span>Pick: ${item.pick} • ${item.time}</span>
+        <span style="color: var(--accent-green); font-weight: 800;">${item.roi}</span>
+      </div>
+    </div>
+  `).join('');
+}
+
+function updateDots(dotsContainerId, activeIndex) {
+  const dots = document.querySelectorAll(`#${dotsContainerId} .dot`);
+  dots.forEach((dot, idx) => {
+    dot.classList.toggle('active', idx === activeIndex);
+  });
+}
+
+function cycleSportsCarousel() {
+  sportsPageIndex = (sportsPageIndex + 1) % 3;
+  renderCarouselPage('sports-picks-container', SPORTS_PICKS_POOL, sportsPageIndex);
+  updateDots('sports-carousel-dots', sportsPageIndex);
+}
+
+function cycleEsportsCarousel() {
+  esportsPageIndex = (esportsPageIndex + 1) % 3;
+  renderCarouselPage('esports-picks-container', ESPORTS_PICKS_POOL, esportsPageIndex);
+  updateDots('esports-carousel-dots', esportsPageIndex);
+}
+
+function startCarouselRotators() {
+  renderCarouselPage('sports-picks-container', SPORTS_PICKS_POOL, 0);
+  renderCarouselPage('esports-picks-container', ESPORTS_PICKS_POOL, 0);
+
+  sportsTimer = setInterval(cycleSportsCarousel, 6000);
+  esportsTimer = setInterval(cycleEsportsCarousel, 6000);
+
+  const sportsContainer = document.getElementById('section-sports');
+  const esportsContainer = document.getElementById('section-esports');
+  if (sportsContainer) {
+    sportsContainer.addEventListener('mouseenter', () => clearInterval(sportsTimer));
+    sportsContainer.addEventListener('mouseleave', () => sportsTimer = setInterval(cycleSportsCarousel, 6000));
+  }
+  if (esportsContainer) {
+    esportsContainer.addEventListener('mouseenter', () => clearInterval(esportsTimer));
+    esportsContainer.addEventListener('mouseleave', () => esportsTimer = setInterval(cycleEsportsCarousel, 6000));
+  }
+}
+
 // --- NAVIGATION & TABS ---
 function switchNavTab(viewId, element) {
   document.querySelectorAll('.tab-view').forEach(v => v.classList.remove('active'));
@@ -1126,36 +1293,31 @@ function switchCategoryFilter(category, button) {
   }
 }
 
-// --- DYNAMIC SORTING ENGINE ---
 function switchSortOrder(order, button) {
   document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
   button.classList.add('active');
 
-  const containers = [
-    document.getElementById('sports-picks-container'),
-    document.getElementById('esports-picks-container'),
-    document.getElementById('macro-picks-container')
-  ];
+  clearInterval(sportsTimer);
+  clearInterval(esportsTimer);
 
-  containers.forEach(container => {
-    if (!container) return;
-    const cards = Array.from(container.querySelectorAll('.sortable-card'));
-
-    cards.sort((a, b) => {
-      const roiA = parseFloat(a.dataset.roi) || 0;
-      const roiB = parseFloat(b.dataset.roi) || 0;
-      const expA = parseInt(a.dataset.expiry, 10) || 0;
-      const expB = parseInt(b.dataset.expiry, 10) || 0;
-
-      if (order === 'roi-high') return roiB - roiA;
-      if (order === 'roi-low') return roiA - roiB;
-      if (order === 'ending') return expA - expB;
-      if (order === 'today') return expA - expB;
+  const sortPool = (pool) => {
+    return pool.sort((a, b) => {
+      if (order === 'roi-high') return b.roiNum - a.roiNum;
+      if (order === 'roi-low') return a.roiNum - b.roiNum;
+      if (order === 'ending' || order === 'today') return a.expiry - b.expiry;
       return 0;
     });
+  };
 
-    cards.forEach(card => container.appendChild(card));
-  });
+  sortPool(SPORTS_PICKS_POOL);
+  sortPool(ESPORTS_PICKS_POOL);
+
+  sportsPageIndex = 0;
+  esportsPageIndex = 0;
+  renderCarouselPage('sports-picks-container', SPORTS_PICKS_POOL, 0);
+  renderCarouselPage('esports-picks-container', ESPORTS_PICKS_POOL, 0);
+  updateDots('sports-carousel-dots', 0);
+  updateDots('esports-carousel-dots', 0);
 }
 
 // PERPETUALS SUB-DESK CONTROLS
@@ -1201,7 +1363,7 @@ function filterCommodities(sector, button) {
   });
 }
 
-// --- SYNCHRONIZED 15-MINUTE CANDLE TIMER (:00, :15, :30, :45) ---
+// --- SYNCHRONIZED 15-MINUTE CANDLE TIMER ---
 function updateSynchronized15MinTimers() {
   const now = new Date();
   const minutes = now.getMinutes();
@@ -1219,12 +1381,17 @@ function updateSynchronized15MinTimers() {
   });
 }
 
+// Interactive Binary Selection
+function selectBinarySide(asset, side, prob) {
+  alert(`[${asset} 15-MIN] Selected ${side} at ${prob}% implied probability.`);
+}
+
 // --- GEMINI 15-MINUTE COPILOT ---
 async function runGeminiCopilot(ticker, title, targetPrice, currentPrice, outputBoxId) {
   const box = document.getElementById(outputBoxId);
   if (!box) return;
   box.style.display = 'block';
-  box.innerHTML = '<span style="color: var(--accent-cyan);">⚡ Querying Gemini Quant Agent...</span>';
+  box.innerHTML = '<span style="color: var(--accent-cyan); font-weight: bold;">⚡ Querying Gemini Quant Copilot...</span>';
 
   const geminiKey = localStorage.getItem('gemini_api_key') || '';
   const now = new Date();
@@ -1242,19 +1409,22 @@ async function runGeminiCopilot(ticker, title, targetPrice, currentPrice, output
 
     const data = await res.json();
     if (data.error) {
-      box.innerHTML = `<span style="color: var(--accent-red);">${data.error}</span>`;
+      box.innerHTML = `<span style="color: var(--accent-red); font-weight: bold;">${data.error}</span>`;
     } else {
-      box.innerHTML = `<div style="color: #fff; white-space: pre-wrap;">${data.analysis}</div>`;
+      box.innerHTML = `<div style="color: #fff; white-space: pre-wrap; font-size: 11px;">${data.analysis}</div>`;
     }
   } catch (err) {
     const delta = currentPrice - targetPrice;
-    const side = delta >= 0 ? "BUY YES" : "BUY NO";
+    const side = delta >= 0 ? "BUY ABOVE" : "BUY BELOW";
     box.innerHTML = `
-      <div style="color: var(--accent-green); font-weight: 800;">Heuristic Call: ${side}</div>
-      <div style="color: var(--text-muted); font-size: 10px; margin-top: 4px;">
-        • Candle Status: ${minLeft}m remaining to quarter-hour settlement.<br>
-        • Distance from Target: ${delta >= 0 ? '+' : ''}${delta.toFixed(2)} (${Math.abs(delta) > 3 ? 'Strong conviction' : 'Tight spread'})<br>
-        • Execution Rule: Avoid taker fee drag by posting limit orders inside the spread.
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+        <span style="color: ${delta >= 0 ? 'var(--accent-green)' : 'var(--accent-red)'}; font-weight: 900; font-size: 14px;">CALL: ${side}</span>
+        <span style="font-size: 10px; color: var(--accent-gold); font-weight: 800;">${Math.abs(delta) > 0.5 ? 'HIGH CONVICTION' : 'TIGHT SPREAD'}</span>
+      </div>
+      <div style="color: var(--text-muted); font-size: 11px; line-height: 1.4;">
+        • <strong>Candle Time Left:</strong> ${minLeft}m to CFTC settlement bracket.<br>
+        • <strong>Delta to Target:</strong> ${delta >= 0 ? '+' : ''}${delta.toFixed(3)} ($${Math.abs(delta).toFixed(3)} ${delta >= 0 ? 'above' : 'below'} strike).<br>
+        • <strong>Execution Guidance:</strong> Post resting limit orders directly on the ${side === 'BUY ABOVE' ? 'Above' : 'Below'} contract inside the spread to avoid taker fee leakage.
       </div>
     `;
   }
@@ -1267,7 +1437,6 @@ function refreshCurrentTab() {
   if (activeTab.id === 'view-poly') fetchLivePoly();
 }
 
-// --- MONETIZATION & ADS ---
 function promptAdPasskey() {
   const passkey = prompt("Enter Pro Passkey to Remove Ads:");
   if (passkey) {
@@ -1494,22 +1663,22 @@ function renderFleetTickets() {
   if (!container) return;
 
   if (tickets.length === 0) {
-    container.innerHTML = '<div style="color: var(--text-muted); font-size: 10px; padding: 12px; text-align: center; border: 1px dashed var(--border-color); border-radius: 6px;">No imported slips active.</div>';
+    container.innerHTML = '<div style="color: var(--text-muted); font-size: 11px; padding: 14px; text-align: center; border: 1px dashed var(--border-color); border-radius: 8px;">No imported slips active.</div>';
     return;
   }
 
   container.innerHTML = tickets.map((t, idx) => `
     <div class="ticket-card">
-      <div style="display: flex; justify-content: space-between; font-weight: bold; margin-bottom: 4px;">
+      <div style="display: flex; justify-content: space-between; font-weight: bold; margin-bottom: 5px;">
         <span style="color: var(--accent-cyan);">${t.book} [${t.betId || 'Slip'}]</span>
         <span style="color: var(--accent-gold);">${t.odds ? (t.odds.startsWith('+') || t.odds.startsWith('-') ? t.odds : '+' + t.odds) : ''} | Ret: $${t.payout ? t.payout.toFixed(2) : '--'}</span>
       </div>
-      <div style="color: var(--text-muted); font-size: 9px; margin-bottom: 6px; display: flex; justify-content: space-between;">
+      <div style="color: var(--text-muted); font-size: 10px; margin-bottom: 6px; display: flex; justify-content: space-between;">
         <span>Stake: $${t.stake ? t.stake.toFixed(2) : '--'} | ${new Date(t.timestamp).toLocaleTimeString()}</span>
         <span style="cursor: pointer; color: var(--accent-pink);" onclick="removeSlip(${idx})">✕ Remove</span>
       </div>
       <div style="padding-left: 8px; border-left: 2px solid var(--accent-pink);">
-        ${(t.legs || []).map(l => `<div style="font-size: 10px; color: #fff;">• ${l}</div>`).join('')}
+        ${(t.legs || []).map(l => `<div style="font-size: 11px; color: #fff;">• ${l}</div>`).join('')}
       </div>
     </div>
   `).join('');
@@ -1621,6 +1790,8 @@ window.addEventListener('DOMContentLoaded', () => {
   renderFleetTickets();
   checkIncomingShareTarget();
   setInterval(pollSharedSlips, 10000);
+
+  startCarouselRotators();
 
   updateSynchronized15MinTimers();
   setInterval(updateSynchronized15MinTimers, 1000);
