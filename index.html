@@ -995,7 +995,7 @@
   </div>
 </div>
 
-<!-- SETUP MODAL SHEET -->
+<!-- SETUP MODAL SHEET WITH NATIVE SHORTCUT LAUNCHER -->
 <div id="setup-modal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 10000; padding: 20px; overflow-y: auto; justify-content: center; align-items: center;">
   <div style="background: #0d1224; border: 1px solid var(--border-color); border-radius: 14px; max-width: 440px; width: 100%; padding: 18px; color: #fff; font-size: 12px; display: flex; flex-direction: column; gap: 14px;">
     <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">
@@ -1011,12 +1011,20 @@
     </div>
 
     <div>
-      <div style="font-weight: 800; color: var(--accent-green); margin-bottom: 6px;">2. 1-Tap iOS Shortcut Installer</div>
-      <p style="color: var(--text-muted); font-size: 11px; line-height: 1.4; margin-bottom: 10px;">
-        Tap below to copy your unique ingestion endpoint to clipboard and launch the Shortcuts app:
+      <div style="font-weight: 800; color: var(--accent-green); margin-bottom: 6px;">2. 1-Tap iOS Shortcut Setup</div>
+      <p style="color: var(--text-muted); font-size: 11px; line-height: 1.4; margin-bottom: 8px;">
+        Tap the button below. Your private endpoint is copied automatically, and iOS will open directly into a <strong>New Shortcut</strong> editor:
       </p>
-      
-      <button class="btn btn-cyan" style="width: 100%; padding: 10px; font-weight: 900; margin-bottom: 8px;" onclick="triggerOneTapShortcutInstall()">⚡ Copy Ingest URL &amp; Open Shortcuts</button>
+
+      <button class="btn btn-cyan" style="width: 100%; padding: 10px; font-weight: 900; margin-bottom: 10px;" onclick="triggerOneTapShortcutInstall()">⚡ Create Shortcut (Auto-Copy Ingest URL)</button>
+
+      <div style="background: #070a16; border: 1px solid var(--border-color); border-radius: 8px; padding: 10px; font-size: 11px; line-height: 1.4; color: var(--text-muted); margin-bottom: 8px;">
+        <strong style="color: #fff;">In the Shortcut Editor:</strong><br>
+        1. Tap the <strong>(i)</strong> at bottom &gt; Turn ON <strong>Show in Share Sheet</strong>.<br>
+        2. Tap <strong>Add Action</strong> &gt; Search for <strong>Get Contents of URL</strong>.<br>
+        3. Tap the URL box &gt; <strong>Paste</strong> (your private endpoint is already copied).<br>
+        4. Tap the arrow &gt; Change method to <strong>POST</strong> &gt; Set Body to <strong>JSON</strong> (key: <code>text</code>, value: <code>Shortcut Input</code>).
+      </div>
 
       <div style="margin-top: 6px; background: #060812; border: 1px solid #1a2340; padding: 8px; border-radius: 6px; font-family: monospace; font-size: 10px; color: var(--accent-cyan); word-break: break-all;" id="modal-endpoint-copy">
         Loading...
@@ -1691,7 +1699,7 @@ function checkAdState() {
   }
 }
 
-// --- SETUP MODAL & SHORTCUT ---
+// --- SETUP MODAL & DIRECT SHORTCUT CREATOR LAUNCHER ---
 function openSetupModal() {
   const uuid = getOrCreateClientUuid();
   const endpointEl = document.getElementById('modal-endpoint-copy');
@@ -1711,11 +1719,12 @@ function triggerOneTapShortcutInstall() {
   const uuid = getOrCreateClientUuid();
   const ingestUrl = `https://cosmic-parlays.cosmictrollgaming.workers.dev/api/fleet/ingest/${uuid}`;
 
+  // Copy private ingestion URL to clipboard and open directly into Apple Shortcuts new editor
   navigator.clipboard.writeText(ingestUrl).then(() => {
-    alert("Private endpoint copied to clipboard!\n\nOpening Shortcuts app. In your 'Cosmic Terminal' shortcut, paste this into the URL field.");
-    window.location.href = "shortcuts://";
+    alert("Private endpoint copied to clipboard!\n\nOpening Shortcuts directly into the New Shortcut editor. Paste this URL into the 'Get Contents of URL' action.");
+    window.location.href = "shortcuts://create-shortcut";
   }).catch(() => {
-    window.location.href = "shortcuts://";
+    window.location.href = "shortcuts://create-shortcut";
   });
 }
 
