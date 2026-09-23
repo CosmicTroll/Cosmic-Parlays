@@ -96,7 +96,7 @@
       margin-right: 6px;
     }
 
-    /* Navigation Bars */
+    /* Filter & Sorter Bars */
     .pill-nav, .sort-nav {
       display: flex;
       gap: 6px;
@@ -158,7 +158,7 @@
       color: var(--accent-cyan);
     }
 
-    /* Market Cards */
+    /* Market Items */
     .market-card {
       background: #080c18;
       border: 1px solid var(--border-color);
@@ -299,7 +299,7 @@
       display: none;
     }
 
-    /* Bottom Nav */
+    /* Bottom Nav Bar */
     .bottom-nav {
       position: fixed;
       bottom: 0;
@@ -354,7 +354,7 @@
 
 <div class="app-shell">
 
-  <!-- Top Bar -->
+  <!-- Top App Bar -->
   <div class="top-bar">
     <div class="brand-title">🚀 Cosmic Terminal</div>
     <div class="top-actions">
@@ -368,12 +368,12 @@
   <div class="sponsor-bar" id="sponsor-banner">
     <div>
       <span class="sponsor-tag">SPONSOR</span>
-      <span>Trade US prediction markets with zero fees on Polymarket.us. <a href="https://polymarket.us" target="_blank" style="color: var(--accent-cyan); text-decoration: none; font-weight: bold;">Join Polymarket.us →</a></span>
+      <span>Trade US prediction markets with 0 fees on Polymarket.us. <a href="https://polymarket.us" target="_blank" style="color: var(--accent-cyan); text-decoration: none; font-weight: bold;">Join Polymarket.us →</a></span>
     </div>
     <span style="font-size: 10px; color: var(--text-muted); text-decoration: underline; cursor: pointer; white-space: nowrap; margin-left: 8px;" onclick="promptAdPasskey()">Remove Ads ($5)</span>
   </div>
 
-  <!-- Category Filter -->
+  <!-- Category Filter Bar -->
   <div class="pill-nav">
     <button class="pill-btn active" onclick="switchCategoryFilter('all', this)">🎯 Picks</button>
     <button class="pill-btn" onclick="switchCategoryFilter('esports', this)">🎮 Esports</button>
@@ -381,7 +381,7 @@
     <button class="pill-btn" onclick="switchCategoryFilter('politics', this)">🏛 Politics</button>
   </div>
 
-  <!-- Secondary Sorter -->
+  <!-- Secondary Sorter Bar -->
   <div class="sort-nav">
     <span class="sort-label">SORT:</span>
     <button class="sort-btn active" onclick="switchSortOrder('roi-high', this)">🔥 Top ROI</button>
@@ -529,11 +529,11 @@
     </div>
   </div>
 
-  <!-- VIEW 3: KALSHI PERPETUALS, COMMODITIES & 15-MIN DESK -->
+  <!-- VIEW 3: KALSHI PERPETUALS, SUB-CATEGORIZED COMMODITIES & 15-MIN COPILOT -->
   <div class="tab-view" id="view-perps">
     <div class="card">
       <div class="card-header">
-        <span>⚡ KALSHI PERPETUAL FUTURES &amp; FAST DESK</span>
+        <span>⚡ KALSHI PERPETUAL FUTURES &amp; COMMODITIES DESK</span>
         <span class="tag">CFTC Regulated</span>
       </div>
       <div class="stat-grid-3">
@@ -555,7 +555,7 @@
       <div style="display: flex; gap: 6px; margin-bottom: 12px; overflow-x: auto; scrollbar-width: none;">
         <button class="pill-btn active" id="btn-perp-crypto" onclick="switchPerpSubCategory('crypto')">🪙 Crypto (18)</button>
         <button class="pill-btn" id="btn-perp-commodities" onclick="switchPerpSubCategory('commodities')">🛢️ Commodities Suite</button>
-        <button class="pill-btn" id="btn-perp-15m" onclick="switchPerpSubCategory('15min')">⏱️ 15-Min Fast (:00/:15/:30/:45)</button>
+        <button class="pill-btn" id="btn-perp-15m" onclick="switchPerpSubCategory('15min')">⏱️ 15-Min Fast Copilot</button>
       </div>
 
       <!-- SECTION A: CRYPTO PERPETUALS SUITE -->
@@ -643,12 +643,20 @@
         </div>
       </div>
 
-      <!-- SECTION B: FULL KALSHI COMMODITIES SUITE -->
+      <!-- SECTION B: SUB-CATEGORIZED COMMODITIES SUITE -->
       <div id="perp-sub-commodities" style="display: none; flex-direction: column; gap: 10px;">
-        <div style="font-weight: 800; font-size: 11px; color: var(--accent-gold); margin-bottom: 2px;">⛏️ PRECIOUS METALS</div>
         
-        <!-- Gold -->
-        <div class="market-card">
+        <!-- Category Filter for Commodities -->
+        <div style="display: flex; gap: 6px; margin-bottom: 4px;">
+          <span class="sort-label">SECTOR:</span>
+          <button class="sort-btn active" onclick="filterCommodities('all', this)">All Commodities</button>
+          <button class="sort-btn" onclick="filterCommodities('metals', this)">⛏️ Metals</button>
+          <button class="sort-btn" onclick="filterCommodities('energy', this)">🛢️ Energy</button>
+          <button class="sort-btn" onclick="filterCommodities('agri', this)">🌾 Agri / Other</button>
+        </div>
+
+        <!-- 1. Gold -->
+        <div class="market-card comm-item comm-metals">
           <div class="market-card-head">
             <span>Gold Continuous (GOLDPERP) • Max 15.2x</span>
             <span class="tag" style="background: #252010; color: var(--accent-gold);">Daily: -0.004%</span>
@@ -662,8 +670,8 @@
           </svg>
         </div>
 
-        <!-- Silver -->
-        <div class="market-card">
+        <!-- 2. Silver -->
+        <div class="market-card comm-item comm-metals">
           <div class="market-card-head">
             <span>Silver Continuous (SILVERPERP) • Max 8.0x</span>
             <span class="tag" style="background: #252010; color: var(--accent-gold);">Daily: +0.001%</span>
@@ -677,12 +685,10 @@
           </svg>
         </div>
 
-        <div style="font-weight: 800; font-size: 11px; color: var(--accent-cyan); margin-top: 6px; margin-bottom: 2px;">🛢️ OIL &amp; GAS (ENERGY DESK)</div>
-
-        <!-- WTI Crude Oil -->
-        <div class="market-card">
+        <!-- 3. WTI Crude Oil -->
+        <div class="market-card comm-item comm-energy">
           <div class="market-card-head">
-            <span>WTI Crude Oil Continuous • 10 Contracts</span>
+            <span>WTI Crude Oil Continuous • 10 Active Contracts</span>
             <span class="tag" style="background: #2b1414; color: var(--accent-red);">-10.40% Today</span>
           </div>
           <div class="market-card-meta">
@@ -694,10 +700,10 @@
           </svg>
         </div>
 
-        <!-- Gasoline -->
-        <div class="market-card">
+        <!-- 4. RBOB Gasoline -->
+        <div class="market-card comm-item comm-energy">
           <div class="market-card-head">
-            <span>RBOB Gasoline Continuous • 11 Contracts</span>
+            <span>RBOB Gasoline Continuous • 11 Active Contracts</span>
             <span class="tag" style="background: #12281a; color: var(--accent-green);">+3.37% Today</span>
           </div>
           <div class="market-card-meta">
@@ -709,8 +715,8 @@
           </svg>
         </div>
 
-        <!-- Natural Gas -->
-        <div class="market-card">
+        <!-- 5. Natural Gas -->
+        <div class="market-card comm-item comm-energy">
           <div class="market-card-head">
             <span>Henry Hub Natural Gas Continuous</span>
             <span class="tag" style="background: #12281a; color: var(--accent-green);">+3.60% Today</span>
@@ -723,19 +729,31 @@
             <path d="M 0,30 Q 70,15 150,22 T 300,8" fill="none" stroke="#00f2fe" stroke-width="2"/>
           </svg>
         </div>
+
+        <!-- 6. Corn & Agriculture -->
+        <div class="market-card comm-item comm-agri">
+          <div class="market-card-head">
+            <span>Corn Futures Index (CORN) • Monthly Settle</span>
+            <span class="tag" style="background: #12281a; color: var(--accent-green);">+0.85% Today</span>
+          </div>
+          <div class="market-card-meta">
+            <span>Benchmark: $4.18 / bushel</span>
+            <span style="color: var(--accent-green); font-weight: bold;">CFTC Certified</span>
+          </div>
+        </div>
       </div>
 
-      <!-- SECTION C: 15-MINUTE FAST MARKETS (ALL END SYNCHRONIZED :00/:15/:30/:45) -->
+      <!-- SECTION C: 15-MINUTE FAST MARKETS + GEMINI QUANT COPILOT -->
       <div id="perp-sub-15m" style="display: none; flex-direction: column; gap: 10px;">
-        <div style="font-size: 11px; color: var(--text-muted); line-height: 1.4;">
-          All Kalshi 15-minute CFTC brackets resolve strictly on clock quarters (<strong>:00, :15, :30, :45</strong>) [source: 28, 31]. The timer below tracks the remaining candle time across the board [source: 31].
+        <div style="font-size: 11px; color: var(--text-muted); line-height: 1.4; margin-bottom: 6px;">
+          All Kalshi 15-minute CFTC brackets settle strictly on clock quarter-hours (<strong>:00, :15, :30, :45</strong>). The countdown timer below updates live and tracks remaining candle duration across all markets.
         </div>
 
         <!-- 15m Gold Contract -->
         <div class="market-card">
           <div class="market-card-head">
             <span>Gold 15-Min — Target: $4,349.63</span>
-            <span class="tag live-15m-timer" style="background: #2d1616; color: var(--accent-red); font-weight: 800;">Loading...</span>
+            <span class="tag live-15m-timer" style="background: #2d1616; color: var(--accent-red); font-weight: 800;">● 15:00</span>
           </div>
           <div class="market-card-meta">
             <span>Current: $4,343.59 (-$6.04 below target)</span>
@@ -749,33 +767,33 @@
               Down 99% (99¢)
             </div>
           </div>
-          <div class="ai-agent-box" id="ai-box-gold">Evaluating candle momentum...</div>
+          <div class="ai-agent-box" id="ai-box-gold">Evaluating candle momentum &amp; order-book spread...</div>
         </div>
 
         <!-- 15m BTC Contract -->
         <div class="market-card">
           <div class="market-card-head">
             <span>BTC 15-Min (KXBTC15M) — Target: $85,029.68</span>
-            <span class="tag live-15m-timer" style="background: #2d1616; color: var(--accent-red); font-weight: 800;">Loading...</span>
+            <span class="tag live-15m-timer" style="background: #2d1616; color: var(--accent-red); font-weight: 800;">● 15:00</span>
           </div>
           <div class="market-card-meta">
             <span>Spot: $85,062.10 (+$32.42 above) • YES 56¢ | NO 45¢</span>
             <button class="btn btn-cyan" style="padding: 2px 8px; font-size: 10px;" onclick="runGeminiCopilot('KXBTC15M', 'BTC Up/Down 15m', 85029.68, 85062.10, 'ai-box-btc')">🤖 Ask Gemini</button>
           </div>
-          <div class="ai-agent-box" id="ai-box-btc">Evaluating candle momentum...</div>
+          <div class="ai-agent-box" id="ai-box-btc">Evaluating candle momentum &amp; order-book spread...</div>
         </div>
 
         <!-- 15m Silver Contract -->
         <div class="market-card">
           <div class="market-card-head">
             <span>Silver 15-Min — Target: $67.42</span>
-            <span class="tag live-15m-timer" style="background: #2d1616; color: var(--accent-red); font-weight: 800;">Loading...</span>
+            <span class="tag live-15m-timer" style="background: #2d1616; color: var(--accent-red); font-weight: 800;">● 15:00</span>
           </div>
           <div class="market-card-meta">
             <span>Current: $67.45 (+$0.03 above) • YES 54¢ | NO 47¢</span>
             <button class="btn btn-cyan" style="padding: 2px 8px; font-size: 10px;" onclick="runGeminiCopilot('KXSLV15M', 'Silver 15m Bracket', 67.42, 67.45, 'ai-box-slv')">🤖 Ask Gemini</button>
           </div>
-          <div class="ai-agent-box" id="ai-box-slv">Evaluating candle momentum...</div>
+          <div class="ai-agent-box" id="ai-box-slv">Evaluating candle momentum &amp; order-book spread...</div>
         </div>
       </div>
 
@@ -1135,13 +1153,29 @@ function filterCryptoList(group, button) {
   });
 }
 
+function filterCommodities(sector, button) {
+  document.querySelectorAll('#perp-sub-commodities .sort-btn').forEach(b => b.classList.remove('active'));
+  button.classList.add('active');
+
+  document.querySelectorAll('.comm-item').forEach(el => {
+    if (sector === 'all') {
+      el.style.display = 'flex';
+    } else if (sector === 'metals') {
+      el.style.display = el.classList.contains('comm-metals') ? 'flex' : 'none';
+    } else if (sector === 'energy') {
+      el.style.display = el.classList.contains('comm-energy') ? 'flex' : 'none';
+    } else if (sector === 'agri') {
+      el.style.display = el.classList.contains('comm-agri') ? 'flex' : 'none';
+    }
+  });
+}
+
 // --- SYNCHRONIZED 15-MINUTE CANDLE TIMER (:00, :15, :30, :45) ---
 function updateSynchronized15MinTimers() {
   const now = new Date();
   const minutes = now.getMinutes();
   const seconds = now.getSeconds();
 
-  // Find next 15-minute mark: 15, 30, 45, or 60
   const nextQuarterMinute = (Math.floor(minutes / 15) + 1) * 15;
   const totalSecondsRemaining = ((nextQuarterMinute - minutes) * 60) - seconds;
 
@@ -1162,8 +1196,6 @@ async function runGeminiCopilot(ticker, title, targetPrice, currentPrice, output
   box.innerHTML = '<span style="color: var(--accent-cyan);">⚡ Querying Gemini Quant Agent...</span>';
 
   const geminiKey = localStorage.getItem('gemini_api_key') || '';
-
-  // Calculate real minutes left in candle
   const now = new Date();
   const minLeft = 15 - (now.getMinutes() % 15);
 
@@ -1190,7 +1222,7 @@ async function runGeminiCopilot(ticker, title, targetPrice, currentPrice, output
       <div style="color: var(--accent-green); font-weight: 800;">Heuristic Call: ${side}</div>
       <div style="color: var(--text-muted); font-size: 10px; margin-top: 4px;">
         • Candle Status: ${minLeft}m remaining to quarter-hour settlement.<br>
-        • Distance from Target: ${delta >= 0 ? '+' : ''}${delta.toFixed(2)} (${Math.abs(delta) > 5 ? 'High conviction' : 'Tight spread'})<br>
+        • Distance from Target: ${delta >= 0 ? '+' : ''}${delta.toFixed(2)} (${Math.abs(delta) > 3 ? 'Strong conviction' : 'Tight spread'})<br>
         • Execution Rule: Avoid taker fee drag by posting limit orders inside the spread.
       </div>
     `;
@@ -1559,7 +1591,7 @@ window.addEventListener('DOMContentLoaded', () => {
   checkIncomingShareTarget();
   setInterval(pollSharedSlips, 10000);
 
-  // Run and bind real-time :00, :15, :30, :45 clock
+  // Initialize and run the synchronized :00/:15/:30/:45 clock
   updateSynchronized15MinTimers();
   setInterval(updateSynchronized15MinTimers, 1000);
 });
