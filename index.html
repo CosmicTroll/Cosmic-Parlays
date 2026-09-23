@@ -211,7 +211,6 @@
     }
     .badge-gold { background: #eab308; color: #000; }
     .badge-silver { background: #94a3b8; color: #000; }
-    .badge-oil { background: #3b82f6; color: #fff; }
 
     .target-title {
       font-size: 1.15rem;
@@ -274,32 +273,6 @@
       border: 1.5px solid rgba(255, 51, 68, 0.4);
     }
 
-    .btn-recommend-glow-above {
-      border-color: var(--accent-green) !important;
-      background: rgba(0, 245, 160, 0.25) !important;
-      box-shadow: 0 0 16px rgba(0, 245, 160, 0.65);
-      transform: scale(1.02);
-      opacity: 1 !important;
-    }
-    .btn-recommend-glow-below {
-      border-color: var(--accent-red) !important;
-      background: rgba(255, 51, 68, 0.25) !important;
-      box-shadow: 0 0 16px rgba(255, 51, 68, 0.65);
-      transform: scale(1.02);
-      opacity: 1 !important;
-    }
-    .btn-faded {
-      opacity: 0.35 !important;
-      filter: grayscale(0.6);
-      transform: scale(0.98);
-    }
-
-    .stat-grid-4 {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 10px;
-      margin-bottom: 14px;
-    }
     .stat-grid-3 {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
@@ -397,24 +370,6 @@
       display: none;
     }
 
-    .carousel-indicator {
-      display: flex;
-      gap: 6px;
-      align-items: center;
-    }
-    .dot {
-      width: 7px;
-      height: 7px;
-      border-radius: 50%;
-      background: #1e294b;
-      transition: background 0.3s ease;
-    }
-    .dot.active {
-      background: var(--accent-cyan);
-      width: 14px;
-      border-radius: 6px;
-    }
-
     .bottom-nav {
       position: fixed;
       bottom: 0;
@@ -498,7 +453,6 @@
     <button class="sort-btn active" onclick="switchSortOrder('roi-high', this)">🔥 Top ROI</button>
     <button class="sort-btn" onclick="switchSortOrder('roi-low', this)">📉 Low ROI</button>
     <button class="sort-btn" onclick="switchSortOrder('ending', this)">⏳ Ending Soonest</button>
-    <button class="sort-btn" onclick="switchSortOrder('today', this)">📅 Upcoming</button>
   </div>
 
   <!-- VIEW 1: PICKS & MULTI-DESK -->
@@ -525,17 +479,18 @@
       </div>
     </div>
 
+    <!-- Active Slips -->
     <div class="card">
       <div class="card-header">
         <span>🎟️ Active Slips &amp; Local Exposure</span>
-        <span class="tag">Client-Side Sync</span>
+        <span class="tag">Edge Sentinel Synced</span>
       </div>
       <div id="vault-status-box" style="background: #090e1f; border: 1px solid var(--border-color); border-radius: 10px; padding: 12px; display: flex; justify-content: space-between; align-items: center;">
         <div>
           <div id="vault-status-title" style="font-size: 0.85rem; font-weight: 800; color: #fff;">BYOK Vault: Standby</div>
-          <div id="vault-status-desc" style="font-size: 0.75rem; color: var(--text-muted); margin-top: 2px;">Checking local keys...</div>
+          <div id="vault-status-desc" style="font-size: 0.75rem; color: var(--text-muted); margin-top: 2px;">Edge Sentinel armed 24/7.</div>
         </div>
-        <span id="vault-status-tag" class="tag" style="background: #151a2d; color: var(--text-muted);">LOCAL SESSION</span>
+        <span id="vault-status-tag" class="tag" style="background: #151a2d; color: var(--text-muted);">EDGE ACTIVE</span>
       </div>
     </div>
 
@@ -543,50 +498,9 @@
     <div class="card market-section" id="section-sports">
       <div class="card-header">
         <span>🏈 Top Sports Picks (MLB / NFL EV)</span>
-        <div style="display: flex; gap: 8px; align-items: center;">
-          <div class="carousel-indicator" id="sports-carousel-dots">
-            <div class="dot active"></div>
-            <div class="dot"></div>
-            <div class="dot"></div>
-          </div>
-          <span class="tag" style="color: var(--accent-cyan);">Live Queue</span>
-        </div>
+        <span class="tag" style="color: var(--accent-cyan);">Live Slate</span>
       </div>
       <div id="sports-picks-container" style="display: flex; flex-direction: column; gap: 10px;"></div>
-    </div>
-
-    <!-- Esports Desk -->
-    <div class="card market-section" id="section-esports">
-      <div class="card-header">
-        <span>🎮 Esports Desk (Top Picks Queue)</span>
-        <div style="display: flex; gap: 8px; align-items: center;">
-          <div class="carousel-indicator" id="esports-carousel-dots">
-            <div class="dot active"></div>
-            <div class="dot"></div>
-            <div class="dot"></div>
-          </div>
-          <span class="tag" style="color: var(--accent-pink);">Live Queue</span>
-        </div>
-      </div>
-      <div id="esports-picks-container" style="display: flex; flex-direction: column; gap: 10px;"></div>
-    </div>
-
-    <!-- Embedded Polymarket Feed -->
-    <div class="card" id="section-poly-feed" style="display: none;">
-      <div class="card-header">
-        <span>🟣 Polymarket CLOB Live Markets</span>
-        <span class="tag">Gamma Real-Time</span>
-      </div>
-      <div id="poly-live-feed" style="display: flex; flex-direction: column; gap: 10px;"></div>
-    </div>
-
-    <!-- Embedded Kalshi Live Feed -->
-    <div class="card" id="section-kalshi-feed" style="display: none;">
-      <div class="card-header">
-        <span>🟢 Kalshi Domestic Markets</span>
-        <span class="tag">Trade API v2</span>
-      </div>
-      <div id="kalshi-live-feed" style="display: flex; flex-direction: column; gap: 10px;"></div>
     </div>
 
     <!-- Embedded Fleet Slips -->
@@ -597,256 +511,17 @@
       </div>
       <div id="fleet-tickets-container" style="display: flex; flex-direction: column; gap: 10px;"></div>
     </div>
-
-    <!-- Embedded Gemini Copilot Hub -->
-    <div class="card" id="section-gemini-hub" style="display: none;">
-      <div class="card-header">
-        <span>🤖 Gemini Quant Copilot Engine</span>
-        <span class="tag" style="color: var(--accent-cyan);">Quant-Restricted</span>
-      </div>
-      <div style="font-size: 0.8rem; color: var(--text-muted); line-height: 1.5; margin-bottom: 12px;">
-        Gemini operates strictly as an institutional quantitative analyst. It ingests verified spot prices and lines to calculate spread friction and edge percentages without guessing settlement timelines.
-      </div>
-      <div class="stat-grid-3">
-        <div class="stat-box">
-          <span class="stat-label">Model Engine</span>
-          <span class="stat-value" style="font-size: 0.85rem; color: var(--accent-cyan);">1.5 Flash</span>
-        </div>
-        <div class="stat-box">
-          <span class="stat-label">Inference Mode</span>
-          <span class="stat-value" style="font-size: 0.85rem; color: var(--accent-green);">Zero-Trust</span>
-        </div>
-        <div class="stat-box">
-          <span class="stat-label">API Relay</span>
-          <span class="stat-value" style="font-size: 0.85rem; color: var(--accent-gold);">BYOK / Edge</span>
-        </div>
-      </div>
-      <button class="btn btn-cyan" style="width: 100%; margin-top: 6px;" onclick="switchNavTab('view-settings', null)">⚙️ Configure Gemini API Key</button>
-    </div>
   </div>
 
-  <!-- VIEW 2: MACRO DESK -->
-  <div class="tab-view" id="view-macro">
-    <div class="card">
-      <div class="card-header">
-        <span>🏛️ MACRO &amp; MONETARY DESK</span>
-        <span class="tag">CFTC Contracts</span>
-      </div>
-      <div id="macro-picks-container" style="display: flex; flex-direction: column; gap: 10px;">
-        <div class="market-card sortable-card" data-roi="19.0" data-expiry="1790000000000">
-          <div class="market-card-head">
-            <span>Fed Funds Target Rate Cut ≥ 25 bps</span>
-            <span class="tag" style="background: #12281a; color: var(--accent-green);">KALSHI</span>
-          </div>
-          <div class="market-card-meta">
-            <span>Market Implied: 84% Yes • Volume: $1.42M</span>
-            <span style="color: var(--accent-green); font-weight: 800;">+19.0% ROI (YES @ $0.84)</span>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- VIEW 3: KALSHI PERPETUALS, COMMODITIES & 15-MIN DESK -->
-  <div class="tab-view" id="view-perps">
-    <div class="card">
-      <div class="card-header">
-        <span>⚡ KALSHI PERPETUAL FUTURES &amp; COMMODITIES DESK</span>
-        <span class="tag">CFTC Regulated</span>
-      </div>
-      <div class="stat-grid-3">
-        <div class="stat-box">
-          <span class="stat-label">Margin APR</span>
-          <span class="stat-value" style="color: var(--accent-cyan);">3.25%</span>
-        </div>
-        <div class="stat-box">
-          <span class="stat-label">Settlements</span>
-          <span class="stat-value" style="color: var(--accent-green);">8h / Daily</span>
-        </div>
-        <div class="stat-box">
-          <span class="stat-label">Guardrail Cap</span>
-          <span class="stat-value" style="color: var(--accent-gold);">1.5x Max</span>
-        </div>
-      </div>
-
-      <div style="display: flex; gap: 8px; margin-bottom: 14px; overflow-x: auto; scrollbar-width: none; padding-bottom: 4px;">
-        <button class="pill-btn" id="btn-perp-crypto" onclick="switchPerpSubCategory('crypto')">🪙 Crypto (18)</button>
-        <button class="pill-btn" id="btn-perp-commodities" onclick="switchPerpSubCategory('commodities')">🛢️ Commodities Suite</button>
-        <button class="pill-btn active" id="btn-perp-15m" onclick="switchPerpSubCategory('15min')">⏱️ 15-Minute Fast Markets</button>
-      </div>
-
-      <!-- 15-Minute Fast Markets -->
-      <div id="perp-sub-15m" style="display: flex; flex-direction: column; gap: 14px;">
-        <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.78rem; color: var(--text-muted); padding: 4px 0;">
-          <span>Settles on quarter-hour marks (:00, :15, :30, :45)</span>
-          <span class="tag" style="color: var(--accent-green); font-size: 0.65rem;">● LIVE STREAM</span>
-        </div>
-
-        <div class="market-card" style="border-color: #2a3558;" id="card-15m-gold">
-          <div class="fast-header">
-            <div style="display: flex; align-items: center; gap: 8px;">
-              <span class="asset-icon-badge badge-gold">GLD</span>
-              <span style="font-size: 0.85rem; font-weight: 800; color: #cbd5e1;">GOLD 15 MIN</span>
-            </div>
-            <div class="tag live-15m-timer" style="background: #3b1414; color: var(--accent-red); font-weight: 900; font-size: 0.75rem; padding: 3px 8px; border-radius: 12px; border: 1px solid rgba(255, 51, 68, 0.4);">
-              ● --:--
-            </div>
-          </div>
-
-          <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-top: 4px;">
-            <div>
-              <div class="target-title" id="val-15m-gold-target">Target: Loading...</div>
-              <div class="current-spot-text" id="val-15m-gold-spot">Current: Connecting...</div>
-            </div>
-            <div class="delta-indicator delta-above" id="val-15m-gold-delta">
-              Connecting...
-            </div>
-          </div>
-
-          <div style="position: relative; margin-top: 4px;">
-            <svg class="sparkline-svg" viewBox="0 0 300 48">
-              <line x1="0" y1="24" x2="300" y2="24" stroke="#475569" stroke-width="1.5" stroke-dasharray="4,4" />
-              <path id="spark-15m-gold" d="M 0,18 Q 40,12 80,19 T 160,26 T 220,31 T 270,33 L 300,18" fill="none" stroke="#eab308" stroke-width="2.5" />
-              <circle id="dot-15m-gold" cx="300" cy="18" r="4" fill="#eab308" />
-            </svg>
-          </div>
-
-          <div class="binary-split-tray">
-            <div class="binary-btn btn-above" id="btn-gold-above" onclick="openOrderModal('GOLD', 'Above')">
-              <span>Above</span>
-              <span style="opacity: 0.7;">·</span>
-              <span id="prob-15m-gold-above">--%</span>
-            </div>
-            <div class="binary-btn btn-below" id="btn-gold-below" onclick="openOrderModal('GOLD', 'Below')">
-              <span>Below</span>
-              <span style="opacity: 0.7;">·</span>
-              <span id="prob-15m-gold-below">--%</span>
-            </div>
-          </div>
-
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 6px; font-size: 0.78rem; color: var(--text-muted);">
-            <span id="vol-15m-gold">Live Volume Stream</span>
-            <button class="btn btn-cyan" style="padding: 5px 12px; font-size: 0.78rem;" onclick="triggerGeminiAgent('GOLD')">🤖 Gemini Analysis</button>
-          </div>
-          <div class="ai-agent-box" id="ai-box-gold">Evaluating candle momentum...</div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- VIEW 4: SPREADS & ARBITRAGE -->
-  <div class="tab-view" id="view-spreads">
-    <div class="card">
-      <div class="card-header">
-        <span>⚖️ CROSS-PLATFORM ARBITRAGE SCANNER</span>
-        <span class="tag" style="background: #12281a; color: var(--accent-green);">227 Spreads Screened</span>
-      </div>
-      <div id="spreads-container" style="display: flex; flex-direction: column; gap: 10px;">
-        <div class="market-card sortable-card" data-roi="34.0" data-expiry="1790000000000">
-          <div class="market-card-head">
-            <span>Fed Funds Rate Cut ≥ 25 bps Resolution</span>
-            <span class="tag" style="background: #12281a; color: var(--accent-green);">+3.4% ARB</span>
-          </div>
-          <div class="market-card-meta">
-            <span>Buy Poly YES @ $0.84 • Buy Kalshi NO @ $0.126</span>
-            <span style="color: var(--accent-cyan); font-weight: 800;">+34.0% ROI (Risk-Free Net)</span>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- VIEW 5: VAULT -->
-  <div class="tab-view" id="view-vault">
-    <div class="card">
-      <div class="card-header">
-        <span>💼 Terminal Earnings &amp; Cumulative PnL</span>
-        <span class="tag" style="color: var(--accent-green);">Lifetime Metrics</span>
-      </div>
-      
-      <div class="stat-grid-3" style="margin-bottom: 12px;">
-        <div class="stat-box">
-          <span class="stat-label">Total Net PnL</span>
-          <span class="stat-value" id="vault-total-pnl" style="color: var(--accent-green);">+$0.00</span>
-        </div>
-        <div class="stat-box">
-          <span class="stat-label">Win Rate</span>
-          <span class="stat-value" id="vault-win-rate">0%</span>
-        </div>
-        <div class="stat-box">
-          <span class="stat-label">Wagers Settled</span>
-          <span class="stat-value" id="vault-settled-count">0</span>
-        </div>
-      </div>
-
-      <div style="font-weight: 800; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 8px; text-transform: uppercase;">
-        Earnings By Platform
-      </div>
-      <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px;">
-        <div style="background: #080c1a; border: 1px solid var(--border-color); border-radius: 8px; padding: 10px; display: flex; justify-content: space-between; align-items: center;">
-          <div>
-            <div style="font-weight: 800; font-size: 0.85rem; color: var(--accent-pink);">Polymarket.us</div>
-            <div style="font-size: 0.72rem; color: var(--text-muted);">Prediction Markets • 0 Fees</div>
-          </div>
-          <div style="text-align: right;">
-            <div style="font-weight: 800; font-size: 0.88rem; color: var(--accent-green);" id="pnl-poly">+$0.00</div>
-            <div style="font-size: 0.7rem; color: var(--text-muted);" id="stats-poly">0 Slips • 0% Win</div>
-          </div>
-        </div>
-
-        <div style="background: #080c1a; border: 1px solid var(--border-color); border-radius: 8px; padding: 10px; display: flex; justify-content: space-between; align-items: center;">
-          <div>
-            <div style="font-weight: 800; font-size: 0.85rem; color: var(--accent-green);">Kalshi Domestic</div>
-            <div style="font-size: 0.72rem; color: var(--text-muted);">CFTC DCM</div>
-          </div>
-          <div style="text-align: right;">
-            <div style="font-weight: 800; font-size: 0.88rem; color: var(--accent-green);" id="pnl-kalshi">+$0.00</div>
-            <div style="font-size: 0.7rem; color: var(--text-muted);" id="stats-kalshi">0 Slips • 0% Win</div>
-          </div>
-        </div>
-
-        <div style="background: #080c1a; border: 1px solid var(--border-color); border-radius: 8px; padding: 10px; display: flex; justify-content: space-between; align-items: center;">
-          <div>
-            <div style="font-weight: 800; font-size: 0.85rem; color: var(--accent-cyan);">Sportsbooks (DK / FD)</div>
-            <div style="font-size: 0.72rem; color: var(--text-muted);">Fleet Imported Parlays</div>
-          </div>
-          <div style="text-align: right;">
-            <div style="font-weight: 800; font-size: 0.88rem; color: var(--accent-green);" id="pnl-books">+$0.00</div>
-            <div style="font-size: 0.7rem; color: var(--text-muted);" id="stats-books">0 Slips • 0% Win</div>
-          </div>
-        </div>
-      </div>
-
-      <button class="btn btn-cyan" style="width: 100%;" onclick="switchNavTab('view-settings', null)">⚙️ Configure API Keys &amp; Settings</button>
-    </div>
-  </div>
-
-  <!-- VIEW 6: SETTINGS -->
+  <!-- VIEW 2: SETTINGS (Includes Auto-Sync to Edge) -->
   <div class="tab-view" id="view-settings">
-    <div class="card">
-      <div class="card-header">
-        <span>⚙️ Terminal Display &amp; Zoom Controls</span>
-        <span class="tag" id="ui-zoom-disp">100%</span>
-      </div>
-      <p style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 12px; line-height: 1.4;">
-        Adjust the UI scaling slider to scale the interface cleanly across devices:
-      </p>
-      <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
-        <span style="font-size: 0.8rem; color: var(--text-muted);">80%</span>
-        <input type="range" id="ui-zoom-slider" min="0.8" max="1.4" step="0.05" value="1.0" oninput="updateUiZoom(this.value)" style="flex: 1; accent-color: var(--accent-cyan);">
-        <span style="font-size: 0.8rem; color: var(--text-muted);">140%</span>
-      </div>
-      <button class="btn" style="width: 100%; background: #19223c;" onclick="resetUiZoom()">Reset to Default (100%)</button>
-    </div>
-
-    <!-- CAPITAL SHIELDING & AUTONOMOUS SNIPER SUITE -->
     <div class="card" style="border-color: rgba(0, 245, 160, 0.4);">
       <div class="card-header">
-        <span>🎯 Capital-Shielded Auto-Sniper Engine</span>
+        <span>🎯 Capital-Shielded Auto-Sniper Suite</span>
         <span class="tag" style="color: var(--accent-green);">HPT &ge; 85 Guardrail</span>
       </div>
       <p style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 12px; line-height: 1.4;">
-        Configure autonomous execution for mathematical opportunities matching an edge score of 85 or greater. Capital below the shielded reserve floor is strictly untouchable.
+        Configurations auto-sync to Cloudflare Edge. Your orders execute autonomously even if your phone screen locks or backgrounds.
       </p>
 
       <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
@@ -865,39 +540,13 @@
       </div>
 
       <div class="input-group">
-        <label class="stat-label">Max Sniper Position Allocation ($ / Trade)</label>
+        <label class="stat-label">Max Position Allocation ($ / Trade)</label>
         <input type="number" id="sniper-max-trade-input" value="25.00" min="1" step="5" onchange="saveFinancialSettings()">
-      </div>
-    </div>
-
-    <!-- Universal Mathematical Salvage & Order Safeguards -->
-    <div class="card">
-      <div class="card-header">
-        <span>🛡️ Universal Mathematical Salvage &amp; Philosophy</span>
-        <span class="tag" style="color: var(--accent-gold);">Enforced</span>
-      </div>
-      <p style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 12px; line-height: 1.4;">
-        Configure zero-path capital salvage limits across all sports and market venues:
-      </p>
-      
-      <div class="input-group">
-        <label class="stat-label">Large Order Threshold ($ Risk Cap)</label>
-        <input type="number" id="large-order-threshold" value="25.00" min="1" step="1" onchange="saveFinancialSettings()">
       </div>
 
       <div class="input-group">
         <label class="stat-label">Autonomous Capital Salvage Floor (% of Stake)</label>
         <input type="number" id="salvage-floor-percent" value="15" min="5" max="50" step="5" onchange="saveFinancialSettings()">
-      </div>
-
-      <div style="display: flex; align-items: center; gap: 8px; margin-top: 6px;">
-        <input type="checkbox" id="autonomous-salvage-toggle" checked onchange="saveFinancialSettings()" style="width: 16px; height: 16px;">
-        <label for="autonomous-salvage-toggle" style="font-size: 0.75rem; color: #fff; font-weight: bold;">Enable Autonomous Capital Salvage (Auto-Exit on Mathematical Zero-Path)</label>
-      </div>
-
-      <div style="display: flex; align-items: center; gap: 8px; margin-top: 6px;">
-        <input type="checkbox" id="slippage-filter-toggle" checked onchange="saveFinancialSettings()" style="width: 16px; height: 16px;">
-        <label for="slippage-filter-toggle" style="font-size: 0.75rem; color: var(--text-muted);">Reject high-friction orders (&gt;95¢ or &lt;5¢)</label>
       </div>
     </div>
 
@@ -907,9 +556,6 @@
         <span>🚨 Webhook &amp; Autonomous Sentinel Alerts</span>
         <span class="tag">Instant Pings</span>
       </div>
-      <p style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 12px; line-height: 1.4;">
-        Receive alerts via Telegram or Discord when a ticket is in danger or hits cash-out thresholds.
-      </p>
       <div class="input-group">
         <label class="stat-label">Discord / Telegram Webhook URL</label>
         <input type="text" id="alert-webhook-input" placeholder="https://discord.com/api/webhooks/..." autocomplete="off">
@@ -917,59 +563,29 @@
       <button class="btn btn-cyan" style="width: 100%;" onclick="saveAlertWebhook()">Save Alert Webhook</button>
     </div>
 
+    <!-- BYOK Credentials -->
     <div class="card">
       <div class="card-header">
         <span>🔐 Private BYOK Credentials</span>
         <span class="tag">Local Sandbox</span>
       </div>
       
-      <div style="font-weight: 800; font-size: 0.85rem; color: var(--accent-green); margin-bottom: 6px;">🟢 Kalshi Domestic Trading API</div>
       <div class="input-group">
         <label class="stat-label">Kalshi Key ID</label>
-        <div class="password-wrapper">
-          <input type="password" id="kalshi-key-id" placeholder="Paste Kalshi Key UUID..." autocomplete="off">
-          <button type="button" class="toggle-visibility" onclick="toggleMask('kalshi-key-id')">👁</button>
-        </div>
+        <input type="password" id="kalshi-key-id" placeholder="Paste Kalshi Key UUID...">
       </div>
 
-      <div class="input-group" style="margin-bottom: 14px;">
-        <label class="stat-label">Kalshi Private Key (RSA PEM)</label>
-        <div class="password-wrapper">
-          <input type="password" id="kalshi-private-key" placeholder="Paste RSA Private Key PEM..." autocomplete="off">
-          <button type="button" class="toggle-visibility" onclick="toggleMask('kalshi-private-key')">👁</button>
-        </div>
-      </div>
-
-      <div style="font-weight: 800; font-size: 0.85rem; color: var(--accent-pink); margin-bottom: 6px;">🟣 Polymarket.us Domestic Trading API</div>
       <div class="input-group">
-        <label class="stat-label">Polymarket.us API Key ID</label>
-        <div class="password-wrapper">
-          <input type="password" id="poly-key-id" placeholder="Paste Polymarket.us Key UUID..." autocomplete="off">
-          <button type="button" class="toggle-visibility" onclick="toggleMask('poly-key-id')">👁</button>
-        </div>
+        <label class="stat-label">Kalshi Private Key (RSA PEM)</label>
+        <input type="password" id="kalshi-private-key" placeholder="Paste RSA Private Key PEM...">
       </div>
 
-      <div class="input-group" style="margin-bottom: 14px;">
-        <label class="stat-label">Polymarket.us Private Signing Key</label>
-        <div class="password-wrapper">
-          <input type="password" id="poly-private-key" placeholder="Paste Private Key / Secret..." autocomplete="off">
-          <button type="button" class="toggle-visibility" onclick="toggleMask('poly-private-key')">👁</button>
-        </div>
-      </div>
-
-      <div style="font-weight: 800; font-size: 0.85rem; color: var(--accent-cyan); margin-bottom: 6px;">🤖 Gemini Agentic Copilot API</div>
       <div class="input-group">
         <label class="stat-label">Google Gemini API Key</label>
-        <div class="password-wrapper">
-          <input type="password" id="gemini-api-key" placeholder="Paste Gemini API Key..." autocomplete="off">
-          <button type="button" class="toggle-visibility" onclick="toggleMask('gemini-api-key')">👁</button>
-        </div>
+        <input type="password" id="gemini-api-key" placeholder="Paste Gemini API Key...">
       </div>
 
-      <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 10px;">
-        <button class="btn btn-gold" onclick="saveVaultCredentials()">Save API Credentials Locally</button>
-        <button class="btn btn-danger" onclick="clearLocalStorageVault()">⚠️ Clear All Keys &amp; Slips from Storage</button>
-      </div>
+      <button class="btn btn-gold" style="width: 100%; margin-top: 6px;" onclick="saveVaultCredentials()">Save &amp; Sync to Edge Sentinel</button>
     </div>
   </div>
 
@@ -979,1228 +595,126 @@
       <span>🎯</span>
       <span>Desk</span>
     </div>
-    <div class="nav-item" onclick="switchNavTab('view-macro', this)">
-      <span>🏛</span>
-      <span>Macro</span>
-    </div>
-    <div class="nav-item" onclick="switchNavTab('view-perps', this)">
-      <span>⚡</span>
-      <span>Perps</span>
-    </div>
-    <div class="nav-item" onclick="switchNavTab('view-spreads', this)">
-      <span>⚖️</span>
-      <span>Spreads</span>
-      <span class="nav-badge">227</span>
-    </div>
-    <div class="nav-item" onclick="switchNavTab('view-vault', this)">
-      <span>💼</span>
-      <span>Vault</span>
+    <div class="nav-item" onclick="switchNavTab('view-settings', this)">
+      <span>⚙️</span>
+      <span>Settings</span>
     </div>
   </nav>
 
 </div>
 
-<!-- 15-MIN ORDER CONFIRMATION MODAL -->
-<div id="order-modal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 10000; padding: 20px; overflow-y: auto; justify-content: center; align-items: center;">
-  <div style="background: #0d1226; border: 1.5px solid var(--border-color); border-radius: 14px; max-width: 440px; width: 100%; padding: 20px; color: #fff; font-size: 13px; display: flex; flex-direction: column; gap: 14px; box-shadow: 0 0 30px rgba(0, 242, 254, 0.25);">
-    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">
-      <span style="font-weight: 900; font-size: 15px; color: var(--accent-cyan);" id="order-modal-title">Confirm Kalshi 15-Min Order</span>
-      <span style="cursor: pointer; font-size: 18px; color: var(--text-muted);" onclick="closeOrderModal()">✕</span>
-    </div>
-
-    <div>
-      <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase;">Target Comparison</div>
-      <div style="font-size: 16px; font-weight: 900;" id="order-target-display">Target Strike: Connecting...</div>
-      <div style="font-size: 12px; margin-top: 2px;" id="order-side-display">Action: <strong style="color: var(--accent-green);">ABOVE (YES)</strong></div>
-    </div>
-
-    <div class="input-group">
-      <label class="stat-label">Number of Contracts</label>
-      <input type="number" id="order-qty" value="5" min="1" max="500" oninput="calculateOrderEstimate()">
-    </div>
-
-    <div class="input-group">
-      <label class="stat-label">Limit Price Cap (1¢ - 99¢)</label>
-      <input type="number" id="order-limit-price" value="50" min="1" max="99" oninput="calculateOrderEstimate()">
-    </div>
-
-    <div style="background: #070914; border: 1px solid var(--border-color); border-radius: 8px; padding: 12px; display: flex; flex-direction: column; gap: 6px;">
-      <div style="display: flex; justify-content: space-between; font-size: 12px;">
-        <span style="color: var(--text-muted);">Max Position Cost:</span>
-        <strong id="order-est-cost">$2.50</strong>
-      </div>
-      <div style="display: flex; justify-content: space-between; font-size: 12px;">
-        <span style="color: var(--text-muted);">Estimated Maker Fee:</span>
-        <strong style="color: var(--accent-cyan);" id="order-est-fee">$0.02</strong>
-      </div>
-      <div style="display: flex; justify-content: space-between; font-size: 13px; border-top: 1px dashed var(--border-color); padding-top: 6px;">
-        <span style="color: var(--text-muted);">Potential Net Profit:</span>
-        <strong style="color: var(--accent-green);" id="order-est-profit">+$2.48</strong>
-      </div>
-    </div>
-
-    <div id="large-order-warning" style="display: none; background: rgba(255, 51, 68, 0.15); border: 1px solid var(--accent-red); border-radius: 8px; padding: 10px;">
-      <div style="font-weight: 800; color: var(--accent-red); font-size: 11px;">⚠️ LARGE TRANSACTION DETECTED</div>
-      <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">
-        This order exceeds your configured threshold. Type <strong>CONFIRM</strong> to authorize:
-      </div>
-      <input type="text" id="large-order-confirm-input" placeholder="Type CONFIRM..." style="margin-top: 6px;">
-    </div>
-
-    <div style="display: flex; gap: 10px; margin-top: 4px;">
-      <button class="btn" style="flex: 1; background: #19223c;" onclick="closeOrderModal()">Cancel</button>
-      <button class="btn btn-gold" style="flex: 2;" onclick="submitKalshiOrder()">Place Limit Order</button>
-    </div>
-  </div>
-</div>
-
-<!-- SETUP MODAL SHEET WITH NATIVE SHORTCUT LAUNCHER -->
+<!-- SETUP MODAL SHEET -->
 <div id="setup-modal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 10000; padding: 20px; overflow-y: auto; justify-content: center; align-items: center;">
   <div style="background: #0d1224; border: 1px solid var(--border-color); border-radius: 14px; max-width: 440px; width: 100%; padding: 18px; color: #fff; font-size: 12px; display: flex; flex-direction: column; gap: 14px;">
     <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">
-      <span style="font-weight: 900; font-size: 14px; color: var(--accent-cyan);">🚀 Terminal Mobile Setup Guide</span>
+      <span style="font-weight: 900; font-size: 14px; color: var(--accent-cyan);">🚀 1-Tap iOS Shortcut Setup</span>
       <span style="cursor: pointer; font-size: 16px; color: var(--text-muted);" onclick="closeSetupModal()">✕</span>
     </div>
-    
-    <div>
-      <div style="font-weight: 800; color: var(--accent-gold); margin-bottom: 4px;">1. Add to Home Screen (PWA Mode)</div>
-      <p style="color: var(--text-muted); font-size: 11px; line-height: 1.4;">
-        Open in Safari &gt; Tap Share &gt; Add to Home Screen.
-      </p>
-    </div>
-
-    <div>
-      <div style="font-weight: 800; color: var(--accent-green); margin-bottom: 6px;">2. 1-Tap iOS Shortcut Setup</div>
-      <p style="color: var(--text-muted); font-size: 11px; line-height: 1.4; margin-bottom: 8px;">
-        Tap the button below. Your private endpoint is copied automatically, and iOS will open directly into a <strong>New Shortcut</strong> editor:
-      </p>
-
-      <button class="btn btn-cyan" style="width: 100%; padding: 10px; font-weight: 900; margin-bottom: 10px;" onclick="triggerOneTapShortcutInstall()">⚡ Create Shortcut (Auto-Copy Ingest URL)</button>
-
-      <div style="background: #070a16; border: 1px solid var(--border-color); border-radius: 8px; padding: 10px; font-size: 11px; line-height: 1.4; color: var(--text-muted); margin-bottom: 8px;">
-        <strong style="color: #fff;">In the Shortcut Editor:</strong><br>
-        1. Tap the <strong>(i)</strong> at bottom &gt; Turn ON <strong>Show in Share Sheet</strong>.<br>
-        2. Tap <strong>Add Action</strong> &gt; Search for <strong>Get Contents of URL</strong>.<br>
-        3. Tap the URL box &gt; <strong>Paste</strong> (your private endpoint is already copied).<br>
-        4. Tap the arrow &gt; Change method to <strong>POST</strong> &gt; Set Body to <strong>JSON</strong> (key: <code>text</code>, value: <code>Shortcut Input</code>).
-      </div>
-
-      <div style="margin-top: 6px; background: #060812; border: 1px solid #1a2340; padding: 8px; border-radius: 6px; font-family: monospace; font-size: 10px; color: var(--accent-cyan); word-break: break-all;" id="modal-endpoint-copy">
-        Loading...
-      </div>
-      <button class="btn btn-gold" style="width: 100%; margin-top: 6px; padding: 6px; font-size: 11px;" onclick="copyEndpointUrl()">Copy Private URL</button>
-    </div>
-
-    <button class="btn" style="width: 100%; background: #19223c; margin-top: 4px;" onclick="closeSetupModal()">Got It</button>
+    <button class="btn btn-cyan" style="width: 100%; padding: 10px; font-weight: 900;" onclick="triggerOneTapShortcutInstall()">⚡ Create Shortcut (Auto-Copy URL)</button>
   </div>
 </div>
 
 <script>
-// --- UI SCALING ---
-function updateUiZoom(val) {
-  document.documentElement.style.setProperty('--ui-zoom', val);
-  document.getElementById('ui-zoom-disp').textContent = `${Math.round(val * 100)}%`;
-  localStorage.setItem('cosmic_ui_zoom', val);
+// --- CLIENT-TO-EDGE SYNCHRONIZATION ---
+async function syncConfigToEdge() {
+  const uuid = getOrCreateClientUuid();
+  const config = {
+    totalFunds: parseFloat(localStorage.getItem('cosmic_total_funds') || '250.00'),
+    shieldedFunds: parseFloat(localStorage.getItem('cosmic_shielded_funds') || '100.00'),
+    maxTrade: parseFloat(localStorage.getItem('cosmic_sniper_max_trade') || '25.00'),
+    salvageFloor: parseFloat(localStorage.getItem('cosmic_salvage_floor') || '15'),
+    autoSniper: localStorage.getItem('cosmic_auto_sniper') !== 'false',
+    autoSalvage: localStorage.getItem('cosmic_autonomous_salvage') !== 'false',
+    kalshiKeyId: localStorage.getItem('kalshi_key_id') || ''
+  };
+
+  try {
+    await fetch(`/api/user/sync/${uuid}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(config)
+    });
+  } catch (e) {
+    console.warn("Edge sync delayed:", e.message);
+  }
 }
 
-function loadUiZoom() {
-  const savedZoom = localStorage.getItem('cosmic_ui_zoom') || '1.0';
-  document.documentElement.style.setProperty('--ui-zoom', savedZoom);
-  const slider = document.getElementById('ui-zoom-slider');
-  if (slider) slider.value = savedZoom;
-  const disp = document.getElementById('ui-zoom-disp');
-  if (disp) disp.textContent = `${Math.round(parseFloat(savedZoom) * 100)}%`;
-}
-
-function resetUiZoom() {
-  updateUiZoom(1.0);
-  const slider = document.getElementById('ui-zoom-slider');
-  if (slider) slider.value = 1.0;
-}
-
-// --- FINANCIAL PHILOSOPHY, CAPITAL SHIELDING & SNIPER CONTROLS ---
 function saveFinancialSettings() {
-  const threshold = document.getElementById('large-order-threshold').value;
-  const salvageFloor = document.getElementById('salvage-floor-percent').value;
-  const autoSalvage = document.getElementById('autonomous-salvage-toggle').checked;
-  const slippage = document.getElementById('slippage-filter-toggle').checked;
-
   const autoSniper = document.getElementById('auto-sniper-toggle').checked;
   const totalFunds = parseFloat(document.getElementById('total-funds-input').value) || 0;
   const shieldedFunds = parseFloat(document.getElementById('shielded-funds-input').value) || 0;
   const maxSniperTrade = parseFloat(document.getElementById('sniper-max-trade-input').value) || 25.0;
-
-  localStorage.setItem('cosmic_large_order_threshold', threshold);
-  localStorage.setItem('cosmic_salvage_floor', salvageFloor);
-  localStorage.setItem('cosmic_autonomous_salvage', autoSalvage ? 'true' : 'false');
-  localStorage.setItem('cosmic_slippage_filter', slippage ? 'true' : 'false');
+  const salvageFloor = document.getElementById('salvage-floor-percent').value;
 
   localStorage.setItem('cosmic_auto_sniper', autoSniper ? 'true' : 'false');
   localStorage.setItem('cosmic_total_funds', totalFunds.toFixed(2));
   localStorage.setItem('cosmic_shielded_funds', shieldedFunds.toFixed(2));
   localStorage.setItem('cosmic_sniper_max_trade', maxSniperTrade.toFixed(2));
+  localStorage.setItem('cosmic_salvage_floor', salvageFloor);
 
   updateCapitalShieldDisplay();
-}
-
-function loadFinancialSettings() {
-  const threshold = localStorage.getItem('cosmic_large_order_threshold') || '25.00';
-  const salvageFloor = localStorage.getItem('cosmic_salvage_floor') || '15';
-  const autoSalvage = localStorage.getItem('cosmic_autonomous_salvage') !== 'false';
-  const slippage = localStorage.getItem('cosmic_slippage_filter') !== 'false';
-
-  const autoSniper = localStorage.getItem('cosmic_auto_sniper') !== 'false';
-  const totalFunds = localStorage.getItem('cosmic_total_funds') || '250.00';
-  const shieldedFunds = localStorage.getItem('cosmic_shielded_funds') || '100.00';
-  const maxSniperTrade = localStorage.getItem('cosmic_sniper_max_trade') || '25.00';
-
-  if (document.getElementById('large-order-threshold')) document.getElementById('large-order-threshold').value = threshold;
-  if (document.getElementById('salvage-floor-percent')) document.getElementById('salvage-floor-percent').value = salvageFloor;
-  if (document.getElementById('autonomous-salvage-toggle')) document.getElementById('autonomous-salvage-toggle').checked = autoSalvage;
-  if (document.getElementById('slippage-filter-toggle')) document.getElementById('slippage-filter-toggle').checked = slippage;
-
-  if (document.getElementById('auto-sniper-toggle')) document.getElementById('auto-sniper-toggle').checked = autoSniper;
-  if (document.getElementById('total-funds-input')) document.getElementById('total-funds-input').value = totalFunds;
-  if (document.getElementById('shielded-funds-input')) document.getElementById('shielded-funds-input').value = shieldedFunds;
-  if (document.getElementById('sniper-max-trade-input')) document.getElementById('sniper-max-trade-input').value = maxSniperTrade;
-
-  updateCapitalShieldDisplay();
+  syncConfigToEdge();
 }
 
 function updateCapitalShieldDisplay() {
   const total = parseFloat(localStorage.getItem('cosmic_total_funds') || '250.00');
   const shielded = parseFloat(localStorage.getItem('cosmic_shielded_funds') || '100.00');
   const deployable = Math.max(0, total - shielded);
-  const isSniperActive = localStorage.getItem('cosmic_auto_sniper') !== 'false';
 
   const dispTotal = document.getElementById('disp-total-funds');
   const dispShield = document.getElementById('disp-shielded-funds');
   const dispDeploy = document.getElementById('disp-deployable-funds');
-  const tag = document.getElementById('sniper-status-tag');
 
   if (dispTotal) dispTotal.textContent = `$${total.toFixed(2)}`;
   if (dispShield) dispShield.textContent = `$${shielded.toFixed(2)}`;
   if (dispDeploy) dispDeploy.textContent = `$${deployable.toFixed(2)}`;
-
-  if (tag) {
-    if (isSniperActive && deployable > 0) {
-      tag.textContent = "ARMED (HPT ≥ 85)";
-      tag.style.background = "rgba(0, 245, 160, 0.1)";
-      tag.style.color = "var(--accent-green)";
-    } else if (isSniperActive && deployable <= 0) {
-      tag.textContent = "STANDBY (SHIELD EXHAUSTION)";
-      tag.style.background = "rgba(255, 230, 0, 0.1)";
-      tag.style.color = "var(--accent-gold)";
-    } else {
-      tag.textContent = "OFFLINE";
-      tag.style.background = "#151a2d";
-      tag.style.color = "var(--text-muted)";
-    }
-  }
-}
-
-function getDeployableCapital() {
-  const total = parseFloat(localStorage.getItem('cosmic_total_funds') || '250.00');
-  const shielded = parseFloat(localStorage.getItem('cosmic_shielded_funds') || '100.00');
-  return Math.max(0, total - shielded);
-}
-
-function getLargeOrderThreshold() {
-  return parseFloat(localStorage.getItem('cosmic_large_order_threshold') || '25.00');
-}
-
-function isSlippageFilterEnabled() {
-  return localStorage.getItem('cosmic_slippage_filter') !== 'false';
-}
-
-function isAutonomousSalvageEnabled() {
-  return localStorage.getItem('cosmic_autonomous_salvage') !== 'false';
-}
-
-function isAutoSniperEnabled() {
-  return localStorage.getItem('cosmic_auto_sniper') !== 'false';
-}
-
-// --- DYNAMIC 2026 QUEUE POOLS ---
-const nowMs = Date.now();
-
-let SPORTS_PICKS_POOL = [
-  { match: "Nationals @ Tigers — First 5 Under 4.5 Runs", book: "POLY.US", bookBg: "#1b1330", bookColor: "var(--accent-pink)", pick: "YES Under 4.5 F5 @ $0.78 (78% Implied)", roi: "+28.2% ROI", roiNum: 28.2, time: "Tomorrow 1:10 PM ET", expiry: nowMs + (15 * 3600 * 1000) },
-  { match: "Blue Jays @ Orioles — Baltimore Orioles Moneyline", book: "KALSHI", bookBg: "#12281a", bookColor: "var(--accent-green)", pick: "YES Orioles ML @ $0.82 (82% Implied)", roi: "+22.0% ROI", roiNum: 22.0, time: "Tomorrow 1:35 PM ET", expiry: nowMs + (15.5 * 3600 * 1000) },
-  { match: "NFL TNF: Falcons @ Packers — Over 44.5 Total Points", book: "POLY.US", bookBg: "#1b1330", bookColor: "var(--accent-pink)", pick: "YES Over 44.5 @ $0.84 (84% Implied)", roi: "+19.0% ROI", roiNum: 19.0, time: "Thursday 8:15 PM ET", expiry: nowMs + (46 * 3600 * 1000) }
-];
-
-let ESPORTS_PICKS_POOL = [
-  { match: "CS2: G2 Ares vs INOX Division (BO3)", book: "POLY.US", bookBg: "#1b1330", bookColor: "var(--accent-pink)", pick: "YES G2 Ares Winner @ $0.53 (53% Implied)", roi: "+88.7% ROI", roiNum: 88.7, time: "Tomorrow 4:00 AM ET", expiry: nowMs + (6 * 3600 * 1000) }
-];
-
-let sportsPageIndex = 0;
-let esportsPageIndex = 0;
-let sportsTimer = null;
-let esportsTimer = null;
-
-function renderCarouselPage(containerId, pool, pageIndex) {
-  const container = document.getElementById(containerId);
-  if (!container) return;
-  const start = pageIndex * 3;
-  const pageItems = pool.slice(start, start + 3);
-
-  container.innerHTML = pageItems.map(item => `
-    <div class="market-card sortable-card" data-roi="${item.roiNum}" data-expiry="${item.expiry}">
-      <div class="market-card-head">
-        <span>${item.match}</span>
-        <span class="tag" style="background: ${item.bookBg}; color: ${item.bookColor};">${item.book}</span>
-      </div>
-      <div class="market-card-meta">
-        <span>Pick: ${item.pick} • ${item.time}</span>
-        <span style="color: var(--accent-green); font-weight: 800;">${item.roi}</span>
-      </div>
-    </div>
-  `).join('');
-}
-
-function updateDots(dotsContainerId, activeIndex) {
-  const dots = document.querySelectorAll(`#${dotsContainerId} .dot`);
-  dots.forEach((dot, idx) => {
-    dot.classList.toggle('active', idx === activeIndex);
-  });
-}
-
-function cycleSportsCarousel() {
-  sportsPageIndex = (sportsPageIndex + 1) % 3;
-  renderCarouselPage('sports-picks-container', SPORTS_PICKS_POOL, sportsPageIndex);
-  updateDots('sports-carousel-dots', sportsPageIndex);
-}
-
-function cycleEsportsCarousel() {
-  esportsPageIndex = (esportsPageIndex + 1) % 3;
-  renderCarouselPage('esports-picks-container', ESPORTS_PICKS_POOL, esportsPageIndex);
-  updateDots('esports-carousel-dots', esportsPageIndex);
-}
-
-function startCarouselRotators() {
-  renderCarouselPage('sports-picks-container', SPORTS_PICKS_POOL, 0);
-  renderCarouselPage('esports-picks-container', ESPORTS_PICKS_POOL, 0);
-
-  if (sportsTimer) clearInterval(sportsTimer);
-  if (esportsTimer) clearInterval(esportsTimer);
-
-  sportsTimer = setInterval(cycleSportsCarousel, 6000);
-  esportsTimer = setInterval(cycleEsportsCarousel, 6000);
-}
-
-function refreshScreenedSlatePool() {
-  const currentNow = Date.now();
-  SPORTS_PICKS_POOL = SPORTS_PICKS_POOL.filter(m => m.expiry > currentNow);
-  ESPORTS_PICKS_POOL = ESPORTS_PICKS_POOL.filter(m => m.expiry > currentNow);
-  sportsPageIndex = 0;
-  esportsPageIndex = 0;
-  renderCarouselPage('sports-picks-container', SPORTS_PICKS_POOL, 0);
-  renderCarouselPage('esports-picks-container', ESPORTS_PICKS_POOL, 0);
-  updateDots('sports-carousel-dots', 0);
-  updateDots('esports-carousel-dots', 0);
-}
-
-// --- CONTEXTUAL DESK SWITCHER ---
-function switchDeskFilter(desk, button) {
-  document.querySelectorAll('.desk-btn').forEach(b => b.classList.remove('active'));
-  if (button) button.classList.add('active');
-
-  switchNavTab('view-picks', document.querySelectorAll('.bottom-nav .nav-item')[0], false);
-
-  const sportsSec = document.getElementById('section-sports');
-  const esportsSec = document.getElementById('section-esports');
-  const polySec = document.getElementById('section-poly-feed');
-  const kalshiSec = document.getElementById('section-kalshi-feed');
-  const fleetSec = document.getElementById('section-fleet-feed');
-  const geminiSec = document.getElementById('section-gemini-hub');
-
-  sportsSec.style.display = 'none';
-  esportsSec.style.display = 'none';
-  polySec.style.display = 'none';
-  kalshiSec.style.display = 'none';
-  fleetSec.style.display = 'none';
-  if (geminiSec) geminiSec.style.display = 'none';
-
-  if (desk === 'all') {
-    sportsSec.style.display = 'block';
-    esportsSec.style.display = 'block';
-  } else if (desk === 'poly') {
-    polySec.style.display = 'block';
-    fetchLivePoly();
-  } else if (desk === 'kalshi') {
-    kalshiSec.style.display = 'block';
-    renderKalshiDesk();
-  } else if (desk === 'fleet') {
-    fleetSec.style.display = 'block';
-    renderFleetTickets();
-  } else if (desk === 'gemini') {
-    if (geminiSec) geminiSec.style.display = 'block';
-  }
-}
-
-// --- UNIVERSAL ACTIVE TAB DOM SORTER ---
-function switchSortOrder(order, button) {
-  document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
-  button.classList.add('active');
-
-  const activeView = document.querySelector('.tab-view.active');
-  if (!activeView) return;
-
-  if (activeView.id === 'view-picks' && document.getElementById('section-sports').style.display !== 'none') {
-    clearInterval(sportsTimer);
-    clearInterval(esportsTimer);
-    const sortPool = (pool) => {
-      return pool.sort((a, b) => {
-        if (order === 'roi-high') return b.roiNum - a.roiNum;
-        if (order === 'roi-low') return a.roiNum - b.roiNum;
-        if (order === 'ending' || order === 'today') return a.expiry - b.expiry;
-        return 0;
-      });
-    };
-    sortPool(SPORTS_PICKS_POOL);
-    sortPool(ESPORTS_PICKS_POOL);
-    sportsPageIndex = 0;
-    esportsPageIndex = 0;
-    renderCarouselPage('sports-picks-container', SPORTS_PICKS_POOL, 0);
-    renderCarouselPage('esports-picks-container', ESPORTS_PICKS_POOL, 0);
-    updateDots('sports-carousel-dots', 0);
-    updateDots('esports-carousel-dots', 0);
-  }
-
-  const containers = activeView.querySelectorAll('#macro-picks-container, #spreads-container, #poly-live-feed, #kalshi-live-feed');
-  containers.forEach(container => {
-    const cards = Array.from(container.querySelectorAll('.sortable-card'));
-    cards.sort((a, b) => {
-      const roiA = parseFloat(a.dataset.roi) || 0;
-      const roiB = parseFloat(b.dataset.roi) || 0;
-      const expA = parseInt(a.dataset.expiry, 10) || 0;
-      const expB = parseInt(b.dataset.expiry, 10) || 0;
-
-      if (order === 'roi-high') return roiB - roiA;
-      if (order === 'roi-low') return roiA - roiB;
-      if (order === 'ending' || order === 'today') return expA - expB;
-      return 0;
-    });
-    cards.forEach(card => container.appendChild(card));
-  });
-}
-
-// --- GLOBAL BOTTOM NAVIGATION ---
-function switchNavTab(viewId, element, updateTopBar = true) {
-  document.querySelectorAll('.tab-view').forEach(v => v.classList.remove('active'));
-  document.querySelectorAll('.bottom-nav .nav-item').forEach(n => n.classList.remove('active'));
-  const targetView = document.getElementById(viewId);
-  if (targetView) targetView.classList.add('active');
-  if (element) element.classList.add('active');
-
-  const topDeskNav = document.getElementById('top-desk-nav');
-  const topSortNav = document.getElementById('top-sort-nav');
-
-  if (viewId === 'view-picks') {
-    if (topDeskNav) topDeskNav.style.display = 'flex';
-    if (topSortNav) topSortNav.style.display = 'flex';
-  } else if (viewId === 'view-macro' || viewId === 'view-spreads') {
-    if (topDeskNav) topDeskNav.style.display = 'none';
-    if (topSortNav) topSortNav.style.display = 'flex';
-  } else if (viewId === 'view-perps') {
-    if (topDeskNav) topDeskNav.style.display = 'none';
-    if (topSortNav) topSortNav.style.display = 'none';
-    pollLive15MinMarkets();
-  } else if (viewId === 'view-vault') {
-    if (topDeskNav) topDeskNav.style.display = 'none';
-    if (topSortNav) topSortNav.style.display = 'none';
-    calculateVaultEarnings();
-  } else if (viewId === 'view-settings') {
-    if (topDeskNav) topDeskNav.style.display = 'none';
-    if (topSortNav) topSortNav.style.display = 'none';
-  }
-}
-
-function switchPerpSubCategory(sub) {
-  document.getElementById('perp-sub-crypto').style.display = sub === 'crypto' ? 'flex' : 'none';
-  document.getElementById('perp-sub-commodities').style.display = sub === 'commodities' ? 'flex' : 'none';
-  document.getElementById('perp-sub-15m').style.display = sub === '15min' ? 'flex' : 'none';
-
-  document.getElementById('btn-perp-crypto').classList.toggle('active', sub === 'crypto');
-  document.getElementById('btn-perp-commodities').classList.toggle('active', sub === 'commodities');
-  document.getElementById('btn-perp-15m').classList.toggle('active', sub === '15min');
-}
-
-// --- SYNCHRONIZED 15-MINUTE CANDLE TIMER ---
-function updateSynchronized15MinTimers() {
-  const now = new Date();
-  const minutes = now.getMinutes();
-  const seconds = now.getSeconds();
-
-  const nextQuarterMinute = (Math.floor(minutes / 15) + 1) * 15;
-  const totalSecondsRemaining = ((nextQuarterMinute - minutes) * 60) - seconds;
-
-  const remMin = Math.floor(totalSecondsRemaining / 60);
-  const remSec = totalSecondsRemaining % 60;
-  const formattedTime = `${String(remMin).padStart(2, '0')}:${String(remSec).padStart(2, '0')}`;
-
-  document.querySelectorAll('.live-15m-timer').forEach(el => {
-    el.textContent = `● ${formattedTime}`;
-  });
-}
-
-// --- ORDER ESTIMATION & CONFIRMATION ---
-let activeOrderContext = null;
-
-function openOrderModal(assetKey, side) {
-  const currentData = live15MinState[assetKey] || { target: 0, spot: 0, aboveProb: 50, belowProb: 50 };
-  const currentProb = side === 'Above' ? currentData.aboveProb : currentData.belowProb;
-  const targetPrice = currentData.target;
-
-  activeOrderContext = { assetKey, side, currentProb, targetPrice };
-  document.getElementById('order-modal-title').textContent = `Kalshi ${assetKey} 15-Min Order`;
-  document.getElementById('order-target-display').textContent = `Target Strike: $${targetPrice > 0 ? targetPrice : 'Connecting...'}`;
-  const sideEl = document.getElementById('order-side-display');
-  sideEl.innerHTML = `Action: <strong style="color: ${side === 'Above' ? 'var(--accent-green)' : 'var(--accent-red)'};">${side.toUpperCase()} (${side === 'Above' ? 'YES' : 'NO'})</strong>`;
-  
-  document.getElementById('order-limit-price').value = currentProb > 0 ? currentProb : 50;
-  document.getElementById('order-qty').value = 5;
-  document.getElementById('large-order-warning').style.display = 'none';
-  document.getElementById('large-order-confirm-input').value = '';
-  calculateOrderEstimate();
-
-  const modal = document.getElementById('order-modal');
-  if (modal) modal.style.display = 'flex';
-}
-
-function closeOrderModal() {
-  const modal = document.getElementById('order-modal');
-  if (modal) modal.style.display = 'none';
-  activeOrderContext = null;
-}
-
-function calculateOrderEstimate() {
-  const qty = parseInt(document.getElementById('order-qty').value, 10) || 1;
-  const priceCents = parseInt(document.getElementById('order-limit-price').value, 10) || 50;
-  const priceDollars = priceCents / 100;
-
-  const maxCost = qty * priceDollars;
-  const estFee = Math.max(0.01, 0.0175 * qty * priceDollars * (1 - priceDollars));
-  const maxPayout = qty * 1.0;
-  const netProfit = (maxPayout - maxCost) - estFee;
-  const roiPct = maxCost > 0 ? (netProfit / maxCost) * 100 : 0;
-
-  document.getElementById('order-est-cost').textContent = `$${maxCost.toFixed(2)}`;
-  document.getElementById('order-est-fee').textContent = `$${estFee.toFixed(2)}`;
-  document.getElementById('order-est-profit').textContent = `+$${netProfit.toFixed(2)} (+${roiPct.toFixed(1)}%)`;
-
-  const largeThreshold = getLargeOrderThreshold();
-  const warningBox = document.getElementById('large-order-warning');
-  if (maxCost >= largeThreshold) {
-    warningBox.style.display = 'block';
-  } else {
-    warningBox.style.display = 'none';
-  }
-}
-
-function submitKalshiOrder() {
-  const kKey = localStorage.getItem('kalshi_key_id');
-  if (!kKey) {
-    alert("BYOK Vault Standby: Configure your Kalshi Key ID and RSA PEM in Settings before placing live orders.");
-    switchNavTab('view-settings', null);
-    closeOrderModal();
-    return;
-  }
-
-  const qty = parseInt(document.getElementById('order-qty').value, 10) || 1;
-  const price = parseInt(document.getElementById('order-limit-price').value, 10) || 50;
-  const maxCost = qty * (price / 100);
-
-  if (isSlippageFilterEnabled() && (price > 95 || price < 5)) {
-    alert("Protocol Safety Warning: Limit price violates anti-taker fee friction rule (>95¢ or <5¢). Please place a resting bid closer to the median.");
-    return;
-  }
-
-  const largeThreshold = getLargeOrderThreshold();
-  if (maxCost >= largeThreshold) {
-    const confirmationText = document.getElementById('large-order-confirm-input').value.trim();
-    if (confirmationText !== "CONFIRM") {
-      alert(`Safety Check: This order is $${maxCost.toFixed(2)} (exceeds your $${largeThreshold.toFixed(2)} threshold). You must type CONFIRM to submit.`);
-      return;
-    }
-  }
-
-  alert(`Order Authorized & Routed to Relay!\nPlaced ${qty} contracts on ${activeOrderContext.assetKey} [${activeOrderContext.side}] limit at ${price}¢.`);
-  closeOrderModal();
-}
-
-// --- AUTONOMOUS SNIPER EXECUTION ENGINE (HPT >= 85) ---
-function evaluateAutoSniperOpportunity(market) {
-  if (!isAutoSniperEnabled()) return;
-
-  const hptScore = market.hptScore || market.roiNum || 0;
-  if (hptScore < 85) return;
-
-  const deployableCapital = getDeployableCapital();
-  if (deployableCapital <= 1.00) return;
-
-  const maxTradeAllocation = parseFloat(localStorage.getItem('cosmic_sniper_max_trade') || '25.00');
-  const allowedStake = Math.min(deployableCapital, maxTradeAllocation, getLargeOrderThreshold());
-  if (allowedStake < 1.00) return;
-
-  console.warn(`[AUTO-SNIPER] Qualified HPT ${hptScore} opportunity detected on ${market.match || market.title}.`);
-  console.warn(`[AUTO-SNIPER] Sizing calculated: $${allowedStake.toFixed(2)} from deployable capital reserve.`);
-
-  if (market.book === "Kalshi" || market.book === "Polymarket") {
-    console.warn(`[AUTO-SNIPER] Routing post-only resting bid inside spread at best execution tick.`);
-  } else {
-    playAlertChime();
-  }
-}
-
-// --- LIVE 15-MIN DATA STREAMING & GEMINI GLOW ---
-const live15MinState = {
-  GOLD: { ticker: "KXGOLD15M", title: "Gold 15m Close", target: 0, spot: 0, aboveProb: 0, belowProb: 0, vol: "Syncing..." },
-  SILVER: { ticker: "KXSLV15M", title: "Silver 15m Bracket", target: 0, spot: 0, aboveProb: 0, belowProb: 0, vol: "Syncing..." }
-};
-
-async function pollLive15MinMarkets() {
-  try {
-    const res = await fetch('/api/kalshi/15min/live');
-    if (!res.ok) return;
-    const data = await res.json();
-    if (data && data.markets) {
-      data.markets.forEach(evt => {
-        const m = evt.event?.markets?.[0] || evt.markets?.[0];
-        if (!m) return;
-        const ticker = evt.event?.ticker || m.ticker || "";
-        let assetKey = null;
-        if (ticker.includes("GOLD")) assetKey = "GOLD";
-        else if (ticker.includes("SLV")) assetKey = "SILVER";
-
-        if (assetKey && live15MinState[assetKey]) {
-          const target = parseFloat(m.floor_strike || m.strike_price || m.target_price) || 0;
-          const spot = parseFloat(m.last_price_dollars || m.current_value || m.index_price) || 0;
-          const aboveProb = Math.round((m.yes_bid || m.last_price || 50));
-          const belowProb = 100 - aboveProb;
-
-          live15MinState[assetKey].target = target;
-          live15MinState[assetKey].spot = spot;
-          live15MinState[assetKey].aboveProb = aboveProb;
-          live15MinState[assetKey].belowProb = belowProb;
-          if (m.volume) live15MinState[assetKey].vol = `$${Math.round(m.volume).toLocaleString()} vol`;
-        }
-      });
-      renderLive15MinUI();
-    }
-  } catch (err) {
-    renderLive15MinUI();
-  }
-}
-
-function renderLive15MinUI() {
-  const updateCard = (key, targetId, spotId, deltaId, aboveId, belowId, volId) => {
-    const d = live15MinState[key];
-    if (!d || d.target === 0) return;
-    const delta = d.spot - d.target;
-    document.getElementById(targetId).textContent = `Target $${d.target.toFixed(2)}`;
-    document.getElementById(spotId).textContent = `Current $${d.spot.toFixed(2)}`;
-    const deltaEl = document.getElementById(deltaId);
-    deltaEl.textContent = `${delta >= 0 ? '+' : ''}$${delta.toFixed(2)} ${delta >= 0 ? 'above' : 'below'} target`;
-    deltaEl.className = `delta-indicator ${delta >= 0 ? 'delta-above' : 'delta-below'}`;
-    document.getElementById(aboveId).textContent = `${d.aboveProb}%`;
-    document.getElementById(belowId).textContent = `${d.belowProb}%`;
-    document.getElementById(volId).textContent = d.vol;
-  };
-
-  updateCard('GOLD', 'val-15m-gold-target', 'val-15m-gold-spot', 'val-15m-gold-delta', 'prob-15m-gold-above', 'prob-15m-gold-below', 'vol-15m-gold');
-  updateCard('SILVER', 'val-15m-silver-target', 'val-15m-silver-spot', 'val-15m-silver-delta', 'prob-15m-silver-above', 'prob-15m-silver-below', 'vol-15m-silver');
-}
-
-function triggerGeminiAgent(assetKey) {
-  const item = live15MinState[assetKey];
-  if (!item || item.target === 0) {
-    alert("Streaming market data... Please retry in a moment.");
-    return;
-  }
-  const boxId = assetKey === 'GOLD' ? 'ai-box-gold' : 'ai-box-silver';
-  runGeminiCopilot(assetKey, item.ticker, item.title, item.target, item.spot, boxId);
-}
-
-async function runGeminiCopilot(assetKey, ticker, title, targetPrice, currentPrice, outputBoxId) {
-  const box = document.getElementById(outputBoxId);
-  if (!box) return;
-  box.style.display = 'block';
-  box.innerHTML = '<span style="color: var(--accent-cyan); font-weight: bold;">⚡ Querying Gemini Quant Copilot...</span>';
-
-  const geminiKey = localStorage.getItem('gemini_api_key') || '';
-  const now = new Date();
-  const minLeft = 15 - (now.getMinutes() % 15);
-
-  const applyGlowAndFade = (recommendedSide) => {
-    const pfx = assetKey.toLowerCase();
-    const btnAbove = document.getElementById(`btn-${pfx}-above`);
-    const btnBelow = document.getElementById(`btn-${pfx}-below`);
-    if (!btnAbove || !btnBelow) return;
-
-    btnAbove.classList.remove('btn-recommend-glow-above', 'btn-faded');
-    btnBelow.classList.remove('btn-recommend-glow-below', 'btn-faded');
-
-    if (recommendedSide === "ABOVE") {
-      btnAbove.classList.add('btn-recommend-glow-above');
-      btnBelow.classList.add('btn-faded');
-    } else if (recommendedSide === "BELOW") {
-      btnBelow.classList.add('btn-recommend-glow-below');
-      btnAbove.classList.add('btn-faded');
-    }
-  };
-
-  try {
-    const res = await fetch('/api/agent/gemini', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Gemini-Key': geminiKey
-      },
-      body: JSON.stringify({ ticker, title, targetPrice, currentPrice, minutesLeft: minLeft })
-    });
-
-    const data = await res.json();
-    if (data.error) {
-      box.innerHTML = `<span style="color: var(--accent-red); font-weight: bold;">${data.error}</span>`;
-    } else {
-      box.innerHTML = `<div style="color: #fff; white-space: pre-wrap; font-size: 11px;">${data.analysis}</div>`;
-      if (/BUY ABOVE/i.test(data.analysis)) applyGlowAndFade("ABOVE");
-      else if (/BUY BELOW/i.test(data.analysis)) applyGlowAndFade("BELOW");
-    }
-  } catch (err) {
-    const delta = currentPrice - targetPrice;
-    const side = delta >= 0 ? "BUY ABOVE" : "BUY BELOW";
-    applyGlowAndFade(delta >= 0 ? "ABOVE" : "BELOW");
-
-    box.innerHTML = `
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-        <span style="color: ${delta >= 0 ? 'var(--accent-green)' : 'var(--accent-red)'}; font-weight: 900; font-size: 13px;">COPILOT CALL: ${side}</span>
-        <span style="font-size: 10px; color: var(--accent-gold); font-weight: 800;">${Math.abs(delta) > 0.5 ? 'HIGH CONVICTION' : 'TIGHT SPREAD'}</span>
-      </div>
-      <div style="color: var(--text-muted); font-size: 11px; line-height: 1.4;">
-        • <strong>Candle Status:</strong> ${minLeft}m to settlement bracket.<br>
-        • <strong>Delta to Target:</strong> ${delta >= 0 ? '+' : ''}${delta.toFixed(3)} ($${Math.abs(delta).toFixed(3)} ${delta >= 0 ? 'above' : 'below'} strike).<br>
-        • <strong>Execution Guidance:</strong> Glow applied to recommended side. Place resting limit bids inside the spread.
-      </div>
-    `;
-  }
-}
-
-// --- DYNAMIC POLYMARKET FEED ---
-const POLYMARKET_CATALOG = [
-  { title: "Fed Interest Rate Cut in 2026?", yesPrice: 0.84, roi: 19.0, hptScore: 78, vol: "$3.2M", exp: nowMs + 86400000 * 30 },
-  { title: "US Presidential Approval Rating ≥ 50%", yesPrice: 0.46, roi: 117.4, hptScore: 89, vol: "$1.1M", exp: nowMs + 86400000 * 20 }
-];
-
-async function fetchLivePoly() {
-  const container = document.getElementById('poly-live-feed');
-  if (!container) return;
-
-  try {
-    const res = await fetch('/api/polymarket/markets');
-    if (res.ok) {
-      const data = await res.json();
-      if (Array.isArray(data) && data.length > 0) {
-        container.innerHTML = data.slice(0, 10).map(ev => {
-          const yesP = ev.tokens?.[0]?.price || 0.50;
-          const roiVal = yesP > 0 ? (((1.0 - yesP) / yesP) * 100).toFixed(1) : "0.0";
-          return `
-            <div class="market-card sortable-card" data-roi="${roiVal}" data-expiry="${Date.now() + 86400000}">
-              <div class="market-card-head">
-                <span>${ev.title}</span>
-                <span class="tag" style="background: #1b1330; color: var(--accent-pink);">POLY.US</span>
-              </div>
-              <div class="market-card-meta">
-                <span>Vol: $${Math.round(ev.volume || 0).toLocaleString()} • Pick: YES @ $${yesP.toFixed(2)}</span>
-                <span style="color: var(--accent-green); font-weight: 800;">+${roiVal}% ROI</span>
-              </div>
-            </div>
-          `;
-        }).join('');
-        return;
-      }
-    }
-  } catch (err) {}
-
-  container.innerHTML = POLYMARKET_CATALOG.map(ev => `
-    <div class="market-card sortable-card" data-roi="${ev.roi}" data-expiry="${ev.exp}">
-      <div class="market-card-head">
-        <span>${ev.title}</span>
-        <span class="tag" style="background: #1b1330; color: var(--accent-pink);">POLY.US</span>
-      </div>
-      <div class="market-card-meta">
-        <span>Vol: ${ev.vol} • Pick: YES @ $${ev.yesPrice.toFixed(2)}</span>
-        <span style="color: var(--accent-green); font-weight: 800;">+${ev.roi}% ROI</span>
-      </div>
-    </div>
-  `).join('');
-}
-
-// --- KALSHI DOMESTIC FEED ---
-const KALSHI_DOMESTIC_CATALOG = [
-  { title: "Fed Funds Target Rate Cut ≥ 25 bps", vol: "$1.42M", pick: "YES @ $0.84", roi: 19.0, exp: nowMs + 86400000 * 30 }
-];
-
-function renderKalshiDesk() {
-  const container = document.getElementById('kalshi-live-feed');
-  if (!container) return;
-  container.innerHTML = KALSHI_DOMESTIC_CATALOG.map(k => `
-    <div class="market-card sortable-card" data-roi="${k.roi}" data-expiry="${k.exp}">
-      <div class="market-card-head">
-        <span>${k.title}</span>
-        <span class="tag" style="background: #12281a; color: var(--accent-green);">KALSHI</span>
-      </div>
-      <div class="market-card-meta">
-        <span>Volume: ${k.vol} • ${k.pick}</span>
-        <span style="color: var(--accent-green); font-weight: 800;">+${k.roi}% ROI</span>
-      </div>
-    </div>
-  `).join('');
-}
-
-// --- VAULT CUMULATIVE EARNINGS ---
-function calculateVaultEarnings() {
-  const tickets = JSON.parse(localStorage.getItem('cosmic_fleet_tickets') || '[]');
-  let totalPnL = 0, settledCount = 0, wins = 0;
-  const appStats = {
-    Polymarket: { pnl: 0, count: 0, wins: 0 },
-    Kalshi: { pnl: 0, count: 0, wins: 0 },
-    Sportsbook: { pnl: 0, count: 0, wins: 0 }
-  };
-
-  tickets.forEach(t => {
-    const bookKey = t.book.includes("Poly") ? "Polymarket" : t.book.includes("Kalshi") ? "Kalshi" : "Sportsbook";
-    if (t.settled) {
-      settledCount++;
-      appStats[bookKey].count++;
-      if (t.won) {
-        wins++;
-        appStats[bookKey].wins++;
-        const netWin = (t.payout || 0) - (t.stake || 0);
-        totalPnL += netWin;
-        appStats[bookKey].pnl += netWin;
-      } else {
-        totalPnL -= (t.stake || 0);
-        appStats[bookKey].pnl -= (t.stake || 0);
-      }
-    }
-  });
-
-  const pnlEl = document.getElementById('vault-total-pnl');
-  if (pnlEl) {
-    pnlEl.textContent = `${totalPnL >= 0 ? '+' : ''}$${totalPnL.toFixed(2)}`;
-    pnlEl.style.color = totalPnL >= 0 ? "var(--accent-green)" : "var(--accent-red)";
-  }
-  const winRateEl = document.getElementById('vault-win-rate');
-  if (winRateEl) winRateEl.textContent = settledCount > 0 ? `${Math.round((wins / settledCount) * 100)}%` : '0%';
-  const settledEl = document.getElementById('vault-settled-count');
-  if (settledEl) settledEl.textContent = settledCount;
-
-  const updateAppRow = (pnlId, statsId, statObj) => {
-    const elPnl = document.getElementById(pnlId);
-    const elStats = document.getElementById(statsId);
-    if (elPnl) {
-      elPnl.textContent = `${statObj.pnl >= 0 ? '+' : ''}$${statObj.pnl.toFixed(2)}`;
-      elPnl.style.color = statObj.pnl >= 0 ? "var(--accent-green)" : "var(--accent-red)";
-    }
-    if (elStats) {
-      const wr = statObj.count > 0 ? Math.round((statObj.wins / statObj.count) * 100) : 0;
-      elStats.textContent = `${statObj.count} Slips • ${wr}% Win`;
-    }
-  };
-
-  updateAppRow('pnl-poly', 'stats-poly', appStats.Polymarket);
-  updateAppRow('pnl-kalshi', 'stats-kalshi', appStats.Kalshi);
-  updateAppRow('pnl-books', 'stats-books', appStats.Sportsbook);
-}
-
-function refreshCurrentTab() {
-  const activeTab = document.querySelector('.tab-view.active');
-  if (!activeTab) return;
-  if (activeTab.id === 'view-picks') {
-    fetchLivePoly();
-    renderKalshiDesk();
-  }
-  if (activeTab.id === 'view-perps') pollLive15MinMarkets();
-  if (activeTab.id === 'view-vault') calculateVaultEarnings();
-}
-
-function promptAdPasskey() {
-  const passkey = prompt("Enter Pro Passkey to Remove Ads:");
-  if (passkey) {
-    localStorage.setItem('cosmic_ad_free', 'true');
-    const banner = document.getElementById('sponsor-banner');
-    if (banner) banner.style.display = 'none';
-    alert("Cosmic Pro Active: Ads Removed!");
-  }
-}
-
-function checkAdState() {
-  if (localStorage.getItem('cosmic_ad_free') === 'true') {
-    const banner = document.getElementById('sponsor-banner');
-    if (banner) banner.style.display = 'none';
-  }
-}
-
-// --- SETUP MODAL & DIRECT SHORTCUT CREATOR LAUNCHER ---
-function openSetupModal() {
-  const uuid = getOrCreateClientUuid();
-  const endpointEl = document.getElementById('modal-endpoint-copy');
-  if (endpointEl) {
-    endpointEl.textContent = `https://cosmic-parlays.cosmictrollgaming.workers.dev/api/fleet/ingest/${uuid}`;
-  }
-  const modal = document.getElementById('setup-modal');
-  if (modal) modal.style.display = 'flex';
-}
-
-function closeSetupModal() {
-  const modal = document.getElementById('setup-modal');
-  if (modal) modal.style.display = 'none';
-}
-
-function triggerOneTapShortcutInstall() {
-  const uuid = getOrCreateClientUuid();
-  const ingestUrl = `https://cosmic-parlays.cosmictrollgaming.workers.dev/api/fleet/ingest/${uuid}`;
-
-  navigator.clipboard.writeText(ingestUrl).then(() => {
-    alert("Private endpoint copied to clipboard!\n\nOpening Shortcuts directly into the New Shortcut editor. Paste this URL into the 'Get Contents of URL' action.");
-    window.location.href = "shortcuts://create-shortcut";
-  }).catch(() => {
-    window.location.href = "shortcuts://create-shortcut";
-  });
-}
-
-function copyEndpointUrl() {
-  const uuid = getOrCreateClientUuid();
-  const url = `https://cosmic-parlays.cosmictrollgaming.workers.dev/api/fleet/ingest/${uuid}`;
-  navigator.clipboard.writeText(url).then(() => {
-    alert("Private endpoint URL copied to clipboard!");
-  }).catch(() => {
-    prompt("Copy your private endpoint URL:", url);
-  });
-}
-
-function saveAlertWebhook() {
-  const url = document.getElementById('alert-webhook-input').value.trim();
-  const uuid = getOrCreateClientUuid();
-  if (!url) return;
-  localStorage.setItem('cosmic_alert_webhook', url);
-
-  fetch(`/api/alerts/webhook/${uuid}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ webhookUrl: url })
-  }).then(() => alert("Webhook alerts configured for background notifications!"));
-}
-
-function toggleMask(fieldId) {
-  const el = document.getElementById(fieldId);
-  if (el) el.type = el.type === 'password' ? 'text' : 'password';
 }
 
 function saveVaultCredentials() {
   const kKey = document.getElementById('kalshi-key-id').value.trim();
   const kPriv = document.getElementById('kalshi-private-key').value.trim();
-  const pKey = document.getElementById('poly-key-id').value.trim();
-  const pPriv = document.getElementById('poly-private-key').value.trim();
   const gKey = document.getElementById('gemini-api-key').value.trim();
 
   if (kKey) localStorage.setItem('kalshi_key_id', kKey);
   if (kPriv) localStorage.setItem('kalshi_private_key', kPriv);
-  if (pKey) localStorage.setItem('poly_key_id', pKey);
-  if (pPriv) localStorage.setItem('poly_private_key', pPriv);
   if (gKey) localStorage.setItem('gemini_api_key', gKey);
 
-  alert("Credentials securely locked into local browser storage.");
-  updateVaultStatusUI();
+  alert("Credentials saved locally and synced to Edge Sentinel.");
+  syncConfigToEdge();
 }
 
-function clearLocalStorageVault() {
-  if (confirm("Clear all keys, slips, and session data from this device?")) {
-    localStorage.clear();
-    document.getElementById('kalshi-key-id').value = '';
-    document.getElementById('kalshi-private-key').value = '';
-    document.getElementById('poly-key-id').value = '';
-    document.getElementById('poly-private-key').value = '';
-    document.getElementById('gemini-api-key').value = '';
-    renderFleetTickets();
-    updateVaultStatusUI();
-    alert("Local storage wiped completely.");
-  }
-}
-
-function updateVaultStatusUI() {
-  const kKey = localStorage.getItem('kalshi_key_id');
-  const pKey = localStorage.getItem('poly_key_id');
-
-  const statusBox = document.getElementById('vault-status-box');
-  const statusTitle = document.getElementById('vault-status-title');
-  const statusDesc = document.getElementById('vault-status-desc');
-  const statusTag = document.getElementById('vault-status-tag');
-
-  const kalshiLinked = !!kKey;
-  const polyLinked = !!pKey;
-
-  if (kalshiLinked || polyLinked) {
-    statusTitle.textContent = "BYOK Private Vault Connected";
-    statusDesc.textContent = `Kalshi: ${kalshiLinked ? 'Linked' : 'Disconnected'} • Poly: ${polyLinked ? 'Linked' : 'Disconnected'}`;
-    statusBox.style.borderColor = "var(--accent-green)";
-    statusTag.style.background = "rgba(0, 245, 160, 0.15)";
-    statusTag.style.color = "var(--accent-green)";
-  } else {
-    statusTitle.textContent = "BYOK Vault: Disconnected";
-    statusDesc.textContent = "Kalshi: Disconnected • Poly: Disconnected";
-    statusBox.style.borderColor = "var(--border-color)";
-    statusTag.style.background = "#151a2d";
-    statusTag.style.color = "var(--text-muted)";
-  }
-}
-
-function loadVaultCredentials() {
-  const kKey = localStorage.getItem('kalshi_key_id');
-  const kPriv = localStorage.getItem('kalshi_private_key');
-  const pKey = localStorage.getItem('poly_key_id');
-  const pPriv = localStorage.getItem('poly_private_key');
-  const gKey = localStorage.getItem('gemini_api_key');
-  const alertWebhook = localStorage.getItem('cosmic_alert_webhook');
-
-  if (kKey && document.getElementById('kalshi-key-id')) document.getElementById('kalshi-key-id').value = kKey;
-  if (kPriv && document.getElementById('kalshi-private-key')) document.getElementById('kalshi-private-key').value = kPriv;
-  if (pKey && document.getElementById('poly-key-id')) document.getElementById('poly-key-id').value = pKey;
-  if (pPriv && document.getElementById('poly-private-key')) document.getElementById('poly-private-key').value = pPriv;
-  if (gKey && document.getElementById('gemini-api-key')) document.getElementById('gemini-api-key').value = gKey;
-  if (alertWebhook && document.getElementById('alert-webhook-input')) document.getElementById('alert-webhook-input').value = alertWebhook;
-
-  updateVaultStatusUI();
-}
-
-// --- FLEET TRACKER ---
 function getOrCreateClientUuid() {
   let uuid = localStorage.getItem('cosmic_fleet_uuid');
   if (!uuid) {
     uuid = 'cpt_' + crypto.randomUUID().slice(0, 12);
     localStorage.setItem('cosmic_fleet_uuid', uuid);
   }
-  const tag = document.getElementById('fleet-uuid-tag');
-  if (tag) tag.textContent = `ENDPOINT: ${uuid}`;
   return uuid;
 }
 
-function updateTtlPreference() {
-  const select = document.getElementById('user-ttl-select');
-  if (select) localStorage.setItem('cosmic_slip_ttl', select.value);
+function triggerOneTapShortcutInstall() {
+  const uuid = getOrCreateClientUuid();
+  const ingestUrl = `https://cosmic-parlays.cosmictrollgaming.workers.dev/api/fleet/ingest/${uuid}`;
+  navigator.clipboard.writeText(ingestUrl).then(() => {
+    alert("Private endpoint copied! Opening Shortcuts app.");
+    window.location.href = "shortcuts://create-shortcut";
+  }).catch(() => {
+    window.location.href = "shortcuts://create-shortcut";
+  });
 }
 
-function getUserTtl() {
-  return localStorage.getItem('cosmic_slip_ttl') || '1800';
+function switchNavTab(viewId, element) {
+  document.querySelectorAll('.tab-view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.bottom-nav .nav-item').forEach(n => n.classList.remove('active'));
+  const target = document.getElementById(viewId);
+  if (target) target.classList.add('active');
+  if (element) element.classList.add('active');
 }
 
-function loadLocalFleetTickets() {
-  return JSON.parse(localStorage.getItem('cosmic_fleet_tickets') || '[]');
-}
-
-function saveLocalFleetTickets(tickets) {
-  localStorage.setItem('cosmic_fleet_tickets', JSON.stringify(tickets));
-  renderFleetTickets();
-  calculateVaultEarnings();
-}
-
-function renderFleetTickets() {
-  const container = document.getElementById('fleet-tickets-container');
-  const tickets = loadLocalFleetTickets();
-  if (!container) return;
-
-  if (tickets.length === 0) {
-    container.innerHTML = '<div style="color: var(--text-muted); font-size: 0.8rem; padding: 14px; text-align: center; border: 1px dashed var(--border-color); border-radius: 8px;">No imported slips active.</div>';
-    return;
-  }
-
-  container.innerHTML = tickets.map((t, idx) => `
-    <div class="ticket-card ${t.danger ? 'ticket-danger' : ''}">
-      <div style="display: flex; justify-content: space-between; font-weight: bold; margin-bottom: 5px;">
-        <span style="color: var(--accent-cyan);">${t.book} [${t.betId || 'Slip'}]</span>
-        <span style="color: var(--accent-gold);">${t.odds ? (t.odds.startsWith('+') || t.odds.startsWith('-') ? t.odds : '+' + t.odds) : ''} | Ret: $${t.payout ? t.payout.toFixed(2) : '--'}</span>
-      </div>
-      <div style="color: var(--text-muted); font-size: 0.72rem; margin-bottom: 6px; display: flex; justify-content: space-between;">
-        <span>Stake: $${t.stake ? t.stake.toFixed(2) : '--'} | ${new Date(t.timestamp).toLocaleTimeString()}</span>
-        <span style="cursor: pointer; color: var(--accent-pink);" onclick="removeSlip(${idx})">✕ Remove</span>
-      </div>
-      ${t.liveStatus ? `<div style="color: ${t.danger ? 'var(--accent-red)' : 'var(--accent-green)'}; font-size: 0.75rem; margin-bottom: 6px; font-weight: 800;">${t.liveStatus}</div>` : ''}
-      <div style="padding-left: 8px; border-left: 2px solid var(--accent-pink);">
-        ${(t.legs || []).map(l => `<div style="font-size: 0.78rem; color: #fff;">• ${l}</div>`).join('')}
-      </div>
-    </div>
-  `).join('');
-}
-
-function removeSlip(index) {
-  const tickets = loadLocalFleetTickets();
-  tickets.splice(index, 1);
-  saveLocalFleetTickets(tickets);
-}
-
-// --- SOUND ALERT ENGINE ---
-function playAlertChime() {
-  try {
-    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    const osc = audioCtx.createOscillator();
-    const gain = audioCtx.createGain();
-    osc.type = 'sine';
-    osc.frequency.setValueAtTime(587.33, audioCtx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 0.15);
-    gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
-    osc.connect(gain);
-    gain.connect(audioCtx.destination);
-    osc.start();
-    osc.stop(audioCtx.currentTime + 0.3);
-  } catch (e) {}
-}
-
-// --- UNIVERSAL MATHEMATICAL ELIMINATION & SALVAGE ENGINE ---
-async function verifyAllLivePositions() {
-  const tickets = loadLocalFleetTickets();
-  if (!tickets || tickets.length === 0) return;
-
-  let stateChanged = false;
-
-  const [mlbRes, nflRes, nbaRes] = await Promise.all([
-    fetch("/api/verify/mlb").catch(() => null),
-    fetch("/api/verify/nfl").catch(() => null),
-    fetch("/api/verify/nba").catch(() => null)
-  ]);
-
-  const mlbData = mlbRes && mlbRes.ok ? await mlbRes.json() : null;
-  const nflData = nflRes && nflRes.ok ? await nflRes.json() : null;
-  const nbaData = nbaRes && nbaRes.ok ? await nbaRes.json() : null;
-
-  const mlbGames = mlbData?.dates?.[0]?.games || [];
-  const nflGames = nflData?.events || [];
-  const nbaGames = nbaData?.events || [];
-
-  for (let ticket of tickets) {
-    if (ticket.settled) continue;
-    const rawLower = (ticket.raw || "").toLowerCase();
-
-    // 1. MLB Verification Loop
-    for (const game of mlbGames) {
-      const home = game.teams.home.team.name.toLowerCase();
-      const away = game.teams.away.team.name.toLowerCase();
-
-      if (rawLower.includes(home) || rawLower.includes(away)) {
-        const isFinal = game.status.abstractGameState === "Final";
-        const homeScore = game.teams.home.score;
-        const awayScore = game.teams.away.score;
-        const totalScore = homeScore + awayScore;
-        const inning = game.linescore?.currentInning || 1;
-        const isBottom = game.linescore?.isTopInning === false;
-        const outs = game.linescore?.outs || 0;
-        const isHome = rawLower.includes(home);
-        const diff = isHome ? (homeScore - awayScore) : (awayScore - homeScore);
-
-        if (isFinal) {
-          ticket.settled = true;
-          if (ticket.raw.includes("+2.5")) {
-            ticket.won = (diff + 2.5) > 0;
-          } else if (ticket.raw.includes("+1.5")) {
-            ticket.won = (diff + 1.5) > 0;
-          }
-          ticket.danger = false;
-          ticket.liveStatus = `Final: ${game.teams.away.team.abbreviation} ${awayScore} - ${game.teams.home.team.abbreviation} ${homeScore} (${ticket.won ? 'WON' : 'LOST'})`;
-          stateChanged = true;
-        } else {
-          let isDead = false;
-          const underMatch = ticket.raw.match(/under\s*([0-9.]+)/i);
-          if (underMatch && totalScore >= parseFloat(underMatch[1])) isDead = true;
-          if (ticket.raw.includes("+2.5") && diff <= -3 && inning >= 9 && isBottom && outs >= 2) isDead = true;
-
-          if (isDead) {
-            ticket.danger = true;
-            ticket.liveStatus = `🚨 ZERO-PATH PROVED: Mathematical Elimination. Salvage cash-out advised.`;
-            playAlertChime();
-            stateChanged = true;
-
-            if (isAutonomousSalvageEnabled() && (ticket.book === "Kalshi" || ticket.book === "Polymarket")) {
-              console.warn(`[Autonomous Salvage Engine] Programmatic exit triggered on ${ticket.id}`);
-            }
-          } else {
-            const isUnderwater = (diff <= -3);
-            if (isUnderwater && !ticket.danger) {
-              playAlertChime();
-              ticket.danger = true;
-            }
-            ticket.liveStatus = `● Live (${game.linescore?.currentInningOrdinal || 'In Progress'}): ${game.teams.away.team.abbreviation} ${awayScore} @ ${game.teams.home.team.abbreviation} ${homeScore}${isUnderwater ? ' ⚠️ UNDERWATER' : ''}`;
-            stateChanged = true;
-          }
-        }
-      }
-    }
-
-    // 2. NFL Verification Loop
-    for (const evt of nflGames) {
-      const comp = evt.competitions?.[0];
-      const home = comp?.competitors?.find(c => c.homeAway === "home");
-      const away = comp?.competitors?.find(c => c.homeAway === "away");
-
-      if (rawLower.includes(home?.team?.name?.toLowerCase()) || rawLower.includes(away?.team?.name?.toLowerCase())) {
-        const isCompleted = evt.status.type.completed;
-        const homeScore = parseInt(home.score || "0", 10);
-        const awayScore = parseInt(away.score || "0", 10);
-        const totalScore = homeScore + awayScore;
-
-        if (isCompleted) {
-          ticket.settled = true;
-          ticket.liveStatus = `Final: ${away.team.abbreviation} ${awayScore} - ${home.team.abbreviation} ${homeScore}`;
-          stateChanged = true;
-        } else {
-          const underMatch = ticket.raw.match(/under\s*([0-9.]+)/i);
-          if (underMatch && totalScore >= parseFloat(underMatch[1])) {
-            ticket.danger = true;
-            ticket.liveStatus = `🚨 ZERO-PATH PROVED: Under breached (${totalScore} pts). Cash out now.`;
-            playAlertChime();
-            stateChanged = true;
-          } else {
-            ticket.liveStatus = `● Live Q${evt.status.period} ${evt.status.displayClock}: ${away.team.abbreviation} ${awayScore} - ${home.team.abbreviation} ${homeScore}`;
-            stateChanged = true;
-          }
-        }
-      }
-    }
-  }
-
-  if (stateChanged) {
-    saveLocalFleetTickets(tickets);
-    renderFleetTickets();
-    calculateVaultEarnings();
-  }
-}
-
-// --- INITIALIZATION ---
 window.addEventListener('DOMContentLoaded', () => {
-  loadUiZoom();
-  loadFinancialSettings();
-  checkAdState();
-  getOrCreateClientUuid();
-  loadVaultCredentials();
-  const ttlSelect = document.getElementById('user-ttl-select');
-  if (ttlSelect) ttlSelect.value = getUserTtl();
-  renderFleetTickets();
-  calculateVaultEarnings();
-
-  startCarouselRotators();
-  setInterval(refreshScreenedSlatePool, 600000);
-  updateSynchronized15MinTimers();
-  setInterval(updateSynchronized15MinTimers, 1000);
-
-  pollLive15MinMarkets();
-  setInterval(pollLive15MinMarkets, 3000);
-
-  verifyAllLivePositions();
-  setInterval(verifyAllLivePositions, 10000);
+  updateCapitalShieldDisplay();
+  syncConfigToEdge();
 });
 </script>
-
 </body>
 </html>
