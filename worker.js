@@ -533,7 +533,7 @@ export default {
     }
 
     // ------------------------------------------------------------------------
-    // 10. Quant-Restricted Gemini Relay with Moderation Bypass
+    // 10. Quant-Restricted Gemini Relay with Moderation Bypass (gemini-2.5-flash)
     // ------------------------------------------------------------------------
     if (url.pathname === "/api/agent/gemini" && request.method === "POST") {
       try {
@@ -554,7 +554,7 @@ Your output is strictly restricted to calculating taker/maker spread drag, edge 
 Input State:
 - Market: ${payload.ticker || 'Unknown'} (${payload.title || ''})
 - Target Strike: ${payload.targetPrice || 'N/A'}
-- Current Spot: ${payload.currentPrice || 'N/A'}
+- Current Spot: ${payload.currentPrice || 'Live Desk State'}
 - Minutes Left in Candle: ${payload.minutesLeft || '15'}m
 - Current Order Book Probabilities: ABOVE @ ${payload.yesOdds || '50'}% | BELOW @ ${payload.noOdds || '50'}%
 
@@ -572,7 +572,7 @@ Do NOT use conversational filler. Deliver raw quantitative analysis only.`;
           { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_NONE" }
         ];
 
-        const geminiRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${clientApiKey}`, {
+        const geminiRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${clientApiKey}`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ 
