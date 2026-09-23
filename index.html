@@ -667,7 +667,7 @@
       <!-- 15-Minute Fast Markets Desk (8 Active Series) -->
       <div id="perp-sub-15m" style="display: none; flex-direction: column; gap: 10px;">
         <div style="font-size: 11px; color: var(--text-muted); line-height: 1.4; margin-bottom: 6px;">
-          Settles strictly on clock quarter-hours (<strong>:00, :15, :30, :45</strong>).
+          Settles strictly on clock quarter-hours (<strong>:00, :15, :30, :45</strong>)[span_7](start_span)[span_7](end_span).
         </div>
 
         <div class="market-card sortable-card" data-sport="macro">
@@ -1087,7 +1087,6 @@ function applyGlobalFilters() {
   renderCarouselSet(SPORTS_PICKS_POOL, 0, 'sports-picks-container', 'sports-dots', 'SPORTS');
   renderCarouselSet(ESPORTS_PICKS_POOL, 0, 'esports-picks-container', 'esports-dots', 'ESPORTS');
 
-  // Hide esports container if a sports pill is selected
   const esportsSec = document.getElementById('section-esports');
   if (esportsSec) {
     esportsSec.style.display = (sportTag === 'esports' || sportTag === 'all') ? 'block' : 'none';
@@ -1103,7 +1102,6 @@ function applyGlobalFilters() {
 
   const cards = activeTab.querySelectorAll('.market-card');
   cards.forEach(card => {
-    // Skip picks carousels (already handled by renderCarouselSet)
     if (card.closest('#sports-picks-container') || card.closest('#esports-picks-container')) return;
 
     const cardText = card.textContent.toLowerCase();
@@ -1136,6 +1134,61 @@ function filterBySport(sportTag, button) {
   document.querySelectorAll('#sport-filter-pills .pill-btn').forEach(b => b.classList.remove('active'));
   if (button) button.classList.add('active');
   applyGlobalFilters();
+}
+
+// --- UNIVERSAL SORT ENGINE ---
+function switchSortOrder(order, button) {
+  document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
+  if (button) button.classList.add('active');
+
+  // 1. Sort Data Pools
+  SPORTS_PICKS_POOL.sort((a, b) => {
+    if (order === 'roi-high') return (b.roi || 0) - (a.roi || 0);
+    if (order === 'roi-low') return (a.roi || 0) - (b.roi || 0);
+    if (order === 'ending' || order === 'today') return (a.exp || 0) - (b.exp || 0);
+    return 0;
+  });
+
+  ESPORTS_PICKS_POOL.sort((a, b) => {
+    if (order === 'roi-high') return (b.roi || 0) - (a.roi || 0);
+    if (order === 'roi-low') return (a.roi || 0) - (b.roi || 0);
+    if (order === 'ending' || order === 'today') return (a.exp || 0) - (b.exp || 0);
+    return 0;
+  });
+
+  sportsCarouselIndex = 0;
+  esportsCarouselIndex = 0;
+  renderCarouselSet(SPORTS_PICKS_POOL, 0, 'sports-picks-container', 'sports-dots', 'SPORTS');
+  renderCarouselSet(ESPORTS_PICKS_POOL, 0, 'esports-picks-container', 'esports-dots', 'ESPORTS');
+
+  // 2. Sort Static List Containers in Active Tab
+  const activeTab = document.querySelector('.tab-view.active');
+  if (!activeTab) return;
+
+  const containers = activeTab.querySelectorAll('#macro-picks-container, #poly-live-feed, #kalshi-live-feed');
+  containers.forEach(container => {
+    const cards = Array.from(container.querySelectorAll('.market-card'));
+    if (cards.length <= 1) return;
+
+    cards.sort((a, b) => {
+      const roiA = parseFloat(a.dataset.roi) || extractRoiFromCard(a);
+      const roiB = parseFloat(b.dataset.roi) || extractRoiFromCard(b);
+      const expA = parseInt(a.dataset.expiry, 10) || Date.now();
+      const expB = parseInt(b.dataset.expiry, 10) || Date.now();
+
+      if (order === 'roi-high') return roiB - roiA;
+      if (order === 'roi-low') return roiA - roiB;
+      if (order === 'ending' || order === 'today') return expA - expB;
+      return 0;
+    });
+
+    cards.forEach(card => container.appendChild(card));
+  });
+}
+
+function extractRoiFromCard(card) {
+  const match = card.textContent.match(/\+?([0-9.]+)%\s*ROI/i);
+  return match ? parseFloat(match[1]) : 0;
 }
 
 // --- TAB SWITCHER & FILTER PRESERVATION ---
