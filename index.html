@@ -96,7 +96,7 @@
       margin-right: 6px;
     }
 
-    /* Filter & Sorter Bars */
+    /* Navigation Pill Bars */
     .pill-nav, .sort-nav {
       display: flex;
       gap: 6px;
@@ -283,7 +283,7 @@
       font-size: 11px;
     }
 
-    /* Charts & AI Copilot */
+    /* Sparkline SVGs */
     .sparkline-svg {
       width: 100%;
       height: 38px;
@@ -355,7 +355,7 @@
 
 <div class="app-shell">
 
-  <!-- Top App Bar -->
+  <!-- Top Bar -->
   <div class="top-bar">
     <div class="brand-title">🚀 Cosmic Terminal</div>
     <div class="top-actions">
@@ -374,7 +374,7 @@
     <span style="font-size: 10px; color: var(--text-muted); text-decoration: underline; cursor: pointer; white-space: nowrap; margin-left: 8px;" onclick="promptAdPasskey()">Remove Ads ($5)</span>
   </div>
 
-  <!-- Filter & Sort Toolbars -->
+  <!-- Sub-Nav Category Filter -->
   <div class="pill-nav">
     <button class="pill-btn active" onclick="switchCategoryFilter('all', this)">🎯 Picks</button>
     <button class="pill-btn" onclick="switchCategoryFilter('esports', this)">🎮 Esports</button>
@@ -382,6 +382,7 @@
     <button class="pill-btn" onclick="switchCategoryFilter('politics', this)">🏛 Politics</button>
   </div>
 
+  <!-- Secondary Sorter -->
   <div class="sort-nav">
     <span class="sort-label">SORT:</span>
     <button class="sort-btn active" onclick="switchSortOrder('roi-high', this)">🔥 Top ROI</button>
@@ -515,15 +516,25 @@
             <span style="color: var(--accent-green); font-weight: 800;">YES @ $0.68</span>
           </div>
         </div>
+        <div class="market-card">
+          <div class="market-card-head">
+            <span>US Debt Ceiling Extension Resolution</span>
+            <span class="tag" style="background: #1b1330; color: var(--accent-pink);">POLY.US</span>
+          </div>
+          <div class="market-card-meta">
+            <span>Market Implied: 92% Yes • Liquidity: High</span>
+            <span style="color: var(--accent-green); font-weight: 800;">YES @ $0.92</span>
+          </div>
+        </div>
       </div>
     </div>
   </div>
 
-  <!-- VIEW 3: KALSHI PERPETUALS, METALS & 15-MIN COPILOT DESK -->
+  <!-- VIEW 3: KALSHI PERPETUALS (COMPLETE 18 CRYPTO + METALS SUITE) -->
   <div class="tab-view" id="view-perps">
     <div class="card">
       <div class="card-header">
-        <span>⚡ KALSHI PERPETUALS &amp; FAST MARKETS</span>
+        <span>⚡ KALSHI PERPETUAL FUTURES DESK</span>
         <span class="tag">CFTC Regulated</span>
       </div>
       <div class="stat-grid-3">
@@ -532,28 +543,37 @@
           <span class="stat-value" style="color: var(--accent-cyan);">3.25%</span>
         </div>
         <div class="stat-box">
-          <span class="stat-label">Avg Funding (8h)</span>
-          <span class="stat-value" style="color: var(--accent-green);">+0.012%</span>
+          <span class="stat-label">Daily Settlements</span>
+          <span class="stat-value" style="color: var(--accent-green);">8h / Daily</span>
         </div>
         <div class="stat-box">
-          <span class="stat-label">Max Guardrail</span>
+          <span class="stat-label">Guardrail Cap</span>
           <span class="stat-value" style="color: var(--accent-gold);">1.5x Max</span>
         </div>
       </div>
 
       <!-- Desk Sub-Selectors -->
-      <div style="display: flex; gap: 6px; margin-bottom: 12px;">
-        <button class="pill-btn active" id="btn-perp-crypto" onclick="switchPerpSubCategory('crypto')">🪙 Crypto Perps</button>
-        <button class="pill-btn" id="btn-perp-metals" onclick="switchPerpSubCategory('metals')">⛏️ Metals Perps</button>
-        <button class="pill-btn" id="btn-perp-15m" onclick="switchPerpSubCategory('15min')">⏱️ 15-Min Fast</button>
+      <div style="display: flex; gap: 6px; margin-bottom: 12px; overflow-x: auto; scrollbar-width: none;">
+        <button class="pill-btn active" id="btn-perp-crypto" onclick="switchPerpSubCategory('crypto')">🪙 Crypto (18 Markets)</button>
+        <button class="pill-btn" id="btn-perp-metals" onclick="switchPerpSubCategory('metals')">⛏️ Metals (Gold &amp; Silver)</button>
+        <button class="pill-btn" id="btn-perp-15m" onclick="switchPerpSubCategory('15min')">⏱️ 15-Min Fast Copilot</button>
       </div>
 
-      <!-- SECTION A: CRYPTO PERPS (GRAPHS & METRICS) -->
+      <!-- SECTION A: CRYPTO PERPETUALS SUITE (18 ASSETS) -->
       <div id="perp-sub-crypto" style="display: flex; flex-direction: column; gap: 10px;">
-        <!-- BTC Perp Card -->
-        <div class="market-card">
+        
+        <!-- Filter Tabs for Crypto -->
+        <div style="display: flex; gap: 6px; margin-bottom: 4px;">
+          <span class="sort-label">FILTER:</span>
+          <button class="sort-btn active" onclick="filterCryptoList('all', this)">All (18)</button>
+          <button class="sort-btn" onclick="filterCryptoList('majors', this)">Majors</button>
+          <button class="sort-btn" onclick="filterCryptoList('alts', this)">DeFi &amp; L1s</button>
+        </div>
+
+        <!-- 1. BTC -->
+        <div class="market-card perp-asset perp-major">
           <div class="market-card-head">
-            <span>Bitcoin Perpetual (BTCPERP)</span>
+            <span>Bitcoin (BTCPERP) • Max 6.3x</span>
             <span class="tag" style="background: #12281a; color: var(--accent-green);">8h Funding: +0.012%</span>
           </div>
           <div class="market-card-meta">
@@ -564,10 +584,11 @@
             <path d="M 0,30 Q 50,25 100,15 T 200,10 T 300,5" fill="none" stroke="#00f5a0" stroke-width="2"/>
           </svg>
         </div>
-        <!-- ETH Perp Card -->
-        <div class="market-card">
+
+        <!-- 2. ETH -->
+        <div class="market-card perp-asset perp-major">
           <div class="market-card-head">
-            <span>Ethereum Perpetual (ETHPERP)</span>
+            <span>Ethereum (ETHPERP) • Max 4.8x</span>
             <span class="tag" style="background: #12281a; color: var(--accent-green);">8h Funding: +0.008%</span>
           </div>
           <div class="market-card-meta">
@@ -578,10 +599,11 @@
             <path d="M 0,25 Q 75,35 150,15 T 250,20 T 300,10" fill="none" stroke="#00f2fe" stroke-width="2"/>
           </svg>
         </div>
-        <!-- SOL Perp Card -->
-        <div class="market-card">
+
+        <!-- 3. SOL -->
+        <div class="market-card perp-asset perp-major">
           <div class="market-card-head">
-            <span>Solana Perpetual (SOLPERP)</span>
+            <span>Solana (SOLPERP) • Max 3.0x</span>
             <span class="tag" style="background: #12281a; color: var(--accent-green);">8h Funding: +0.019%</span>
           </div>
           <div class="market-card-meta">
@@ -592,61 +614,229 @@
             <path d="M 0,35 Q 80,10 160,22 T 260,8 T 300,4" fill="none" stroke="#ff007a" stroke-width="2"/>
           </svg>
         </div>
+
+        <!-- 4. XRP -->
+        <div class="market-card perp-asset perp-major">
+          <div class="market-card-head">
+            <span>XRP Perpetual (XRPPERP) • Max 2.8x</span>
+            <span class="tag" style="background: #12281a; color: var(--accent-green);">8h Funding: +0.010%</span>
+          </div>
+          <div class="market-card-meta">
+            <span>Spot: $0.58 • 1x Collateral</span>
+            <span style="color: var(--accent-cyan); font-weight: bold;">Margin Yield: 3.25%</span>
+          </div>
+        </div>
+
+        <!-- 5. DOGE -->
+        <div class="market-card perp-asset perp-alts">
+          <div class="market-card-head">
+            <span>Dogecoin (DOGEPERP) • Max 2.8x</span>
+            <span class="tag" style="background: #12281a; color: var(--accent-green);">8h Funding: +0.015%</span>
+          </div>
+          <div class="market-card-meta">
+            <span>Spot: $0.14 • 1x Collateral</span>
+            <span style="color: var(--accent-cyan); font-weight: bold;">Margin Yield: 3.25%</span>
+          </div>
+        </div>
+
+        <!-- 6. ADA -->
+        <div class="market-card perp-asset perp-alts">
+          <div class="market-card-head">
+            <span>Cardano (ADAPERP) • Max 3.1x</span>
+            <span class="tag" style="background: #12281a; color: var(--accent-green);">8h Funding: +0.006%</span>
+          </div>
+          <div class="market-card-meta">
+            <span>Spot: $0.38 • 1x Collateral</span>
+            <span style="color: var(--accent-cyan); font-weight: bold;">Margin Yield: 3.25%</span>
+          </div>
+        </div>
+
+        <!-- 7. LINK -->
+        <div class="market-card perp-asset perp-alts">
+          <div class="market-card-head">
+            <span>Chainlink (LINKPERP) • Max 3.7x</span>
+            <span class="tag" style="background: #12281a; color: var(--accent-green);">8h Funding: +0.009%</span>
+          </div>
+          <div class="market-card-meta">
+            <span>Spot: $12.40 • 1x Collateral</span>
+            <span style="color: var(--accent-cyan); font-weight: bold;">Margin Yield: 3.25%</span>
+          </div>
+        </div>
+
+        <!-- 8. AVAX -->
+        <div class="market-card perp-asset perp-alts">
+          <div class="market-card-head">
+            <span>Avalanche (AVAXPERP) • Max 3.0x</span>
+            <span class="tag" style="background: #12281a; color: var(--accent-green);">8h Funding: +0.011%</span>
+          </div>
+          <div class="market-card-meta">
+            <span>Spot: $26.80 • 1x Collateral</span>
+            <span style="color: var(--accent-cyan); font-weight: bold;">Margin Yield: 3.25%</span>
+          </div>
+        </div>
+
+        <!-- 9. SUI -->
+        <div class="market-card perp-asset perp-alts">
+          <div class="market-card-head">
+            <span>Sui (SUIPERP) • Max 2.4x</span>
+            <span class="tag" style="background: #12281a; color: var(--accent-green);">8h Funding: +0.018%</span>
+          </div>
+          <div class="market-card-meta">
+            <span>Spot: $1.92 • 1x Collateral</span>
+            <span style="color: var(--accent-cyan); font-weight: bold;">Margin Yield: 3.25%</span>
+          </div>
+        </div>
+
+        <!-- 10. NEAR -->
+        <div class="market-card perp-asset perp-alts">
+          <div class="market-card-head">
+            <span>NEAR Protocol (NEARPERP) • Max 2.2x</span>
+            <span class="tag" style="background: #12281a; color: var(--accent-green);">8h Funding: +0.007%</span>
+          </div>
+          <div class="market-card-meta">
+            <span>Spot: $4.85 • 1x Collateral</span>
+            <span style="color: var(--accent-cyan); font-weight: bold;">Margin Yield: 3.25%</span>
+          </div>
+        </div>
+
+        <!-- 11. HYPE -->
+        <div class="market-card perp-asset perp-alts">
+          <div class="market-card-head">
+            <span>Hyperliquid (HYPEPERP) • Max 2.2x</span>
+            <span class="tag" style="background: #12281a; color: var(--accent-green);">8h Funding: +0.022%</span>
+          </div>
+          <div class="market-card-meta">
+            <span>Spot: $14.20 • 1x Collateral</span>
+            <span style="color: var(--accent-cyan); font-weight: bold;">Margin Yield: 3.25%</span>
+          </div>
+        </div>
+
+        <!-- 12. AAVE -->
+        <div class="market-card perp-asset perp-alts">
+          <div class="market-card-head">
+            <span>Aave (AAVEPERP) • Max 3.3x</span>
+            <span class="tag" style="background: #12281a; color: var(--accent-green);">8h Funding: +0.005%</span>
+          </div>
+          <div class="market-card-meta">
+            <span>Spot: $162.10 • 1x Collateral</span>
+            <span style="color: var(--accent-cyan); font-weight: bold;">Margin Yield: 3.25%</span>
+          </div>
+        </div>
+
+        <!-- 13. LTC -->
+        <div class="market-card perp-asset perp-alts">
+          <div class="market-card-head">
+            <span>Litecoin (LTCPERP) • Max 3.9x</span>
+            <span class="tag" style="background: #12281a; color: var(--accent-green);">8h Funding: +0.004%</span>
+          </div>
+          <div class="market-card-meta">
+            <span>Spot: $74.50 • 1x Collateral</span>
+            <span style="color: var(--accent-cyan); font-weight: bold;">Margin Yield: 3.25%</span>
+          </div>
+        </div>
+
+        <!-- 14. BCH -->
+        <div class="market-card perp-asset perp-alts">
+          <div class="market-card-head">
+            <span>Bitcoin Cash (BCHPERP) • Max 2.6x</span>
+            <span class="tag" style="background: #12281a; color: var(--accent-green);">8h Funding: +0.006%</span>
+          </div>
+          <div class="market-card-meta">
+            <span>Spot: $360.20 • 1x Collateral</span>
+            <span style="color: var(--accent-cyan); font-weight: bold;">Margin Yield: 3.25%</span>
+          </div>
+        </div>
+
+        <!-- 15. BNB -->
+        <div class="market-card perp-asset perp-major">
+          <div class="market-card-head">
+            <span>BNB (BNBPERP) • Max 4.7x</span>
+            <span class="tag" style="background: #12281a; color: var(--accent-green);">8h Funding: +0.009%</span>
+          </div>
+          <div class="market-card-meta">
+            <span>Spot: $590.10 • 1x Collateral</span>
+            <span style="color: var(--accent-cyan); font-weight: bold;">Margin Yield: 3.25%</span>
+          </div>
+        </div>
+
+        <!-- 16. SHIB -->
+        <div class="market-card perp-asset perp-alts">
+          <div class="market-card-head">
+            <span>Shiba Inu (SHIBPERP) • Max 2.0x</span>
+            <span class="tag" style="background: #12281a; color: var(--accent-green);">8h Funding: +0.014%</span>
+          </div>
+          <div class="market-card-meta">
+            <span>Spot: $0.000018 • 1x Collateral</span>
+            <span style="color: var(--accent-cyan); font-weight: bold;">Margin Yield: 3.25%</span>
+          </div>
+        </div>
+
+        <!-- 17. WLD -->
+        <div class="market-card perp-asset perp-alts">
+          <div class="market-card-head">
+            <span>Worldcoin (WLDPERP) • Max 1.6x</span>
+            <span class="tag" style="background: #12281a; color: var(--accent-green);">8h Funding: +0.019%</span>
+          </div>
+          <div class="market-card-meta">
+            <span>Spot: $2.15 • 1x Collateral</span>
+            <span style="color: var(--accent-cyan); font-weight: bold;">Margin Yield: 3.25%</span>
+          </div>
+        </div>
+
+        <!-- 18. ZEC -->
+        <div class="market-card perp-asset perp-alts">
+          <div class="market-card-head">
+            <span>Zcash (ZECPERP) • Max 2.1x</span>
+            <span class="tag" style="background: #12281a; color: var(--accent-green);">8h Funding: +0.003%</span>
+          </div>
+          <div class="market-card-meta">
+            <span>Spot: $34.80 • 1x Collateral</span>
+            <span style="color: var(--accent-cyan); font-weight: bold;">Margin Yield: 3.25%</span>
+          </div>
+        </div>
+
       </div>
 
-      <!-- SECTION B: METALS PERPS (GRAPHS & METRICS) -->
+      <!-- SECTION B: METALS PERPETUALS (GOLD & SILVER) -->
       <div id="perp-sub-metals" style="display: none; flex-direction: column; gap: 10px;">
         <!-- Gold Perp -->
         <div class="market-card">
           <div class="market-card-head">
-            <span>Gold Continuous Perpetual (GOLDPERP)</span>
-            <span class="tag" style="background: #252010; color: var(--accent-gold);">Daily: -0.004%</span>
+            <span>Gold Continuous Perpetual (GOLDPERP) • Max 15.2x</span>
+            <span class="tag" style="background: #252010; color: var(--accent-gold);">Daily Funding: -0.004%</span>
           </div>
           <div class="market-card-meta">
-            <span>Benchmark: $4,363.73/oz</span>
+            <span>Benchmark: $4,363.73/oz • Settles Daily 10 AM ET</span>
             <span style="color: var(--accent-green); font-weight: bold;">Basis: Positive</span>
           </div>
           <svg class="sparkline-svg" viewBox="0 0 300 40">
             <path d="M 0,20 Q 90,5 180,25 T 300,8" fill="none" stroke="#ffe600" stroke-width="2"/>
           </svg>
         </div>
+
         <!-- Silver Perp -->
         <div class="market-card">
           <div class="market-card-head">
-            <span>Silver Continuous Perpetual (SILVERPERP)</span>
-            <span class="tag" style="background: #252010; color: var(--accent-gold);">Daily: +0.001%</span>
+            <span>Silver Continuous Perpetual (SILVERPERP) • Max 8.0x</span>
+            <span class="tag" style="background: #252010; color: var(--accent-gold);">Daily Funding: +0.001%</span>
           </div>
           <div class="market-card-meta">
-            <span>Benchmark: $67.42/oz</span>
+            <span>Benchmark: $67.42/oz • Settles Daily 10 AM ET</span>
             <span style="color: var(--accent-green); font-weight: bold;">Basis: Neutral</span>
           </div>
           <svg class="sparkline-svg" viewBox="0 0 300 40">
             <path d="M 0,28 Q 70,20 140,15 T 240,18 T 300,12" fill="none" stroke="#c0c7d6" stroke-width="2"/>
           </svg>
         </div>
-        <!-- Copper Perp -->
-        <div class="market-card">
-          <div class="market-card-head">
-            <span>Copper Futures (COPPERPERP)</span>
-            <span class="tag" style="background: #252010; color: var(--accent-gold);">Daily: +0.005%</span>
-          </div>
-          <div class="market-card-meta">
-            <span>Benchmark: $6.91/lb</span>
-            <span style="color: var(--accent-cyan); font-weight: bold;">Demand: High</span>
-          </div>
-          <svg class="sparkline-svg" viewBox="0 0 300 40">
-            <path d="M 0,15 Q 80,30 160,18 T 260,25 T 300,14" fill="none" stroke="#ff8c00" stroke-width="2"/>
-          </svg>
-        </div>
       </div>
 
-      <!-- SECTION C: 15-MINUTE FAST MARKETS + GEMINI AGENTIC COPILOT -->
+      <!-- SECTION C: 15-MINUTE FAST MARKETS + GEMINI COPILOT -->
       <div id="perp-sub-15m" style="display: none; flex-direction: column; gap: 10px;">
         <div style="font-size: 11px; color: var(--text-muted); line-height: 1.4;">
-          Recurring 15-minute CFTC settlement brackets. The <strong>Gemini Agentic Copilot</strong> inspects spot distance to strike, momentum, and taker fee drag to provide tactical YES/NO/PASS signals.
+          Recurring 15-minute CFTC settlement brackets. The <strong>Gemini Agentic Copilot</strong> inspects spot distance to strike, momentum, and taker fee drag to provide tactical signals.
         </div>
 
-        <!-- 15m Contract 1 -->
+        <!-- 15m BTC -->
         <div class="market-card">
           <div class="market-card-head">
             <span>BTC 15-Min (KXBTC15M) — Strike: $85,029.68</span>
@@ -659,7 +849,7 @@
           <div class="ai-agent-box" id="ai-box-btc">Analyzing orderbook &amp; spot trajectory...</div>
         </div>
 
-        <!-- 15m Contract 2 -->
+        <!-- 15m Gold -->
         <div class="market-card">
           <div class="market-card-head">
             <span>Gold 15-Min — Target: $4,363.73</span>
@@ -672,7 +862,7 @@
           <div class="ai-agent-box" id="ai-box-gold">Analyzing orderbook &amp; spot trajectory...</div>
         </div>
 
-        <!-- 15m Contract 3 -->
+        <!-- 15m ETH -->
         <div class="market-card">
           <div class="market-card-head">
             <span>ETH 15-Min — Target: $2,720.82</span>
@@ -685,6 +875,7 @@
           <div class="ai-agent-box" id="ai-box-eth">Analyzing orderbook &amp; spot trajectory...</div>
         </div>
       </div>
+
     </div>
   </div>
 
@@ -714,7 +905,7 @@
     </div>
   </div>
 
-  <!-- VIEW 6: SPREADS & ARBITRAGE -->
+  <!-- VIEW 6: SPREADS & ARBITRAGE (NON-ELECTION ACTIVE CONTRACTS) -->
   <div class="tab-view" id="view-spreads">
     <div class="card">
       <div class="card-header">
@@ -724,21 +915,31 @@
       <div style="display: flex; flex-direction: column; gap: 8px;">
         <div class="market-card">
           <div class="market-card-head">
-            <span>Trump Electoral Votes ≥ 312</span>
+            <span>Fed Funds Rate Cut ≥ 25 bps Resolution</span>
             <span class="tag" style="background: #12281a; color: var(--accent-green);">+3.4% ARB</span>
           </div>
           <div class="market-card-meta">
-            <span>Buy Poly YES @ $0.48 • Buy Kalshi NO @ $0.486</span>
+            <span>Buy Poly YES @ $0.84 • Buy Kalshi NO @ $0.126</span>
             <span style="color: var(--accent-cyan); font-weight: 800;">Risk-Free Net</span>
           </div>
         </div>
         <div class="market-card">
           <div class="market-card-head">
-            <span>Harris Popular Vote Majority Margin</span>
+            <span>US Core CPI Inflation &lt; 3.0% Annualized</span>
             <span class="tag" style="background: #12281a; color: var(--accent-green);">+2.8% ARB</span>
           </div>
           <div class="market-card-meta">
-            <span>Buy Kalshi YES @ $0.56 • Buy Poly NO @ $0.412</span>
+            <span>Buy Kalshi YES @ $0.68 • Buy Poly NO @ $0.292</span>
+            <span style="color: var(--accent-cyan); font-weight: 800;">Risk-Free Net</span>
+          </div>
+        </div>
+        <div class="market-card">
+          <div class="market-card-head">
+            <span>US Debt Ceiling Extension Resolution</span>
+            <span class="tag" style="background: #12281a; color: var(--accent-green);">+1.9% ARB</span>
+          </div>
+          <div class="market-card-meta">
+            <span>Buy Poly YES @ $0.92 • Buy Kalshi NO @ $0.061</span>
             <span style="color: var(--accent-cyan); font-weight: 800;">Risk-Free Net</span>
           </div>
         </div>
@@ -801,7 +1002,7 @@
     </div>
   </div>
 
-  <!-- VIEW 8: BYOK VAULT & SECURITY (DUAL API KEYS + GEMINI KEY) -->
+  <!-- VIEW 8: BYOK VAULT & SECURITY -->
   <div class="tab-view" id="view-vault">
     <div class="card">
       <div class="card-header">
@@ -834,7 +1035,7 @@
         <span class="tag">100% Client-Side</span>
       </div>
       <p style="font-size: 10px; color: var(--text-muted); margin-bottom: 12px; line-height: 1.4;">
-        API keys and private signatures are stored exclusively in your browser sandbox. They are never transmitted to a central server.
+        API keys and private signatures are stored exclusively in your browser sandbox. They never touch a remote server.
       </p>
 
       <!-- KALSHI CREDENTIALS -->
@@ -890,7 +1091,7 @@
     </div>
   </div>
 
-  <!-- Bottom Navigation Bar -->
+  <!-- Bottom Nav Bar (Dynamic Badge Active) -->
   <nav class="bottom-nav">
     <div class="nav-item active" onclick="switchNavTab('view-picks', this)">
       <span>🎯</span>
@@ -1005,7 +1206,7 @@ function switchSortOrder(order, button) {
   button.classList.add('active');
 }
 
-// PERPS SUB-CATEGORIES
+// PERPETUALS SUB-DESK CONTROLS
 function switchPerpSubCategory(sub) {
   document.getElementById('perp-sub-crypto').style.display = sub === 'crypto' ? 'flex' : 'none';
   document.getElementById('perp-sub-metals').style.display = sub === 'metals' ? 'flex' : 'none';
@@ -1014,6 +1215,21 @@ function switchPerpSubCategory(sub) {
   document.getElementById('btn-perp-crypto').classList.toggle('active', sub === 'crypto');
   document.getElementById('btn-perp-metals').classList.toggle('active', sub === 'metals');
   document.getElementById('btn-perp-15m').classList.toggle('active', sub === '15min');
+}
+
+function filterCryptoList(group, button) {
+  document.querySelectorAll('#perp-sub-crypto .sort-btn').forEach(b => b.classList.remove('active'));
+  button.classList.add('active');
+
+  document.querySelectorAll('.perp-asset').forEach(el => {
+    if (group === 'all') {
+      el.style.display = 'flex';
+    } else if (group === 'majors') {
+      el.style.display = el.classList.contains('perp-major') ? 'flex' : 'none';
+    } else if (group === 'alts') {
+      el.style.display = el.classList.contains('perp-alts') ? 'flex' : 'none';
+    }
+  });
 }
 
 // --- GEMINI 15-MINUTE COPILOT ---
@@ -1042,7 +1258,6 @@ async function runGeminiCopilot(ticker, title, targetPrice, currentPrice, minute
       box.innerHTML = `<div style="color: #fff; white-space: pre-wrap;">${data.analysis}</div>`;
     }
   } catch (err) {
-    // Fallback heuristic if offline
     const delta = currentPrice - targetPrice;
     const side = delta >= 0 ? "BUY YES" : "BUY NO";
     box.innerHTML = `
@@ -1317,7 +1532,7 @@ function removeSlip(index) {
   saveLocalFleetTickets(tickets);
 }
 
-// --- POLLING & INGESTION ---
+// --- POLLING & SANITIZED PARSER ---
 async function pollSharedSlips() {
   const uuid = getOrCreateClientUuid();
   try {
