@@ -1,6 +1,6 @@
 // ============================================================================
-// COSMIC TERMINAL / PARLAYS - PRODUCTION WORKER (v2.2-agentic)
-// Zero-Trust Telemetry, Kalshi/Polymarket Proxy & Gemini Copilot Engine
+// COSMIC TERMINAL / PARLAYS - PRODUCTION WORKER (v2.3-fast-feed)
+// Zero-Trust Telemetry, Live 15-Min Market Feeds & Gemini Copilot Engine
 // ============================================================================
 
 const CORS_HEADERS = {
@@ -23,7 +23,7 @@ function parseSportsbookPayload(rawText, sourceUrl = "") {
 
   const combined = `${rawText} ${sourceUrl}`;
 
-  // 1. Detect Bookmaker Origin
+  // Detect Bookmaker Origin
   if (/draftkings\.com/i.test(combined) || /DraftKings/i.test(rawText)) {
     result.book = "DraftKings";
     const idMatch = combined.match(/DK\d{10,25}/i) || combined.match(/slip\/([a-zA-Z0-9_-]+)/);
@@ -39,18 +39,18 @@ function parseSportsbookPayload(rawText, sourceUrl = "") {
   // Strip URLs prior to regex matching to prevent UUID chunks from matching as odds
   const textWithoutUrls = rawText.replace(/https?:\/\/[^\s]+/g, "");
 
-  // 2. Extract American Odds
+  // Extract American Odds
   const oddsMatch = textWithoutUrls.match(/(?:^|\s)([+-]\d{3,4})\b/);
   if (oddsMatch) result.odds = oddsMatch[1].trim();
 
-  // 3. Extract Stake & Returns
+  // Extract Stake & Returns
   const stakeMatch = rawText.match(/(?:Wager|Stake|Amount):\s*\$([0-9.]+)/i);
   if (stakeMatch) result.stake = parseFloat(stakeMatch[1]);
 
   const payoutMatch = rawText.match(/(?:Payout|To Win|Return):\s*\$([0-9.]+)/i);
   if (payoutMatch) result.payout = parseFloat(payoutMatch[1]);
 
-  // 4. Extract Selections & Legs
+  // Extract Selections & Legs
   const lines = rawText.split("\n").map(l => l.trim()).filter(l => l.length > 0);
   lines.forEach(line => {
     if (
@@ -87,21 +87,52 @@ export default {
       return new Response(JSON.stringify({ 
         status: "healthy", 
         env: "production", 
-        build: "2.2.0-agentic-perps" 
+        build: "2.3.0-fast-feed" 
       }), {
         headers: { ...CORS_HEADERS, "Content-Type": "application/json" }
       });
     }
 
     // ------------------------------------------------------------------------
-    // 2. Kalshi Perpetuals Markets Proxy
+    // 2. Kalshi 15-Minute Live Fast Feed Proxy
+    // GET /api/kalshi/15min/live
+    // ------------------------------------------------------------------------
+    if (url.pathname === "/api/kalshi/15min/live") {
+      try {
+        const seriesList = ["KXGOLD15M", "KXSLV15M", "KXWTI15M", "KXBTC15M"];
+        const fetchPromises = seriesList.map(async (seriesTicker) => {
+          try {
+            const res = await fetch(`https://api.elections.kalshi.com/trade-api/v2/events/${seriesTicker}?with_nested_markets=true`, {
+              headers: { "Accept": "application/json", "User-Agent": "CosmicTerminal/2.3" }
+            });
+            if (!res.ok) return null;
+            return await res.json();
+          } catch (e) {
+            return null;
+          }
+        });
+
+        const results = await Promise.all(fetchPromises);
+        return new Response(JSON.stringify({ markets: results.filter(Boolean) }), {
+          headers: { ...CORS_HEADERS, "Content-Type": "application/json" }
+        });
+      } catch (err) {
+        return new Response(JSON.stringify({ error: "Failed to poll live 15-minute books", details: err.message }), {
+          status: 502,
+          headers: { ...CORS_HEADERS, "Content-Type": "application/json" }
+        });
+      }
+    }
+
+    // ------------------------------------------------------------------------
+    // 3. Kalshi Perpetuals Markets Proxy
     // ------------------------------------------------------------------------
     if (url.pathname === "/api/kalshi/perps") {
       try {
         const response = await fetch("https://api.elections.kalshi.com/trade-api/v2/perpetuals/markets", {
           headers: { 
             "Accept": "application/json", 
-            "User-Agent": "CosmicTerminal/2.2" 
+            "User-Agent": "CosmicTerminal/2.3" 
           }
         });
         const data = await response.text();
@@ -118,7 +149,7 @@ export default {
     }
 
     // ------------------------------------------------------------------------
-    // 3. Kalshi Authenticated RSA Relay (Order Execution & Balance Relay)
+    // 4. Kalshi Authenticated RSA Relay
     // ------------------------------------------------------------------------
     if (url.pathname.startsWith("/api/kalshi/trade/")) {
       const kalshiPath = url.pathname.replace("/api/kalshi/trade", "");
@@ -159,7 +190,7 @@ export default {
     }
 
     // ------------------------------------------------------------------------
-    // 4. Polymarket Gamma / CLOB Proxy
+    // 5. Polymarket Gamma / CLOB Proxy
     // ------------------------------------------------------------------------
     if (url.pathname === "/api/polymarket/markets") {
       try {
@@ -180,7 +211,7 @@ export default {
     }
 
     // ------------------------------------------------------------------------
-    // 5. Ephemeral Ticket Ingestion (Customizable TTL)
+    // 6. Ephemeral Ticket Ingestion (Customizable TTL)
     // POST /api/fleet/ingest/:uuid
     // ------------------------------------------------------------------------
     if (url.pathname.startsWith("/api/fleet/ingest/")) {
@@ -193,7 +224,6 @@ export default {
         parsedTicket.timestamp = Date.now();
         parsedTicket.id = parsedTicket.betId || `slip_${Date.now()}`;
 
-        // Read user-customized TTL header (defaults to 1800s / 30m; clamped between 60s and 86400s)
         let userTtl = parseInt(request.headers.get("X-Slip-TTL") || "1800", 10);
         if (isNaN(userTtl) || userTtl < 60) userTtl = 60;
         if (userTtl > 86400) userTtl = 86400;
@@ -213,7 +243,7 @@ export default {
     }
 
     // ------------------------------------------------------------------------
-    // 6. Read-and-Burn Drain Queue
+    // 7. Read-and-Burn Drain Queue
     // GET /api/fleet/pull/:uuid
     // ------------------------------------------------------------------------
     if (url.pathname.startsWith("/api/fleet/pull/")) {
@@ -229,7 +259,7 @@ export default {
         const data = await env.FLEET_KV.get(key.name);
         if (data) {
           pending.push(JSON.parse(data));
-          await env.FLEET_KV.delete(key.name); // Immediate wipe upon delivery
+          await env.FLEET_KV.delete(key.name);
         }
       }
 
@@ -239,7 +269,7 @@ export default {
     }
 
     // ------------------------------------------------------------------------
-    // 7. Gemini Agentic Intelligence Relay for 15-Min Fast Markets
+    // 8. Gemini Agentic Intelligence Relay for 15-Min Fast Markets
     // POST /api/agent/gemini
     // ------------------------------------------------------------------------
     if (url.pathname === "/api/agent/gemini" && request.method === "POST") {
@@ -257,14 +287,14 @@ export default {
 You are an institutional quantitative trading copilot for Kalshi 15-minute binary prediction markets.
 Analyze the following live market state:
 - Market: ${payload.ticker || 'Unknown'} (${payload.title || ''})
-- Target Price: ${payload.targetPrice || 'N/A'}
+- Target Strike: ${payload.targetPrice || 'N/A'}
 - Current Spot: ${payload.currentPrice || 'N/A'}
 - Minutes Left: ${payload.minutesLeft || '15'}m
-- Current Probabilities: YES @ ${payload.yesOdds || '50'}% | NO @ ${payload.noOdds || '50'}%
+- Current Probabilities: ABOVE @ ${payload.yesOdds || '50'}% | BELOW @ ${payload.noOdds || '50'}%
 
 Provide:
-1. Conviction Call: [BUY YES / BUY NO / PASS]
-2. Calculated Edge & Risk Assessment: (Include fee considerations - warn against taker fee drag and advise limit bids)
+1. Conviction Call: [BUY ABOVE / BUY BELOW / PASS]
+2. Calculated Edge & Risk Assessment: (Include taker fee drag warning and recommend limit orders)
 3. Concise Core Catalyst: 2 sentences explaining why the 15-minute candle will resolve above or below the target.
 Format cleanly in plaintext without conversational filler.`;
 
