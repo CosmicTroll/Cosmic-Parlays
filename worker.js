@@ -1,7 +1,7 @@
 // ============================================================================
-// COSMIC TERMINAL / PARLAYS - MASTER WORKER (v2.5-zero-hallucination)
-// Programmatic Multi-Sport Verification Engine, Live Kalshi Feeds,
-// Polymarket Streaming, Ephemeral Fleet Queue & Quant-Restricted Gemini Copilot
+// COSMIC TERMINAL / PARLAYS - MASTER WORKER (v2.6-production)
+// Programmatic Multi-Sport Verification Engine, 1-Tap iOS Shortcut Generator,
+// Live Kalshi Feeds, Polymarket Proxy & Quant-Restricted Gemini Copilot
 // ============================================================================
 
 const CORS_HEADERS = {
@@ -88,7 +88,7 @@ export default {
       return new Response(JSON.stringify({ 
         status: "healthy", 
         env: "production", 
-        build: "2.5.0-universal-zero-hallucination" 
+        build: "2.6.0-universal-zero-hallucination" 
       }), {
         headers: { ...CORS_HEADERS, "Content-Type": "application/json" }
       });
@@ -105,7 +105,7 @@ export default {
       if (sport === "mlb") {
         try {
           const mlbRes = await fetch("https://statsapi.mlb.com/api/v1/schedule?sportId=1&hydrate=linescore,team", {
-            headers: { "Accept": "application/json", "User-Agent": "CosmicTerminal/2.5" }
+            headers: { "Accept": "application/json", "User-Agent": "CosmicTerminal/2.6" }
           });
           const data = await mlbRes.text();
           return new Response(data, {
@@ -123,7 +123,7 @@ export default {
       if (sport === "nfl") {
         try {
           const nflRes = await fetch("https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard", {
-            headers: { "Accept": "application/json", "User-Agent": "CosmicTerminal/2.5" }
+            headers: { "Accept": "application/json", "User-Agent": "CosmicTerminal/2.6" }
           });
           const data = await nflRes.text();
           return new Response(data, {
@@ -141,7 +141,7 @@ export default {
       if (sport === "nba") {
         try {
           const nbaRes = await fetch("https://site.api.espn.com/apis/site/v2/sports/basketball/nba/scoreboard", {
-            headers: { "Accept": "application/json", "User-Agent": "CosmicTerminal/2.5" }
+            headers: { "Accept": "application/json", "User-Agent": "CosmicTerminal/2.6" }
           });
           const data = await nbaRes.text();
           return new Response(data, {
@@ -159,7 +159,7 @@ export default {
       if (sport === "nhl") {
         try {
           const nhlRes = await fetch("https://site.api.espn.com/apis/site/v2/sports/hockey/nhl/scoreboard", {
-            headers: { "Accept": "application/json", "User-Agent": "CosmicTerminal/2.5" }
+            headers: { "Accept": "application/json", "User-Agent": "CosmicTerminal/2.6" }
           });
           const data = await nhlRes.text();
           return new Response(data, {
@@ -183,7 +183,7 @@ export default {
     if (url.pathname === "/api/sports/verify-score") {
       try {
         const mlbRes = await fetch("https://statsapi.mlb.com/api/v1/schedule?sportId=1&hydrate=linescore,team", {
-          headers: { "Accept": "application/json", "User-Agent": "CosmicTerminal/2.5" }
+          headers: { "Accept": "application/json", "User-Agent": "CosmicTerminal/2.6" }
         });
         const data = await mlbRes.text();
         return new Response(data, {
@@ -198,7 +198,99 @@ export default {
     }
 
     // ------------------------------------------------------------------------
-    // 3. Kalshi 15-Minute Live Fast Feed Proxy
+    // 3. Dynamic 1-Tap iOS Shortcut Installer
+    // GET /api/fleet/shortcut/:uuid
+    // ------------------------------------------------------------------------
+    if (url.pathname.startsWith("/api/fleet/shortcut/")) {
+      const userUuid = url.pathname.replace("/api/fleet/shortcut/", "").trim();
+      const ingestUrl = `https://${url.host}/api/fleet/ingest/${userUuid}`;
+
+      const plistXml = `<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>WFWorkflowActions</key>
+  <array>
+    <dict>
+      <key>WFWorkflowActionIdentifier</key>
+      <string>is.workflow.actions.downloadurl</string>
+      <key>WFWorkflowActionParameters</key>
+      <dict>
+        <key>WFURLActionURL</key>
+        <string>${ingestUrl}</string>
+        <key>WFHTTPMethod</key>
+        <string>POST</string>
+        <key>WFHTTPBodyType</key>
+        <string>JSON</string>
+        <key>WFJSONValues</key>
+        <dict>
+          <key>Value</key>
+          <dict>
+            <key>WFDictionaryFieldValueItems</key>
+            <array>
+              <dict>
+                <key>WFItemType</key>
+                <integer>0</integer>
+                <key>WFKey</key>
+                <dict>
+                  <key>Value</key>
+                  <dict>
+                    <key>string</key>
+                    <string>text</string>
+                  </dict>
+                  <key>WFSerializationType</key>
+                  <string>WFTextTokenString</string>
+                </dict>
+                <key>WFValue</key>
+                <dict>
+                  <key>Value</key>
+                  <dict>
+                    <key>attachmentsByRange</key>
+                    <dict>
+                      <key>{0, 1}</key>
+                      <dict>
+                        <key>Type</key>
+                        <string>ExtensionInput</string>
+                      </dict>
+                    </dict>
+                    <key>string</key>
+                    <string>&#xFFFC;</string>
+                  </dict>
+                  <key>WFSerializationType</key>
+                  <string>WFTextTokenString</string>
+                </dict>
+              </dict>
+            </array>
+          </dict>
+          <key>WFSerializationType</key>
+          <string>WFSerializedDictionary</string>
+        </dict>
+      </dict>
+    </dict>
+  </array>
+  <key>WFWorkflowInputContentItemClasses</key>
+  <array>
+    <string>WFURLContentItem</string>
+    <string>WFStringContentItem</string>
+  </array>
+  <key>WFWorkflowTypes</key>
+  <array>
+    <string>ActionExtension</string>
+  </array>
+</dict>
+</plist>`;
+
+      return new Response(plistXml, {
+        headers: {
+          ...CORS_HEADERS,
+          "Content-Type": "application/x-apple-shortcut",
+          "Content-Disposition": `attachment; filename="CosmicTerminal-${userUuid}.shortcut"`
+        }
+      });
+    }
+
+    // ------------------------------------------------------------------------
+    // 4. Kalshi 15-Minute Live Fast Feed Proxy
     // GET /api/kalshi/15min/live
     // ------------------------------------------------------------------------
     if (url.pathname === "/api/kalshi/15min/live") {
@@ -207,7 +299,7 @@ export default {
         const fetchPromises = seriesList.map(async (seriesTicker) => {
           try {
             const res = await fetch(`https://api.elections.kalshi.com/trade-api/v2/events/${seriesTicker}?with_nested_markets=true`, {
-              headers: { "Accept": "application/json", "User-Agent": "CosmicTerminal/2.5" }
+              headers: { "Accept": "application/json", "User-Agent": "CosmicTerminal/2.6" }
             });
             if (!res.ok) return null;
             return await res.json();
@@ -229,14 +321,14 @@ export default {
     }
 
     // ------------------------------------------------------------------------
-    // 4. Kalshi Perpetuals Markets Proxy
+    // 5. Kalshi Perpetuals Markets Proxy
     // ------------------------------------------------------------------------
     if (url.pathname === "/api/kalshi/perps") {
       try {
         const response = await fetch("https://api.elections.kalshi.com/trade-api/v2/perpetuals/markets", {
           headers: { 
             "Accept": "application/json", 
-            "User-Agent": "CosmicTerminal/2.5" 
+            "User-Agent": "CosmicTerminal/2.6" 
           }
         });
         const data = await response.text();
@@ -253,7 +345,7 @@ export default {
     }
 
     // ------------------------------------------------------------------------
-    // 5. Kalshi Authenticated RSA Relay (Order Placement & Private Portfolio)
+    // 6. Kalshi Authenticated RSA Relay (Order Placement & Private Portfolio)
     // ------------------------------------------------------------------------
     if (url.pathname.startsWith("/api/kalshi/trade/")) {
       const kalshiPath = url.pathname.replace("/api/kalshi/trade", "");
@@ -294,13 +386,13 @@ export default {
     }
 
     // ------------------------------------------------------------------------
-    // 6. Polymarket Gamma / CLOB Proxy
+    // 7. Polymarket Gamma / CLOB Proxy
     // ------------------------------------------------------------------------
     if (url.pathname === "/api/polymarket/markets") {
       try {
         const target = `https://gamma-api.polymarket.com/events?closed=false&limit=20${url.search.replace("?", "&")}`;
         const polyRes = await fetch(target, { 
-          headers: { "Accept": "application/json", "User-Agent": "CosmicTerminal/2.5" } 
+          headers: { "Accept": "application/json", "User-Agent": "CosmicTerminal/2.6" } 
         });
         const bodyText = await polyRes.text();
         return new Response(bodyText, {
@@ -315,7 +407,7 @@ export default {
     }
 
     // ------------------------------------------------------------------------
-    // 7. Ephemeral Ticket Ingestion (Customizable TTL)
+    // 8. Ephemeral Ticket Ingestion (Customizable TTL)
     // POST /api/fleet/ingest/:uuid
     // ------------------------------------------------------------------------
     if (url.pathname.startsWith("/api/fleet/ingest/")) {
@@ -347,7 +439,7 @@ export default {
     }
 
     // ------------------------------------------------------------------------
-    // 8. Read-and-Burn Drain Queue
+    // 9. Read-and-Burn Drain Queue
     // GET /api/fleet/pull/:uuid
     // ------------------------------------------------------------------------
     if (url.pathname.startsWith("/api/fleet/pull/")) {
@@ -373,7 +465,7 @@ export default {
     }
 
     // ------------------------------------------------------------------------
-    // 9. Quant-Restricted Gemini Agentic Copilot Relay
+    // 10. Quant-Restricted Gemini Agentic Copilot Relay
     // POST /api/agent/gemini
     // ------------------------------------------------------------------------
     if (url.pathname === "/api/agent/gemini" && request.method === "POST") {
