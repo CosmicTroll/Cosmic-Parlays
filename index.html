@@ -1004,7 +1004,7 @@
       <!-- 15-Minute Fast Markets Desk (Full 8 Series Suite) -->
       <div id="perp-sub-15m" style="display: none; flex-direction: column; gap: 10px;">
         <div style="font-size: 11px; color: var(--text-muted); line-height: 1.4; margin-bottom: 6px;">
-          Settles strictly on clock quarter-hours (<strong>:00, :15, :30, :45</strong>)[span_6](start_span)[span_6](end_span). Countdown timer updates live across all 8 series[span_7](start_span)[span_7](end_span).
+          Settles strictly on clock quarter-hours (<strong>:00, :15, :30, :45</strong>) [source: 14]. Countdown timer updates live across all 8 series [source: 14].
         </div>
 
         <div style="font-weight: 800; font-size: 10px; color: var(--accent-gold); text-transform: uppercase;">
@@ -1379,12 +1379,12 @@
       <div class="input-group">
         <label class="stat-label">Large Order Circuit-Breaker Ceiling ($)</label>
         <input type="number" id="risk-ceiling-input" value="25.00" step="1.00" onchange="saveRiskSettings()">
-        <span style="font-size: 9px; color: var(--text-muted); margin-top: 2px;">Orders exceeding this amount require manual confirmation[span_8](start_span)[span_8](end_span).</span>
+        <span style="font-size: 9px; color: var(--text-muted); margin-top: 2px;">Orders exceeding this amount require manual confirmation [source: 14].</span>
       </div>
       <div class="input-group">
         <label class="stat-label">Autonomous Salvage Floor (%)</label>
         <input type="number" id="salvage-floor-input" value="20" min="5" max="50" onchange="saveRiskSettings()">
-        <span style="font-size: 9px; color: var(--text-muted); margin-top: 2px;">Programmatically liquidates contracts before zero equity is reached[span_9](start_span)[span_9](end_span).</span>
+        <span style="font-size: 9px; color: var(--text-muted); margin-top: 2px;">Programmatically liquidates contracts before zero equity is reached [source: 14].</span>
       </div>
     </div>
 
@@ -1395,7 +1395,7 @@
         <span class="tag">100% Client-Side</span>
       </div>
       <p style="font-size: 10px; color: var(--text-muted); margin-bottom: 12px; line-height: 1.4;">
-        API keys and private signatures are stored exclusively in your browser sandbox[span_10](start_span)[span_10](end_span). They never touch a remote server[span_11](start_span)[span_11](end_span).
+        API keys and private signatures are stored exclusively in your browser sandbox [source: 14]. They never touch a remote server [source: 14].
       </p>
 
       <div style="font-weight: 800; font-size: 11px; color: var(--accent-green); margin-bottom: 6px;">🟢 Kalshi Domestic Trading API</div>
@@ -1590,6 +1590,9 @@
 </div>
 
 <script>
+// --- WORKER EDGE HOST CONFIGURATION ---
+const WORKER_BASE = 'https://cosmic-parlays.cosmictrollgaming.workers.dev';
+
 let currentTpMode = null;
 let activeOrderVenue = 'poly';
 let isCarouselPaused = false;
@@ -1642,15 +1645,13 @@ const ESPORTS_PICKS_POOL = [
 let sportsCarouselIndex = 0;
 let esportsCarouselIndex = 0;
 
-function renderCarouselSet(pool, index, containerId, dotsId) {
+function renderCarouselSet(pool, index, containerId, dotsId, poolKey) {
   const container = document.getElementById(containerId);
   if (!container) return;
 
   const currentSet = pool.slice(index * 3, (index * 3) + 3);
   container.innerHTML = currentSet.map((item, localIdx) => {
     const aiBoxId = `${containerId}-ai-${localIdx}`;
-    const safeTitle = item.title.replace(/'/g, "\\'");
-    const safePick = item.pick.replace(/'/g, "\\'");
     return `
       <div class="market-card sortable-card" data-sport="${item.sport}" data-roi="${item.roi}" data-expiry="${item.exp}">
         <div class="market-card-head">
@@ -1662,9 +1663,9 @@ function renderCarouselSet(pool, index, containerId, dotsId) {
           <span style="color: var(--accent-green); font-weight: 800;">+${item.roi.toFixed(1)}% ROI</span>
         </div>
         <div class="action-tray">
-          <button class="btn btn-green" onclick="openOrderModal('${safeTitle}', ${item.yes}, 'BUY YES', '${item.venue === 'POLY.US' ? 'poly' : 'kalshi'}')">Buy YES @ $${item.yes.toFixed(2)}</button>
-          <button class="btn btn-red" onclick="openOrderModal('${safeTitle}', ${item.no}, 'BUY NO', '${item.venue === 'POLY.US' ? 'poly' : 'kalshi'}')">Buy NO @ $${item.no.toFixed(2)}</button>
-          <button class="btn btn-ai-inline" onclick="executeInlineMarketAnalysis('${safeTitle}', '${safePick}', '${aiBoxId}')">🤖 Ask Gemini</button>
+          <button class="btn btn-green" onclick="openOrderModalById('${poolKey}', ${localIdx}, 'YES')">Buy YES @ $${item.yes.toFixed(2)}</button>
+          <button class="btn btn-red" onclick="openOrderModalById('${poolKey}', ${localIdx}, 'NO')">Buy NO @ $${item.no.toFixed(2)}</button>
+          <button class="btn btn-ai-inline" onclick="triggerCarouselAnalysis('${poolKey}', ${localIdx}, '${aiBoxId}')">🤖 Ask Gemini</button>
         </div>
         <div class="ai-agent-box" id="${aiBoxId}"></div>
       </div>
@@ -1680,8 +1681,29 @@ function rotateCarousels() {
 
   sportsCarouselIndex = (sportsCarouselIndex + 1) % 3;
   esportsCarouselIndex = (esportsCarouselIndex + 1) % 3;
-  renderCarouselSet(SPORTS_PICKS_POOL, sportsCarouselIndex, 'sports-picks-container', 'sports-dots');
-  renderCarouselSet(ESPORTS_PICKS_POOL, esportsCarouselIndex, 'esports-picks-container', 'esports-dots');
+  renderCarouselSet(SPORTS_PICKS_POOL, sportsCarouselIndex, 'sports-picks-container', 'sports-dots', 'SPORTS');
+  renderCarouselSet(ESPORTS_PICKS_POOL, esportsCarouselIndex, 'esports-picks-container', 'esports-dots', 'ESPORTS');
+}
+
+function triggerCarouselAnalysis(poolKey, localIdx, outputBoxId) {
+  const pool = poolKey === 'SPORTS' ? SPORTS_PICKS_POOL : ESPORTS_PICKS_POOL;
+  const currentSet = pool.slice((poolKey === 'SPORTS' ? sportsCarouselIndex : esportsCarouselIndex) * 3);
+  const item = currentSet[localIdx];
+  if (!item) return;
+
+  executeInlineMarketAnalysis(item.title, item.pick, outputBoxId);
+}
+
+function openOrderModalById(poolKey, localIdx, side) {
+  const pool = poolKey === 'SPORTS' ? SPORTS_PICKS_POOL : ESPORTS_PICKS_POOL;
+  const currentSet = pool.slice((poolKey === 'SPORTS' ? sportsCarouselIndex : esportsCarouselIndex) * 3);
+  const item = currentSet[localIdx];
+  if (!item) return;
+
+  const price = side === 'YES' ? item.yes : item.no;
+  const label = side === 'YES' ? 'BUY YES' : 'BUY NO';
+  const venue = item.venue === 'POLY.US' ? 'poly' : 'kalshi';
+  openOrderModal(item.title, price, label, venue);
 }
 
 // --- DISPLAY SCALING & UI ZOOM ---
@@ -1819,7 +1841,7 @@ function updateSynchronized15MinTimers() {
   });
 }
 
-// --- PER-MARKET ONE-TAP GEMINI ANALYST (PAUSE & RESUME) ---
+// --- PER-MARKET ONE-TAP GEMINI ANALYST (PAUSE & RESUME WITH LIVE WORKER RELAY) ---
 async function executeInlineMarketAnalysis(title, meta, outputBoxId) {
   const box = document.getElementById(outputBoxId);
   if (!box) return;
@@ -1839,7 +1861,7 @@ async function executeInlineMarketAnalysis(title, meta, outputBoxId) {
   const minLeft = 15 - (now.getMinutes() % 15);
 
   try {
-    const res = await fetch('/api/agent/gemini', {
+    const res = await fetch(`${WORKER_BASE}/api/agent/gemini`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -1855,13 +1877,19 @@ async function executeInlineMarketAnalysis(title, meta, outputBoxId) {
         noOdds: 15
       })
     });
+    
+    if (!res.ok) {
+      const errText = await res.text();
+      throw new Error(errText || `HTTP ${res.status}`);
+    }
+
     const data = await res.json();
     if (data.analysis) {
       box.innerHTML = `<div style="color: #fff; white-space: pre-wrap; font-size: 11px;">${data.analysis}</div>`;
     } else {
-      throw new Error("No response");
+      throw new Error(data.error || "No response received");
     }
-    } catch (err) {
+  } catch (err) {
     box.innerHTML = `
       <div style="color: var(--accent-red); font-weight: 800;">⚠️ Gemini Live Inference Error</div>
       <div style="color: var(--text-muted); font-size: 10px; margin-top: 4px;">
@@ -1869,7 +1897,6 @@ async function executeInlineMarketAnalysis(title, meta, outputBoxId) {
       </div>
     `;
   }
-
 }
 
 // --- DIRECT EXECUTION ORDER MODAL WITH CIRCUIT BREAKER ---
@@ -1988,9 +2015,9 @@ function loadRiskSettings() {
 // --- DUAL-EXCHANGE LIVE BALANCE POLLING ---
 async function fetchLiveExchangeBalances() {
   try {
-    const kRes = await fetch('/api/kalshi/trade/portfolio/balance').catch(() => null);
+    const kRes = await fetch(`${WORKER_BASE}/api/kalshi/trade/portfolio/balance`).catch(() => null);
     const kData = kRes && kRes.ok ? await kRes.json() : { balance: 0 };
-    const pRes = await fetch('/api/poly/balance').catch(() => null);
+    const pRes = await fetch(`${WORKER_BASE}/api/poly/balance`).catch(() => null);
     const pData = pRes && pRes.ok ? await pRes.json() : { balance: 7.00 };
 
     const kBal = (kData.balance || 0) / 100;
@@ -2166,7 +2193,7 @@ function removeSlip(index) {
 async function pollSharedSlips() {
   const uuid = getOrCreateClientUuid();
   try {
-    const res = await fetch(`/api/fleet/pull/${uuid}`);
+    const res = await fetch(`${WORKER_BASE}/api/fleet/pull/${uuid}`);
     if (!res.ok) return;
     const data = await res.json();
     if (data.pending && data.pending.length > 0) {
@@ -2254,7 +2281,7 @@ function checkAdState() {
 function openSetupModal() {
   const uuid = getOrCreateClientUuid();
   const endpointEl = document.getElementById('modal-endpoint-copy');
-  if (endpointEl) endpointEl.textContent = `https://cosmic-parlays.cosmictrollgaming.workers.dev/api/fleet/ingest/${uuid}`;
+  if (endpointEl) endpointEl.textContent = `${WORKER_BASE}/api/fleet/ingest/${uuid}`;
   const modal = document.getElementById('setup-modal');
   if (modal) modal.style.display = 'flex';
 }
@@ -2266,7 +2293,7 @@ function closeSetupModal() {
 
 function copyEndpointUrl() {
   const uuid = getOrCreateClientUuid();
-  const url = `https://cosmic-parlays.cosmictrollgaming.workers.dev/api/fleet/ingest/${uuid}`;
+  const url = `${WORKER_BASE}/api/fleet/ingest/${uuid}`;
   navigator.clipboard.writeText(url).then(() => {
     alert("Private endpoint URL copied to clipboard!");
   }).catch(() => {
@@ -2284,12 +2311,11 @@ function refreshCurrentTab() {
 async function fetchLivePoly() {
   const container = document.getElementById('poly-live-feed');
   try {
-    const res = await fetch('/api/polymarket/markets');
+    const res = await fetch(`${WORKER_BASE}/api/polymarket/markets`);
     if (!res.ok) throw new Error("Poly unavailable");
     const data = await res.json();
     if (Array.isArray(data) && data.length > 0) {
       container.innerHTML = data.slice(0, 8).map((ev, idx) => {
-        const safeTitle = ev.title.replace(/'/g, "\\'");
         return `
           <div class="market-card">
             <div class="market-card-head">
@@ -2301,9 +2327,9 @@ async function fetchLivePoly() {
               <span style="color: var(--accent-green); font-weight: 800;">CLOB Active</span>
             </div>
             <div class="action-tray">
-              <button class="btn btn-green" onclick="openOrderModal('${safeTitle}', 0.50, 'BUY YES', 'poly')">Buy YES</button>
-              <button class="btn btn-red" onclick="openOrderModal('${safeTitle}', 0.50, 'BUY NO', 'poly')">Buy NO</button>
-              <button class="btn btn-ai-inline" onclick="executeInlineMarketAnalysis('${safeTitle}', 'Volume: $${Math.round(ev.volume || 0).toLocaleString()}', 'poly-ai-${idx}')">🤖 Ask Gemini</button>
+              <button class="btn btn-green" onclick="openOrderModal('${ev.title.replace(/'/g, "\\'")}', 0.50, 'BUY YES', 'poly')">Buy YES</button>
+              <button class="btn btn-red" onclick="openOrderModal('${ev.title.replace(/'/g, "\\'")}', 0.50, 'BUY NO', 'poly')">Buy NO</button>
+              <button class="btn btn-ai-inline" onclick="executeInlineMarketAnalysis('${ev.title.replace(/'/g, "\\'")}', 'Volume: $${Math.round(ev.volume || 0).toLocaleString()}', 'poly-ai-${idx}')">🤖 Ask Gemini</button>
             </div>
             <div class="ai-agent-box" id="poly-ai-${idx}"></div>
           </div>
@@ -2325,8 +2351,8 @@ window.addEventListener('DOMContentLoaded', () => {
   fetchLiveExchangeBalances();
   renderFleetTickets();
 
-  renderCarouselSet(SPORTS_PICKS_POOL, 0, 'sports-picks-container', 'sports-dots');
-  renderCarouselSet(ESPORTS_PICKS_POOL, 0, 'esports-picks-container', 'esports-dots');
+  renderCarouselSet(SPORTS_PICKS_POOL, 0, 'sports-picks-container', 'sports-dots', 'SPORTS');
+  renderCarouselSet(ESPORTS_PICKS_POOL, 0, 'esports-picks-container', 'esports-dots', 'ESPORTS');
 
   setInterval(rotateCarousels, 6000);
   setInterval(pollSharedSlips, 10000);
