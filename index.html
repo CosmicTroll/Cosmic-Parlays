@@ -1013,10 +1013,10 @@
     <div>
       <div style="font-weight: 800; color: var(--accent-green); margin-bottom: 6px;">2. 1-Tap iOS Shortcut Installer</div>
       <p style="color: var(--text-muted); font-size: 11px; line-height: 1.4; margin-bottom: 10px;">
-        Tap below to import your configured shortcut into iOS. It embeds your unique ingestion endpoint automatically.
+        Tap below to copy your unique ingestion endpoint to clipboard and launch the Shortcuts app:
       </p>
       
-      <button class="btn btn-cyan" style="width: 100%; padding: 10px; font-weight: 900; margin-bottom: 8px;" onclick="triggerOneTapShortcutInstall()">⚡ Install iOS Shortcut (1-Tap)</button>
+      <button class="btn btn-cyan" style="width: 100%; padding: 10px; font-weight: 900; margin-bottom: 8px;" onclick="triggerOneTapShortcutInstall()">⚡ Copy Ingest URL &amp; Open Shortcuts</button>
 
       <div style="margin-top: 6px; background: #060812; border: 1px solid #1a2340; padding: 8px; border-radius: 6px; font-family: monospace; font-size: 10px; color: var(--accent-cyan); word-break: break-all;" id="modal-endpoint-copy">
         Loading...
@@ -1024,7 +1024,7 @@
       <button class="btn btn-gold" style="width: 100%; margin-top: 6px; padding: 6px; font-size: 11px;" onclick="copyEndpointUrl()">Copy Private URL</button>
     </div>
 
-    <button class="btn" style="width: 100%; background: #19223c;" margin-top: 4px;" onclick="closeSetupModal()">Got It</button>
+    <button class="btn" style="width: 100%; background: #19223c; margin-top: 4px;" onclick="closeSetupModal()">Got It</button>
   </div>
 </div>
 
@@ -1709,14 +1709,14 @@ function closeSetupModal() {
 
 function triggerOneTapShortcutInstall() {
   const uuid = getOrCreateClientUuid();
-  const shortcutDownloadUrl = `https://cosmic-parlays.cosmictrollgaming.workers.dev/api/fleet/shortcut/${uuid}`;
-  const shortcutsAppUrl = `shortcuts://import-shortcut?url=${encodeURIComponent(shortcutDownloadUrl)}&name=Cosmic%20Terminal`;
-  window.location.href = shortcutsAppUrl;
+  const ingestUrl = `https://cosmic-parlays.cosmictrollgaming.workers.dev/api/fleet/ingest/${uuid}`;
 
-  setTimeout(() => {
-    const ingestUrl = `https://cosmic-parlays.cosmictrollgaming.workers.dev/api/fleet/ingest/${uuid}`;
-    navigator.clipboard.writeText(ingestUrl).catch(() => {});
-  }, 1000);
+  navigator.clipboard.writeText(ingestUrl).then(() => {
+    alert("Private endpoint copied to clipboard!\n\nOpening Shortcuts app. In your 'Cosmic Terminal' shortcut, paste this into the URL field.");
+    window.location.href = "shortcuts://";
+  }).catch(() => {
+    window.location.href = "shortcuts://";
+  });
 }
 
 function copyEndpointUrl() {
@@ -1913,7 +1913,6 @@ async function verifyAllLivePositions() {
 
   let stateChanged = false;
 
-  // Poll all live feeds concurrently
   const [mlbRes, nflRes, nbaRes] = await Promise.all([
     fetch("/api/verify/mlb").catch(() => null),
     fetch("/api/verify/nfl").catch(() => null),
@@ -1959,7 +1958,6 @@ async function verifyAllLivePositions() {
           ticket.liveStatus = `Final: ${game.teams.away.team.abbreviation} ${awayScore} - ${game.teams.home.team.abbreviation} ${homeScore} (${ticket.won ? 'WON' : 'LOST'})`;
           stateChanged = true;
         } else {
-          // Zero-Path Elimination Prover
           let isDead = false;
           const underMatch = ticket.raw.match(/under\s*([0-9.]+)/i);
           if (underMatch && totalScore >= parseFloat(underMatch[1])) isDead = true;
@@ -1971,7 +1969,6 @@ async function verifyAllLivePositions() {
             playAlertChime();
             stateChanged = true;
 
-            // Autonomous Exit for Kalshi/Polymarket
             if (isAutonomousSalvageEnabled() && (ticket.book === "Kalshi" || ticket.book === "Polymarket")) {
               console.warn(`[Autonomous Salvage Engine] Programmatic exit triggered on ${ticket.id}`);
             }
