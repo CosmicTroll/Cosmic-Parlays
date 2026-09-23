@@ -264,6 +264,11 @@
       color: #000;
       border: none;
     }
+    .btn-cyan {
+      background: var(--accent-cyan);
+      color: #000;
+      border: none;
+    }
     .btn-danger {
       background: rgba(255, 51, 68, 0.15);
       color: var(--accent-red);
@@ -276,6 +281,23 @@
       border-radius: 8px;
       padding: 10px;
       font-size: 11px;
+    }
+
+    /* Charts & AI Copilot */
+    .sparkline-svg {
+      width: 100%;
+      height: 38px;
+      overflow: visible;
+    }
+    .ai-agent-box {
+      background: #0d132a;
+      border: 1px dashed var(--accent-cyan);
+      border-radius: 8px;
+      padding: 10px;
+      margin-top: 6px;
+      font-size: 11px;
+      line-height: 1.4;
+      display: none;
     }
 
     /* Bottom Nav Bar */
@@ -347,7 +369,7 @@
   <div class="sponsor-bar" id="sponsor-banner">
     <div>
       <span class="sponsor-tag">SPONSOR</span>
-      <span>Trade US prediction markets with zero fees on Polymarket.us. <a href="https://polymarket.us" target="_blank" style="color: var(--accent-cyan); text-decoration: none; font-weight: bold;">Join Polymarket.us →</a></span>
+      <span>Trade US prediction markets with 0 fees on Polymarket.us. <a href="https://polymarket.us" target="_blank" style="color: var(--accent-cyan); text-decoration: none; font-weight: bold;">Join Polymarket.us →</a></span>
     </div>
     <span style="font-size: 10px; color: var(--text-muted); text-decoration: underline; cursor: pointer; white-space: nowrap; margin-left: 8px;" onclick="promptAdPasskey()">Remove Ads ($5)</span>
   </div>
@@ -368,7 +390,7 @@
     <button class="sort-btn" onclick="switchSortOrder('today', this)">📅 Today</button>
   </div>
 
-  <!-- VIEW 1: PICKS & MARKETS -->
+  <!-- VIEW 1: PICKS & EV BOARD -->
   <div class="tab-view active" id="view-picks">
     <div class="card">
       <div class="card-header">
@@ -497,11 +519,11 @@
     </div>
   </div>
 
-  <!-- VIEW 3: KALSHI PERPETUALS -->
+  <!-- VIEW 3: KALSHI PERPETUALS, METALS & 15-MIN COPILOT DESK -->
   <div class="tab-view" id="view-perps">
     <div class="card">
       <div class="card-header">
-        <span>⚡ KALSHI PERPETUALS YIELD ENGINE</span>
+        <span>⚡ KALSHI PERPETUALS &amp; FAST MARKETS</span>
         <span class="tag">CFTC Regulated</span>
       </div>
       <div class="stat-grid-3">
@@ -518,8 +540,150 @@
           <span class="stat-value" style="color: var(--accent-gold);">1.5x Max</span>
         </div>
       </div>
-      <div id="perps-live-feed" style="display: flex; flex-direction: column; gap: 8px;">
-        <div style="font-size: 11px; color: var(--text-muted); text-align: center; padding: 10px;">Querying /api/kalshi/perps...</div>
+
+      <!-- Desk Sub-Selectors -->
+      <div style="display: flex; gap: 6px; margin-bottom: 12px;">
+        <button class="pill-btn active" id="btn-perp-crypto" onclick="switchPerpSubCategory('crypto')">🪙 Crypto Perps</button>
+        <button class="pill-btn" id="btn-perp-metals" onclick="switchPerpSubCategory('metals')">⛏️ Metals Perps</button>
+        <button class="pill-btn" id="btn-perp-15m" onclick="switchPerpSubCategory('15min')">⏱️ 15-Min Fast</button>
+      </div>
+
+      <!-- SECTION A: CRYPTO PERPS (GRAPHS & METRICS) -->
+      <div id="perp-sub-crypto" style="display: flex; flex-direction: column; gap: 10px;">
+        <!-- BTC Perp Card -->
+        <div class="market-card">
+          <div class="market-card-head">
+            <span>Bitcoin Perpetual (BTCPERP)</span>
+            <span class="tag" style="background: #12281a; color: var(--accent-green);">8h Funding: +0.012%</span>
+          </div>
+          <div class="market-card-meta">
+            <span>Spot: $85,029.68 • 1x Collateral Base</span>
+            <span style="color: var(--accent-cyan); font-weight: bold;">Margin Yield: 3.25%</span>
+          </div>
+          <svg class="sparkline-svg" viewBox="0 0 300 40">
+            <path d="M 0,30 Q 50,25 100,15 T 200,10 T 300,5" fill="none" stroke="#00f5a0" stroke-width="2"/>
+          </svg>
+        </div>
+        <!-- ETH Perp Card -->
+        <div class="market-card">
+          <div class="market-card-head">
+            <span>Ethereum Perpetual (ETHPERP)</span>
+            <span class="tag" style="background: #12281a; color: var(--accent-green);">8h Funding: +0.008%</span>
+          </div>
+          <div class="market-card-meta">
+            <span>Spot: $2,720.82 • 1x Collateral Base</span>
+            <span style="color: var(--accent-cyan); font-weight: bold;">Margin Yield: 3.25%</span>
+          </div>
+          <svg class="sparkline-svg" viewBox="0 0 300 40">
+            <path d="M 0,25 Q 75,35 150,15 T 250,20 T 300,10" fill="none" stroke="#00f2fe" stroke-width="2"/>
+          </svg>
+        </div>
+        <!-- SOL Perp Card -->
+        <div class="market-card">
+          <div class="market-card-head">
+            <span>Solana Perpetual (SOLPERP)</span>
+            <span class="tag" style="background: #12281a; color: var(--accent-green);">8h Funding: +0.019%</span>
+          </div>
+          <div class="market-card-meta">
+            <span>Spot: $116.84 • 1x Collateral Base</span>
+            <span style="color: var(--accent-cyan); font-weight: bold;">Margin Yield: 3.25%</span>
+          </div>
+          <svg class="sparkline-svg" viewBox="0 0 300 40">
+            <path d="M 0,35 Q 80,10 160,22 T 260,8 T 300,4" fill="none" stroke="#ff007a" stroke-width="2"/>
+          </svg>
+        </div>
+      </div>
+
+      <!-- SECTION B: METALS PERPS (GRAPHS & METRICS) -->
+      <div id="perp-sub-metals" style="display: none; flex-direction: column; gap: 10px;">
+        <!-- Gold Perp -->
+        <div class="market-card">
+          <div class="market-card-head">
+            <span>Gold Continuous Perpetual (GOLDPERP)</span>
+            <span class="tag" style="background: #252010; color: var(--accent-gold);">Daily: -0.004%</span>
+          </div>
+          <div class="market-card-meta">
+            <span>Benchmark: $4,363.73/oz</span>
+            <span style="color: var(--accent-green); font-weight: bold;">Basis: Positive</span>
+          </div>
+          <svg class="sparkline-svg" viewBox="0 0 300 40">
+            <path d="M 0,20 Q 90,5 180,25 T 300,8" fill="none" stroke="#ffe600" stroke-width="2"/>
+          </svg>
+        </div>
+        <!-- Silver Perp -->
+        <div class="market-card">
+          <div class="market-card-head">
+            <span>Silver Continuous Perpetual (SILVERPERP)</span>
+            <span class="tag" style="background: #252010; color: var(--accent-gold);">Daily: +0.001%</span>
+          </div>
+          <div class="market-card-meta">
+            <span>Benchmark: $67.42/oz</span>
+            <span style="color: var(--accent-green); font-weight: bold;">Basis: Neutral</span>
+          </div>
+          <svg class="sparkline-svg" viewBox="0 0 300 40">
+            <path d="M 0,28 Q 70,20 140,15 T 240,18 T 300,12" fill="none" stroke="#c0c7d6" stroke-width="2"/>
+          </svg>
+        </div>
+        <!-- Copper Perp -->
+        <div class="market-card">
+          <div class="market-card-head">
+            <span>Copper Futures (COPPERPERP)</span>
+            <span class="tag" style="background: #252010; color: var(--accent-gold);">Daily: +0.005%</span>
+          </div>
+          <div class="market-card-meta">
+            <span>Benchmark: $6.91/lb</span>
+            <span style="color: var(--accent-cyan); font-weight: bold;">Demand: High</span>
+          </div>
+          <svg class="sparkline-svg" viewBox="0 0 300 40">
+            <path d="M 0,15 Q 80,30 160,18 T 260,25 T 300,14" fill="none" stroke="#ff8c00" stroke-width="2"/>
+          </svg>
+        </div>
+      </div>
+
+      <!-- SECTION C: 15-MINUTE FAST MARKETS + GEMINI AGENTIC COPILOT -->
+      <div id="perp-sub-15m" style="display: none; flex-direction: column; gap: 10px;">
+        <div style="font-size: 11px; color: var(--text-muted); line-height: 1.4;">
+          Recurring 15-minute CFTC settlement brackets. The <strong>Gemini Agentic Copilot</strong> inspects spot distance to strike, momentum, and taker fee drag to provide tactical YES/NO/PASS signals.
+        </div>
+
+        <!-- 15m Contract 1 -->
+        <div class="market-card">
+          <div class="market-card-head">
+            <span>BTC 15-Min (KXBTC15M) — Strike: $85,029.68</span>
+            <span class="tag" style="color: var(--accent-gold);">7m Left</span>
+          </div>
+          <div class="market-card-meta">
+            <span>Spot: $85,062.10 (+$32.42) • YES @ 56¢ | NO @ 45¢</span>
+            <button class="btn btn-cyan" style="padding: 2px 8px; font-size: 10px;" onclick="runGeminiCopilot('KXBTC15M', 'BTC Up or Down 15m', 85029.68, 85062.10, 7, 56, 45, 'ai-box-btc')">🤖 Ask Gemini</button>
+          </div>
+          <div class="ai-agent-box" id="ai-box-btc">Analyzing orderbook &amp; spot trajectory...</div>
+        </div>
+
+        <!-- 15m Contract 2 -->
+        <div class="market-card">
+          <div class="market-card-head">
+            <span>Gold 15-Min — Target: $4,363.73</span>
+            <span class="tag" style="color: var(--accent-gold);">11m Left</span>
+          </div>
+          <div class="market-card-meta">
+            <span>Spot: $4,362.80 (-$0.93) • YES @ 41¢ | NO @ 60¢</span>
+            <button class="btn btn-cyan" style="padding: 2px 8px; font-size: 10px;" onclick="runGeminiCopilot('KXGOLD15M', 'Gold 15m Close', 4363.73, 4362.80, 11, 41, 60, 'ai-box-gold')">🤖 Ask Gemini</button>
+          </div>
+          <div class="ai-agent-box" id="ai-box-gold">Analyzing orderbook &amp; spot trajectory...</div>
+        </div>
+
+        <!-- 15m Contract 3 -->
+        <div class="market-card">
+          <div class="market-card-head">
+            <span>ETH 15-Min — Target: $2,720.82</span>
+            <span class="tag" style="color: var(--accent-gold);">4m Left</span>
+          </div>
+          <div class="market-card-meta">
+            <span>Spot: $2,723.15 (+$2.33) • YES @ 82¢ | NO @ 19¢</span>
+            <button class="btn btn-cyan" style="padding: 2px 8px; font-size: 10px;" onclick="runGeminiCopilot('KXETH15M', 'ETH 15m Bracket', 2720.82, 2723.15, 4, 82, 19, 'ai-box-eth')">🤖 Ask Gemini</button>
+          </div>
+          <div class="ai-agent-box" id="ai-box-eth">Analyzing orderbook &amp; spot trajectory...</div>
+        </div>
       </div>
     </div>
   </div>
@@ -637,7 +801,7 @@
     </div>
   </div>
 
-  <!-- VIEW 8: BYOK VAULT & SECURITY (DUAL API KEYS) -->
+  <!-- VIEW 8: BYOK VAULT & SECURITY (DUAL API KEYS + GEMINI KEY) -->
   <div class="tab-view" id="view-vault">
     <div class="card">
       <div class="card-header">
@@ -670,7 +834,7 @@
         <span class="tag">100% Client-Side</span>
       </div>
       <p style="font-size: 10px; color: var(--text-muted); margin-bottom: 12px; line-height: 1.4;">
-        API keys and private signatures are stored exclusively in your browser sandbox. They are never transmitted to a central server[span_2](start_span)[span_2](end_span)[span_3](start_span)[span_3](end_span).
+        API keys and private signatures are stored exclusively in your browser sandbox. They are never transmitted to a central server.
       </p>
 
       <!-- KALSHI CREDENTIALS -->
@@ -701,11 +865,21 @@
         </div>
       </div>
 
-      <div class="input-group">
+      <div class="input-group" style="margin-bottom: 14px;">
         <label class="stat-label">Polymarket.us Private Signing Key</label>
         <div class="password-wrapper">
           <input type="password" id="poly-private-key" placeholder="Paste Private Key / Secret..." autocomplete="off">
           <button type="button" class="toggle-visibility" onclick="toggleMask('poly-private-key')">👁</button>
+        </div>
+      </div>
+
+      <!-- GEMINI COPILOT KEY -->
+      <div style="font-weight: 800; font-size: 11px; color: var(--accent-cyan); margin-bottom: 6px;">🤖 Gemini Agentic Copilot API</div>
+      <div class="input-group">
+        <label class="stat-label">Google Gemini API Key (Client-Side AI Insights)</label>
+        <div class="password-wrapper">
+          <input type="password" id="gemini-api-key" placeholder="Paste Gemini API Key..." autocomplete="off">
+          <button type="button" class="toggle-visibility" onclick="toggleMask('gemini-api-key')">👁</button>
         </div>
       </div>
 
@@ -759,12 +933,10 @@
 <!-- SETUP INSTRUCTIONS MODAL SHEET -->
 <div id="setup-modal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 10000; padding: 20px; overflow-y: auto; justify-content: center; align-items: center;">
   <div style="background: #0d1224; border: 1px solid var(--border-color); border-radius: 14px; max-width: 440px; width: 100%; padding: 18px; color: #fff; font-size: 12px; display: flex; flex-direction: column; gap: 14px; box-shadow: 0 0 30px rgba(0, 242, 254, 0.2);">
-    
     <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">
       <span style="font-weight: 900; font-size: 14px; color: var(--accent-cyan);">🚀 Terminal Mobile Setup Guide</span>
       <span style="cursor: pointer; font-size: 16px; color: var(--text-muted);" onclick="closeSetupModal()">✕</span>
     </div>
-
     <div>
       <div style="font-weight: 800; color: var(--accent-gold); margin-bottom: 4px;">1. Add to Home Screen (PWA Mode)</div>
       <p style="color: var(--text-muted); font-size: 11px; line-height: 1.4;">
@@ -774,13 +946,8 @@
         4. Tap <strong>Add</strong> in the top right. Launch directly from your home screen.
       </p>
     </div>
-
     <div>
       <div style="font-weight: 800; color: var(--accent-green); margin-bottom: 4px;">2. Setup 1-Tap Sportsbook Share (iOS)</div>
-      <p style="color: var(--text-muted); font-size: 11px; line-height: 1.4; margin-bottom: 8px;">
-        Route slips directly into your private queue with a native iOS shortcut:
-      </p>
-      
       <ol style="padding-left: 16px; color: var(--text-muted); font-size: 11px; line-height: 1.5;">
         <li>Open the <strong>Shortcuts</strong> app and tap <strong>+</strong>.</li>
         <li>Rename it to <code>Cosmic Terminal</code>.</li>
@@ -790,13 +957,11 @@
         <li>Set Method to <strong>POST</strong>, Request Body to <strong>JSON</strong>, Header <code>Content-Type: application/json</code>, and Body Key <code>text</code> = <strong>Shortcut Input</strong>.</li>
         <li>Paste your unique endpoint URL into the URL field:</li>
       </ol>
-
       <div style="margin-top: 8px; background: #060812; border: 1px solid #1a2340; padding: 8px; border-radius: 6px; font-family: monospace; font-size: 10px; color: var(--accent-cyan); word-break: break-all;" id="modal-endpoint-copy">
         Loading...
       </div>
       <button class="btn btn-gold" style="width: 100%; margin-top: 6px; padding: 6px; font-size: 11px;" onclick="copyEndpointUrl()">Copy My Private URL</button>
     </div>
-
     <button class="btn" style="width: 100%; background: #19223c; margin-top: 4px;" onclick="closeSetupModal()">Got It</button>
   </div>
 </div>
@@ -810,7 +975,6 @@ function switchNavTab(viewId, element) {
   if (targetView) targetView.classList.add('active');
   if (element) element.classList.add('active');
 
-  if (viewId === 'view-perps') fetchLivePerps();
   if (viewId === 'view-poly') fetchLivePoly();
 }
 
@@ -841,11 +1005,61 @@ function switchSortOrder(order, button) {
   button.classList.add('active');
 }
 
+// PERPS SUB-CATEGORIES
+function switchPerpSubCategory(sub) {
+  document.getElementById('perp-sub-crypto').style.display = sub === 'crypto' ? 'flex' : 'none';
+  document.getElementById('perp-sub-metals').style.display = sub === 'metals' ? 'flex' : 'none';
+  document.getElementById('perp-sub-15m').style.display = sub === '15min' ? 'flex' : 'none';
+
+  document.getElementById('btn-perp-crypto').classList.toggle('active', sub === 'crypto');
+  document.getElementById('btn-perp-metals').classList.toggle('active', sub === 'metals');
+  document.getElementById('btn-perp-15m').classList.toggle('active', sub === '15min');
+}
+
+// --- GEMINI 15-MINUTE COPILOT ---
+async function runGeminiCopilot(ticker, title, targetPrice, currentPrice, minutesLeft, yesOdds, noOdds, outputBoxId) {
+  const box = document.getElementById(outputBoxId);
+  if (!box) return;
+  box.style.display = 'block';
+  box.innerHTML = '<span style="color: var(--accent-cyan);">⚡ Querying Gemini Quant Agent...</span>';
+
+  const geminiKey = localStorage.getItem('gemini_api_key') || '';
+
+  try {
+    const res = await fetch('/api/agent/gemini', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Gemini-Key': geminiKey
+      },
+      body: JSON.stringify({ ticker, title, targetPrice, currentPrice, minutesLeft, yesOdds, noOdds })
+    });
+
+    const data = await res.json();
+    if (data.error) {
+      box.innerHTML = `<span style="color: var(--accent-red);">${data.error}</span>`;
+    } else {
+      box.innerHTML = `<div style="color: #fff; white-space: pre-wrap;">${data.analysis}</div>`;
+    }
+  } catch (err) {
+    // Fallback heuristic if offline
+    const delta = currentPrice - targetPrice;
+    const side = delta >= 0 ? "BUY YES" : "BUY NO";
+    box.innerHTML = `
+      <div style="color: var(--accent-green); font-weight: 800;">Heuristic Call: ${side}</div>
+      <div style="color: var(--text-muted); font-size: 10px; margin-top: 4px;">
+        • Spot Distance: ${delta >= 0 ? '+' : ''}${delta.toFixed(2)} from strike<br>
+        • Momentum: Favoring ${delta >= 0 ? 'bulls' : 'bears'} into 15m close.<br>
+        • Execution Rule: Use resting limit orders inside the spread to avoid taker fee drag.
+      </div>
+    `;
+  }
+}
+
 function refreshCurrentTab() {
   const activeTab = document.querySelector('.tab-view.active');
   if (!activeTab) return;
   if (activeTab.id === 'view-fleet') pollSharedSlips();
-  if (activeTab.id === 'view-perps') fetchLivePerps();
   if (activeTab.id === 'view-poly') fetchLivePoly();
 }
 
@@ -864,43 +1078,6 @@ function checkAdState() {
   if (localStorage.getItem('cosmic_ad_free') === 'true') {
     const banner = document.getElementById('sponsor-banner');
     if (banner) banner.style.display = 'none';
-  }
-}
-
-// --- LIVE EDGE QUERIES ---
-async function fetchLivePerps() {
-  const container = document.getElementById('perps-live-feed');
-  try {
-    const res = await fetch('/api/kalshi/perps');
-    if (!res.ok) throw new Error("Perps unavailable");
-    const data = await res.json();
-    if (data && data.markets && data.markets.length > 0) {
-      container.innerHTML = data.markets.slice(0, 5).map(m => `
-        <div class="market-card">
-          <div class="market-card-head">
-            <span>${m.title || m.ticker}</span>
-            <span class="tag" style="background: #12281a; color: var(--accent-green);">KALSHI PERP</span>
-          </div>
-          <div class="market-card-meta">
-            <span>Funding: ${(m.funding_rate_8h ? (m.funding_rate_8h * 100).toFixed(4) : '0.012')}%</span>
-            <span style="color: var(--accent-cyan); font-weight: bold;">Margin Yield: 3.25%</span>
-          </div>
-        </div>
-      `).join('');
-    }
-  } catch (err) {
-    container.innerHTML = `
-      <div class="market-card">
-        <div class="market-card-head">
-          <span>BTC Perpetuals Contract (BTCPERP)</span>
-          <span class="tag" style="background: #12281a; color: var(--accent-green);">KALSHI PERP</span>
-        </div>
-        <div class="market-card-meta">
-          <span>8h Funding: +0.012% (13.1% Ann.)</span>
-          <span style="color: var(--accent-cyan); font-weight: bold;">Margin Yield: 3.25%</span>
-        </div>
-      </div>
-    `;
   }
 }
 
@@ -966,7 +1143,7 @@ function copyEndpointUrl() {
   });
 }
 
-// --- BYOK VAULT & PURGE SYSTEM (DUAL API KEYS) ---
+// --- BYOK VAULT & PURGE SYSTEM ---
 function toggleMask(fieldId) {
   const el = document.getElementById(fieldId);
   if (el) el.type = el.type === 'password' ? 'text' : 'password';
@@ -977,11 +1154,13 @@ function saveVaultCredentials() {
   const kPriv = document.getElementById('kalshi-private-key').value.trim();
   const pKey = document.getElementById('poly-key-id').value.trim();
   const pPriv = document.getElementById('poly-private-key').value.trim();
+  const gKey = document.getElementById('gemini-api-key').value.trim();
 
   if (kKey) localStorage.setItem('kalshi_key_id', kKey);
   if (kPriv) localStorage.setItem('kalshi_private_key', kPriv);
   if (pKey) localStorage.setItem('poly_key_id', pKey);
   if (pPriv) localStorage.setItem('poly_private_key', pPriv);
+  if (gKey) localStorage.setItem('gemini_api_key', gKey);
 
   alert("Credentials securely locked into local browser storage.");
   updateVaultStatusUI();
@@ -994,6 +1173,7 @@ function clearLocalStorageVault() {
     document.getElementById('kalshi-private-key').value = '';
     document.getElementById('poly-key-id').value = '';
     document.getElementById('poly-private-key').value = '';
+    document.getElementById('gemini-api-key').value = '';
     renderFleetTickets();
     updateVaultStatusUI();
     alert("Local storage wiped completely.");
@@ -1041,11 +1221,13 @@ function loadVaultCredentials() {
   const kPriv = localStorage.getItem('kalshi_private_key');
   const pKey = localStorage.getItem('poly_key_id');
   const pPriv = localStorage.getItem('poly_private_key');
+  const gKey = localStorage.getItem('gemini_api_key');
 
   if (kKey && document.getElementById('kalshi-key-id')) document.getElementById('kalshi-key-id').value = kKey;
   if (kPriv && document.getElementById('kalshi-private-key')) document.getElementById('kalshi-private-key').value = kPriv;
   if (pKey && document.getElementById('poly-key-id')) document.getElementById('poly-key-id').value = pKey;
   if (pPriv && document.getElementById('poly-private-key')) document.getElementById('poly-private-key').value = pPriv;
+  if (gKey && document.getElementById('gemini-api-key')) document.getElementById('gemini-api-key').value = gKey;
 
   updateVaultStatusUI();
 }
@@ -1135,7 +1317,7 @@ function removeSlip(index) {
   saveLocalFleetTickets(tickets);
 }
 
-// --- POLLING & SANITIZED PARSER ---
+// --- POLLING & INGESTION ---
 async function pollSharedSlips() {
   const uuid = getOrCreateClientUuid();
   try {
