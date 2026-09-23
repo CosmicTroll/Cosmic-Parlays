@@ -1,0 +1,961 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Cosmic Terminal</title>
+  <link rel="manifest" href="/manifest.json">
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+
+<div class="app-shell">
+
+  <!-- Top App Bar -->
+  <div class="top-bar">
+    <div class="brand-title">🚀 Cosmic Terminal</div>
+    <div class="top-actions">
+      <div class="badge" onclick="alert('Support: Edge terminal active.')">☕ Support</div>
+      <div class="badge" onclick="refreshCurrentTab()">Refresh</div>
+      <div class="badge badge-edge">Edge Active</div>
+    </div>
+  </div>
+
+  <!-- Top Desk Switcher Bar -->
+  <div class="desk-nav" id="top-desk-nav">
+    <button class="desk-btn active" onclick="switchDeskFilter('all', this)">🔥 Top EV Picks</button>
+    <button class="desk-btn" onclick="switchDeskFilter('poly', this)">🟣 Polymarket</button>
+    <button class="desk-btn" onclick="switchDeskFilter('kalshi', this)">🟢 Kalshi Desk</button>
+    <button class="desk-btn" onclick="switchDeskFilter('fleet', this)">🏈 Sportsbooks (Fleet)</button>
+  </div>
+
+  <!-- Compact Search & Sport Filter Tray -->
+  <div class="card" style="padding: 10px 14px; margin-bottom: 2px;">
+    <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 8px;">
+      <input type="text" id="market-search-input" placeholder="🔍 Search teams, players, or events..." oninput="applyGlobalFilters()" style="padding: 8px 12px; font-size: 11px;">
+    </div>
+    <div style="display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px;" id="sport-filter-pills">
+      <button class="pill-btn active" onclick="filterBySport('all', this)">All</button>
+      <button class="pill-btn" onclick="filterBySport('mlb', this)">⚾ MLB</button>
+      <button class="pill-btn" onclick="filterBySport('nfl', this)">🏈 NFL</button>
+      <button class="pill-btn" onclick="filterBySport('tennis', this)">🎾 Tennis</button>
+      <button class="pill-btn" onclick="filterBySport('esports', this)">🎮 Esports</button>
+      <button class="pill-btn" onclick="filterBySport('macro', this)">🏛️ Macro</button>
+    </div>
+  </div>
+
+  <!-- Sorter Navigation Bar -->
+  <div class="sort-nav" id="top-sort-nav">
+    <span class="sort-label">SORT:</span>
+    <button class="sort-btn active" onclick="switchSortOrder('roi-high', this)">🔥 Top ROI</button>
+    <button class="sort-btn" onclick="switchSortOrder('roi-low', this)">📉 Low ROI</button>
+    <button class="sort-btn" onclick="switchSortOrder('ending', this)">⏳ Ending Soonest</button>
+    <button class="sort-btn" onclick="switchSortOrder('today', this)">📅 Upcoming Slate</button>
+  </div>
+
+  <!-- VIEW 1: PICKS & EV BOARD -->
+  <div class="tab-view active" id="view-picks">
+    <!-- Sports EV Board -->
+    <div class="card market-section" id="section-sports">
+      <div class="card-header">
+        <span>🏈 Top Sports Picks (MLB / NFL / Tennis EV)</span>
+        <span class="tag" style="color: var(--accent-cyan);">Screened Pool</span>
+      </div>
+      <div id="sports-picks-container" style="display: flex; flex-direction: column; gap: 8px;"></div>
+      <div id="sports-dots" style="display: flex; justify-content: center; gap: 4px; margin-top: 8px;">
+        <span class="carousel-dot active"></span>
+        <span class="carousel-dot"></span>
+        <span class="carousel-dot"></span>
+      </div>
+    </div>
+
+    <!-- Esports EV Board -->
+    <div class="card market-section" id="section-esports">
+      <div class="card-header">
+        <span>🎮 Esports Desk (CS2 / Dota 2 / LOL)</span>
+        <span class="tag" style="color: var(--accent-cyan);">Screened Pool</span>
+      </div>
+      <div id="esports-picks-container" style="display: flex; flex-direction: column; gap: 8px;"></div>
+      <div id="esports-dots" style="display: flex; justify-content: center; gap: 4px; margin-top: 8px;">
+        <span class="carousel-dot active"></span>
+        <span class="carousel-dot"></span>
+        <span class="carousel-dot"></span>
+      </div>
+    </div>
+
+    <!-- Sponsor Banner -->
+    <div class="sponsor-bar" id="sponsor-banner">
+      <div>
+        <span class="sponsor-tag">SPONSOR</span>
+        <span>Trade US prediction markets with 0 fees on Polymarket.us. <a href="https://polymarket.us" target="_blank" style="color: var(--accent-cyan); text-decoration: none; font-weight: bold;">Join Polymarket.us →</a></span>
+      </div>
+      <span style="font-size: 10px; color: var(--text-muted); text-decoration: underline; cursor: pointer; white-space: nowrap; margin-left: 8px;" onclick="promptAdPasskey()">Remove Ads ($5)</span>
+    </div>
+  </div>
+
+  <!-- VIEW 2: MACRO DESK -->
+  <div class="tab-view" id="view-macro">
+    <div class="card">
+      <div class="card-header">
+        <span>🏛️ MACRO &amp; MONETARY DESK</span>
+        <span class="tag">CFTC Contracts</span>
+      </div>
+      <div id="macro-picks-container" style="display: flex; flex-direction: column; gap: 8px;">
+        <div class="market-card sortable-card" data-sport="macro" data-roi="19.0" data-expiry="1790000000000">
+          <div class="market-card-head">
+            <span>Fed Funds Target Rate Cut ≥ 25 bps</span>
+            <span class="tag" style="background: #12281a; color: var(--accent-green);">KALSHI</span>
+          </div>
+          <div class="market-card-meta">
+            <span>Market Implied: 84% Yes • Volume: $1.42M</span>
+            <span style="color: var(--accent-green); font-weight: 800;">YES @ $0.84</span>
+          </div>
+          <div class="action-tray">
+            <button class="btn btn-green" onclick="openOrderModal('Fed Cut ≥ 25 bps', 0.84, 'BUY YES', 'kalshi')">Buy YES @ $0.84</button>
+            <button class="btn btn-red" onclick="openOrderModal('Fed Cut ≥ 25 bps', 0.17, 'BUY NO', 'kalshi')">Buy NO @ $0.17</button>
+            <button class="btn btn-ai-inline" onclick="executeInlineMarketAnalysis('Fed Funds Target Rate Cut ≥ 25 bps', '84% Implied Yes', 'macro-ai-1')">🤖 Ask Gemini</button>
+          </div>
+          <div class="ai-agent-box" id="macro-ai-1"></div>
+        </div>
+        <div class="market-card sortable-card" data-sport="macro" data-roi="47.0" data-expiry="1791000000000">
+          <div class="market-card-head">
+            <span>US Core CPI Inflation &lt; 3.0% Annualized</span>
+            <span class="tag" style="background: #12281a; color: var(--accent-green);">KALSHI</span>
+          </div>
+          <div class="market-card-meta">
+            <span>Market Implied: 68% Yes • Volume: $890k</span>
+            <span style="color: var(--accent-green); font-weight: 800;">YES @ $0.68</span>
+          </div>
+          <div class="action-tray">
+            <button class="btn btn-green" onclick="openOrderModal('Core CPI < 3.0%', 0.68, 'BUY YES', 'kalshi')">Buy YES @ $0.68</button>
+            <button class="btn btn-red" onclick="openOrderModal('Core CPI < 3.0%', 0.33, 'BUY NO', 'kalshi')">Buy NO @ $0.33</button>
+            <button class="btn btn-ai-inline" onclick="executeInlineMarketAnalysis('US Core CPI Inflation < 3.0%', '68% Implied Yes', 'macro-ai-2')">🤖 Ask Gemini</button>
+          </div>
+          <div class="ai-agent-box" id="macro-ai-2"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- VIEW 3: KALSHI PERPETUALS & 15-MIN COPILOT DESK -->
+  <div class="tab-view" id="view-perps">
+    <div class="card">
+      <div class="card-header">
+        <span>⚡ KALSHI PERPETUAL FUTURES &amp; COMMODITIES DESK</span>
+        <span class="tag">CFTC Regulated</span>
+      </div>
+      <div class="stat-grid-3">
+        <div class="stat-box">
+          <span class="stat-label">Margin APR</span>
+          <span class="stat-value" style="color: var(--accent-cyan);">3.25%</span>
+        </div>
+        <div class="stat-box">
+          <span class="stat-label">Daily Settlements</span>
+          <span class="stat-value" style="color: var(--accent-green);">8h / Daily</span>
+        </div>
+        <div class="stat-box">
+          <span class="stat-label">Guardrail Cap</span>
+          <span class="stat-value" style="color: var(--accent-gold);">1.5x Max</span>
+        </div>
+      </div>
+
+      <div style="display: flex; gap: 6px; margin-bottom: 12px; overflow-x: auto; scrollbar-width: none; padding-bottom: 4px;">
+        <button class="pill-btn active" id="btn-perp-crypto" onclick="switchPerpSubCategory('crypto')">🪙 Crypto (18)</button>
+        <button class="pill-btn" id="btn-perp-commodities" onclick="switchPerpSubCategory('commodities')">🛢️ Commodities Suite</button>
+        <button class="pill-btn" id="btn-perp-15m" onclick="switchPerpSubCategory('15min')">⏱️ 15-Min Fast Copilot</button>
+      </div>
+
+      <!-- 18-Asset Crypto Perpetual Suite -->
+      <div id="perp-sub-crypto" style="display: flex; flex-direction: column; gap: 10px;">
+        <div class="market-card sortable-card" data-sport="crypto">
+          <div class="market-card-head"><span>Bitcoin (BTCPERP) • Max 6.3x</span><span class="tag" style="background: #12281a; color: var(--accent-green);">8h: +0.012%</span></div>
+          <div class="market-card-meta"><span>Spot: $85,029.68 • Margin Yield: 3.25%</span><span style="color: var(--accent-cyan); font-weight: bold;">Basis: +$4.20</span></div>
+          <svg class="sparkline-svg" viewBox="0 0 300 40"><path d="M0,25 Q40,10 80,20 T160,15 T240,8 T300,12" fill="none" stroke="var(--accent-green)" stroke-width="2"/></svg>
+          <div class="action-tray">
+            <button class="btn btn-green" onclick="openOrderModal('BTCPERP Long', 85029.68, 'LONG', 'kalshi')">Long BTC</button>
+            <button class="btn btn-red" onclick="openOrderModal('BTCPERP Short', 85029.68, 'SHORT', 'kalshi')">Short BTC</button>
+            <button class="btn btn-ai-inline" onclick="executeInlineMarketAnalysis('Bitcoin (BTCPERP)', 'Spot: $85,029.68', 'crypto-ai-btc')">🤖 Ask Gemini</button>
+          </div>
+          <div class="ai-agent-box" id="crypto-ai-btc"></div>
+        </div>
+
+        <div class="market-card sortable-card" data-sport="crypto">
+          <div class="market-card-head"><span>Ethereum (ETHPERP) • Max 4.8x</span><span class="tag" style="background: #12281a; color: var(--accent-green);">8h: +0.008%</span></div>
+          <div class="market-card-meta"><span>Spot: $2,720.82 • Margin Yield: 3.25%</span><span style="color: var(--accent-cyan); font-weight: bold;">Basis: +$0.60</span></div>
+          <svg class="sparkline-svg" viewBox="0 0 300 40"><path d="M0,28 Q50,35 100,20 T200,18 T300,10" fill="none" stroke="var(--accent-green)" stroke-width="2"/></svg>
+          <div class="action-tray">
+            <button class="btn btn-green" onclick="openOrderModal('ETHPERP Long', 2720.82, 'LONG', 'kalshi')">Long ETH</button>
+            <button class="btn btn-red" onclick="openOrderModal('ETHPERP Short', 2720.82, 'SHORT', 'kalshi')">Short ETH</button>
+            <button class="btn btn-ai-inline" onclick="executeInlineMarketAnalysis('Ethereum (ETHPERP)', 'Spot: $2,720.82', 'crypto-ai-eth')">🤖 Ask Gemini</button>
+          </div>
+          <div class="ai-agent-box" id="crypto-ai-eth"></div>
+        </div>
+
+        <div class="market-card sortable-card" data-sport="crypto">
+          <div class="market-card-head"><span>Solana (SOLPERP) • Max 3.0x</span><span class="tag" style="background: #12281a; color: var(--accent-green);">8h: +0.015%</span></div>
+          <div class="market-card-meta"><span>Spot: $184.40 • Margin Yield: 3.25%</span><span style="color: var(--accent-cyan); font-weight: bold;">Basis: +$0.12</span></div>
+          <svg class="sparkline-svg" viewBox="0 0 300 40"><path d="M0,15 Q60,30 120,18 T220,10 T300,5" fill="none" stroke="var(--accent-green)" stroke-width="2"/></svg>
+          <div class="action-tray">
+            <button class="btn btn-green" onclick="openOrderModal('SOLPERP Long', 184.40, 'LONG', 'kalshi')">Long SOL</button>
+            <button class="btn btn-red" onclick="openOrderModal('SOLPERP Short', 184.40, 'SHORT', 'kalshi')">Short SOL</button>
+            <button class="btn btn-ai-inline" onclick="executeInlineMarketAnalysis('Solana (SOLPERP)', 'Spot: $184.40', 'crypto-ai-sol')">🤖 Ask Gemini</button>
+          </div>
+          <div class="ai-agent-box" id="crypto-ai-sol"></div>
+        </div>
+
+        <div class="market-card sortable-card" data-sport="crypto">
+          <div class="market-card-head"><span>XRP Continuous (XRPPERP) • Max 2.8x</span><span class="tag" style="background: #252010; color: var(--accent-gold);">8h: +0.005%</span></div>
+          <div class="market-card-meta"><span>Spot: $0.584 • High Liquidity</span><span style="color: var(--accent-cyan); font-weight: bold;">Margin: 3.25%</span></div>
+          <div class="action-tray">
+            <button class="btn btn-green" onclick="openOrderModal('XRPPERP Long', 0.584, 'LONG', 'kalshi')">Long XRP</button>
+            <button class="btn btn-red" onclick="openOrderModal('XRPPERP Short', 0.584, 'SHORT', 'kalshi')">Short XRP</button>
+            <button class="btn btn-ai-inline" onclick="executeInlineMarketAnalysis('XRP (XRPPERP)', 'Spot: $0.584', 'crypto-ai-xrp')">🤖 Ask Gemini</button>
+          </div>
+          <div class="ai-agent-box" id="crypto-ai-xrp"></div>
+        </div>
+
+        <div class="market-card sortable-card" data-sport="crypto">
+          <div class="market-card-head"><span>Dogecoin Continuous (DOGEPERP) • Max 2.8x</span><span class="tag" style="background: #12281a; color: var(--accent-green);">8h: +0.019%</span></div>
+          <div class="market-card-meta"><span>Spot: $0.128 • Active Momentum</span><span style="color: var(--accent-cyan); font-weight: bold;">Margin: 3.25%</span></div>
+          <div class="action-tray">
+            <button class="btn btn-green" onclick="openOrderModal('DOGEPERP Long', 0.128, 'LONG', 'kalshi')">Long DOGE</button>
+            <button class="btn btn-red" onclick="openOrderModal('DOGEPERP Short', 0.128, 'SHORT', 'kalshi')">Short DOGE</button>
+            <button class="btn btn-ai-inline" onclick="executeInlineMarketAnalysis('Dogecoin (DOGEPERP)', 'Spot: $0.128', 'crypto-ai-doge')">🤖 Ask Gemini</button>
+          </div>
+          <div class="ai-agent-box" id="crypto-ai-doge"></div>
+        </div>
+
+        <div class="market-card sortable-card" data-sport="crypto">
+          <div class="market-card-head"><span>Cardano Continuous (ADAPERP) • Max 3.1x</span><span class="tag" style="background: #12281a; color: var(--accent-green);">8h: +0.007%</span></div>
+          <div class="market-card-meta"><span>Spot: $0.382 • Proof of Stake</span><span style="color: var(--accent-cyan); font-weight: bold;">Margin: 3.25%</span></div>
+          <div class="action-tray">
+            <button class="btn btn-green" onclick="openOrderModal('ADAPERP Long', 0.382, 'LONG', 'kalshi')">Long ADA</button>
+            <button class="btn btn-red" onclick="openOrderModal('ADAPERP Short', 0.382, 'SHORT', 'kalshi')">Short ADA</button>
+            <button class="btn btn-ai-inline" onclick="executeInlineMarketAnalysis('Cardano (ADAPERP)', 'Spot: $0.382', 'crypto-ai-ada')">🤖 Ask Gemini</button>
+          </div>
+          <div class="ai-agent-box" id="crypto-ai-ada"></div>
+        </div>
+
+        <div class="market-card sortable-card" data-sport="crypto">
+          <div class="market-card-head"><span>Chainlink (LINKPERP) • Max 3.7x</span><span class="tag" style="background: #12281a; color: var(--accent-green);">8h: +0.010%</span></div>
+          <div class="market-card-meta"><span>Spot: $12.45 • Oracle Network</span><span style="color: var(--accent-cyan); font-weight: bold;">Margin: 3.25%</span></div>
+          <div class="action-tray">
+            <button class="btn btn-green" onclick="openOrderModal('LINKPERP Long', 12.45, 'LONG', 'kalshi')">Long LINK</button>
+            <button class="btn btn-red" onclick="openOrderModal('LINKPERP Short', 12.45, 'SHORT', 'kalshi')">Short LINK</button>
+            <button class="btn btn-ai-inline" onclick="executeInlineMarketAnalysis('Chainlink (LINKPERP)', 'Spot: $12.45', 'crypto-ai-link')">🤖 Ask Gemini</button>
+          </div>
+          <div class="ai-agent-box" id="crypto-ai-link"></div>
+        </div>
+
+        <div class="market-card sortable-card" data-sport="crypto">
+          <div class="market-card-head"><span>Avalanche (AVAXPERP) • Max 3.0x</span><span class="tag" style="background: #12281a; color: var(--accent-green);">8h: +0.009%</span></div>
+          <div class="market-card-meta"><span>Spot: $28.10 • Subnet L1</span><span style="color: var(--accent-cyan); font-weight: bold;">Margin: 3.25%</span></div>
+          <div class="action-tray">
+            <button class="btn btn-green" onclick="openOrderModal('AVAXPERP Long', 28.10, 'LONG', 'kalshi')">Long AVAX</button>
+            <button class="btn btn-red" onclick="openOrderModal('AVAXPERP Short', 28.10, 'SHORT', 'kalshi')">Short AVAX</button>
+            <button class="btn btn-ai-inline" onclick="executeInlineMarketAnalysis('Avalanche (AVAXPERP)', 'Spot: $28.10', 'crypto-ai-avax')">🤖 Ask Gemini</button>
+          </div>
+          <div class="ai-agent-box" id="crypto-ai-avax"></div>
+        </div>
+
+        <div class="market-card sortable-card" data-sport="crypto">
+          <div class="market-card-head"><span>Sui Continuous (SUIPERP) • Max 2.4x</span><span class="tag" style="background: #12281a; color: var(--accent-green);">8h: +0.022%</span></div>
+          <div class="market-card-meta"><span>Spot: $1.82 • High Beta</span><span style="color: var(--accent-cyan); font-weight: bold;">Margin: 3.25%</span></div>
+          <div class="action-tray">
+            <button class="btn btn-green" onclick="openOrderModal('SUIPERP Long', 1.82, 'LONG', 'kalshi')">Long SUI</button>
+            <button class="btn btn-red" onclick="openOrderModal('SUIPERP Short', 1.82, 'SHORT', 'kalshi')">Short SUI</button>
+            <button class="btn btn-ai-inline" onclick="executeInlineMarketAnalysis('Sui (SUIPERP)', 'Spot: $1.82', 'crypto-ai-sui')">🤖 Ask Gemini</button>
+          </div>
+          <div class="ai-agent-box" id="crypto-ai-sui"></div>
+        </div>
+
+        <div class="market-card sortable-card" data-sport="crypto">
+          <div class="market-card-head"><span>Litecoin (LTCPERP) • Max 3.9x</span><span class="tag" style="background: #12281a; color: var(--accent-green);">8h: +0.004%</span></div>
+          <div class="market-card-meta"><span>Spot: $68.40 • PoW Benchmark</span><span style="color: var(--accent-cyan); font-weight: bold;">Margin: 3.25%</span></div>
+          <div class="action-tray">
+            <button class="btn btn-green" onclick="openOrderModal('LTCPERP Long', 68.40, 'LONG', 'kalshi')">Long LTC</button>
+            <button class="btn btn-red" onclick="openOrderModal('LTCPERP Short', 68.40, 'SHORT', 'kalshi')">Short LTC</button>
+            <button class="btn btn-ai-inline" onclick="executeInlineMarketAnalysis('Litecoin (LTCPERP)', 'Spot: $68.40', 'crypto-ai-ltc')">🤖 Ask Gemini</button>
+          </div>
+          <div class="ai-agent-box" id="crypto-ai-ltc"></div>
+        </div>
+
+        <div class="market-card sortable-card" data-sport="crypto">
+          <div class="market-card-head"><span>BNB Continuous (BNBPERP) • Max 3.5x</span><span class="tag" style="background: #12281a; color: var(--accent-green);">8h: +0.011%</span></div>
+          <div class="market-card-meta"><span>Spot: $590.20 • Exchange Base</span><span style="color: var(--accent-cyan); font-weight: bold;">Margin: 3.25%</span></div>
+          <div class="action-tray">
+            <button class="btn btn-green" onclick="openOrderModal('BNBPERP Long', 590.20, 'LONG', 'kalshi')">Long BNB</button>
+            <button class="btn btn-red" onclick="openOrderModal('BNBPERP Short', 590.20, 'SHORT', 'kalshi')">Short BNB</button>
+            <button class="btn btn-ai-inline" onclick="executeInlineMarketAnalysis('BNB (BNBPERP)', 'Spot: $590.20', 'crypto-ai-bnb')">🤖 Ask Gemini</button>
+          </div>
+          <div class="ai-agent-box" id="crypto-ai-bnb"></div>
+        </div>
+
+        <div class="market-card sortable-card" data-sport="crypto">
+          <div class="market-card-head"><span>Near Protocol (NEARPERP) • Max 2.5x</span><span class="tag" style="background: #12281a; color: var(--accent-green);">8h: +0.014%</span></div>
+          <div class="market-card-meta"><span>Spot: $4.92 • Sharding L1</span><span style="color: var(--accent-cyan); font-weight: bold;">Margin: 3.25%</span></div>
+          <div class="action-tray">
+            <button class="btn btn-green" onclick="openOrderModal('NEARPERP Long', 4.92, 'LONG', 'kalshi')">Long NEAR</button>
+            <button class="btn btn-red" onclick="openOrderModal('NEARPERP Short', 4.92, 'SHORT', 'kalshi')">Short NEAR</button>
+            <button class="btn btn-ai-inline" onclick="executeInlineMarketAnalysis('Near (NEARPERP)', 'Spot: $4.92', 'crypto-ai-near')">🤖 Ask Gemini</button>
+          </div>
+          <div class="ai-agent-box" id="crypto-ai-near"></div>
+        </div>
+
+        <div class="market-card sortable-card" data-sport="crypto">
+          <div class="market-card-head"><span>Aave Continuous (AAVEPERP) • Max 2.6x</span><span class="tag" style="background: #12281a; color: var(--accent-green);">8h: +0.016%</span></div>
+          <div class="market-card-meta"><span>Spot: $155.10 • DeFi Liquidity</span><span style="color: var(--accent-cyan); font-weight: bold;">Margin: 3.25%</span></div>
+          <div class="action-tray">
+            <button class="btn btn-green" onclick="openOrderModal('AAVEPERP Long', 155.10, 'LONG', 'kalshi')">Long AAVE</button>
+            <button class="btn btn-red" onclick="openOrderModal('AAVEPERP Short', 155.10, 'SHORT', 'kalshi')">Short AAVE</button>
+            <button class="btn btn-ai-inline" onclick="executeInlineMarketAnalysis('Aave (AAVEPERP)', 'Spot: $155.10', 'crypto-ai-aave')">🤖 Ask Gemini</button>
+          </div>
+          <div class="ai-agent-box" id="crypto-ai-aave"></div>
+        </div>
+
+        <div class="market-card sortable-card" data-sport="crypto">
+          <div class="market-card-head"><span>Bitcoin Cash (BCHPERP) • Max 3.2x</span><span class="tag" style="background: #12281a; color: var(--accent-green);">8h: +0.006%</span></div>
+          <div class="market-card-meta"><span>Spot: $340.50 • PoW Hard Fork</span><span style="color: var(--accent-cyan); font-weight: bold;">Margin: 3.25%</span></div>
+          <div class="action-tray">
+            <button class="btn btn-green" onclick="openOrderModal('BCHPERP Long', 340.50, 'LONG', 'kalshi')">Long BCH</button>
+            <button class="btn btn-red" onclick="openOrderModal('BCHPERP Short', 340.50, 'SHORT', 'kalshi')">Short BCH</button>
+            <button class="btn btn-ai-inline" onclick="executeInlineMarketAnalysis('Bitcoin Cash (BCHPERP)', 'Spot: $340.50', 'crypto-ai-bch')">🤖 Ask Gemini</button>
+          </div>
+          <div class="ai-agent-box" id="crypto-ai-bch"></div>
+        </div>
+
+        <div class="market-card sortable-card" data-sport="crypto">
+          <div class="market-card-head"><span>Polkadot (DOTPERP) • Max 2.9x</span><span class="tag" style="background: #12281a; color: var(--accent-green);">8h: +0.008%</span></div>
+          <div class="market-card-meta"><span>Spot: $4.25 • Parachain Hub</span><span style="color: var(--accent-cyan); font-weight: bold;">Margin: 3.25%</span></div>
+          <div class="action-tray">
+            <button class="btn btn-green" onclick="openOrderModal('DOTPERP Long', 4.25, 'LONG', 'kalshi')">Long DOT</button>
+            <button class="btn btn-red" onclick="openOrderModal('DOTPERP Short', 4.25, 'SHORT', 'kalshi')">Short DOT</button>
+            <button class="btn btn-ai-inline" onclick="executeInlineMarketAnalysis('Polkadot (DOTPERP)', 'Spot: $4.25', 'crypto-ai-dot')">🤖 Ask Gemini</button>
+          </div>
+          <div class="ai-agent-box" id="crypto-ai-dot"></div>
+        </div>
+
+        <div class="market-card sortable-card" data-sport="crypto">
+          <div class="market-card-head"><span>Hyperliquid (HYPEPERP) • Max 2.2x</span><span class="tag" style="background: #12281a; color: var(--accent-green);">8h: +0.025%</span></div>
+          <div class="market-card-meta"><span>Spot: $32.40 • L1 Orderbook</span><span style="color: var(--accent-cyan); font-weight: bold;">Margin: 3.25%</span></div>
+          <div class="action-tray">
+            <button class="btn btn-green" onclick="openOrderModal('HYPEPERP Long', 32.40, 'LONG', 'kalshi')">Long HYPE</button>
+            <button class="btn btn-red" onclick="openOrderModal('HYPEPERP Short', 32.40, 'SHORT', 'kalshi')">Short HYPE</button>
+            <button class="btn btn-ai-inline" onclick="executeInlineMarketAnalysis('Hyperliquid (HYPEPERP)', 'Spot: $32.40', 'crypto-ai-hype')">🤖 Ask Gemini</button>
+          </div>
+          <div class="ai-agent-box" id="crypto-ai-hype"></div>
+        </div>
+
+        <div class="market-card sortable-card" data-sport="crypto">
+          <div class="market-card-head"><span>Uniswap Continuous (UNIPERP) • Max 2.7x</span><span class="tag" style="background: #12281a; color: var(--accent-green);">8h: +0.010%</span></div>
+          <div class="market-card-meta"><span>Spot: $7.85 • AMM Protocol</span><span style="color: var(--accent-cyan); font-weight: bold;">Margin: 3.25%</span></div>
+          <div class="action-tray">
+            <button class="btn btn-green" onclick="openOrderModal('UNIPERP Long', 7.85, 'LONG', 'kalshi')">Long UNI</button>
+            <button class="btn btn-red" onclick="openOrderModal('UNIPERP Short', 7.85, 'SHORT', 'kalshi')">Short UNI</button>
+            <button class="btn btn-ai-inline" onclick="executeInlineMarketAnalysis('Uniswap (UNIPERP)', 'Spot: $7.85', 'crypto-ai-uni')">🤖 Ask Gemini</button>
+          </div>
+          <div class="ai-agent-box" id="crypto-ai-uni"></div>
+        </div>
+
+        <div class="market-card sortable-card" data-sport="crypto">
+          <div class="market-card-head"><span>Polygon (POLPERP) • Max 3.0x</span><span class="tag" style="background: #12281a; color: var(--accent-green);">8h: +0.007%</span></div>
+          <div class="market-card-meta"><span>Spot: $0.395 • AggLayer Base</span><span style="color: var(--accent-cyan); font-weight: bold;">Margin: 3.25%</span></div>
+          <div class="action-tray">
+            <button class="btn btn-green" onclick="openOrderModal('POLPERP Long', 0.395, 'LONG', 'kalshi')">Long POL</button>
+            <button class="btn btn-red" onclick="openOrderModal('POLPERP Short', 0.395, 'SHORT', 'kalshi')">Short POL</button>
+            <button class="btn btn-ai-inline" onclick="executeInlineMarketAnalysis('Polygon (POLPERP)', 'Spot: $0.395', 'crypto-ai-pol')">🤖 Ask Gemini</button>
+          </div>
+          <div class="ai-agent-box" id="crypto-ai-pol"></div>
+        </div>
+      </div>
+
+      <!-- Commodities Suite (5 Continuous Contracts) -->
+      <div id="perp-sub-commodities" style="display: none; flex-direction: column; gap: 10px;">
+        <div class="market-card sortable-card" data-sport="macro">
+          <div class="market-card-head"><span>Gold Continuous (GOLDPERP) • Max 15.2x</span><span class="tag" style="background: #252010; color: var(--accent-gold);">Daily: -0.004%</span></div>
+          <div class="market-card-meta"><span>Benchmark: $4,349.63/oz • Settles Daily 10 AM ET</span><span style="color: var(--accent-green); font-weight: bold;">Basis: Positive</span></div>
+          <svg class="sparkline-svg" viewBox="0 0 300 40"><path d="M0,20 Q60,10 120,18 T220,12 T300,8" fill="none" stroke="var(--accent-gold)" stroke-width="2"/></svg>
+          <div class="action-tray">
+            <button class="btn btn-green" onclick="openOrderModal('GOLDPERP Long', 4349.63, 'LONG', 'kalshi')">Long Gold</button>
+            <button class="btn btn-red" onclick="openOrderModal('GOLDPERP Short', 4349.63, 'SHORT', 'kalshi')">Short Gold</button>
+            <button class="btn btn-ai-inline" onclick="executeInlineMarketAnalysis('Gold Continuous (GOLDPERP)', 'Benchmark: $4,349.63/oz', 'comm-ai-gold')">🤖 Ask Gemini</button>
+          </div>
+          <div class="ai-agent-box" id="comm-ai-gold"></div>
+        </div>
+        <div class="market-card sortable-card" data-sport="macro">
+          <div class="market-card-head"><span>Silver Continuous (SILVERPERP) • Max 10.5x</span><span class="tag" style="background: #141f36; color: var(--accent-cyan);">Daily: -0.002%</span></div>
+          <div class="market-card-meta"><span>Benchmark: $66.82/oz • Precious Metals</span><span style="color: var(--accent-green); font-weight: bold;">Basis: Neutral</span></div>
+          <svg class="sparkline-svg" viewBox="0 0 300 40"><path d="M0,15 Q50,25 100,10 T200,15 T300,5" fill="none" stroke="var(--accent-cyan)" stroke-width="2"/></svg>
+          <div class="action-tray">
+            <button class="btn btn-green" onclick="openOrderModal('SILVERPERP Long', 66.82, 'LONG', 'kalshi')">Long Silver</button>
+            <button class="btn btn-red" onclick="openOrderModal('SILVERPERP Short', 66.82, 'SHORT', 'kalshi')">Short Silver</button>
+            <button class="btn btn-ai-inline" onclick="executeInlineMarketAnalysis('Silver Continuous (SILVERPERP)', 'Benchmark: $66.82/oz', 'comm-ai-silver')">🤖 Ask Gemini</button>
+          </div>
+          <div class="ai-agent-box" id="comm-ai-silver"></div>
+        </div>
+        <div class="market-card sortable-card" data-sport="macro">
+          <div class="market-card-head"><span>WTI Crude Oil Continuous</span><span class="tag" style="background: #2b1414; color: var(--accent-red);">-10.40% Today</span></div>
+          <div class="market-card-meta"><span>Spot Benchmark: $90.28 / barrel</span><span style="color: var(--accent-green); font-weight: bold;">Active Depth: High</span></div>
+          <div class="action-tray">
+            <button class="btn btn-green" onclick="openOrderModal('WTIPERP Long', 90.28, 'LONG', 'kalshi')">Long WTI</button>
+            <button class="btn btn-red" onclick="openOrderModal('WTIPERP Short', 90.28, 'SHORT', 'kalshi')">Short WTI</button>
+            <button class="btn btn-ai-inline" onclick="executeInlineMarketAnalysis('WTI Crude Oil', 'Spot Benchmark: $90.28', 'comm-ai-wti')">🤖 Ask Gemini</button>
+          </div>
+          <div class="ai-agent-box" id="comm-ai-wti"></div>
+        </div>
+        <div class="market-card sortable-card" data-sport="macro">
+          <div class="market-card-head"><span>RBOB Gasoline Continuous</span><span class="tag" style="background: #12281a; color: var(--accent-green);">Energy Desk</span></div>
+          <div class="market-card-meta"><span>Spot: $2.45 / gallon</span><span style="color: var(--accent-cyan); font-weight: bold;">CFTC Monitored</span></div>
+          <div class="action-tray">
+            <button class="btn btn-green" onclick="openOrderModal('RBOB Long', 2.45, 'LONG', 'kalshi')">Long Gas</button>
+            <button class="btn btn-red" onclick="openOrderModal('RBOB Short', 2.45, 'SHORT', 'kalshi')">Short Gas</button>
+            <button class="btn btn-ai-inline" onclick="executeInlineMarketAnalysis('RBOB Gasoline', 'Spot: $2.45/gal', 'comm-ai-rbob')">🤖 Ask Gemini</button>
+          </div>
+          <div class="ai-agent-box" id="comm-ai-rbob"></div>
+        </div>
+        <div class="market-card sortable-card" data-sport="macro">
+          <div class="market-card-head"><span>Natural Gas Continuous (NGPERP)</span><span class="tag" style="background: #252010; color: var(--accent-gold);">Energy Desk</span></div>
+          <div class="market-card-meta"><span>Spot: $2.85 / MMBtu</span><span style="color: var(--accent-cyan); font-weight: bold;">Daily Rollover</span></div>
+          <div class="action-tray">
+            <button class="btn btn-green" onclick="openOrderModal('NGPERP Long', 2.85, 'LONG', 'kalshi')">Long NatGas</button>
+            <button class="btn btn-red" onclick="openOrderModal('NGPERP Short', 2.85, 'SHORT', 'kalshi')">Short NatGas</button>
+            <button class="btn btn-ai-inline" onclick="executeInlineMarketAnalysis('Natural Gas (NGPERP)', 'Spot: $2.85/MMBtu', 'comm-ai-ng')">🤖 Ask Gemini</button>
+          </div>
+          <div class="ai-agent-box" id="comm-ai-ng"></div>
+        </div>
+      </div>
+
+      <!-- 15-Minute Fast Markets Desk (Full 8-Asset Suite) -->
+      <div id="perp-sub-15m" style="display: none; flex-direction: column; gap: 10px;">
+        <div style="font-size: 11px; color: var(--text-muted); line-height: 1.4; margin-bottom: 6px;">
+          Settles strictly on clock quarter-hours (<strong>:00, :15, :30, :45</strong>). The countdown timer updates live across all 8 series.
+        </div>
+
+        <div style="font-weight: 800; font-size: 10px; color: var(--accent-gold); text-transform: uppercase;">
+          🛢️ 15-Min Commodities &amp; Energy
+        </div>
+
+        <!-- 1. Gold 15m -->
+        <div class="market-card sortable-card" data-sport="macro">
+          <div class="market-card-head"><span>Gold 15-Min (KXGOLD15M) — Target: $4,349.63</span><span class="tag live-15m-timer" style="background: #2d1616; color: var(--accent-red); font-weight: 800;">● 15:00</span></div>
+          <div class="market-card-meta"><span>Current: $4,343.59 (-$6.04 below)</span><span style="color: var(--accent-cyan); font-weight: bold;">CFTC Series</span></div>
+          <div class="action-tray">
+            <button class="btn btn-green" onclick="openOrderModal('Gold 15m Above', 0.01, 'BUY ABOVE', 'kalshi')">Above 1% (1¢)</button>
+            <button class="btn btn-red" onclick="openOrderModal('Gold 15m Below', 0.99, 'BUY BELOW', 'kalshi')">Below 99% (99¢)</button>
+            <button class="btn btn-ai-inline" onclick="executeInlineMarketAnalysis('Gold 15-Min', 'Current: $4,343.59 vs Target: $4,349.63', 'ai-box-gold')">🤖 Ask Gemini</button>
+          </div>
+          <div class="ai-agent-box" id="ai-box-gold"></div>
+        </div>
+
+        <!-- 2. Silver 15m -->
+        <div class="market-card sortable-card" data-sport="macro">
+          <div class="market-card-head"><span>Silver 15-Min (KXSLV15M) — Target: $66.82</span><span class="tag live-15m-timer" style="background: #2d1616; color: var(--accent-red); font-weight: 800;">● 15:00</span></div>
+          <div class="market-card-meta"><span>Current: $66.84 (+$0.02 above)</span><span style="color: var(--accent-cyan); font-weight: bold;">CFTC Series</span></div>
+          <div class="action-tray">
+            <button class="btn btn-green" onclick="openOrderModal('Silver 15m Above', 0.58, 'BUY ABOVE', 'kalshi')">Above 58% (58¢)</button>
+            <button class="btn btn-red" onclick="openOrderModal('Silver 15m Below', 0.43, 'BUY BELOW', 'kalshi')">Below 43% (43¢)</button>
+            <button class="btn btn-ai-inline" onclick="executeInlineMarketAnalysis('Silver 15-Min', 'Current: $66.84 vs Target: $66.82', 'ai-box-slv')">🤖 Ask Gemini</button>
+          </div>
+          <div class="ai-agent-box" id="ai-box-slv"></div>
+        </div>
+
+        <!-- 3. WTI Crude 15m -->
+        <div class="market-card sortable-card" data-sport="macro">
+          <div class="market-card-head"><span>WTI Crude 15-Min (KXWTI15M) — Target: $90.28</span><span class="tag live-15m-timer" style="background: #2d1616; color: var(--accent-red); font-weight: 800;">● 15:00</span></div>
+          <div class="market-card-meta"><span>Current: $90.15 (-$0.13 below)</span><span style="color: var(--accent-cyan); font-weight: bold;">CFTC Series</span></div>
+          <div class="action-tray">
+            <button class="btn btn-green" onclick="openOrderModal('Crude 15m Above', 0.42, 'BUY ABOVE', 'kalshi')">Above 42% (42¢)</button>
+            <button class="btn btn-red" onclick="openOrderModal('Crude 15m Below', 0.59, 'BUY BELOW', 'kalshi')">Below 59% (59¢)</button>
+            <button class="btn btn-ai-inline" onclick="executeInlineMarketAnalysis('WTI Crude 15-Min', 'Current: $90.15 vs Target: $90.28', 'ai-box-wti15m')">🤖 Ask Gemini</button>
+          </div>
+          <div class="ai-agent-box" id="ai-box-wti15m"></div>
+        </div>
+
+        <div style="font-weight: 800; font-size: 10px; color: var(--accent-cyan); text-transform: uppercase; margin-top: 6px;">
+          🪙 15-Min Crypto Series
+        </div>
+
+        <!-- 4. BTC 15m -->
+        <div class="market-card sortable-card" data-sport="crypto">
+          <div class="market-card-head"><span>BTC 15-Min (KXBTC15M) — Target: $85,029.68</span><span class="tag live-15m-timer" style="background: #2d1616; color: var(--accent-red); font-weight: 800;">● 15:00</span></div>
+          <div class="market-card-meta"><span>Spot: $85,062.10 (+$32.42 above)</span><span style="color: var(--accent-cyan); font-weight: bold;">CFTC Series</span></div>
+          <div class="action-tray">
+            <button class="btn btn-green" onclick="openOrderModal('BTC 15m Above', 0.56, 'BUY ABOVE', 'kalshi')">Above 56% (56¢)</button>
+            <button class="btn btn-red" onclick="openOrderModal('BTC 15m Below', 0.45, 'BUY BELOW', 'kalshi')">Below 45% (45¢)</button>
+            <button class="btn btn-ai-inline" onclick="executeInlineMarketAnalysis('BTC 15-Min (KXBTC15M)', 'Spot: $85,062.10 vs Target: $85,029.68', 'ai-box-btc')">🤖 Ask Gemini</button>
+          </div>
+          <div class="ai-agent-box" id="ai-box-btc"></div>
+        </div>
+
+        <!-- 5. ETH 15m -->
+        <div class="market-card sortable-card" data-sport="crypto">
+          <div class="market-card-head"><span>ETH 15-Min (KXETH15M) — Target: $2,720.82</span><span class="tag live-15m-timer" style="background: #2d1616; color: var(--accent-red); font-weight: 800;">● 15:00</span></div>
+          <div class="market-card-meta"><span>Spot: $2,722.15 (+$1.33 above)</span><span style="color: var(--accent-cyan); font-weight: bold;">CFTC Series</span></div>
+          <div class="action-tray">
+            <button class="btn btn-green" onclick="openOrderModal('ETH 15m Above', 0.54, 'BUY ABOVE', 'kalshi')">Above 54% (54¢)</button>
+            <button class="btn btn-red" onclick="openOrderModal('ETH 15m Below', 0.47, 'BUY BELOW', 'kalshi')">Below 47% (47¢)</button>
+            <button class="btn btn-ai-inline" onclick="executeInlineMarketAnalysis('ETH 15-Min (KXETH15M)', 'Spot: $2,722.15 vs Target: $2,720.82', 'ai-box-eth15m')">🤖 Ask Gemini</button>
+          </div>
+          <div class="ai-agent-box" id="ai-box-eth15m"></div>
+        </div>
+
+        <!-- 6. SOL 15m -->
+        <div class="market-card sortable-card" data-sport="crypto">
+          <div class="market-card-head"><span>SOL 15-Min (KXSOL15M) — Target: $184.40</span><span class="tag live-15m-timer" style="background: #2d1616; color: var(--accent-red); font-weight: 800;">● 15:00</span></div>
+          <div class="market-card-meta"><span>Spot: $184.18 (-$0.22 below)</span><span style="color: var(--accent-cyan); font-weight: bold;">CFTC Series</span></div>
+          <div class="action-tray">
+            <button class="btn btn-green" onclick="openOrderModal('SOL 15m Above', 0.46, 'BUY ABOVE', 'kalshi')">Above 46% (46¢)</button>
+            <button class="btn btn-red" onclick="openOrderModal('SOL 15m Below', 0.55, 'BUY BELOW', 'kalshi')">Below 55% (55¢)</button>
+            <button class="btn btn-ai-inline" onclick="executeInlineMarketAnalysis('SOL 15-Min (KXSOL15M)', 'Spot: $184.18 vs Target: $184.40', 'ai-box-sol15m')">🤖 Ask Gemini</button>
+          </div>
+          <div class="ai-agent-box" id="ai-box-sol15m"></div>
+        </div>
+
+        <!-- 7. XRP 15m -->
+        <div class="market-card sortable-card" data-sport="crypto">
+          <div class="market-card-head"><span>XRP 15-Min (KXXRP15M) — Target: $0.5840</span><span class="tag live-15m-timer" style="background: #2d1616; color: var(--accent-red); font-weight: 800;">● 15:00</span></div>
+          <div class="market-card-meta"><span>Spot: $0.5844 (+$0.0004 above)</span><span style="color: var(--accent-cyan); font-weight: bold;">CFTC Series</span></div>
+          <div class="action-tray">
+            <button class="btn btn-green" onclick="openOrderModal('XRP 15m Above', 0.52, 'BUY ABOVE', 'kalshi')">Above 52% (52¢)</button>
+            <button class="btn btn-red" onclick="openOrderModal('XRP 15m Below', 0.49, 'BUY BELOW', 'kalshi')">Below 49% (49¢)</button>
+            <button class="btn btn-ai-inline" onclick="executeInlineMarketAnalysis('XRP (KXXRP15M)', 'Spot: $0.5844 vs Target: $0.5840', 'ai-box-xrp15m')">🤖 Ask Gemini</button>
+          </div>
+          <div class="ai-agent-box" id="ai-box-xrp15m"></div>
+        </div>
+
+        <!-- 8. DOGE 15m -->
+        <div class="market-card sortable-card" data-sport="crypto">
+          <div class="market-card-head"><span>DOGE 15-Min (KXDOGE15M) — Target: $0.1280</span><span class="tag live-15m-timer" style="background: #2d1616; color: var(--accent-red); font-weight: 800;">● 15:00</span></div>
+          <div class="market-card-meta"><span>Spot: $0.1283 (+$0.0003 above)</span><span style="color: var(--accent-cyan); font-weight: bold;">CFTC Series</span></div>
+          <div class="action-tray">
+            <button class="btn btn-green" onclick="openOrderModal('DOGE 15m Above', 0.53, 'BUY ABOVE', 'kalshi')">Above 53% (53¢)</button>
+            <button class="btn btn-red" onclick="openOrderModal('DOGE 15m Below', 0.48, 'BUY BELOW', 'kalshi')">Below 48% (48¢)</button>
+            <button class="btn btn-ai-inline" onclick="executeInlineMarketAnalysis('DOGE 15-Min (KXDOGE15M)', 'Spot: $0.1283 vs Target: $0.1280', 'ai-box-doge15m')">🤖 Ask Gemini</button>
+          </div>
+          <div class="ai-agent-box" id="ai-box-doge15m"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- VIEW 4: POLYMARKET US MARKETS -->
+  <div class="tab-view" id="view-poly">
+    <div class="card">
+      <div class="card-header">
+        <span>🟣 POLYMARKET US CLOB MARKETS</span>
+        <span class="tag">Gamma Proxy</span>
+      </div>
+      <div id="poly-live-feed" style="display: flex; flex-direction: column; gap: 8px;">
+        <div style="font-size: 11px; color: var(--text-muted); text-align: center; padding: 10px;">Querying /api/polymarket/markets...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- VIEW 5: KALSHI DESK -->
+  <div class="tab-view" id="view-kalshi">
+    <div class="card">
+      <div class="card-header">
+        <span>🟢 KALSHI DOMESTIC DESK</span>
+        <span class="tag">Trade API v2</span>
+      </div>
+      <div id="kalshi-live-feed" style="display: flex; flex-direction: column; gap: 8px;">
+        <div style="font-size: 11px; color: var(--text-muted); text-align: center; padding: 10px;">Authenticated via Local Session Keys</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- VIEW 6: SPREADS & ARBITRAGE -->
+  <div class="tab-view" id="view-spreads">
+    <div class="card">
+      <div class="card-header">
+        <span>⚖️ CROSS-PLATFORM ARBITRAGE SCANNER</span>
+        <span class="tag" style="background: #12281a; color: var(--accent-green);">227 Spreads Screened</span>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 8px;">
+        <div class="market-card sortable-card" data-sport="macro" data-roi="3.4">
+          <div class="market-card-head">
+            <span>Fed Funds Rate Cut ≥ 25 bps Resolution</span>
+            <span class="tag" style="background: #12281a; color: var(--accent-green);">+3.4% ARB</span>
+          </div>
+          <div class="market-card-meta">
+            <span>Buy Poly YES @ $0.84 • Buy Kalshi NO @ $0.126</span>
+            <span style="color: var(--accent-cyan); font-weight: 800;">Risk-Free Net</span>
+          </div>
+          <div class="action-tray">
+            <button class="btn btn-gold" onclick="openOrderModal('Fed Cut Arb Poly Leg', 0.84, 'BUY YES', 'poly')">Poly Leg</button>
+            <button class="btn btn-gold" onclick="openOrderModal('Fed Cut Arb Kalshi Leg', 0.126, 'BUY NO', 'kalshi')">Kalshi Leg</button>
+            <button class="btn btn-ai-inline" onclick="executeInlineMarketAnalysis('Fed Funds Rate Cut Arb', 'Poly YES 84¢ vs Kalshi NO 12.6¢ (+3.4% Net Arb)', 'spread-ai-1')">🤖 Ask Gemini</button>
+          </div>
+          <div class="ai-agent-box" id="spread-ai-1"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- VIEW 7: FLEET TRACKER & INGESTION -->
+  <div class="tab-view" id="view-fleet">
+    <div class="card">
+      <div class="card-header">
+        <span>🛡️ FLEET TRACKER &amp; INGESTION</span>
+        <span class="tag" id="fleet-uuid-tag">ENDPOINT: Loading...</span>
+      </div>
+
+      <div class="stat-grid-3">
+        <div class="stat-box">
+          <span class="stat-label">Total Slips</span>
+          <span class="stat-value" id="fleet-slips-count">0</span>
+        </div>
+        <div class="stat-box">
+          <span class="stat-label">Active Risk</span>
+          <span class="stat-value" id="fleet-risk-val">$0.00</span>
+        </div>
+        <div class="stat-box">
+          <span class="stat-label">Gross Return</span>
+          <span class="stat-value" id="fleet-payout-val" style="color: var(--accent-green);">$0.00</span>
+        </div>
+      </div>
+
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding: 8px 10px; background: rgba(0, 242, 254, 0.05); border: 1px solid rgba(0, 242, 254, 0.2); border-radius: 8px;">
+        <span style="font-size: 11px; color: var(--text-muted);">Want 1-tap bet sharing from DraftKings &amp; FanDuel?</span>
+        <a href="javascript:void(0)" onclick="openSetupModal()" style="font-size: 11px; font-weight: 800; color: var(--accent-cyan); text-decoration: none;">Setup Guide ➔</a>
+      </div>
+
+      <div style="display: flex; gap: 6px; margin-bottom: 12px; align-items: flex-end;">
+        <div style="flex: 2;">
+          <label class="stat-label">Manual Paste Fallback</label>
+          <input type="text" id="manual-slip-input" placeholder="Paste sportsbook receipt or link...">
+        </div>
+        <div style="flex: 1;">
+          <label class="stat-label">Retention (TTL)</label>
+          <select id="user-ttl-select" onchange="updateTtlPreference()">
+            <option value="300">5 Min</option>
+            <option value="900">15 Min</option>
+            <option value="1800" selected>30 Min</option>
+            <option value="3600">1 Hour</option>
+            <option value="86400">24 Hours</option>
+          </select>
+        </div>
+        <button class="btn btn-gold" style="height: 36px;" onclick="ingestManualSlip()">Import</button>
+      </div>
+
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+        <span class="stat-label">Imported Wagers</span>
+        <button class="btn" style="padding: 2px 8px; font-size: 10px;" onclick="pollSharedSlips()">Force Sync</button>
+      </div>
+
+      <div id="fleet-tickets-container" style="display: flex; flex-direction: column; gap: 8px;"></div>
+    </div>
+  </div>
+
+  <!-- VIEW 8: BYOK VAULT & SETTINGS HUB -->
+  <div class="tab-view" id="view-vault">
+    <div class="card">
+      <div class="card-header">
+        <span>💼 Local Portfolio &amp; Balance State</span>
+        <span id="trader-mode-tag" class="tag" style="color: var(--text-muted);">Disconnected</span>
+      </div>
+      <div class="stat-grid-4">
+        <div class="stat-box">
+          <span class="stat-label">Polymarket.us (Cash)</span>
+          <span class="stat-value" id="poly-balance-disp">$0.00</span>
+        </div>
+        <div class="stat-box">
+          <span class="stat-label">Kalshi (Cash)</span>
+          <span class="stat-value" id="kalshi-balance-disp">$0.00</span>
+        </div>
+        <div class="stat-box">
+          <span class="stat-label">Net Available</span>
+          <span class="stat-value" id="net-available-disp" style="color: var(--accent-cyan);">$0.00</span>
+        </div>
+        <div class="stat-box">
+          <span class="stat-label">Shielded Reserve</span>
+          <span class="stat-value" id="shielded-reserve-disp" style="color: var(--accent-gold); font-size: 13px;">$2.50</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Historical PnL Hub -->
+    <div class="card">
+      <div class="card-header">
+        <span>📊 Historical Performance Hub</span>
+        <span class="tag" style="color: var(--accent-green);">All Desks</span>
+      </div>
+      <div class="stat-grid-3" style="margin-bottom: 12px;">
+        <div class="stat-box">
+          <span class="stat-label">Total Net PnL</span>
+          <span class="stat-value" id="vault-total-pnl" style="color: var(--accent-green);">+$0.00</span>
+        </div>
+        <div class="stat-box">
+          <span class="stat-label">Win Rate</span>
+          <span class="stat-value" id="vault-win-rate">0%</span>
+        </div>
+        <div class="stat-box">
+          <span class="stat-label">Wagers Settled</span>
+          <span class="stat-value" id="vault-settled-count">0</span>
+        </div>
+      </div>
+
+      <div style="font-weight: 800; font-size: 10px; color: var(--text-muted); margin-bottom: 8px; text-transform: uppercase;">
+        Earnings By Platform
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px;">
+        <div style="background: #080c1a; border: 1px solid var(--border-color); border-radius: 8px; padding: 10px; display: flex; justify-content: space-between; align-items: center;">
+          <div>
+            <div style="font-weight: 800; font-size: 11px; color: var(--accent-pink);">Polymarket.us</div>
+            <div style="font-size: 9px; color: var(--text-muted);">Prediction Markets • 0 Fees</div>
+          </div>
+          <div style="text-align: right;">
+            <div style="font-weight: 800; font-size: 11px; color: var(--accent-green);" id="pnl-poly">+$0.00</div>
+            <div style="font-size: 9px; color: var(--text-muted);" id="stats-poly">0 Slips • 0% Win</div>
+          </div>
+        </div>
+
+        <div style="background: #080c1a; border: 1px solid var(--border-color); border-radius: 8px; padding: 10px; display: flex; justify-content: space-between; align-items: center;">
+          <div>
+            <div style="font-weight: 800; font-size: 11px; color: var(--accent-green);">Kalshi Domestic</div>
+            <div style="font-size: 9px; color: var(--text-muted);">CFTC DCM</div>
+          </div>
+          <div style="text-align: right;">
+            <div style="font-weight: 800; font-size: 11px; color: var(--accent-green);" id="pnl-kalshi">+$0.00</div>
+            <div style="font-size: 9px; color: var(--text-muted);" id="stats-kalshi">0 Slips • 0% Win</div>
+          </div>
+        </div>
+
+        <div style="background: #080c1a; border: 1px solid var(--border-color); border-radius: 8px; padding: 10px; display: flex; justify-content: space-between; align-items: center;">
+          <div>
+            <div style="font-weight: 800; font-size: 11px; color: var(--accent-cyan);">Sportsbooks (DK / FD)</div>
+            <div style="font-size: 9px; color: var(--text-muted);">Fleet Imported Parlays</div>
+          </div>
+          <div style="text-align: right;">
+            <div style="font-weight: 800; font-size: 11px; color: var(--accent-green);" id="pnl-books">+$0.00</div>
+            <div style="font-size: 9px; color: var(--text-muted);" id="stats-books">0 Slips • 0% Win</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- UI Resizing & Display Scaling Controls -->
+    <div class="card">
+      <div class="card-header">
+        <span>⚙️ Display Scaling &amp; Font Zoom</span>
+        <span class="tag" id="zoom-level-tag">100%</span>
+      </div>
+      <div class="input-group">
+        <label class="stat-label">Scale Factor (80% – 140%)</label>
+        <input type="range" id="ui-zoom-slider" min="0.8" max="1.4" step="0.05" value="1" oninput="updateUiZoom(this.value)">
+      </div>
+    </div>
+
+    <!-- Risk & Circuit Breaker Settings -->
+    <div class="card">
+      <div class="card-header">
+        <span>🛡️ Risk &amp; Autonomous Governance Controls</span>
+        <span class="tag" style="color: var(--accent-gold);">Hardened</span>
+      </div>
+      <div class="input-group">
+        <label class="stat-label">Large Order Circuit-Breaker Ceiling ($)</label>
+        <input type="number" id="risk-ceiling-input" value="25.00" step="1.00" onchange="saveRiskSettings()">
+        <span style="font-size: 9px; color: var(--text-muted); margin-top: 2px;">Orders exceeding this amount require manual confirmation.</span>
+      </div>
+      <div class="input-group">
+        <label class="stat-label">Autonomous Salvage Floor (%)</label>
+        <input type="number" id="salvage-floor-input" value="20" min="5" max="50" onchange="saveRiskSettings()">
+        <span style="font-size: 9px; color: var(--text-muted); margin-top: 2px;">Programmatically liquidates contracts before zero equity is reached.</span>
+      </div>
+    </div>
+
+    <!-- BYOK Key Credentials -->
+    <div class="card">
+      <div class="card-header">
+        <span>🔐 Bring Your Own Key (BYOK) API Credentials</span>
+        <span class="tag">100% Client-Side</span>
+      </div>
+      <p style="font-size: 10px; color: var(--text-muted); margin-bottom: 12px; line-height: 1.4;">
+        API keys and private signatures are stored exclusively in your browser sandbox. They never touch a remote server.
+      </p>
+
+      <div style="font-weight: 800; font-size: 11px; color: var(--accent-green); margin-bottom: 6px;">🟢 Kalshi Domestic Trading API</div>
+      <div class="input-group">
+        <label class="stat-label">Kalshi Key ID</label>
+        <div class="password-wrapper">
+          <input type="password" id="kalshi-key-id" placeholder="Paste Kalshi Key UUID..." autocomplete="off">
+          <button type="button" class="toggle-visibility" onclick="toggleMask('kalshi-key-id')">👁</button>
+        </div>
+      </div>
+
+      <div class="input-group" style="margin-bottom: 14px;">
+        <label class="stat-label">Kalshi Private Key (RSA PEM)</label>
+        <div class="password-wrapper">
+          <input type="password" id="kalshi-private-key" placeholder="Paste RSA Private Key PEM..." autocomplete="off">
+          <button type="button" class="toggle-visibility" onclick="toggleMask('kalshi-private-key')">👁</button>
+        </div>
+      </div>
+
+      <div style="font-weight: 800; font-size: 11px; color: var(--accent-pink); margin-bottom: 6px;">🟣 Polymarket.us Domestic Trading API</div>
+      <div class="input-group">
+        <label class="stat-label">Polymarket.us API Key ID</label>
+        <div class="password-wrapper">
+          <input type="password" id="poly-key-id" placeholder="Paste Polymarket Key UUID..." autocomplete="off">
+          <button type="button" class="toggle-visibility" onclick="toggleMask('poly-key-id')">👁</button>
+        </div>
+      </div>
+
+      <div class="input-group" style="margin-bottom: 14px;">
+        <label class="stat-label">Polymarket.us Private Signing Key</label>
+        <div class="password-wrapper">
+          <input type="password" id="poly-private-key" placeholder="Paste Private Key / Secret..." autocomplete="off">
+          <button type="button" class="toggle-visibility" onclick="toggleMask('poly-private-key')">👁</button>
+        </div>
+      </div>
+
+      <div style="font-weight: 800; font-size: 11px; color: var(--accent-cyan); margin-bottom: 6px;">🤖 Gemini Agentic Copilot API</div>
+      <div class="input-group">
+        <label class="stat-label">Google Gemini API Key (Client-Side AI Insights)</label>
+        <div class="password-wrapper">
+          <input type="password" id="gemini-api-key" placeholder="Paste Gemini API Key (AIza...)" autocomplete="off">
+          <button type="button" class="toggle-visibility" onclick="toggleMask('gemini-api-key')">👁</button>
+        </div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 10px;">
+        <button class="btn btn-gold" onclick="saveVaultCredentials()">Save API Credentials Locally</button>
+        <button class="btn btn-danger" onclick="clearLocalStorageVault()">⚠️ Clear All Keys &amp; Slips from Storage</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom Navigation Bar -->
+  <nav class="bottom-nav">
+    <div class="nav-item active" onclick="switchNavTab('view-picks', this)">
+      <span>🎯</span><span>Picks</span>
+    </div>
+    <div class="nav-item" onclick="switchNavTab('view-macro', this)">
+      <span>🏛</span><span>Macro</span>
+    </div>
+    <div class="nav-item" onclick="switchNavTab('view-perps', this)">
+      <span>⚡</span><span>Perps</span>
+    </div>
+    <div class="nav-item" onclick="switchNavTab('view-poly', this)">
+      <span>🟣</span><span>Poly</span>
+    </div>
+    <div class="nav-item" onclick="switchNavTab('view-kalshi', this)">
+      <span>🟢</span><span>Kalshi</span>
+    </div>
+    <div class="nav-item" onclick="switchNavTab('view-spreads', this)">
+      <span>⚖️</span><span>Spreads</span><span class="nav-badge">227</span>
+    </div>
+    <div class="nav-item" onclick="switchNavTab('view-fleet', this)">
+      <span>🎟️</span><span>Fleet</span><span class="nav-badge" id="nav-fleet-count">0</span>
+    </div>
+    <div class="nav-item" onclick="switchNavTab('view-vault', this)">
+      <span>💼</span><span>Vault</span>
+    </div>
+  </nav>
+
+</div>
+
+<!-- DIRECT ACTION ORDER MODAL SHEET WITH CONFIRM CIRCUIT-BREAKER -->
+<div id="order-modal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 10001; padding: 20px; overflow-y: auto; justify-content: center; align-items: center;">
+  <div style="background: #0d1224; border: 1px solid var(--border-color); border-radius: 14px; max-width: 440px; width: 100%; padding: 18px; color: #fff; font-size: 12px; display: flex; flex-direction: column; gap: 12px; box-shadow: 0 0 30px rgba(0, 242, 254, 0.2);">
+    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">
+      <span style="font-weight: 900; font-size: 14px; color: var(--accent-cyan);" id="order-modal-title">Confirm Execution</span>
+      <span style="cursor: pointer; font-size: 16px; color: var(--text-muted);" onclick="closeOrderModal()">✕</span>
+    </div>
+
+    <div class="input-group">
+      <label class="stat-label">Market Target</label>
+      <input type="text" id="modal-market-target" readonly style="background: #080c18; border-color: #1a2340; color: #fff; font-weight: bold;">
+    </div>
+
+    <div style="display: flex; gap: 8px;">
+      <div class="input-group" style="flex: 1;">
+        <label class="stat-label">Price / Odds</label>
+        <input type="number" id="modal-market-price" step="0.01" oninput="updateOrderCalculations()">
+      </div>
+      <div class="input-group" style="flex: 1;">
+        <label class="stat-label">Contracts / Shares</label>
+        <input type="number" id="modal-shares" value="1" min="1" step="1" oninput="updateOrderCalculations()">
+      </div>
+    </div>
+
+    <!-- Auto Take-Profit Configuration -->
+    <div class="input-group">
+      <label class="stat-label">Auto Take-Profit on Fill</label>
+      <div style="display: flex; gap: 6px;">
+        <button type="button" class="btn btn-tp" id="tp-50" onclick="selectAutoTp(0.50, this)">+50%</button>
+        <button type="button" class="btn btn-tp" id="tp-75" onclick="selectAutoTp(0.75, this)">+75%</button>
+        <button type="button" class="btn btn-tp" id="tp-even" onclick="selectAutoTp('even', this)">Break-Even</button>
+        <button type="button" class="btn btn-tp active" id="tp-none" onclick="selectAutoTp(null, this)">Hold</button>
+      </div>
+      <div id="tp-target-desc" style="font-size: 10px; color: var(--text-muted); margin-top: 2px;">Hold to final settlement.</div>
+    </div>
+
+    <div class="stat-grid-3" style="margin-bottom: 0;">
+      <div class="stat-box">
+        <span class="stat-label">Total Outlay</span>
+        <span class="stat-value" id="modal-outlay-disp">$0.00</span>
+      </div>
+      <div class="stat-box">
+        <span class="stat-label">Est. Return</span>
+        <span class="stat-value" id="modal-return-disp" style="color: var(--accent-green);">$0.00</span>
+      </div>
+      <div class="stat-box">
+        <span class="stat-label">Pre-Flight</span>
+        <span class="stat-value" id="modal-guardrail-disp" style="color: var(--accent-cyan); font-size: 10px;">PASSED</span>
+      </div>
+    </div>
+
+    <!-- Large Order Circuit Breaker Challenge -->
+    <div id="modal-circuit-breaker-box" style="display: none; background: rgba(255, 51, 68, 0.1); border: 1px solid var(--accent-red); border-radius: 8px; padding: 10px;">
+      <div style="color: var(--accent-red); font-weight: 800; font-size: 11px; margin-bottom: 4px;">⚠️ LARGE TRANSACTION DETECTED</div>
+      <div style="font-size: 10px; color: var(--text-muted); margin-bottom: 6px;">
+        Outlay exceeds your configured ceiling ($<span id="modal-ceiling-indicator">25.00</span>). Type <strong>CONFIRM</strong> to release safety interlock.
+      </div>
+      <input type="text" id="modal-confirm-input" placeholder="Type CONFIRM..." oninput="checkConfirmChallenge()" style="background: #060814; border-color: var(--accent-red);">
+    </div>
+
+    <button class="btn btn-gold" id="modal-submit-btn" style="width: 100%; height: 38px; font-weight: 800;" onclick="submitOrderExecution()">Submit Limit Order</button>
+  </div>
+</div>
+
+<!-- SETUP INSTRUCTIONS MODAL SHEET -->
+<div id="setup-modal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 10000; padding: 20px; overflow-y: auto; justify-content: center; align-items: center;">
+  <div style="background: #0d1224; border: 1px solid var(--border-color); border-radius: 14px; max-width: 440px; width: 100%; padding: 18px; color: #fff; font-size: 12px; display: flex; flex-direction: column; gap: 14px; box-shadow: 0 0 30px rgba(0, 242, 254, 0.2);">
+    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">
+      <span style="font-weight: 900; font-size: 14px; color: var(--accent-cyan);">🚀 Terminal Mobile Setup Guide</span>
+      <span style="cursor: pointer; font-size: 16px; color: var(--text-muted);" onclick="closeSetupModal()">✕</span>
+    </div>
+    <div>
+      <div style="font-weight: 800; color: var(--accent-gold); margin-bottom: 4px;">1. Add to Home Screen (PWA Mode)</div>
+      <p style="color: var(--text-muted); font-size: 11px; line-height: 1.4;">
+        1. Open this URL in mobile Safari.<br>
+        2. Tap the <strong>Share</strong> button at the bottom.<br>
+        3. Scroll down and tap <strong>Add to Home Screen</strong>.<br>
+        4. Tap <strong>Add</strong> in the top right. Launch directly from your home screen.
+      </p>
+    </div>
+    <div>
+      <div style="font-weight: 800; color: var(--accent-green); margin-bottom: 4px;">2. Setup 1-Tap Sportsbook Share (iOS)</div>
+      <ol style="padding-left: 16px; color: var(--text-muted); font-size: 11px; line-height: 1.5;">
+        <li>Open the <strong>Shortcuts</strong> app and tap <strong>+</strong>.</li>
+        <li>Rename it to <code>Cosmic Terminal</code>.</li>
+        <li>Tap the info <strong>(i)</strong> icon at the bottom and toggle ON <strong>Show in Share Sheet</strong>.</li>
+        <li>Set input to receive <strong>URLs</strong> and <strong>Text</strong>.</li>
+        <li>Add the action <strong>Get Contents of URL</strong>.</li>
+        <li>Set Method to <strong>POST</strong>, Request Body to <strong>JSON</strong>, Header <code>Content-Type: application/json</code>, and Body Key <code>text</code> = <strong>Shortcut Input</strong>.</li>
+        <li>Paste your unique endpoint URL into the URL field:</li>
+      </ol>
+      <div style="margin-top: 8px; background: #060812; border: 1px solid #1a2340; padding: 8px; border-radius: 6px; font-family: monospace; font-size: 10px; color: var(--accent-cyan); word-break: break-all;" id="modal-endpoint-copy">
+        Loading...
+      </div>
+      <button class="btn btn-gold" style="width: 100%; margin-top: 6px; padding: 6px; font-size: 11px;" onclick="copyEndpointUrl()">Copy My Private URL</button>
+    </div>
+    <button class="btn" style="width: 100%; background: #19223c; margin-top: 4px;" onclick="closeSetupModal()">Got It</button>
+  </div>
+</div>
+
+<!-- EXTERNAL APPLICATION LOGIC -->
+<script src="./app.js"></script>
+
+</body>
+</html>
