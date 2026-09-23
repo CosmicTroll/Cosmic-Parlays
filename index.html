@@ -7,6 +7,7 @@
   <link rel="manifest" href="/manifest.json">
   <style>
     :root {
+      --ui-zoom: 1.0;
       --bg-base: #060712;
       --bg-card: #0c1022;
       --bg-input: #12182f;
@@ -22,11 +23,14 @@
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
+    html {
+      font-size: calc(14px * var(--ui-zoom));
+    }
     body {
       background-color: var(--bg-base);
       color: var(--text-main);
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      padding-bottom: 85px;
+      padding-bottom: 90px;
       display: flex;
       justify-content: center;
       -webkit-font-smoothing: antialiased;
@@ -34,7 +38,7 @@
 
     .app-shell {
       width: 100%;
-      max-width: 520px;
+      max-width: 540px;
       padding: 14px;
       display: flex;
       flex-direction: column;
@@ -49,7 +53,7 @@
       padding: 4px 0 8px 0;
     }
     .brand-title {
-      font-size: 18px;
+      font-size: 1.25rem;
       font-weight: 900;
       letter-spacing: 0.5px;
       display: flex;
@@ -62,7 +66,7 @@
       align-items: center;
     }
     .badge {
-      font-size: 11px;
+      font-size: 0.78rem;
       font-weight: 700;
       padding: 5px 10px;
       border-radius: 8px;
@@ -85,13 +89,13 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      font-size: 12px;
+      font-size: 0.82rem;
     }
     .sponsor-tag {
       background: var(--accent-gold);
       color: #000;
       font-weight: 900;
-      font-size: 10px;
+      font-size: 0.68rem;
       padding: 2px 6px;
       border-radius: 4px;
       margin-right: 6px;
@@ -113,7 +117,7 @@
       color: var(--text-muted);
       padding: 7px 14px;
       border-radius: 20px;
-      font-size: 12px;
+      font-size: 0.82rem;
       font-weight: 700;
       white-space: nowrap;
       cursor: pointer;
@@ -125,7 +129,7 @@
     }
 
     .sort-label {
-      font-size: 11px;
+      font-size: 0.78rem;
       font-weight: 800;
       color: var(--text-muted);
       align-self: center;
@@ -146,13 +150,13 @@
       align-items: center;
       margin-bottom: 14px;
       font-weight: 800;
-      font-size: 13px;
+      font-size: 0.9rem;
       letter-spacing: 0.5px;
     }
 
     .tag {
       font-family: monospace;
-      font-size: 11px;
+      font-size: 0.75rem;
       padding: 3px 8px;
       border-radius: 6px;
       background: #141f36;
@@ -174,18 +178,18 @@
       justify-content: space-between;
       align-items: center;
       font-weight: 800;
-      font-size: 13px;
+      font-size: 0.9rem;
       line-height: 1.3;
     }
     .market-card-meta {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      font-size: 11px;
+      font-size: 0.78rem;
       color: var(--text-muted);
     }
 
-    /* 15-Minute Dedicated Layout Elements */
+    /* 15-Minute Dedicated Layout */
     .fast-header {
       display: flex;
       justify-content: space-between;
@@ -193,7 +197,7 @@
       margin-bottom: 2px;
     }
     .asset-icon-badge {
-      font-size: 10px;
+      font-size: 0.7rem;
       font-weight: 900;
       padding: 3px 6px;
       border-radius: 4px;
@@ -206,20 +210,20 @@
     .badge-btc { background: #f97316; color: #fff; }
 
     .target-title {
-      font-size: 17px;
+      font-size: 1.15rem;
       font-weight: 900;
       color: #fff;
       margin-top: 2px;
     }
     .current-spot-text {
-      font-size: 12px;
+      font-size: 0.82rem;
       color: var(--text-muted);
       margin-top: 1px;
     }
     .delta-indicator {
-      font-size: 11px;
+      font-size: 0.78rem;
       font-weight: 800;
-      padding: 2px 8px;
+      padding: 3px 9px;
       border-radius: 12px;
       display: inline-flex;
       align-items: center;
@@ -244,7 +248,7 @@
     .binary-btn {
       padding: 12px 8px;
       border-radius: 10px;
-      font-size: 14px;
+      font-size: 0.95rem;
       font-weight: 800;
       text-align: center;
       cursor: pointer;
@@ -252,7 +256,7 @@
       justify-content: center;
       align-items: center;
       gap: 6px;
-      transition: transform 0.1s ease;
+      transition: all 0.25s ease;
     }
     .binary-btn:active { transform: scale(0.98); }
     .btn-above {
@@ -264,6 +268,27 @@
       background: rgba(255, 51, 68, 0.08);
       color: var(--accent-red);
       border: 1.5px solid rgba(255, 51, 68, 0.4);
+    }
+
+    /* Recommendation Glows & Dynamic Fading */
+    .btn-recommend-glow-above {
+      border-color: var(--accent-green) !important;
+      background: rgba(0, 245, 160, 0.25) !important;
+      box-shadow: 0 0 16px rgba(0, 245, 160, 0.65);
+      transform: scale(1.02);
+      opacity: 1 !important;
+    }
+    .btn-recommend-glow-below {
+      border-color: var(--accent-red) !important;
+      background: rgba(255, 51, 68, 0.25) !important;
+      box-shadow: 0 0 16px rgba(255, 51, 68, 0.65);
+      transform: scale(1.02);
+      opacity: 1 !important;
+    }
+    .btn-faded {
+      opacity: 0.35 !important;
+      filter: grayscale(0.6);
+      transform: scale(0.98);
     }
 
     /* Grids */
@@ -287,7 +312,7 @@
       text-align: center;
     }
     .stat-label {
-      font-size: 10px;
+      font-size: 0.68rem;
       color: var(--text-muted);
       text-transform: uppercase;
       margin-bottom: 4px;
@@ -295,7 +320,7 @@
       font-weight: 700;
     }
     .stat-value {
-      font-size: 15px;
+      font-size: 1.05rem;
       font-weight: 900;
     }
 
@@ -312,7 +337,7 @@
       color: #fff;
       padding: 11px;
       border-radius: 8px;
-      font-size: 13px;
+      font-size: 0.85rem;
       outline: none;
       width: 100%;
     }
@@ -331,7 +356,7 @@
       border: none;
       color: var(--text-muted);
       cursor: pointer;
-      font-size: 14px;
+      font-size: 0.95rem;
     }
 
     /* Buttons */
@@ -341,7 +366,7 @@
       color: #fff;
       padding: 9px 16px;
       border-radius: 8px;
-      font-size: 12px;
+      font-size: 0.82rem;
       font-weight: 800;
       cursor: pointer;
     }
@@ -366,7 +391,7 @@
       border: 1px solid var(--border-color);
       border-radius: 10px;
       padding: 12px;
-      font-size: 12px;
+      font-size: 0.82rem;
     }
 
     .sparkline-svg {
@@ -380,12 +405,11 @@
       border-radius: 10px;
       padding: 12px;
       margin-top: 8px;
-      font-size: 12px;
+      font-size: 0.82rem;
       line-height: 1.4;
       display: none;
     }
 
-    /* Carousel Pagination Indicator */
     .carousel-indicator {
       display: flex;
       gap: 6px;
@@ -410,7 +434,7 @@
       bottom: 0;
       left: 0;
       right: 0;
-      height: 65px;
+      height: 68px;
       background: #080a18;
       border-top: 1px solid var(--border-color);
       display: flex;
@@ -418,20 +442,20 @@
       scrollbar-width: none;
       align-items: center;
       z-index: 999;
-      max-width: 520px;
+      max-width: 540px;
       margin: 0 auto;
       padding: 0 6px;
     }
     .bottom-nav::-webkit-scrollbar { display: none; }
 
     .nav-item {
-      flex: 0 0 65px;
+      flex: 0 0 60px;
       display: flex;
       flex-direction: column;
       align-items: center;
       gap: 4px;
       color: var(--text-muted);
-      font-size: 10px;
+      font-size: 0.68rem;
       font-weight: 700;
       cursor: pointer;
       position: relative;
@@ -442,10 +466,10 @@
     .nav-badge {
       position: absolute;
       top: -4px;
-      right: 6px;
+      right: 4px;
       background: var(--accent-green);
       color: #000;
-      font-size: 9px;
+      font-size: 0.6rem;
       font-weight: 900;
       padding: 2px 5px;
       border-radius: 8px;
@@ -459,11 +483,11 @@
 
 <div class="app-shell">
 
-  <!-- Top App Bar -->
+  <!-- Top Bar -->
   <div class="top-bar">
     <div class="brand-title">🚀 Cosmic Terminal</div>
     <div class="top-actions">
-      <div class="badge" onclick="alert('Support: Edge terminal active.')">☕ Support</div>
+      <div class="badge" onclick="switchNavTab('view-settings', null)">⚙️ Settings</div>
       <div class="badge" onclick="refreshCurrentTab()">Refresh</div>
       <div class="badge badge-edge">Edge Active</div>
     </div>
@@ -475,7 +499,7 @@
       <span class="sponsor-tag">SPONSOR</span>
       <span>Trade US prediction markets with 0 fees on Polymarket.us. <a href="https://polymarket.us" target="_blank" style="color: var(--accent-cyan); text-decoration: none; font-weight: bold;">Join Polymarket.us →</a></span>
     </div>
-    <span style="font-size: 11px; color: var(--text-muted); text-decoration: underline; cursor: pointer; white-space: nowrap; margin-left: 8px;" onclick="promptAdPasskey()">Remove Ads ($5)</span>
+    <span style="font-size: 0.75rem; color: var(--text-muted); text-decoration: underline; cursor: pointer; white-space: nowrap; margin-left: 8px;" onclick="promptAdPasskey()">Remove Ads ($5)</span>
   </div>
 
   <!-- Category Filter Bar -->
@@ -495,7 +519,7 @@
     <button class="sort-btn" onclick="switchSortOrder('today', this)">📅 Upcoming</button>
   </div>
 
-  <!-- VIEW 1: PICKS & EV BOARD (DYNAMIC ROTATING TOP 9 CAROUSEL) -->
+  <!-- VIEW 1: PICKS & EV BOARD -->
   <div class="tab-view active" id="view-picks">
     <div class="card">
       <div class="card-header">
@@ -504,14 +528,14 @@
       </div>
       <div id="vault-status-box" style="background: #090e1f; border: 1px solid var(--border-color); border-radius: 10px; padding: 12px; display: flex; justify-content: space-between; align-items: center;">
         <div>
-          <div id="vault-status-title" style="font-size: 12px; font-weight: 800; color: #fff;">BYOK Vault: Standby</div>
-          <div id="vault-status-desc" style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">Checking local keys...</div>
+          <div id="vault-status-title" style="font-size: 0.85rem; font-weight: 800; color: #fff;">BYOK Vault: Standby</div>
+          <div id="vault-status-desc" style="font-size: 0.75rem; color: var(--text-muted); margin-top: 2px;">Checking local keys...</div>
         </div>
         <span id="vault-status-tag" class="tag" style="background: #151a2d; color: var(--text-muted);">LOCAL SESSION</span>
       </div>
     </div>
 
-    <!-- Sports Desk (Dynamic 9-Pick Carousel Rotating 3 at a Time) -->
+    <!-- Sports Desk (Rotating Top 9 Matches) -->
     <div class="card market-section" id="section-sports">
       <div class="card-header">
         <span>🏈 Top Sports Picks (MLB / NFL EV)</span>
@@ -527,7 +551,7 @@
       <div id="sports-picks-container" style="display: flex; flex-direction: column; gap: 10px;"></div>
     </div>
 
-    <!-- Esports Desk (Dynamic 9-Pick Carousel Rotating 3 at a Time) -->
+    <!-- Esports Desk (Rotating Top 9 Matches) -->
     <div class="card market-section" id="section-esports">
       <div class="card-header">
         <span>🎮 Esports Desk (Top Picks Queue)</span>
@@ -586,7 +610,7 @@
     </div>
   </div>
 
-  <!-- VIEW 3: KALSHI PERPETUALS, COMMODITIES & LIVE 15-MIN COPILOT DESK -->
+  <!-- VIEW 3: KALSHI PERPETUALS, COMMODITIES & 15-MIN COPILOT DESK -->
   <div class="tab-view" id="view-perps">
     <div class="card">
       <div class="card-header">
@@ -677,6 +701,7 @@
           <button class="sort-btn" onclick="filterCommodities('agri', this)">🌾 Agri / Other</button>
         </div>
 
+        <!-- Gold -->
         <div class="market-card comm-item comm-metals">
           <div class="market-card-head">
             <span>Gold Continuous (GOLDPERP) • Max 15.2x</span>
@@ -691,6 +716,7 @@
           </svg>
         </div>
 
+        <!-- Silver -->
         <div class="market-card comm-item comm-metals">
           <div class="market-card-head">
             <span>Silver Continuous (SILVERPERP) • Max 8.0x</span>
@@ -705,6 +731,7 @@
           </svg>
         </div>
 
+        <!-- WTI Crude Oil -->
         <div class="market-card comm-item comm-energy">
           <div class="market-card-head">
             <span>WTI Crude Oil Continuous • 10 Contracts</span>
@@ -720,11 +747,11 @@
         </div>
       </div>
 
-      <!-- SECTION C: KALSHI NATIVE 15-MINUTE FAST MARKETS (LIVE DATA HOOKS) -->
+      <!-- SECTION C: 15-MINUTE FAST MARKETS (WITH GLOW & ORDER MODAL) -->
       <div id="perp-sub-15m" style="display: flex; flex-direction: column; gap: 14px;">
-        <div style="display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: var(--text-muted); padding: 4px 0;">
+        <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.78rem; color: var(--text-muted); padding: 4px 0;">
           <span>Settles synchronized on quarter-hour marks (:00, :15, :30, :45)</span>
-          <span id="fast-feed-sync-status" class="tag" style="color: var(--accent-green); font-size: 9px;">● LIVE STREAM</span>
+          <span class="tag" style="color: var(--accent-green); font-size: 0.65rem;">● LIVE STREAM</span>
         </div>
 
         <!-- 1. Gold 15-Min Contract -->
@@ -732,9 +759,9 @@
           <div class="fast-header">
             <div style="display: flex; align-items: center; gap: 8px;">
               <span class="asset-icon-badge badge-gold">GLD</span>
-              <span style="font-size: 13px; font-weight: 800; color: #cbd5e1; letter-spacing: 0.5px;">GOLD 15 MIN</span>
+              <span style="font-size: 0.85rem; font-weight: 800; color: #cbd5e1;">GOLD 15 MIN</span>
             </div>
-            <div class="tag live-15m-timer" style="background: #3b1414; color: var(--accent-red); font-weight: 900; font-size: 11px; padding: 3px 8px; border-radius: 12px; border: 1px solid rgba(255, 51, 68, 0.4);">
+            <div class="tag live-15m-timer" style="background: #3b1414; color: var(--accent-red); font-weight: 900; font-size: 0.75rem; padding: 3px 8px; border-radius: 12px; border: 1px solid rgba(255, 51, 68, 0.4);">
               ● --:--
             </div>
           </div>
@@ -749,6 +776,7 @@
             </div>
           </div>
 
+          <!-- Sparkline with Reference Strike Line -->
           <div style="position: relative; margin-top: 4px;">
             <svg class="sparkline-svg" viewBox="0 0 300 48">
               <line x1="0" y1="24" x2="300" y2="24" stroke="#475569" stroke-width="1.5" stroke-dasharray="4,4" />
@@ -757,22 +785,23 @@
             </svg>
           </div>
 
+          <!-- Binary Above / Below Decision Buttons (Click opens Order Sheet) -->
           <div class="binary-split-tray">
-            <div class="binary-btn btn-above" onclick="selectBinarySide('GOLD', 'Above')">
+            <div class="binary-btn btn-above" id="btn-gold-above" onclick="openOrderModal('GOLD', 'Above', 89, 4343.61)">
               <span>Above</span>
               <span style="opacity: 0.7;">·</span>
               <span id="prob-15m-gold-above">89%</span>
             </div>
-            <div class="binary-btn btn-below" onclick="selectBinarySide('GOLD', 'Below')">
+            <div class="binary-btn btn-below" id="btn-gold-below" onclick="openOrderModal('GOLD', 'Below', 11, 4343.61)">
               <span>Below</span>
               <span style="opacity: 0.7;">·</span>
               <span id="prob-15m-gold-below">11%</span>
             </div>
           </div>
 
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 6px; font-size: 11px; color: var(--text-muted);">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 6px; font-size: 0.78rem; color: var(--text-muted);">
             <span id="vol-15m-gold">$224,205 vol</span>
-            <button class="btn btn-cyan" style="padding: 4px 10px; font-size: 11px;" onclick="triggerGeminiAgent('GOLD')">🤖 Gemini Analysis</button>
+            <button class="btn btn-cyan" style="padding: 5px 12px; font-size: 0.78rem;" onclick="triggerGeminiAgent('GOLD')">🤖 Gemini Analysis</button>
           </div>
           <div class="ai-agent-box" id="ai-box-gold">Evaluating candle momentum &amp; order-book spread...</div>
         </div>
@@ -782,9 +811,9 @@
           <div class="fast-header">
             <div style="display: flex; align-items: center; gap: 8px;">
               <span class="asset-icon-badge badge-silver">SLV</span>
-              <span style="font-size: 13px; font-weight: 800; color: #cbd5e1; letter-spacing: 0.5px;">SILVER 15 MIN</span>
+              <span style="font-size: 0.85rem; font-weight: 800; color: #cbd5e1;">SILVER 15 MIN</span>
             </div>
-            <div class="tag live-15m-timer" style="background: #3b1414; color: var(--accent-red); font-weight: 900; font-size: 11px; padding: 3px 8px; border-radius: 12px; border: 1px solid rgba(255, 51, 68, 0.4);">
+            <div class="tag live-15m-timer" style="background: #3b1414; color: var(--accent-red); font-weight: 900; font-size: 0.75rem; padding: 3px 8px; border-radius: 12px; border: 1px solid rgba(255, 51, 68, 0.4);">
               ● --:--
             </div>
           </div>
@@ -808,21 +837,21 @@
           </div>
 
           <div class="binary-split-tray">
-            <div class="binary-btn btn-above" onclick="selectBinarySide('SILVER', 'Above')">
+            <div class="binary-btn btn-above" id="btn-silver-above" onclick="openOrderModal('SILVER', 'Above', 17, 66.828)">
               <span>Above</span>
               <span style="opacity: 0.7;">·</span>
               <span id="prob-15m-silver-above">17%</span>
             </div>
-            <div class="binary-btn btn-below" onclick="selectBinarySide('SILVER', 'Below')">
+            <div class="binary-btn btn-below" id="btn-silver-below" onclick="openOrderModal('SILVER', 'Below', 83, 66.828)">
               <span>Below</span>
               <span style="opacity: 0.7;">·</span>
               <span id="prob-15m-silver-below">83%</span>
             </div>
           </div>
 
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 6px; font-size: 11px; color: var(--text-muted);">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 6px; font-size: 0.78rem; color: var(--text-muted);">
             <span id="vol-15m-silver">$97,908 vol</span>
-            <button class="btn btn-cyan" style="padding: 4px 10px; font-size: 11px;" onclick="triggerGeminiAgent('SILVER')">🤖 Gemini Analysis</button>
+            <button class="btn btn-cyan" style="padding: 5px 12px; font-size: 0.78rem;" onclick="triggerGeminiAgent('SILVER')">🤖 Gemini Analysis</button>
           </div>
           <div class="ai-agent-box" id="ai-box-silver">Evaluating candle momentum &amp; order-book spread...</div>
         </div>
@@ -832,9 +861,9 @@
           <div class="fast-header">
             <div style="display: flex; align-items: center; gap: 8px;">
               <span class="asset-icon-badge badge-oil">WTI</span>
-              <span style="font-size: 13px; font-weight: 800; color: #cbd5e1; letter-spacing: 0.5px;">WTI OIL 15 MIN</span>
+              <span style="font-size: 0.85rem; font-weight: 800; color: #cbd5e1;">WTI OIL 15 MIN</span>
             </div>
-            <div class="tag live-15m-timer" style="background: #3b1414; color: var(--accent-red); font-weight: 900; font-size: 11px; padding: 3px 8px; border-radius: 12px; border: 1px solid rgba(255, 51, 68, 0.4);">
+            <div class="tag live-15m-timer" style="background: #3b1414; color: var(--accent-red); font-weight: 900; font-size: 0.75rem; padding: 3px 8px; border-radius: 12px; border: 1px solid rgba(255, 51, 68, 0.4);">
               ● --:--
             </div>
           </div>
@@ -858,21 +887,21 @@
           </div>
 
           <div class="binary-split-tray">
-            <div class="binary-btn btn-above" onclick="selectBinarySide('WTI', 'Above')">
+            <div class="binary-btn btn-above" id="btn-wti-above" onclick="openOrderModal('WTI', 'Above', 54, 90.16)">
               <span>Above</span>
               <span style="opacity: 0.7;">·</span>
               <span id="prob-15m-wti-above">54%</span>
             </div>
-            <div class="binary-btn btn-below" onclick="selectBinarySide('WTI', 'Below')">
+            <div class="binary-btn btn-below" id="btn-wti-below" onclick="openOrderModal('WTI', 'Below', 46, 90.16)">
               <span>Below</span>
               <span style="opacity: 0.7;">·</span>
               <span id="prob-15m-wti-below">46%</span>
             </div>
           </div>
 
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 6px; font-size: 11px; color: var(--text-muted);">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 6px; font-size: 0.78rem; color: var(--text-muted);">
             <span id="vol-15m-wti">$142,500 vol</span>
-            <button class="btn btn-cyan" style="padding: 4px 10px; font-size: 11px;" onclick="triggerGeminiAgent('WTI')">🤖 Gemini Analysis</button>
+            <button class="btn btn-cyan" style="padding: 5px 12px; font-size: 0.78rem;" onclick="triggerGeminiAgent('WTI')">🤖 Gemini Analysis</button>
           </div>
           <div class="ai-agent-box" id="ai-box-wti">Evaluating candle momentum &amp; order-book spread...</div>
         </div>
@@ -890,7 +919,7 @@
         <span class="tag">Gamma Proxy</span>
       </div>
       <div id="poly-live-feed" style="display: flex; flex-direction: column; gap: 10px;">
-        <div style="font-size: 12px; color: var(--text-muted); text-align: center; padding: 12px;">Querying /api/polymarket/markets...</div>
+        <div style="font-size: 0.85rem; color: var(--text-muted); text-align: center; padding: 12px;">Querying /api/polymarket/markets...</div>
       </div>
     </div>
   </div>
@@ -903,7 +932,7 @@
         <span class="tag">Trade API v2</span>
       </div>
       <div id="kalshi-live-feed" style="display: flex; flex-direction: column; gap: 10px;">
-        <div style="font-size: 12px; color: var(--text-muted); text-align: center; padding: 12px;">Authenticated via Local Session Keys</div>
+        <div style="font-size: 0.85rem; color: var(--text-muted); text-align: center; padding: 12px;">Authenticated via Local Session Keys</div>
       </div>
     </div>
   </div>
@@ -964,8 +993,8 @@
       </div>
 
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; padding: 10px 12px; background: rgba(0, 242, 254, 0.05); border: 1px solid rgba(0, 242, 254, 0.2); border-radius: 10px;">
-        <span style="font-size: 12px; color: var(--text-muted);">Want 1-tap bet sharing from DraftKings &amp; FanDuel?</span>
-        <a href="javascript:void(0)" onclick="openSetupModal()" style="font-size: 12px; font-weight: 800; color: var(--accent-cyan); text-decoration: none;">Setup Guide ➔</a>
+        <span style="font-size: 0.82rem; color: var(--text-muted);">Want 1-tap bet sharing from DraftKings &amp; FanDuel?</span>
+        <a href="javascript:void(0)" onclick="openSetupModal()" style="font-size: 0.82rem; font-weight: 800; color: var(--accent-cyan); text-decoration: none;">Setup Guide ➔</a>
       </div>
 
       <div style="display: flex; gap: 8px; margin-bottom: 14px; align-items: flex-end;">
@@ -988,50 +1017,112 @@
 
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
         <span class="stat-label">Imported Wagers</span>
-        <button class="btn" style="padding: 3px 10px; font-size: 11px;" onclick="pollSharedSlips()">Force Sync</button>
+        <button class="btn" style="padding: 3px 10px; font-size: 0.75rem;" onclick="pollSharedSlips()">Force Sync</button>
       </div>
 
       <div id="fleet-tickets-container" style="display: flex; flex-direction: column; gap: 10px;"></div>
     </div>
   </div>
 
-  <!-- VIEW 8: BYOK VAULT & SECURITY -->
+  <!-- VIEW 8: VAULT (LIFETIME EARNINGS & APP BREAKDOWN) -->
   <div class="tab-view" id="view-vault">
     <div class="card">
       <div class="card-header">
-        <span>💼 Local Portfolio &amp; Balance State</span>
-        <span id="trader-mode-tag" class="tag" style="color: var(--text-muted);">Disconnected</span>
+        <span>💼 Terminal Earnings &amp; Cumulative PnL</span>
+        <span class="tag" style="color: var(--accent-green);">Lifetime Metrics</span>
       </div>
-      <div class="stat-grid-4">
+      
+      <!-- Primary Earnings Overview -->
+      <div class="stat-grid-3" style="margin-bottom: 12px;">
         <div class="stat-box">
-          <span class="stat-label">Polymarket.us (Cash)</span>
-          <span class="stat-value" id="poly-balance-disp">$0.00</span>
+          <span class="stat-label">Total Net PnL</span>
+          <span class="stat-value" id="vault-total-pnl" style="color: var(--accent-green);">+$0.00</span>
         </div>
         <div class="stat-box">
-          <span class="stat-label">Kalshi (Cash)</span>
-          <span class="stat-value" id="kalshi-balance-disp">$0.00</span>
+          <span class="stat-label">Win Rate</span>
+          <span class="stat-value" id="vault-win-rate">0%</span>
         </div>
         <div class="stat-box">
-          <span class="stat-label">Net Available</span>
-          <span class="stat-value" id="net-available-disp" style="color: var(--accent-cyan);">$0.00</span>
-        </div>
-        <div class="stat-box">
-          <span class="stat-label">Security Shield</span>
-          <span class="stat-value" style="color: var(--accent-gold); font-size: 12px;">Client BYOK</span>
+          <span class="stat-label">Wagers Settled</span>
+          <span class="stat-value" id="vault-settled-count">0</span>
         </div>
       </div>
-    </div>
 
+      <!-- App-by-App Performance Breakdown -->
+      <div style="font-weight: 800; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 8px; text-transform: uppercase;">
+        Earnings By Platform
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px;">
+        <!-- Polymarket.us -->
+        <div style="background: #080c1a; border: 1px solid var(--border-color); border-radius: 8px; padding: 10px; display: flex; justify-content: space-between; align-items: center;">
+          <div>
+            <div style="font-weight: 800; font-size: 0.85rem; color: var(--accent-pink);">Polymarket.us</div>
+            <div style="font-size: 0.72rem; color: var(--text-muted);">Prediction Markets • 0 Fees</div>
+          </div>
+          <div style="text-align: right;">
+            <div style="font-weight: 800; font-size: 0.88rem; color: var(--accent-green);" id="pnl-poly">+$0.00</div>
+            <div style="font-size: 0.7rem; color: var(--text-muted);" id="stats-poly">0 Slips • 0% Win</div>
+          </div>
+        </div>
+
+        <!-- Kalshi -->
+        <div style="background: #080c1a; border: 1px solid var(--border-color); border-radius: 8px; padding: 10px; display: flex; justify-content: space-between; align-items: center;">
+          <div>
+            <div style="font-weight: 800; font-size: 0.85rem; color: var(--accent-green);">Kalshi Domestic</div>
+            <div style="font-size: 0.72rem; color: var(--text-muted);">CFTC Designated Contract Market</div>
+          </div>
+          <div style="text-align: right;">
+            <div style="font-weight: 800; font-size: 0.88rem; color: var(--accent-green);" id="pnl-kalshi">+$0.00</div>
+            <div style="font-size: 0.7rem; color: var(--text-muted);" id="stats-kalshi">0 Slips • 0% Win</div>
+          </div>
+        </div>
+
+        <!-- Sportsbooks (DraftKings / FanDuel) -->
+        <div style="background: #080c1a; border: 1px solid var(--border-color); border-radius: 8px; padding: 10px; display: flex; justify-content: space-between; align-items: center;">
+          <div>
+            <div style="font-weight: 800; font-size: 0.85rem; color: var(--accent-cyan);">Sportsbooks (DK / FD)</div>
+            <div style="font-size: 0.72rem; color: var(--text-muted);">Fleet Imported Parlays &amp; SGPx</div>
+          </div>
+          <div style="text-align: right;">
+            <div style="font-weight: 800; font-size: 0.88rem; color: var(--accent-green);" id="pnl-books">+$0.00</div>
+            <div style="font-size: 0.7rem; color: var(--text-muted);" id="stats-books">0 Slips • 0% Win</div>
+          </div>
+        </div>
+      </div>
+
+      <button class="btn btn-cyan" style="width: 100%;" onclick="switchNavTab('view-settings', null)">⚙️ Configure API Keys &amp; UI Preferences</button>
+    </div>
+  </div>
+
+  <!-- VIEW 9: SETTINGS (MOVED API FORMS + UI SCALING SLIDER) -->
+  <div class="tab-view" id="view-settings">
     <div class="card">
       <div class="card-header">
-        <span>🔐 Bring Your Own Key (BYOK) API Credentials</span>
-        <span class="tag">100% Client-Side</span>
+        <span>⚙️ Terminal Display &amp; Zoom Controls</span>
+        <span class="tag" id="ui-zoom-disp">100%</span>
       </div>
-      <p style="font-size: 11px; color: var(--text-muted); margin-bottom: 14px; line-height: 1.4;">
-        API keys and private signatures are stored exclusively in your browser sandbox. They never touch a remote server.
+      <p style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 12px; line-height: 1.4;">
+        Adjust the UI scaling slider to comfortably read the terminal on mobile screens or desktop displays:
+      </p>
+      <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
+        <span style="font-size: 0.8rem; color: var(--text-muted);">80%</span>
+        <input type="range" id="ui-zoom-slider" min="0.8" max="1.4" step="0.05" value="1.0" oninput="updateUiZoom(this.value)" style="flex: 1; accent-color: var(--accent-cyan);">
+        <span style="font-size: 0.8rem; color: var(--text-muted);">140%</span>
+      </div>
+      <button class="btn" style="width: 100%; background: #19223c;" onclick="resetUiZoom()">Reset to Default (100%)</button>
+    </div>
+
+    <!-- Isolated BYOK Credentials Section -->
+    <div class="card">
+      <div class="card-header">
+        <span>🔐 Private BYOK Credentials</span>
+        <span class="tag">Local Sandbox</span>
+      </div>
+      <p style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 14px; line-height: 1.4;">
+        Keys are stored strictly in client-side localStorage. They are never sent to external servers.
       </p>
 
-      <div style="font-weight: 800; font-size: 12px; color: var(--accent-green); margin-bottom: 6px;">🟢 Kalshi Domestic Trading API</div>
+      <div style="font-weight: 800; font-size: 0.85rem; color: var(--accent-green); margin-bottom: 6px;">🟢 Kalshi Domestic Trading API</div>
       <div class="input-group">
         <label class="stat-label">Kalshi Key ID</label>
         <div class="password-wrapper">
@@ -1048,7 +1139,7 @@
         </div>
       </div>
 
-      <div style="font-weight: 800; font-size: 12px; color: var(--accent-pink); margin-bottom: 6px;">🟣 Polymarket.us Domestic Trading API</div>
+      <div style="font-weight: 800; font-size: 0.85rem; color: var(--accent-pink); margin-bottom: 6px;">🟣 Polymarket.us Domestic Trading API</div>
       <div class="input-group">
         <label class="stat-label">Polymarket.us API Key ID</label>
         <div class="password-wrapper">
@@ -1065,7 +1156,7 @@
         </div>
       </div>
 
-      <div style="font-weight: 800; font-size: 12px; color: var(--accent-cyan); margin-bottom: 6px;">🤖 Gemini Agentic Copilot API</div>
+      <div style="font-weight: 800; font-size: 0.85rem; color: var(--accent-cyan); margin-bottom: 6px;">🤖 Gemini Agentic Copilot API</div>
       <div class="input-group">
         <label class="stat-label">Google Gemini API Key</label>
         <div class="password-wrapper">
@@ -1081,7 +1172,7 @@
     </div>
   </div>
 
-  <!-- Bottom Navigation Bar -->
+  <!-- Bottom Navigation Bar (Now Includes Settings) -->
   <nav class="bottom-nav">
     <div class="nav-item active" onclick="switchNavTab('view-picks', this)">
       <span>🎯</span>
@@ -1121,6 +1212,56 @@
 
 </div>
 
+<!-- INTERACTIVE 15-MIN EXECUTION ORDER SHEET -->
+<div id="order-modal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 10000; padding: 20px; overflow-y: auto; justify-content: center; align-items: center;">
+  <div style="background: #0d1226; border: 1.5px solid var(--border-color); border-radius: 14px; max-width: 440px; width: 100%; padding: 20px; color: #fff; font-size: 13px; display: flex; flex-direction: column; gap: 14px; box-shadow: 0 0 30px rgba(0, 242, 254, 0.25);">
+    
+    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">
+      <span style="font-weight: 900; font-size: 15px; color: var(--accent-cyan);" id="order-modal-title">Confirm Kalshi 15-Min Order</span>
+      <span style="cursor: pointer; font-size: 18px; color: var(--text-muted);" onclick="closeOrderModal()">✕</span>
+    </div>
+
+    <div>
+      <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase;">Target Comparison</div>
+      <div style="font-size: 16px; font-weight: 900;" id="order-target-display">Target $4,343.61</div>
+      <div style="font-size: 12px; margin-top: 2px;" id="order-side-display">Side: <strong style="color: var(--accent-green);">ABOVE (YES)</strong></div>
+    </div>
+
+    <!-- Contract Quantity Input -->
+    <div class="input-group">
+      <label class="stat-label">Number of Contracts</label>
+      <input type="number" id="order-qty" value="5" min="1" max="500" oninput="calculateOrderEstimate()">
+    </div>
+
+    <!-- Limit Price Cap Input -->
+    <div class="input-group">
+      <label class="stat-label">Limit Price Cap (Cents per Contract: 1¢ - 99¢)</label>
+      <input type="number" id="order-limit-price" value="89" min="1" max="99" oninput="calculateOrderEstimate()">
+    </div>
+
+    <!-- Summary Cost & Estimated Profit -->
+    <div style="background: #070914; border: 1px solid var(--border-color); border-radius: 8px; padding: 12px; display: flex; flex-direction: column; gap: 6px;">
+      <div style="display: flex; justify-content: space-between; font-size: 12px;">
+        <span style="color: var(--text-muted);">Max Position Cost:</span>
+        <strong id="order-est-cost">$4.45</strong>
+      </div>
+      <div style="display: flex; justify-content: space-between; font-size: 12px;">
+        <span style="color: var(--text-muted);">Estimated Fee (Limit Order):</span>
+        <strong style="color: var(--accent-cyan);" id="order-est-fee">$0.02</strong>
+      </div>
+      <div style="display: flex; justify-content: space-between; font-size: 13px; border-top: 1px dashed var(--border-color); padding-top: 6px;">
+        <span style="color: var(--text-muted);">Potential Net Profit:</span>
+        <strong style="color: var(--accent-green);" id="order-est-profit">+$0.53 (+11.9%)</strong>
+      </div>
+    </div>
+
+    <div style="display: flex; gap: 10px; margin-top: 4px;">
+      <button class="btn" style="flex: 1; background: #19223c;" onclick="closeOrderModal()">Cancel</button>
+      <button class="btn btn-gold" style="flex: 2;" onclick="submitKalshiOrder()">Confirm &amp; Place Limit Order</button>
+    </div>
+  </div>
+</div>
+
 <!-- SETUP INSTRUCTIONS MODAL SHEET -->
 <div id="setup-modal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 10000; padding: 20px; overflow-y: auto; justify-content: center; align-items: center;">
   <div style="background: #0d1224; border: 1px solid var(--border-color); border-radius: 14px; max-width: 440px; width: 100%; padding: 18px; color: #fff; font-size: 12px; display: flex; flex-direction: column; gap: 14px; box-shadow: 0 0 30px rgba(0, 242, 254, 0.2);">
@@ -1134,7 +1275,7 @@
         1. Open this URL in mobile Safari.<br>
         2. Tap the <strong>Share</strong> button at the bottom.<br>
         3. Scroll down and tap <strong>Add to Home Screen</strong>.<br>
-        4. Tap <strong>Add</strong> in the top right. Launch directly from your home screen.
+        4. Tap <strong>Add</strong> in the top right.
       </p>
     </div>
     <div>
@@ -1158,7 +1299,29 @@
 </div>
 
 <script>
-// --- MASTER QUEUE ARRAYS (TOP 9 SCREENED PICKS) ---
+// --- UI SCALING CONTROLS ---
+function updateUiZoom(val) {
+  document.documentElement.style.setProperty('--ui-zoom', val);
+  document.getElementById('ui-zoom-disp').textContent = `${Math.round(val * 100)}%`;
+  localStorage.setItem('cosmic_ui_zoom', val);
+}
+
+function loadUiZoom() {
+  const savedZoom = localStorage.getItem('cosmic_ui_zoom') || '1.0';
+  document.documentElement.style.setProperty('--ui-zoom', savedZoom);
+  const slider = document.getElementById('ui-zoom-slider');
+  if (slider) slider.value = savedZoom;
+  const disp = document.getElementById('ui-zoom-disp');
+  if (disp) disp.textContent = `${Math.round(parseFloat(savedZoom) * 100)}%`;
+}
+
+function resetUiZoom() {
+  updateUiZoom(1.0);
+  const slider = document.getElementById('ui-zoom-slider');
+  if (slider) slider.value = 1.0;
+}
+
+// --- MASTER QUEUE ARRAYS ---
 let SPORTS_PICKS_POOL = [
   { match: "Nationals @ Tigers — First 5 Under 4.5 Runs", book: "POLY.US", bookBg: "#1b1330", bookColor: "var(--accent-pink)", pick: "YES Under 4.5 F5 @ $0.78 (78% Implied)", roi: "+28.2% ROI", roiNum: 28.2, time: "Tomorrow 1:10 PM ET", expiry: 1727111400000 },
   { match: "Blue Jays @ Orioles — Baltimore Orioles Moneyline", book: "KALSHI", bookBg: "#12281a", bookColor: "var(--accent-green)", pick: "YES Orioles ML @ $0.82 (82% Implied)", roi: "+22.0% ROI", roiNum: 22.0, time: "Tomorrow 1:35 PM ET", expiry: 1727112900000 },
@@ -1249,14 +1412,12 @@ function startCarouselRotators() {
   }
 }
 
-// 10-Minute Periodic Slate Refresh for Active Top Screeners
+// 10-Minute Periodic Slate Refresh
 function refreshScreenedSlatePool() {
   const now = Date.now();
-  // Filter out any matches whose expiry has passed
   SPORTS_PICKS_POOL = SPORTS_PICKS_POOL.filter(m => m.expiry > now);
   ESPORTS_PICKS_POOL = ESPORTS_PICKS_POOL.filter(m => m.expiry > now);
 
-  // Re-render current page
   sportsPageIndex = 0;
   esportsPageIndex = 0;
   renderCarouselPage('sports-picks-container', SPORTS_PICKS_POOL, 0);
@@ -1275,6 +1436,7 @@ function switchNavTab(viewId, element) {
 
   if (viewId === 'view-poly') fetchLivePoly();
   if (viewId === 'view-perps') pollLive15MinMarkets();
+  if (viewId === 'view-vault') calculateVaultEarnings();
 }
 
 function switchCategoryFilter(category, button) {
@@ -1387,12 +1549,63 @@ function updateSynchronized15MinTimers() {
   });
 }
 
-function selectBinarySide(asset, side) {
-  alert(`[${asset} 15-MIN] Selected ${side}. Direct execution relay ready via BYOK Vault.`);
+// --- INTERACTIVE ORDER MODAL & EXECUTION ---
+let activeOrderContext = null;
+
+function openOrderModal(assetKey, side, currentProb, targetPrice) {
+  activeOrderContext = { assetKey, side, currentProb, targetPrice };
+  document.getElementById('order-modal-title').textContent = `Kalshi ${assetKey} 15-Min Order`;
+  document.getElementById('order-target-display').textContent = `Target Strike: $${targetPrice}`;
+  const sideEl = document.getElementById('order-side-display');
+  sideEl.innerHTML = `Action: <strong style="color: ${side === 'Above' ? 'var(--accent-green)' : 'var(--accent-red)'};">${side.toUpperCase()} (${side === 'Above' ? 'YES' : 'NO'})</strong>`;
+  
+  document.getElementById('order-limit-price').value = currentProb;
+  document.getElementById('order-qty').value = 5;
+  calculateOrderEstimate();
+
+  const modal = document.getElementById('order-modal');
+  if (modal) modal.style.display = 'flex';
+}
+
+function closeOrderModal() {
+  const modal = document.getElementById('order-modal');
+  if (modal) modal.style.display = 'none';
+  activeOrderContext = null;
+}
+
+function calculateOrderEstimate() {
+  const qty = parseInt(document.getElementById('order-qty').value, 10) || 1;
+  const priceCents = parseInt(document.getElementById('order-limit-price').value, 10) || 50;
+  const priceDollars = priceCents / 100;
+
+  const maxCost = qty * priceDollars;
+  // Kalshi maker limit fee formula: ~0.0175 * C * P * (1-P)
+  const estFee = Math.max(0.01, 0.0175 * qty * priceDollars * (1 - priceDollars));
+  const maxPayout = qty * 1.0;
+  const netProfit = (maxPayout - maxCost) - estFee;
+  const roiPct = maxCost > 0 ? (netProfit / maxCost) * 100 : 0;
+
+  document.getElementById('order-est-cost').textContent = `$${maxCost.toFixed(2)}`;
+  document.getElementById('order-est-fee').textContent = `$${estFee.toFixed(2)}`;
+  document.getElementById('order-est-profit').textContent = `+$${netProfit.toFixed(2)} (+${roiPct.toFixed(1)}%)`;
+}
+
+function submitKalshiOrder() {
+  const kKey = localStorage.getItem('kalshi_key_id');
+  if (!kKey) {
+    alert("BYOK Vault Standby: Please configure your Kalshi Key ID and RSA PEM in Settings before routing live orders.");
+    switchNavTab('view-settings', null);
+    closeOrderModal();
+    return;
+  }
+
+  const qty = document.getElementById('order-qty').value;
+  const price = document.getElementById('order-limit-price').value;
+  alert(`Order Dispatched to Edge Relay!\nPlaced ${qty} contracts on ${activeOrderContext.assetKey} [${activeOrderContext.side}] limit at ${price}¢.`);
+  closeOrderModal();
 }
 
 // --- LIVE 15-MINUTE MARKET STREAMING ENGINE ---
-// Live market cache
 const live15MinState = {
   GOLD: { ticker: "KXGOLD15M", title: "Gold 15m Close", target: 4343.61, spot: 4344.23, aboveProb: 89, belowProb: 11, vol: "$224,205 vol" },
   SILVER: { ticker: "KXSLV15M", title: "Silver 15m Bracket", target: 66.828, spot: 66.780, aboveProb: 17, belowProb: 83, vol: "$97,908 vol" },
@@ -1430,7 +1643,6 @@ async function pollLive15MinMarkets() {
       renderLive15MinUI();
     }
   } catch (err) {
-    // Graceful offline fallback maintains operational state
     renderLive15MinUI();
   }
 }
@@ -1477,11 +1689,11 @@ function triggerGeminiAgent(assetKey) {
   const item = live15MinState[assetKey];
   if (!item) return;
   const boxId = assetKey === 'GOLD' ? 'ai-box-gold' : assetKey === 'SILVER' ? 'ai-box-silver' : 'ai-box-wti';
-  runGeminiCopilot(item.ticker, item.title, item.target, item.spot, boxId);
+  runGeminiCopilot(assetKey, item.ticker, item.title, item.target, item.spot, boxId);
 }
 
-// --- GEMINI 15-MINUTE COPILOT ---
-async function runGeminiCopilot(ticker, title, targetPrice, currentPrice, outputBoxId) {
+// --- GEMINI COPILOT + GLOW / FADE ENGINE ---
+async function runGeminiCopilot(assetKey, ticker, title, targetPrice, currentPrice, outputBoxId) {
   const box = document.getElementById(outputBoxId);
   if (!box) return;
   box.style.display = 'block';
@@ -1490,6 +1702,24 @@ async function runGeminiCopilot(ticker, title, targetPrice, currentPrice, output
   const geminiKey = localStorage.getItem('gemini_api_key') || '';
   const now = new Date();
   const minLeft = 15 - (now.getMinutes() % 15);
+
+  const applyGlowAndFade = (recommendedSide) => {
+    const pfx = assetKey.toLowerCase();
+    const btnAbove = document.getElementById(`btn-${pfx}-above`);
+    const btnBelow = document.getElementById(`btn-${pfx}-below`);
+    if (!btnAbove || !btnBelow) return;
+
+    btnAbove.classList.remove('btn-recommend-glow-above', 'btn-faded');
+    btnBelow.classList.remove('btn-recommend-glow-below', 'btn-faded');
+
+    if (recommendedSide === "ABOVE") {
+      btnAbove.classList.add('btn-recommend-glow-above');
+      btnBelow.classList.add('btn-faded');
+    } else if (recommendedSide === "BELOW") {
+      btnBelow.classList.add('btn-recommend-glow-below');
+      btnAbove.classList.add('btn-faded');
+    }
+  };
 
   try {
     const res = await fetch('/api/agent/gemini', {
@@ -1506,22 +1736,87 @@ async function runGeminiCopilot(ticker, title, targetPrice, currentPrice, output
       box.innerHTML = `<span style="color: var(--accent-red); font-weight: bold;">${data.error}</span>`;
     } else {
       box.innerHTML = `<div style="color: #fff; white-space: pre-wrap; font-size: 11px;">${data.analysis}</div>`;
+      if (/BUY ABOVE/i.test(data.analysis)) applyGlowAndFade("ABOVE");
+      else if (/BUY BELOW/i.test(data.analysis)) applyGlowAndFade("BELOW");
     }
   } catch (err) {
     const delta = currentPrice - targetPrice;
     const side = delta >= 0 ? "BUY ABOVE" : "BUY BELOW";
+    applyGlowAndFade(delta >= 0 ? "ABOVE" : "BELOW");
+
     box.innerHTML = `
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-        <span style="color: ${delta >= 0 ? 'var(--accent-green)' : 'var(--accent-red)'}; font-weight: 900; font-size: 14px;">CALL: ${side}</span>
+        <span style="color: ${delta >= 0 ? 'var(--accent-green)' : 'var(--accent-red)'}; font-weight: 900; font-size: 13px;">COPILOT CALL: ${side}</span>
         <span style="font-size: 10px; color: var(--accent-gold); font-weight: 800;">${Math.abs(delta) > 0.5 ? 'HIGH CONVICTION' : 'TIGHT SPREAD'}</span>
       </div>
       <div style="color: var(--text-muted); font-size: 11px; line-height: 1.4;">
-        • <strong>Candle Time Left:</strong> ${minLeft}m to CFTC settlement bracket.<br>
-        • <strong>Delta to Target:</strong> ${delta >= 0 ? '+' : ''}${delta.toFixed(3)} ($${Math.abs(delta).toFixed(3)} ${delta >= 0 ? 'above' : 'below'} strike).<br>
-        • <strong>Execution Guidance:</strong> Post resting limit orders directly on the ${side === 'BUY ABOVE' ? 'Above' : 'Below'} contract inside the spread to avoid taker fee leakage.
+        • <strong>Candle Status:</strong> ${minLeft}m to CFTC settlement bracket.<br>
+        • <strong>Delta to Target:</strong> ${delta >= 0 ? '+' : ''}${delta.toFixed(3)} (${Math.abs(delta).toFixed(3)} ${delta >= 0 ? 'above' : 'below'} strike).<br>
+        • <strong>Execution Guidance:</strong> Glow applied to recommended side. Place resting limit orders inside the spread to avoid taker fee leakage.
       </div>
     `;
   }
+}
+
+// --- VAULT CUMULATIVE EARNINGS CALCULATION ---
+function calculateVaultEarnings() {
+  const tickets = JSON.parse(localStorage.getItem('cosmic_fleet_tickets') || '[]');
+  
+  let totalPnL = 0;
+  let settledCount = 0;
+  let wins = 0;
+
+  const appStats = {
+    Polymarket: { pnl: 0, count: 0, wins: 0 },
+    Kalshi: { pnl: 0, count: 0, wins: 0 },
+    Sportsbook: { pnl: 0, count: 0, wins: 0 }
+  };
+
+  tickets.forEach(t => {
+    const bookKey = t.book.includes("Poly") ? "Polymarket" : t.book.includes("Kalshi") ? "Kalshi" : "Sportsbook";
+    if (t.settled) {
+      settledCount++;
+      appStats[bookKey].count++;
+      if (t.won) {
+        wins++;
+        appStats[bookKey].wins++;
+        const netWin = (t.payout || 0) - (t.stake || 0);
+        totalPnL += netWin;
+        appStats[bookKey].pnl += netWin;
+      } else {
+        totalPnL -= (t.stake || 0);
+        appStats[bookKey].pnl -= (t.stake || 0);
+      }
+    }
+  });
+
+  const pnlEl = document.getElementById('vault-total-pnl');
+  if (pnlEl) {
+    pnlEl.textContent = `${totalPnL >= 0 ? '+' : ''}$${totalPnL.toFixed(2)}`;
+    pnlEl.style.color = totalPnL >= 0 ? "var(--accent-green)" : "var(--accent-red)";
+  }
+  const winRateEl = document.getElementById('vault-win-rate');
+  if (winRateEl) winRateEl.textContent = settledCount > 0 ? `${Math.round((wins / settledCount) * 100)}%` : '0%';
+  const settledEl = document.getElementById('vault-settled-count');
+  if (settledEl) settledEl.textContent = settledCount;
+
+  // Update App Breakdown cards
+  const updateAppRow = (pnlId, statsId, statObj) => {
+    const elPnl = document.getElementById(pnlId);
+    const elStats = document.getElementById(statsId);
+    if (elPnl) {
+      elPnl.textContent = `${statObj.pnl >= 0 ? '+' : ''}$${statObj.pnl.toFixed(2)}`;
+      elPnl.style.color = statObj.pnl >= 0 ? "var(--accent-green)" : "var(--accent-red)";
+    }
+    if (elStats) {
+      const wr = statObj.count > 0 ? Math.round((statObj.wins / statObj.count) * 100) : 0;
+      elStats.textContent = `${statObj.count} Slips • ${wr}% Win`;
+    }
+  };
+
+  updateAppRow('pnl-poly', 'stats-poly', appStats.Polymarket);
+  updateAppRow('pnl-kalshi', 'stats-kalshi', appStats.Kalshi);
+  updateAppRow('pnl-books', 'stats-books', appStats.Sportsbook);
 }
 
 function refreshCurrentTab() {
@@ -1530,6 +1825,7 @@ function refreshCurrentTab() {
   if (activeTab.id === 'view-fleet') pollSharedSlips();
   if (activeTab.id === 'view-poly') fetchLivePoly();
   if (activeTab.id === 'view-perps') pollLive15MinMarkets();
+  if (activeTab.id === 'view-vault') calculateVaultEarnings();
 }
 
 function promptAdPasskey() {
@@ -1611,7 +1907,7 @@ function copyEndpointUrl() {
   });
 }
 
-// --- BYOK VAULT & PURGE SYSTEM ---
+// --- BYOK VAULT & SETTINGS STORAGE ---
 function toggleMask(fieldId) {
   const el = document.getElementById(fieldId);
   if (el) el.type = el.type === 'password' ? 'text' : 'password';
@@ -1728,6 +2024,7 @@ function loadLocalFleetTickets() {
 function saveLocalFleetTickets(tickets) {
   localStorage.setItem('cosmic_fleet_tickets', JSON.stringify(tickets));
   renderFleetTickets();
+  calculateVaultEarnings();
 }
 
 function updateFleetMetrics(tickets) {
@@ -1758,7 +2055,7 @@ function renderFleetTickets() {
   if (!container) return;
 
   if (tickets.length === 0) {
-    container.innerHTML = '<div style="color: var(--text-muted); font-size: 11px; padding: 14px; text-align: center; border: 1px dashed var(--border-color); border-radius: 8px;">No imported slips active.</div>';
+    container.innerHTML = '<div style="color: var(--text-muted); font-size: 0.8rem; padding: 14px; text-align: center; border: 1px dashed var(--border-color); border-radius: 8px;">No imported slips active.</div>';
     return;
   }
 
@@ -1768,12 +2065,12 @@ function renderFleetTickets() {
         <span style="color: var(--accent-cyan);">${t.book} [${t.betId || 'Slip'}]</span>
         <span style="color: var(--accent-gold);">${t.odds ? (t.odds.startsWith('+') || t.odds.startsWith('-') ? t.odds : '+' + t.odds) : ''} | Ret: $${t.payout ? t.payout.toFixed(2) : '--'}</span>
       </div>
-      <div style="color: var(--text-muted); font-size: 10px; margin-bottom: 6px; display: flex; justify-content: space-between;">
+      <div style="color: var(--text-muted); font-size: 0.72rem; margin-bottom: 6px; display: flex; justify-content: space-between;">
         <span>Stake: $${t.stake ? t.stake.toFixed(2) : '--'} | ${new Date(t.timestamp).toLocaleTimeString()}</span>
         <span style="cursor: pointer; color: var(--accent-pink);" onclick="removeSlip(${idx})">✕ Remove</span>
       </div>
       <div style="padding-left: 8px; border-left: 2px solid var(--accent-pink);">
-        ${(t.legs || []).map(l => `<div style="font-size: 11px; color: #fff;">• ${l}</div>`).join('')}
+        ${(t.legs || []).map(l => `<div style="font-size: 0.78rem; color: #fff;">• ${l}</div>`).join('')}
       </div>
     </div>
   `).join('');
@@ -1877,6 +2174,7 @@ function checkIncomingShareTarget() {
 
 // --- INITIALIZATION ---
 window.addEventListener('DOMContentLoaded', () => {
+  loadUiZoom();
   checkAdState();
   getOrCreateClientUuid();
   loadVaultCredentials();
@@ -1884,19 +2182,15 @@ window.addEventListener('DOMContentLoaded', () => {
   if (ttlSelect) ttlSelect.value = getUserTtl();
   renderFleetTickets();
   checkIncomingShareTarget();
+  calculateVaultEarnings();
   setInterval(pollSharedSlips, 10000);
 
-  // Initialize and run 6-second rotating carousels
+  // Initialize carousels & fast markets
   startCarouselRotators();
-
-  // Synchronized 10-Minute Slate Pool Auto-Refresh (removes settled lines)
-  setInterval(refreshScreenedSlatePool, 600000);
-
-  // Quarter-hour countdown clock
+  setInterval(refreshScreenedSlatePool, 600000); // 10-minute queue purge
   updateSynchronized15MinTimers();
   setInterval(updateSynchronized15MinTimers, 1000);
 
-  // Poll live 15-minute Kalshi market feeds every 3 seconds
   pollLive15MinMarkets();
   setInterval(pollLive15MinMarkets, 3000);
 });
