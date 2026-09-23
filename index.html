@@ -1297,7 +1297,7 @@
 
     <div class="input-group">
       <label class="stat-label">Number of Contracts</label>
-      <input type="number" id="order-qty" value="5" min="1" max="500" oninput="calculateOrderEstimate()">
+      <input type="number" id="order-qty" value="1" min="1" max="500" oninput="calculateOrderEstimate()">
     </div>
 
     <div class="input-group">
@@ -1308,15 +1308,15 @@
     <div style="background: #070914; border: 1px solid var(--border-color); border-radius: 8px; padding: 12px; display: flex; flex-direction: column; gap: 6px;">
       <div style="display: flex; justify-content: space-between; font-size: 12px;">
         <span style="color: var(--text-muted);">Max Position Cost:</span>
-        <strong id="order-est-cost">$2.50</strong>
+        <strong id="order-est-cost">$0.50</strong>
       </div>
       <div style="display: flex; justify-content: space-between; font-size: 12px;">
         <span style="color: var(--text-muted);">Estimated Maker Fee:</span>
-        <strong style="color: var(--accent-cyan);" id="order-est-fee">$0.02</strong>
+        <strong style="color: var(--accent-cyan);" id="order-est-fee">$0.01</strong>
       </div>
       <div style="display: flex; justify-content: space-between; font-size: 13px; border-top: 1px dashed var(--border-color); padding-top: 6px;">
         <span style="color: var(--text-muted);">Potential Net Profit:</span>
-        <strong style="color: var(--accent-green);" id="order-est-profit">+$2.48</strong>
+        <strong style="color: var(--accent-green);" id="order-est-profit">+$0.49 (+98.0%)</strong>
       </div>
     </div>
 
@@ -1372,7 +1372,7 @@
       <button class="btn btn-gold" style="width: 100%; margin-top: 6px; padding: 6px; font-size: 11px;" onclick="copyEndpointUrl()">Copy Private URL</button>
     </div>
 
-    <button class="btn" style="width: 100%; background: #19223c;" onclick="closeSetupModal()">Got It</button>
+    <button class="btn" style="width: 100%; background: #19223c; margin-top: 4px;" onclick="closeSetupModal()">Got It</button>
   </div>
 </div>
 
@@ -1830,7 +1830,7 @@ function updateSynchronized15MinTimers() {
   });
 }
 
-// --- DYNAMIC ORDER MODAL WITH CIRCUIT BREAKER ---
+// --- DYNAMIC ORDER MODAL WITH HARD PRE-FLIGHT BALANCING ---
 let activeOrderContext = null;
 
 function openOrderModal(assetKey, side) {
@@ -1845,7 +1845,7 @@ function openOrderModal(assetKey, side) {
   sideEl.innerHTML = `Action: <strong style="color: ${side === 'Above' ? 'var(--accent-green)' : 'var(--accent-red)'};">${side.toUpperCase()} (${side === 'Above' ? 'YES' : 'NO'})</strong>`;
   
   document.getElementById('order-limit-price').value = currentProb > 0 ? currentProb : 50;
-  document.getElementById('order-qty').value = 5;
+  document.getElementById('order-qty').value = 1;
   document.getElementById('large-order-warning').style.display = 'none';
   document.getElementById('large-order-confirm-input').value = '';
   calculateOrderEstimate();
@@ -1884,7 +1884,7 @@ function calculateOrderEstimate() {
   }
 }
 
-function submitKalshiOrder() {
+async function submitKalshiOrder() {
   const kKey = localStorage.getItem('kalshi_key_id');
   if (!kKey) {
     alert("BYOK Vault Standby: Configure your Kalshi Key ID and RSA PEM in Settings before placing live orders.");
@@ -1896,12 +1896,21 @@ function submitKalshiOrder() {
   const qty = parseInt(document.getElementById('order-qty').value, 10) || 1;
   const price = parseInt(document.getElementById('order-limit-price').value, 10) || 50;
   const maxCost = qty * (price / 100);
+  const deployable = getDeployableCapital();
 
+  // 1. Core Financial Guardrail: Hard Pre-Flight Capital Check
+  if (maxCost > deployable) {
+    alert(`Order Blocked: Insufficient Deployable Capital!\n\nOrder Cost: $${maxCost.toFixed(2)}\nDeployable Capital: $${deployable.toFixed(2)}\n(Protected by your Shielded Vault Floor)`);
+    return;
+  }
+
+  // 2. Anti-Taker Slippage Filter
   if (isSlippageFilterEnabled() && (price > 95 || price < 5)) {
     alert("Protocol Safety Warning: Limit price violates anti-taker fee friction rule (>95¢ or <5¢). Please place a resting bid closer to the median.");
     return;
   }
 
+  // 3. Large Transaction Circuit Breaker
   const largeThreshold = getLargeOrderThreshold();
   if (maxCost >= largeThreshold) {
     const confirmationText = document.getElementById('large-order-confirm-input').value.trim();
@@ -1911,8 +1920,36 @@ function submitKalshiOrder() {
     }
   }
 
-  alert(`Order Authorized & Routed to Relay!\nPlaced ${qty} contracts on ${activeOrderContext.assetKey} [${activeOrderContext.side}] limit at ${price}¢.`);
-  closeOrderModal();
+  // 4. Actual Dispatch to Kalshi Order API via Worker Relay
+  try {
+    const res = await fetch('/api/kalshi/trade/portfolio/orders', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'KALSHI-ACCESS-KEY': kKey,
+        'KALSHI-ACCESS-TIMESTAMP': Date.now().toString()
+      },
+      body: JSON.stringify({
+        action: 'buy',
+        side: activeOrderContext.side === 'Above' ? 'yes' : 'no',
+        ticker: activeOrderContext.assetKey === 'GOLD' ? 'KXGOLD15M' : 'KXSLV15M',
+        count: qty,
+        type: 'limit',
+        yes_price: price
+      })
+    });
+
+    const data = await res.json();
+    if (!res.ok || data.error) {
+      alert(`Exchange Rejected Order: ${data.error || 'Insufficient settled funds or inactive contract bracket.'}`);
+    } else {
+      alert(`Order Confirmed on Exchange!\nPlaced ${qty} contracts on ${activeOrderContext.assetKey} [${activeOrderContext.side}] limit at ${price}¢.`);
+      closeOrderModal();
+      fetchLiveExchangeBalances();
+    }
+  } catch (err) {
+    alert(`Order Dispatch Deferred: ${err.message}`);
+  }
 }
 
 // --- LIVE 15-MIN DATA STREAMING & GEMINI GLOW ---
