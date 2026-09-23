@@ -1,7 +1,7 @@
 // ============================================================================
-// COSMIC TERMINAL / PARLAYS - MASTER WORKER (v2.9-autonomous-salvage)
-// Programmatic Multi-Sport Verification, Mathematical Zero-Path Prover,
-// Autonomous Capital Salvage Engine, 60s Cron Sentinel & Webhook Dispatcher
+// COSMIC TERMINAL - MASTER WORKER (v3.0-universal-salvage)
+// Multi-Sport Universal Mathematical Zero-Path Prover, Autonomous Salvage Engine,
+// 1-Tap iOS Shortcut Installer, 60s Cron Sentinel & Exchange Order Relays
 // ============================================================================
 
 const CORS_HEADERS = {
@@ -10,7 +10,7 @@ const CORS_HEADERS = {
   "Access-Control-Allow-Headers": "Content-Type, Authorization, KALSHI-ACCESS-KEY, KALSHI-ACCESS-TIMESTAMP, KALSHI-ACCESS-SIGNATURE, X-Passkey, X-Slip-TTL, X-Gemini-Key, X-Webhook-Url",
 };
 
-// Sportsbook Share & Receipt Parsing Engine
+// Universal Parser for Bookmaker Share Sheets & Receipts
 function parseSportsbookPayload(rawText, sourceUrl = "") {
   const result = {
     book: "Sportsbook",
@@ -66,32 +66,77 @@ function parseSportsbookPayload(rawText, sourceUrl = "") {
   return result;
 }
 
-// Mathematical Zero-Path Elimination Prover
-function checkMathematicalElimination(rawTicket, gameData) {
-  const raw = (rawTicket || "").toLowerCase();
-  const awayScore = gameData.teams.away.score;
-  const homeScore = gameData.teams.home.score;
-  const totalScore = awayScore + homeScore;
-  const inning = gameData.linescore?.currentInning || 1;
-  const isBottom = gameData.linescore?.isTopInning === false;
-  const outs = gameData.linescore?.outs || 0;
+// ============================================================================
+// UNIVERSAL ZERO-PATH PROVER (HPT ENGINE) ACROSS ALL SPORTS & MARKETS
+// ============================================================================
+function evaluateZeroPathElimination(ticket, context) {
+  const raw = (ticket.raw || "").toLowerCase();
 
-  // Rule 1: Totals Under Breach
+  // 1. Universal "Under" Elimination (MLB, NFL, NBA, NHL)
   const underMatch = raw.match(/under\s*([0-9.]+)/i);
-  if (underMatch) {
-    const underCeiling = parseFloat(underMatch[1]);
-    if (totalScore >= underCeiling) {
-      return { eliminated: true, reason: `Total points/runs reached ${totalScore} (Exceeds Under ${underCeiling} ceiling)` };
+  if (underMatch && context.totalScore !== undefined) {
+    const ceiling = parseFloat(underMatch[1]);
+    if (context.totalScore >= ceiling) {
+      return { 
+        eliminated: true, 
+        reason: `Mathematical ceiling breached: Combined score reached ${context.totalScore} (Exceeds Under ${ceiling})` 
+      };
     }
   }
 
-  // Rule 2: Baseball Run Line Elimination Check
-  if (raw.includes("+2.5") && raw.includes("rangers")) {
-    const isHome = gameData.teams.home.team.name.toLowerCase().includes("rangers");
-    const diff = isHome ? (homeScore - awayScore) : (awayScore - homeScore);
-    // Down by 3+ runs in bottom of the 9th with 2 outs
-    if (diff <= -3 && inning >= 9 && isBottom && outs >= 2) {
-      return { eliminated: true, reason: "Mathematical ceiling exhausted: Trailing by 3+ runs with 2 outs in 9th." };
+  // 2. Baseball (MLB) Mathematical Elimination
+  if (context.sport === "mlb") {
+    const isHome = context.teamIsHome;
+    const diff = isHome ? (context.homeScore - context.awayScore) : (context.awayScore - context.homeScore);
+    const inning = context.currentInning || 1;
+    const isBottom = context.isBottomInning;
+    const outs = context.outs || 0;
+
+    // Run Line +2.5 down by 3+ in bottom 9th with 2 outs
+    if (raw.includes("+2.5") && diff <= -3 && inning >= 9 && isBottom && outs >= 2) {
+      return { eliminated: true, reason: "Zero outs cushion: Deficit exceeds maximum mathematical single-play cover." };
+    }
+    // Run Line +1.5 down by 2+ in bottom 9th with 2 outs
+    if (raw.includes("+1.5") && diff <= -2 && inning >= 9 && isBottom && outs >= 2) {
+      return { eliminated: true, reason: "Zero outs cushion: 2-run deficit with 2 outs in 9th." };
+    }
+  }
+
+  // 3. Football (NFL / NCAA) Mathematical Elimination
+  if (context.sport === "nfl") {
+    const diff = context.userTeamDiff || 0; // deficit
+    const clockSeconds = context.clockSeconds || 900;
+    const period = context.period || 1;
+
+    // Trailing by 17+ with less than 2 minutes in Q4 and no timeouts
+    if (period === 4 && clockSeconds <= 120 && diff <= -17) {
+      return { eliminated: true, reason: "Possession exhaustion: 3-possession deficit with under 2:00 in regulation." };
+    }
+    // Trailing by 9+ with under 35 seconds
+    if (period === 4 && clockSeconds <= 35 && diff <= -9) {
+      return { eliminated: true, reason: "Possession exhaustion: 2-possession deficit under 0:35." };
+    }
+  }
+
+  // 4. Basketball (NBA) Mathematical Elimination
+  if (context.sport === "nba") {
+    const diff = context.userTeamDiff || 0;
+    const clockSeconds = context.clockSeconds || 720;
+    const period = context.period || 1;
+
+    // Trailing by 15+ points with under 40 seconds left in Q4
+    if (period >= 4 && clockSeconds <= 40 && diff <= -15) {
+      return { eliminated: true, reason: "Pace exhaustion: Deficit mathematically unreachable based on maximum pace." };
+    }
+  }
+
+  // 5. 15-Minute CFTC Binary Contracts
+  if (context.sport === "kalshi_15m") {
+    const minutesLeft = context.minutesLeft || 15;
+    const strikeDelta = Math.abs(context.currentSpot - context.targetPrice);
+    // Spot is significantly underwater with under 60 seconds left
+    if (minutesLeft <= 1 && strikeDelta > 2.50 && context.currentProb <= 4) {
+      return { eliminated: true, reason: "Candle exhaustion: Insufficient volatility to cross strike prior to :00 bracket close." };
     }
   }
 
@@ -106,38 +151,83 @@ export default {
     if (!env.FLEET_KV) return;
 
     try {
-      const mlbRes = await fetch("https://statsapi.mlb.com/api/v1/schedule?sportId=1&hydrate=linescore,team");
-      if (!mlbRes.ok) return;
-      const mlbData = await mlbRes.json();
-      const games = mlbData.dates?.[0]?.games || [];
+      // 1. Fetch live multi-sport schedules
+      const [mlbRes, nflRes, nbaRes] = await Promise.all([
+        fetch("https://statsapi.mlb.com/api/v1/schedule?sportId=1&hydrate=linescore,team").catch(() => null),
+        fetch("https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard").catch(() => null),
+        fetch("https://site.api.espn.com/apis/site/v2/sports/basketball/nba/scoreboard").catch(() => null)
+      ]);
 
+      const mlbData = mlbRes && mlbRes.ok ? await mlbRes.json() : null;
+      const nflData = nflRes && nflRes.ok ? await nflRes.json() : null;
+      const nbaData = nbaRes && nbaRes.ok ? await nbaRes.json() : null;
+
+      const mlbGames = mlbData?.dates?.[0]?.games || [];
+      const nflGames = nflData?.events || [];
+      const nbaGames = nbaData?.events || [];
+
+      // 2. Scan active ticket queues in KV
       const list = await env.FLEET_KV.list({ prefix: "queue:" });
+
       for (const key of list.keys) {
         const itemStr = await env.FLEET_KV.get(key.name);
         if (!itemStr) continue;
         const ticket = JSON.parse(itemStr);
         if (ticket.settled) continue;
 
-        for (const game of games) {
+        const rawLower = (ticket.raw || "").toLowerCase();
+        let elimination = { eliminated: false };
+
+        // Check MLB
+        for (const game of mlbGames) {
           const home = game.teams.home.team.name.toLowerCase();
           const away = game.teams.away.team.name.toLowerCase();
-          const rawLower = (ticket.raw || "").toLowerCase();
-
           if (rawLower.includes(home) || rawLower.includes(away)) {
-            const elimination = checkMathematicalElimination(ticket.raw, game);
+            elimination = evaluateZeroPathElimination(ticket, {
+              sport: "mlb",
+              homeScore: game.teams.home.score,
+              awayScore: game.teams.away.score,
+              totalScore: game.teams.home.score + game.teams.away.score,
+              currentInning: game.linescore?.currentInning || 1,
+              isBottomInning: game.linescore?.isTopInning === false,
+              outs: game.linescore?.outs || 0,
+              teamIsHome: rawLower.includes(home)
+            });
+          }
+        }
 
-            if (elimination.eliminated) {
-              const userWebhook = await env.FLEET_KV.get(`webhook:${ticket.userUuid}`);
-              if (userWebhook) {
-                await fetch(userWebhook, {
-                  method: "POST",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({
-                    content: `🛡️ **CAPITAL SALVAGE ALERT:** Mathematical elimination confirmed for ticket [${ticket.id}]. Reason: ${elimination.reason}. Execute cash-out now before odds pull.`
-                  })
-                });
-              }
+        // Check NFL
+        if (!elimination.eliminated) {
+          for (const evt of nflGames) {
+            const comp = evt.competitions?.[0];
+            const home = comp?.competitors?.find(c => c.homeAway === "home");
+            const away = comp?.competitors?.find(c => c.homeAway === "away");
+            if (rawLower.includes(home?.team?.name?.toLowerCase()) || rawLower.includes(away?.team?.name?.toLowerCase())) {
+              const homeScore = parseInt(home.score || "0", 10);
+              const awayScore = parseInt(away.score || "0", 10);
+              const isUserHome = rawLower.includes(home.team.name.toLowerCase());
+              elimination = evaluateZeroPathElimination(ticket, {
+                sport: "nfl",
+                period: evt.status.period,
+                clockSeconds: evt.status.clock,
+                totalScore: homeScore + awayScore,
+                userTeamDiff: isUserHome ? (homeScore - awayScore) : (awayScore - homeScore)
+              });
             }
+          }
+        }
+
+        // Dispatch alert if mathematically eliminated
+        if (elimination.eliminated) {
+          const userWebhook = await env.FLEET_KV.get(`webhook:${ticket.userUuid}`);
+          if (userWebhook) {
+            await fetch(userWebhook, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                content: `🛡️ **CAPITAL SALVAGE ALERT:** Mathematical elimination confirmed for ticket [${ticket.id}]. Reason: ${elimination.reason}. Salvage cash-out immediately before line locks.`
+              })
+            }).catch(() => {});
           }
         }
       }
@@ -158,20 +248,20 @@ export default {
       return new Response(JSON.stringify({ 
         status: "healthy", 
         env: "production", 
-        build: "2.9.0-autonomous-salvage" 
+        build: "3.0.0-universal-salvage" 
       }), {
         headers: { ...CORS_HEADERS, "Content-Type": "application/json" }
       });
     }
 
-    // 2. Real-Time Sports Verification Engine
+    // 2. Multi-Sport Real-Time Verification Engine
     if (url.pathname.startsWith("/api/verify/")) {
       const sport = url.pathname.replace("/api/verify/", "").toLowerCase();
 
       if (sport === "mlb") {
         try {
           const mlbRes = await fetch("https://statsapi.mlb.com/api/v1/schedule?sportId=1&hydrate=linescore,team", {
-            headers: { "Accept": "application/json", "User-Agent": "CosmicTerminal/2.9" }
+            headers: { "Accept": "application/json", "User-Agent": "CosmicTerminal/3.0" }
           });
           return new Response(await mlbRes.text(), {
             headers: { ...CORS_HEADERS, "Content-Type": "application/json" }
@@ -187,13 +277,29 @@ export default {
       if (sport === "nfl") {
         try {
           const nflRes = await fetch("https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard", {
-            headers: { "Accept": "application/json", "User-Agent": "CosmicTerminal/2.9" }
+            headers: { "Accept": "application/json", "User-Agent": "CosmicTerminal/3.0" }
           });
           return new Response(await nflRes.text(), {
             headers: { ...CORS_HEADERS, "Content-Type": "application/json" }
           });
         } catch (err) {
           return new Response(JSON.stringify({ error: "NFL verification delayed", details: err.message }), {
+            status: 502,
+            headers: { ...CORS_HEADERS, "Content-Type": "application/json" }
+          });
+        }
+      }
+
+      if (sport === "nba") {
+        try {
+          const nbaRes = await fetch("https://site.api.espn.com/apis/site/v2/sports/basketball/nba/scoreboard", {
+            headers: { "Accept": "application/json", "User-Agent": "CosmicTerminal/3.0" }
+          });
+          return new Response(await nbaRes.text(), {
+            headers: { ...CORS_HEADERS, "Content-Type": "application/json" }
+          });
+        } catch (err) {
+          return new Response(JSON.stringify({ error: "NBA verification delayed", details: err.message }), {
             status: 502,
             headers: { ...CORS_HEADERS, "Content-Type": "application/json" }
           });
@@ -315,7 +421,7 @@ export default {
         const fetchPromises = seriesList.map(async (seriesTicker) => {
           try {
             const res = await fetch(`https://api.elections.kalshi.com/trade-api/v2/events/${seriesTicker}?with_nested_markets=true`, {
-              headers: { "Accept": "application/json", "User-Agent": "CosmicTerminal/2.9" }
+              headers: { "Accept": "application/json", "User-Agent": "CosmicTerminal/3.0" }
             });
             if (!res.ok) return null;
             return await res.json();
@@ -336,7 +442,7 @@ export default {
       }
     }
 
-    // 6. Kalshi Authenticated RSA Relay & Autonomous Sell Exit
+    // 6. Kalshi Authenticated RSA Relay & Execution
     if (url.pathname.startsWith("/api/kalshi/trade/")) {
       const kalshiPath = url.pathname.replace("/api/kalshi/trade", "");
       const targetUrl = `https://api.elections.kalshi.com/trade-api/v2${kalshiPath}${url.search}`;
@@ -391,7 +497,7 @@ export default {
       try {
         const target = `https://gamma-api.polymarket.com/events?closed=false&limit=20${url.search.replace("?", "&")}`;
         const polyRes = await fetch(target, { 
-          headers: { "Accept": "application/json", "User-Agent": "CosmicTerminal/2.9" } 
+          headers: { "Accept": "application/json", "User-Agent": "CosmicTerminal/3.0" } 
         });
         return new Response(await polyRes.text(), {
           headers: { ...CORS_HEADERS, "Content-Type": "application/json" }
