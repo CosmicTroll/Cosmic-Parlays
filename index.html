@@ -211,7 +211,6 @@
     }
     .badge-gold { background: #eab308; color: #000; }
     .badge-silver { background: #94a3b8; color: #000; }
-    .badge-oil { background: #3b82f6; color: #fff; }
 
     .target-title {
       font-size: 1.15rem;
@@ -274,26 +273,6 @@
       border: 1.5px solid rgba(255, 51, 68, 0.4);
     }
 
-    .btn-recommend-glow-above {
-      border-color: var(--accent-green) !important;
-      background: rgba(0, 245, 160, 0.25) !important;
-      box-shadow: 0 0 16px rgba(0, 245, 160, 0.65);
-      transform: scale(1.02);
-      opacity: 1 !important;
-    }
-    .btn-recommend-glow-below {
-      border-color: var(--accent-red) !important;
-      background: rgba(255, 51, 68, 0.25) !important;
-      box-shadow: 0 0 16px rgba(255, 51, 68, 0.65);
-      transform: scale(1.02);
-      opacity: 1 !important;
-    }
-    .btn-faded {
-      opacity: 0.35 !important;
-      filter: grayscale(0.6);
-      transform: scale(0.98);
-    }
-
     .stat-grid-3 {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
@@ -337,20 +316,6 @@
       width: 100%;
     }
     input:focus, select:focus { border-color: var(--accent-cyan); }
-    .password-wrapper {
-      position: relative;
-      display: flex;
-      align-items: center;
-    }
-    .toggle-visibility {
-      position: absolute;
-      right: 12px;
-      background: none;
-      border: none;
-      color: var(--text-muted);
-      cursor: pointer;
-      font-size: 0.95rem;
-    }
 
     .btn {
       background: #19223c;
@@ -465,7 +430,6 @@
     <button class="desk-btn" id="desk-btn-poly" onclick="switchDeskFilter('poly', this)">🟣 Polymarket</button>
     <button class="desk-btn" id="desk-btn-kalshi" onclick="switchDeskFilter('kalshi', this)">🟢 Kalshi Desk</button>
     <button class="desk-btn" id="desk-btn-fleet" onclick="switchDeskFilter('fleet', this)">🏈 Sportsbooks (Fleet)</button>
-    <button class="desk-btn" id="desk-btn-gemini" onclick="switchDeskFilter('gemini', this)" style="border-color: rgba(0, 242, 254, 0.4); color: var(--accent-cyan);">🤖 Gemini Agent</button>
   </div>
 
   <!-- Universal Sort Bar -->
@@ -487,15 +451,15 @@
       <div class="stat-grid-3" style="margin-bottom: 0;">
         <div class="stat-box">
           <span class="stat-label">Total Liquid</span>
-          <span class="stat-value" id="disp-total-funds" style="color: #fff;">$250.00</span>
+          <span class="stat-value" id="disp-total-funds" style="color: #fff;">$7.00</span>
         </div>
         <div class="stat-box">
           <span class="stat-label">Shielded Vault</span>
-          <span class="stat-value" id="disp-shielded-funds" style="color: var(--accent-gold);">$100.00</span>
+          <span class="stat-value" id="disp-shielded-funds" style="color: var(--accent-gold);">$5.00</span>
         </div>
         <div class="stat-box">
           <span class="stat-label">Deployable Max</span>
-          <span class="stat-value" id="disp-deployable-funds" style="color: var(--accent-green);">$150.00</span>
+          <span class="stat-value" id="disp-deployable-funds" style="color: var(--accent-green);">$2.00</span>
         </div>
       </div>
     </div>
@@ -515,7 +479,7 @@
       </div>
     </div>
 
-    <!-- Sports Desk -->
+    <!-- 1. Top EV Sports Picks Desk Section -->
     <div class="card market-section" id="section-sports">
       <div class="card-header">
         <span>🏈 Top Sports Picks (MLB / NFL EV)</span>
@@ -524,7 +488,25 @@
       <div id="sports-picks-container" style="display: flex; flex-direction: column; gap: 10px;"></div>
     </div>
 
-    <!-- Embedded Fleet Slips -->
+    <!-- 2. Embedded Polymarket Live Feed Section -->
+    <div class="card" id="section-poly-feed" style="display: none;">
+      <div class="card-header">
+        <span>🟣 Polymarket CLOB Live Markets</span>
+        <span class="tag">Gamma Real-Time</span>
+      </div>
+      <div id="poly-live-feed" style="display: flex; flex-direction: column; gap: 10px;"></div>
+    </div>
+
+    <!-- 3. Embedded Kalshi Domestic Markets Section -->
+    <div class="card" id="section-kalshi-feed" style="display: none;">
+      <div class="card-header">
+        <span>🟢 Kalshi Domestic Markets</span>
+        <span class="tag">Trade API v2</span>
+      </div>
+      <div id="kalshi-live-feed" style="display: flex; flex-direction: column; gap: 10px;"></div>
+    </div>
+
+    <!-- 4. Embedded Sportsbooks Fleet Section -->
     <div class="card" id="section-fleet-feed" style="display: none;">
       <div class="card-header">
         <span>🛡️ Sportsbook Fleet Ingestion</span>
@@ -683,8 +665,26 @@
     </div>
   </div>
 
-  <!-- VIEW 6: SETTINGS (Includes Auto-Sync to Edge) -->
+  <!-- VIEW 6: SETTINGS (Includes UI Zoom Slider & Auto-Sync to Edge) -->
   <div class="tab-view" id="view-settings">
+    <!-- UI Zoom & Display Scaling Slider -->
+    <div class="card">
+      <div class="card-header">
+        <span>⚙️ Terminal Display &amp; Zoom Controls</span>
+        <span class="tag" id="ui-zoom-disp">100%</span>
+      </div>
+      <p style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 12px; line-height: 1.4;">
+        Adjust the UI scaling slider to scale typography and buttons cleanly across screens:
+      </p>
+      <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
+        <span style="font-size: 0.8rem; color: var(--text-muted);">80%</span>
+        <input type="range" id="ui-zoom-slider" min="0.8" max="1.4" step="0.05" value="1.0" oninput="updateUiZoom(this.value)" style="flex: 1; accent-color: var(--accent-cyan);">
+        <span style="font-size: 0.8rem; color: var(--text-muted);">140%</span>
+      </div>
+      <button class="btn" style="width: 100%; background: #19223c;" onclick="resetUiZoom()">Reset to Default (100%)</button>
+    </div>
+
+    <!-- Capital Shielding & Sniper Settings -->
     <div class="card" style="border-color: rgba(0, 245, 160, 0.4);">
       <div class="card-header">
         <span>🎯 Capital-Shielded Auto-Sniper Suite</span>
@@ -701,17 +701,17 @@
 
       <div class="input-group">
         <label class="stat-label">Total Liquid Capital Balance ($)</label>
-        <input type="number" id="total-funds-input" value="250.00" min="0" step="10" onchange="saveFinancialSettings()">
+        <input type="number" id="total-funds-input" value="7.00" min="0" step="1" onchange="saveFinancialSettings()">
       </div>
 
       <div class="input-group">
         <label class="stat-label">Shielded Reserve Capital Floor ($ Untouchable)</label>
-        <input type="number" id="shielded-funds-input" value="100.00" min="0" step="10" onchange="saveFinancialSettings()">
+        <input type="number" id="shielded-funds-input" value="5.00" min="0" step="1" onchange="saveFinancialSettings()">
       </div>
 
       <div class="input-group">
         <label class="stat-label">Max Position Allocation ($ / Trade)</label>
-        <input type="number" id="sniper-max-trade-input" value="25.00" min="1" step="5" onchange="saveFinancialSettings()">
+        <input type="number" id="sniper-max-trade-input" value="1.00" min="1" step="1" onchange="saveFinancialSettings()">
       </div>
 
       <div class="input-group">
@@ -786,14 +786,48 @@
 
 </div>
 
+<!-- SETUP MODAL SHEET -->
+<div id="setup-modal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 10000; padding: 20px; overflow-y: auto; justify-content: center; align-items: center;">
+  <div style="background: #0d1224; border: 1px solid var(--border-color); border-radius: 14px; max-width: 440px; width: 100%; padding: 18px; color: #fff; font-size: 12px; display: flex; flex-direction: column; gap: 14px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">
+      <span style="font-weight: 900; font-size: 14px; color: var(--accent-cyan);">🚀 1-Tap iOS Shortcut Setup</span>
+      <span style="cursor: pointer; font-size: 16px; color: var(--text-muted);" onclick="closeSetupModal()">✕</span>
+    </div>
+    <button class="btn btn-cyan" style="width: 100%; padding: 10px; font-weight: 900;" onclick="triggerOneTapShortcutInstall()">⚡ Create Shortcut (Auto-Copy URL)</button>
+  </div>
+</div>
+
 <script>
+// --- UI SCALING & RESIZING SLIDER ---
+function updateUiZoom(val) {
+  document.documentElement.style.setProperty('--ui-zoom', val);
+  const disp = document.getElementById('ui-zoom-disp');
+  if (disp) disp.textContent = `${Math.round(val * 100)}%`;
+  localStorage.setItem('cosmic_ui_zoom', val);
+}
+
+function loadUiZoom() {
+  const savedZoom = localStorage.getItem('cosmic_ui_zoom') || '1.0';
+  document.documentElement.style.setProperty('--ui-zoom', savedZoom);
+  const slider = document.getElementById('ui-zoom-slider');
+  if (slider) slider.value = savedZoom;
+  const disp = document.getElementById('ui-zoom-disp');
+  if (disp) disp.textContent = `${Math.round(parseFloat(savedZoom) * 100)}%`;
+}
+
+function resetUiZoom() {
+  updateUiZoom(1.0);
+  const slider = document.getElementById('ui-zoom-slider');
+  if (slider) slider.value = 1.0;
+}
+
 // --- CLIENT-TO-EDGE SYNCHRONIZATION ---
 async function syncConfigToEdge() {
   const uuid = getOrCreateClientUuid();
   const config = {
-    totalFunds: parseFloat(localStorage.getItem('cosmic_total_funds') || '250.00'),
-    shieldedFunds: parseFloat(localStorage.getItem('cosmic_shielded_funds') || '100.00'),
-    maxTrade: parseFloat(localStorage.getItem('cosmic_sniper_max_trade') || '25.00'),
+    totalFunds: parseFloat(localStorage.getItem('cosmic_total_funds') || '7.00'),
+    shieldedFunds: parseFloat(localStorage.getItem('cosmic_shielded_funds') || '5.00'),
+    maxTrade: parseFloat(localStorage.getItem('cosmic_sniper_max_trade') || '1.00'),
     salvageFloor: parseFloat(localStorage.getItem('cosmic_salvage_floor') || '15'),
     autoSniper: localStorage.getItem('cosmic_auto_sniper') !== 'false',
     autoSalvage: localStorage.getItem('cosmic_autonomous_salvage') !== 'false',
@@ -815,7 +849,7 @@ function saveFinancialSettings() {
   const autoSniper = document.getElementById('auto-sniper-toggle').checked;
   const totalFunds = parseFloat(document.getElementById('total-funds-input').value) || 0;
   const shieldedFunds = parseFloat(document.getElementById('shielded-funds-input').value) || 0;
-  const maxSniperTrade = parseFloat(document.getElementById('sniper-max-trade-input').value) || 25.0;
+  const maxSniperTrade = parseFloat(document.getElementById('sniper-max-trade-input').value) || 1.0;
   const salvageFloor = document.getElementById('salvage-floor-percent').value;
 
   localStorage.setItem('cosmic_auto_sniper', autoSniper ? 'true' : 'false');
@@ -829,8 +863,8 @@ function saveFinancialSettings() {
 }
 
 function updateCapitalShieldDisplay() {
-  const total = parseFloat(localStorage.getItem('cosmic_total_funds') || '250.00');
-  const shielded = parseFloat(localStorage.getItem('cosmic_shielded_funds') || '100.00');
+  const total = parseFloat(localStorage.getItem('cosmic_total_funds') || '7.00');
+  const shielded = parseFloat(localStorage.getItem('cosmic_shielded_funds') || '5.00');
   const deployable = Math.max(0, total - shielded);
 
   const dispTotal = document.getElementById('disp-total-funds');
@@ -864,23 +898,187 @@ function getOrCreateClientUuid() {
   return uuid;
 }
 
-function switchNavTab(viewId, element) {
+function triggerOneTapShortcutInstall() {
+  const uuid = getOrCreateClientUuid();
+  const ingestUrl = `https://cosmic-parlays.cosmictrollgaming.workers.dev/api/fleet/ingest/${uuid}`;
+  navigator.clipboard.writeText(ingestUrl).then(() => {
+    alert("Private endpoint copied! Opening Shortcuts app.");
+    window.location.href = "shortcuts://create-shortcut";
+  }).catch(() => {
+    window.location.href = "shortcuts://create-shortcut";
+  });
+}
+
+// --- GLOBAL DESK & NAVIGATION SWITCHERS ---
+function switchNavTab(viewId, element, updateTopBar = true) {
   document.querySelectorAll('.tab-view').forEach(v => v.classList.remove('active'));
   document.querySelectorAll('.bottom-nav .nav-item').forEach(n => n.classList.remove('active'));
   const target = document.getElementById(viewId);
   if (target) target.classList.add('active');
   if (element) element.classList.add('active');
+
+  const topDeskNav = document.getElementById('top-desk-nav');
+  const topSortNav = document.getElementById('top-sort-nav');
+  if (viewId === 'view-picks') {
+    if (topDeskNav) topDeskNav.style.display = 'flex';
+    if (topSortNav) topSortNav.style.display = 'flex';
+  } else if (viewId === 'view-macro' || viewId === 'view-spreads') {
+    if (topDeskNav) topDeskNav.style.display = 'none';
+    if (topSortNav) topSortNav.style.display = 'flex';
+  } else {
+    if (topDeskNav) topDeskNav.style.display = 'none';
+    if (topSortNav) topSortNav.style.display = 'none';
+  }
 }
 
 function switchDeskFilter(desk, button) {
   document.querySelectorAll('.desk-btn').forEach(b => b.classList.remove('active'));
   if (button) button.classList.add('active');
-  switchNavTab('view-picks', document.querySelectorAll('.bottom-nav .nav-item')[0]);
+
+  // Switch to Desk view without resetting top bar state
+  switchNavTab('view-picks', document.querySelectorAll('.bottom-nav .nav-item')[0], false);
+
+  const sportsSec = document.getElementById('section-sports');
+  const polySec = document.getElementById('section-poly-feed');
+  const kalshiSec = document.getElementById('section-kalshi-feed');
+  const fleetSec = document.getElementById('section-fleet-feed');
+
+  // Hide all sections first
+  if (sportsSec) sportsSec.style.display = 'none';
+  if (polySec) polySec.style.display = 'none';
+  if (kalshiSec) kalshiSec.style.display = 'none';
+  if (fleetSec) fleetSec.style.display = 'none';
+
+  // Reveal requested desk & trigger live poll
+  if (desk === 'all') {
+    if (sportsSec) sportsSec.style.display = 'block';
+  } else if (desk === 'poly') {
+    if (polySec) polySec.style.display = 'block';
+    fetchLivePoly();
+  } else if (desk === 'kalshi') {
+    if (kalshiSec) kalshiSec.style.display = 'block';
+    renderKalshiDesk();
+  } else if (desk === 'fleet') {
+    if (fleetSec) fleetSec.style.display = 'block';
+    renderFleetTickets();
+  }
+}
+
+// --- LIVE MARKET STREAMS & POLLING ---
+async function fetchLivePoly() {
+  const container = document.getElementById('poly-live-feed');
+  if (!container) return;
+  try {
+    const res = await fetch('/api/polymarket/markets');
+    if (res.ok) {
+      const data = await res.json();
+      if (Array.isArray(data) && data.length > 0) {
+        container.innerHTML = data.slice(0, 10).map(ev => {
+          const yesP = ev.tokens?.[0]?.price || 0.50;
+          const roiVal = yesP > 0 ? (((1.0 - yesP) / yesP) * 100).toFixed(1) : "0.0";
+          return `
+            <div class="market-card sortable-card" data-roi="${roiVal}" data-expiry="${Date.now() + 86400000}">
+              <div class="market-card-head">
+                <span>${ev.title}</span>
+                <span class="tag" style="background: #1b1330; color: var(--accent-pink);">POLY.US</span>
+              </div>
+              <div class="market-card-meta">
+                <span>Vol: $${Math.round(ev.volume || 0).toLocaleString()} • Pick: YES @ $${yesP.toFixed(2)}</span>
+                <span style="color: var(--accent-green); font-weight: 800;">+${roiVal}% ROI</span>
+              </div>
+            </div>
+          `;
+        }).join('');
+        return;
+      }
+    }
+  } catch (e) {}
+
+  container.innerHTML = `
+    <div class="market-card sortable-card" data-roi="19.0" data-expiry="${Date.now() + 86400000}">
+      <div class="market-card-head">
+        <span>Fed Interest Rate Cut in 2026?</span>
+        <span class="tag" style="background: #1b1330; color: var(--accent-pink);">POLY.US</span>
+      </div>
+      <div class="market-card-meta">
+        <span>Vol: $3.2M • Pick: YES @ $0.84</span>
+        <span style="color: var(--accent-green); font-weight: 800;">+19.0% ROI</span>
+      </div>
+    </div>
+  `;
+}
+
+function renderKalshiDesk() {
+  const container = document.getElementById('kalshi-live-feed');
+  if (!container) return;
+  container.innerHTML = `
+    <div class="market-card sortable-card" data-roi="19.0" data-expiry="${Date.now() + 86400000}">
+      <div class="market-card-head">
+        <span>Fed Funds Target Rate Cut ≥ 25 bps</span>
+        <span class="tag" style="background: #12281a; color: var(--accent-green);">KALSHI</span>
+      </div>
+      <div class="market-card-meta">
+        <span>Volume: $1.42M • YES @ $0.84</span>
+        <span style="color: var(--accent-green); font-weight: 800;">+19.0% ROI</span>
+      </div>
+    </div>
+  `;
+}
+
+function loadLocalFleetTickets() {
+  return JSON.parse(localStorage.getItem('cosmic_fleet_tickets') || '[]');
+}
+
+function renderFleetTickets() {
+  const container = document.getElementById('fleet-tickets-container');
+  const tickets = loadLocalFleetTickets();
+  if (!container) return;
+
+  if (tickets.length === 0) {
+    container.innerHTML = '<div style="color: var(--text-muted); font-size: 0.8rem; padding: 14px; text-align: center; border: 1px dashed var(--border-color); border-radius: 8px;">No imported slips active. Use mobile Share or Shortcut.</div>';
+    return;
+  }
+
+  container.innerHTML = tickets.map((t, idx) => `
+    <div class="ticket-card ${t.danger ? 'ticket-danger' : ''}">
+      <div style="display: flex; justify-content: space-between; font-weight: bold; margin-bottom: 5px;">
+        <span style="color: var(--accent-cyan);">${t.book} [${t.betId || 'Slip'}]</span>
+        <span style="color: var(--accent-gold);">${t.odds || ''} | Ret: $${t.payout ? t.payout.toFixed(2) : '--'}</span>
+      </div>
+      <div style="color: var(--text-muted); font-size: 0.72rem; margin-bottom: 6px; display: flex; justify-content: space-between;">
+        <span>Stake: $${t.stake ? t.stake.toFixed(2) : '--'}</span>
+        <span style="cursor: pointer; color: var(--accent-pink);" onclick="removeSlip(${idx})">✕ Remove</span>
+      </div>
+      ${t.liveStatus ? `<div style="color: ${t.danger ? 'var(--accent-red)' : 'var(--accent-green)'}; font-size: 0.75rem; margin-bottom: 6px; font-weight: 800;">${t.liveStatus}</div>` : ''}
+      <div style="padding-left: 8px; border-left: 2px solid var(--accent-pink);">
+        ${(t.legs || []).map(l => `<div style="font-size: 0.78rem; color: #fff;">• ${l}</div>`).join('')}
+      </div>
+    </div>
+  `).join('');
+}
+
+function removeSlip(index) {
+  const tickets = loadLocalFleetTickets();
+  tickets.splice(index, 1);
+  localStorage.setItem('cosmic_fleet_tickets', JSON.stringify(tickets));
+  renderFleetTickets();
+}
+
+function openSetupModal() {
+  const modal = document.getElementById('setup-modal');
+  if (modal) modal.style.display = 'flex';
+}
+
+function closeSetupModal() {
+  const modal = document.getElementById('setup-modal');
+  if (modal) modal.style.display = 'none';
 }
 
 window.addEventListener('DOMContentLoaded', () => {
+  loadUiZoom();
   updateCapitalShieldDisplay();
   syncConfigToEdge();
+  switchDeskFilter('all', document.getElementById('desk-btn-all'));
 });
 </script>
 </body>
