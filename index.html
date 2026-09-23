@@ -101,7 +101,7 @@
       margin-right: 6px;
     }
 
-    /* Top Platform & Desk Switcher */
+    /* Contextual Desk & Sorter Bars */
     .desk-nav, .sort-nav {
       display: flex;
       gap: 8px;
@@ -121,6 +121,7 @@
       font-weight: 700;
       white-space: nowrap;
       cursor: pointer;
+      transition: all 0.2s ease;
     }
     .desk-btn.active, .sort-btn.active {
       background: #1f2b4d;
@@ -498,15 +499,15 @@
     <span style="font-size: 0.75rem; color: var(--text-muted); text-decoration: underline; cursor: pointer; white-space: nowrap; margin-left: 8px;" onclick="promptAdPasskey()">Remove Ads ($5)</span>
   </div>
 
-  <!-- Top Desk & Source Switcher (Split Layout) -->
-  <div class="desk-nav">
-    <button class="desk-btn active" onclick="switchDeskFilter('all', this)">🔥 Top EV Picks</button>
-    <button class="desk-btn" onclick="switchDeskFilter('poly', this)">🟣 Polymarket</button>
-    <button class="desk-btn" onclick="switchDeskFilter('kalshi', this)">🟢 Kalshi Desk</button>
-    <button class="desk-btn" onclick="switchDeskFilter('fleet', this)">🏈 Sportsbooks (Fleet)</button>
+  <!-- Dynamic Platform / Desk Switcher Bar -->
+  <div class="desk-nav" id="top-desk-nav">
+    <button class="desk-btn active" id="desk-btn-all" onclick="switchDeskFilter('all', this)">🔥 Top EV Picks</button>
+    <button class="desk-btn" id="desk-btn-poly" onclick="switchDeskFilter('poly', this)">🟣 Polymarket</button>
+    <button class="desk-btn" id="desk-btn-kalshi" onclick="switchDeskFilter('kalshi', this)">🟢 Kalshi Desk</button>
+    <button class="desk-btn" id="desk-btn-fleet" onclick="switchDeskFilter('fleet', this)">🏈 Sportsbooks (Fleet)</button>
   </div>
 
-  <!-- Universal Sort Bar (Applies to Active Tab) -->
+  <!-- Universal Sort Bar (Applies to Active View) -->
   <div class="sort-nav">
     <span class="sort-label">SORT:</span>
     <button class="sort-btn active" onclick="switchSortOrder('roi-high', this)">🔥 Top ROI</button>
@@ -515,7 +516,7 @@
     <button class="sort-btn" onclick="switchSortOrder('today', this)">📅 Upcoming</button>
   </div>
 
-  <!-- VIEW 1: PICKS & DESK -->
+  <!-- VIEW 1: PICKS & MULTI-DESK -->
   <div class="tab-view active" id="view-picks">
     <div class="card">
       <div class="card-header">
@@ -563,7 +564,7 @@
       <div id="esports-picks-container" style="display: flex; flex-direction: column; gap: 10px;"></div>
     </div>
 
-    <!-- Embedded Polymarket CLOB Feed (When filtered) -->
+    <!-- Embedded Polymarket CLOB Feed -->
     <div class="card" id="section-poly-feed" style="display: none;">
       <div class="card-header">
         <span>🟣 Polymarket CLOB Live Markets</span>
@@ -572,7 +573,7 @@
       <div id="poly-live-feed" style="display: flex; flex-direction: column; gap: 10px;"></div>
     </div>
 
-    <!-- Embedded Kalshi Live Feed (When filtered) -->
+    <!-- Embedded Kalshi Live Feed -->
     <div class="card" id="section-kalshi-feed" style="display: none;">
       <div class="card-header">
         <span>🟢 Kalshi Domestic Markets</span>
@@ -581,7 +582,7 @@
       <div id="kalshi-live-feed" style="display: flex; flex-direction: column; gap: 10px;"></div>
     </div>
 
-    <!-- Embedded Fleet Slips (When filtered) -->
+    <!-- Embedded Fleet Slips -->
     <div class="card" id="section-fleet-feed" style="display: none;">
       <div class="card-header">
         <span>🛡️ Sportsbook Fleet Ingestion</span>
@@ -633,11 +634,11 @@
     </div>
   </div>
 
-  <!-- VIEW 3: KALSHI PERPETUALS, COMMODITIES & FAST MARKETS -->
+  <!-- VIEW 3: KALSHI PERPETUALS, COMMODITIES & 15-MIN DESK (PURE KALSHI VENUE) -->
   <div class="tab-view" id="view-perps">
     <div class="card">
       <div class="card-header">
-        <span>⚡ KALSHI PERPETUAL FUTURES &amp; FAST MARKETS</span>
+        <span>⚡ KALSHI PERPETUAL FUTURES &amp; COMMODITIES DESK</span>
         <span class="tag">CFTC Regulated</span>
       </div>
       <div class="stat-grid-3">
@@ -1258,13 +1259,13 @@ function refreshScreenedSlatePool() {
   updateDots('esports-carousel-dots', 0);
 }
 
-// --- DESK & PLATFORM SWITCHER (TOP SPLIT BAR) ---
+// --- CONTEXTUAL DESK & PLATFORM SWITCHER ---
 function switchDeskFilter(desk, button) {
   document.querySelectorAll('.desk-btn').forEach(b => b.classList.remove('active'));
-  button.classList.add('active');
+  if (button) button.classList.add('active');
 
-  // Ensure user is viewing Desk tab
-  switchNavTab('view-picks', document.querySelectorAll('.bottom-nav .nav-item')[0]);
+  // Ensure user is on Desk tab when using top desk pills
+  switchNavTab('view-picks', document.querySelectorAll('.bottom-nav .nav-item')[0], false);
 
   const sportsSec = document.getElementById('section-sports');
   const esportsSec = document.getElementById('section-esports');
@@ -1272,7 +1273,7 @@ function switchDeskFilter(desk, button) {
   const kalshiSec = document.getElementById('section-kalshi-feed');
   const fleetSec = document.getElementById('section-fleet-feed');
 
-  // Hide all sections first
+  // Strict Contextual Visibility
   sportsSec.style.display = 'none';
   esportsSec.style.display = 'none';
   polySec.style.display = 'none';
@@ -1299,12 +1300,11 @@ function switchSortOrder(order, button) {
   document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
   button.classList.add('active');
 
-  // Find currently active view
   const activeView = document.querySelector('.tab-view.active');
   if (!activeView) return;
 
-  // If on Desk tab with auto-rotators active, sort the array pools
-  if (activeView.id === 'view-picks') {
+  // 1. Sort Desk pools if on picks view and Top EV is showing
+  if (activeView.id === 'view-picks' && document.getElementById('section-sports').style.display !== 'none') {
     clearInterval(sportsTimer);
     clearInterval(esportsTimer);
     const sortPool = (pool) => {
@@ -1325,7 +1325,7 @@ function switchSortOrder(order, button) {
     updateDots('esports-carousel-dots', 0);
   }
 
-  // Universal DOM sort across any sortable containers on the active tab
+  // 2. Universal DOM sorter for all sortable card containers
   const containers = activeView.querySelectorAll('#macro-picks-container, #spreads-container, #poly-live-feed, #kalshi-live-feed');
   containers.forEach(container => {
     const cards = Array.from(container.querySelectorAll('.sortable-card'));
@@ -1344,16 +1344,29 @@ function switchSortOrder(order, button) {
   });
 }
 
-// --- GLOBAL BOTTOM NAVIGATION ---
-function switchNavTab(viewId, element) {
+// --- GLOBAL BOTTOM NAVIGATION (WITH VENUE ISOLATION) ---
+function switchNavTab(viewId, element, updateTopBar = true) {
   document.querySelectorAll('.tab-view').forEach(v => v.classList.remove('active'));
   document.querySelectorAll('.bottom-nav .nav-item').forEach(n => n.classList.remove('active'));
   const targetView = document.getElementById(viewId);
   if (targetView) targetView.classList.add('active');
   if (element) element.classList.add('active');
 
-  if (viewId === 'view-perps') pollLive15MinMarkets();
-  if (viewId === 'view-vault') calculateVaultEarnings();
+  const topDeskNav = document.getElementById('top-desk-nav');
+
+  // Contextual Isolation: Hide unrelated top filters when on dedicated tabs
+  if (viewId === 'view-perps') {
+    // Pure Kalshi Perps View: hide top Poly/Desk nav bar
+    if (topDeskNav) topDeskNav.style.display = 'none';
+    pollLive15MinMarkets();
+  } else if (viewId === 'view-macro' || viewId === 'view-spreads' || viewId === 'view-vault' || viewId === 'view-settings') {
+    // Non-desk venues: hide top desk nav bar
+    if (topDeskNav) topDeskNav.style.display = 'none';
+    if (viewId === 'view-vault') calculateVaultEarnings();
+  } else {
+    // Desk view: restore top venue switcher
+    if (topDeskNav) topDeskNav.style.display = 'flex';
+  }
 }
 
 // PERPETUALS SUB-DESK CONTROLS
@@ -1620,7 +1633,6 @@ async function fetchLivePoly() {
     }
   } catch (err) {}
 
-  // Fallback to active 10-market catalog
   container.innerHTML = POLYMARKET_CATALOG.map(ev => `
     <div class="market-card sortable-card" data-roi="${ev.roi}" data-expiry="${ev.exp}">
       <div class="market-card-head">
@@ -1635,31 +1647,30 @@ async function fetchLivePoly() {
   `).join('');
 }
 
+// --- KALSHI DOMESTIC FEED (FULLY SORTABLE DOM) ---
+const KALSHI_DOMESTIC_CATALOG = [
+  { title: "Fed Funds Target Rate Cut ≥ 25 bps", vol: "$1.42M", pick: "YES @ $0.84", roi: 19.0, exp: 1730000000000 },
+  { title: "US Core CPI Inflation < 3.0% Annualized", vol: "$890k", pick: "YES @ $0.68", roi: 47.0, exp: 1731000000000 },
+  { title: "US Q3 GDP Growth ≥ 2.8% Annualized", vol: "$650k", pick: "YES @ $0.72", roi: 38.9, exp: 1730500000000 },
+  { title: "Unemployment Rate > 4.2% Next Print", vol: "$410k", pick: "YES @ $0.55", roi: 81.8, exp: 1729000000000 },
+  { title: "S&P 500 Closes Above 5,800 End of Month", vol: "$1.85M", pick: "YES @ $0.81", roi: 23.5, exp: 1729800000000 }
+];
+
 function renderKalshiDesk() {
   const container = document.getElementById('kalshi-live-feed');
   if (!container) return;
-  container.innerHTML = `
-    <div class="market-card sortable-card" data-roi="19.0" data-expiry="1730000000000">
+  container.innerHTML = KALSHI_DOMESTIC_CATALOG.map(k => `
+    <div class="market-card sortable-card" data-roi="${k.roi}" data-expiry="${k.exp}">
       <div class="market-card-head">
-        <span>Fed Funds Target Rate Cut ≥ 25 bps</span>
+        <span>${k.title}</span>
         <span class="tag" style="background: #12281a; color: var(--accent-green);">KALSHI</span>
       </div>
       <div class="market-card-meta">
-        <span>Volume: $1.42M • YES @ $0.84</span>
-        <span style="color: var(--accent-green); font-weight: 800;">+19.0% ROI</span>
+        <span>Volume: ${k.vol} • ${k.pick}</span>
+        <span style="color: var(--accent-green); font-weight: 800;">+${k.roi}% ROI</span>
       </div>
     </div>
-    <div class="market-card sortable-card" data-roi="47.0" data-expiry="1731000000000">
-      <div class="market-card-head">
-        <span>US Core CPI Inflation &lt; 3.0% Annualized</span>
-        <span class="tag" style="background: #12281a; color: var(--accent-green);">KALSHI</span>
-      </div>
-      <div class="market-card-meta">
-        <span>Volume: $890k • YES @ $0.68</span>
-        <span style="color: var(--accent-green); font-weight: 800;">+47.0% ROI</span>
-      </div>
-    </div>
-  `;
+  `).join('');
 }
 
 // --- VAULT CUMULATIVE EARNINGS ---
