@@ -264,11 +264,6 @@
       color: #000;
       border: none;
     }
-    .btn-cyan {
-      background: var(--accent-cyan);
-      color: #000;
-      border: none;
-    }
     .btn-danger {
       background: rgba(255, 51, 68, 0.15);
       color: var(--accent-red);
@@ -283,7 +278,7 @@
       font-size: 11px;
     }
 
-    /* Bottom Nav Bar (Horizontally Scrollable 8-Tab Tray) */
+    /* Bottom Nav Bar */
     .bottom-nav {
       position: fixed;
       bottom: 0;
@@ -330,7 +325,6 @@
       border-radius: 8px;
     }
 
-    /* Tab views */
     .tab-view { display: none; }
     .tab-view.active { display: flex; flex-direction: column; gap: 12px; }
   </style>
@@ -343,13 +337,13 @@
   <div class="top-bar">
     <div class="brand-title">🚀 Cosmic Terminal</div>
     <div class="top-actions">
-      <div class="badge" onclick="alert('Support: Edge terminal engine active.')">☕ Support</div>
+      <div class="badge" onclick="alert('Support: Edge terminal active.')">☕ Support</div>
       <div class="badge" onclick="refreshCurrentTab()">Refresh</div>
       <div class="badge badge-edge">Edge Engine Active</div>
     </div>
   </div>
 
-  <!-- Sponsor Banner & Monetization Header -->
+  <!-- Sponsor Banner -->
   <div class="sponsor-bar" id="sponsor-banner">
     <div>
       <span class="sponsor-tag">SPONSOR</span>
@@ -358,7 +352,7 @@
     <span style="font-size: 10px; color: var(--text-muted); text-decoration: underline; cursor: pointer; white-space: nowrap; margin-left: 8px;" onclick="promptAdPasskey()">Remove Ads ($5)</span>
   </div>
 
-  <!-- Category & Sorter Toolbars -->
+  <!-- Filter & Sort Toolbars -->
   <div class="pill-nav">
     <button class="pill-btn active" onclick="switchCategoryFilter('all', this)">🎯 Picks</button>
     <button class="pill-btn" onclick="switchCategoryFilter('esports', this)">🎮 Esports</button>
@@ -374,7 +368,7 @@
     <button class="sort-btn" onclick="switchSortOrder('today', this)">📅 Today</button>
   </div>
 
-  <!-- VIEW 1: PICKS & EV BOARD (DEFAULT) -->
+  <!-- VIEW 1: PICKS & MARKETS -->
   <div class="tab-view active" id="view-picks">
     <div class="card">
       <div class="card-header">
@@ -471,7 +465,7 @@
     </div>
   </div>
 
-  <!-- VIEW 2: MACRO & ECONOMIC DESK -->
+  <!-- VIEW 2: MACRO DESK -->
   <div class="tab-view" id="view-macro">
     <div class="card">
       <div class="card-header">
@@ -513,7 +507,7 @@
     </div>
   </div>
 
-  <!-- VIEW 3: KALSHI PERPETUALS DESK -->
+  <!-- VIEW 3: KALSHI PERPETUALS -->
   <div class="tab-view" id="view-perps">
     <div class="card">
       <div class="card-header">
@@ -540,7 +534,7 @@
     </div>
   </div>
 
-  <!-- VIEW 4: POLYMARKET US SCANNER -->
+  <!-- VIEW 4: POLYMARKET MARKETS -->
   <div class="tab-view" id="view-poly">
     <div class="card">
       <div class="card-header">
@@ -553,7 +547,7 @@
     </div>
   </div>
 
-  <!-- VIEW 5: KALSHI PREDICTION MARKETS -->
+  <!-- VIEW 5: KALSHI DESK -->
   <div class="tab-view" id="view-kalshi">
     <div class="card">
       <div class="card-header">
@@ -566,7 +560,7 @@
     </div>
   </div>
 
-  <!-- VIEW 6: CROSS-MARKET SPREADS SCANNER (ARBITRAGE) -->
+  <!-- VIEW 6: SPREADS & ARBITRAGE -->
   <div class="tab-view" id="view-spreads">
     <div class="card">
       <div class="card-header">
@@ -591,16 +585,6 @@
           </div>
           <div class="market-card-meta">
             <span>Buy Kalshi YES @ $0.56 • Buy Poly NO @ $0.412</span>
-            <span style="color: var(--accent-cyan); font-weight: 800;">Risk-Free Net</span>
-          </div>
-        </div>
-        <div class="market-card">
-          <div class="market-card-head">
-            <span>Fed Rate Cut in November 2026</span>
-            <span class="tag" style="background: #12281a; color: var(--accent-green);">+1.9% ARB</span>
-          </div>
-          <div class="market-card-meta">
-            <span>Buy Poly YES @ $0.88 • Buy Kalshi NO @ $0.101</span>
             <span style="color: var(--accent-cyan); font-weight: 800;">Risk-Free Net</span>
           </div>
         </div>
@@ -639,7 +623,7 @@
       <div style="display: flex; gap: 6px; margin-bottom: 12px; align-items: flex-end;">
         <div style="flex: 2;">
           <label class="stat-label">Manual Paste Fallback</label>
-          <input type="text" id="manual-slip-input" placeholder="Paste sportsbook receipt...">
+          <input type="text" id="manual-slip-input" placeholder="Paste sportsbook receipt or link...">
         </div>
         <div style="flex: 1;">
           <label class="stat-label">Retention (TTL)</label>
@@ -696,7 +680,7 @@
         <span class="tag">100% Client-Side</span>
       </div>
       <p style="font-size: 10px; color: var(--text-muted); margin-bottom: 10px; line-height: 1.4;">
-        Your credentials are saved strictly in your local browser storage [source: 28, 33]. They never touch a remote server [source: 28, 33].
+        Your credentials are saved strictly in your local browser storage. They never touch a remote server.
       </p>
 
       <div class="input-group">
@@ -716,9 +700,9 @@
       </div>
 
       <div class="input-group">
-        <label class="stat-label">Polymarket.us User ID / API Key</label>
+        <label class="stat-label">Polymarket.us API Key OR Public Wallet (0x...)</label>
         <div class="password-wrapper">
-          <input type="password" id="poly-key-id" placeholder="Paste Polymarket ID..." autocomplete="off">
+          <input type="password" id="poly-key-id" placeholder="Paste Key or 0x... Wallet Address" autocomplete="off">
           <button type="button" class="toggle-visibility" onclick="toggleMask('poly-key-id')">👁</button>
         </div>
       </div>
@@ -730,7 +714,7 @@
     </div>
   </div>
 
-  <!-- Bottom Navigation Bar (Full 8-Tab Tray) -->
+  <!-- Bottom Navigation Bar (Dynamic Badge Added) -->
   <nav class="bottom-nav">
     <div class="nav-item active" onclick="switchNavTab('view-picks', this)">
       <span>🎯</span>
@@ -783,26 +767,26 @@
       <div style="font-weight: 800; color: var(--accent-gold); margin-bottom: 4px;">1. Add to Home Screen (PWA Mode)</div>
       <p style="color: var(--text-muted); font-size: 11px; line-height: 1.4;">
         1. Open this URL in mobile Safari.<br>
-        2. Tap the <strong>Share</strong> button (box with upward arrow) at the bottom [source: 14].<br>
-        3. Scroll down and tap <strong>Add to Home Screen</strong> [source: 14].<br>
-        4. Tap <strong>Add</strong> in the top right. Launch directly from your home screen for full-screen performance [source: 16, 28].
+        2. Tap the <strong>Share</strong> button (box with upward arrow) at the bottom.<br>
+        3. Scroll down and tap <strong>Add to Home Screen</strong>.<br>
+        4. Tap <strong>Add</strong> in the top right. Launch directly from your home screen for full-screen performance.
       </p>
     </div>
 
     <div>
       <div style="font-weight: 800; color: var(--accent-green); margin-bottom: 4px;">2. Setup 1-Tap Sportsbook Share (iOS)</div>
       <p style="color: var(--text-muted); font-size: 11px; line-height: 1.4; margin-bottom: 8px;">
-        Route slips directly into your private queue with a native iOS shortcut [source: 17, 18, 22]:
+        Route slips directly into your private queue with a native iOS shortcut:
       </p>
       
       <ol style="padding-left: 16px; color: var(--text-muted); font-size: 11px; line-height: 1.5;">
-        <li>Open the <strong>Shortcuts</strong> app and tap <strong>+</strong> [source: 17].</li>
+        <li>Open the <strong>Shortcuts</strong> app and tap <strong>+</strong>.</li>
         <li>Rename it to <code>Cosmic Terminal</code>.</li>
-        <li>Tap the info <strong>(i)</strong> icon at the bottom and toggle ON <strong>Show in Share Sheet</strong> [source: 17].</li>
-        <li>Set input to receive <strong>URLs</strong> and <strong>Text</strong> [source: 22].</li>
-        <li>Add the action <strong>Get Contents of URL</strong> [source: 18, 22].</li>
-        <li>Set Method to <strong>POST</strong>, Request Body to <strong>JSON</strong>, Header <code>Content-Type: application/json</code>, and Body Key <code>text</code> = <strong>Shortcut Input</strong> [source: 18, 22].</li>
-        <li>Paste your unique endpoint URL into the URL field [source: 18, 22]:</li>
+        <li>Tap the info <strong>(i)</strong> icon at the bottom and toggle ON <strong>Show in Share Sheet</strong>.</li>
+        <li>Set input to receive <strong>URLs</strong> and <strong>Text</strong>.</li>
+        <li>Add the action <strong>Get Contents of URL</strong>.</li>
+        <li>Set Method to <strong>POST</strong>, Request Body to <strong>JSON</strong>, Header <code>Content-Type: application/json</code>, and Body Key <code>text</code> = <strong>Shortcut Input</strong>.</li>
+        <li>Paste your unique endpoint URL into the URL field:</li>
       </ol>
 
       <div style="margin-top: 8px; background: #060812; border: 1px solid #1a2340; padding: 8px; border-radius: 6px; font-family: monospace; font-size: 10px; color: var(--accent-cyan); word-break: break-all;" id="modal-endpoint-copy">
@@ -824,7 +808,6 @@ function switchNavTab(viewId, element) {
   if (targetView) targetView.classList.add('active');
   if (element) element.classList.add('active');
 
-  // Trigger live queries on relevant tabs
   if (viewId === 'view-perps') fetchLivePerps();
   if (viewId === 'view-poly') fetchLivePoly();
 }
@@ -862,6 +845,7 @@ function refreshCurrentTab() {
   if (activeTab.id === 'view-fleet') pollSharedSlips();
   if (activeTab.id === 'view-perps') fetchLivePerps();
   if (activeTab.id === 'view-poly') fetchLivePoly();
+  syncPolymarketPositions();
 }
 
 // --- MONETIZATION & ADS ---
@@ -887,7 +871,7 @@ async function fetchLivePerps() {
   const container = document.getElementById('perps-live-feed');
   try {
     const res = await fetch('/api/kalshi/perps');
-    if (!res.ok) throw new Error("Perps response not OK");
+    if (!res.ok) throw new Error("Perps unavailable");
     const data = await res.json();
     if (data && data.markets && data.markets.length > 0) {
       container.innerHTML = data.markets.slice(0, 5).map(m => `
@@ -915,16 +899,6 @@ async function fetchLivePerps() {
           <span style="color: var(--accent-cyan); font-weight: bold;">Margin Yield: 3.25%</span>
         </div>
       </div>
-      <div class="market-card">
-        <div class="market-card-head">
-          <span>Gold Perpetuals Contract (GOLDPERP)</span>
-          <span class="tag" style="background: #12281a; color: var(--accent-green);">KALSHI PERP</span>
-        </div>
-        <div class="market-card-meta">
-          <span>Daily Funding: -0.004%</span>
-          <span style="color: var(--accent-cyan); font-weight: bold;">Margin Yield: 3.25%</span>
-        </div>
-      </div>
     `;
   }
 }
@@ -933,7 +907,7 @@ async function fetchLivePoly() {
   const container = document.getElementById('poly-live-feed');
   try {
     const res = await fetch('/api/polymarket/markets');
-    if (!res.ok) throw new Error("Poly response not OK");
+    if (!res.ok) throw new Error("Poly unavailable");
     const data = await res.json();
     if (Array.isArray(data) && data.length > 0) {
       container.innerHTML = data.slice(0, 5).map(ev => `
@@ -961,17 +935,42 @@ async function fetchLivePoly() {
           <span style="color: var(--accent-green); font-weight: 800;">YES @ $0.84</span>
         </div>
       </div>
-      <div class="market-card">
-        <div class="market-card-head">
-          <span>US Presidential Approval Rating ≥ 50%</span>
-          <span class="tag" style="background: #1b1330; color: var(--accent-pink);">POLY.US</span>
-        </div>
-        <div class="market-card-meta">
-          <span>Volume: $1.1M</span>
-          <span style="color: var(--accent-green); font-weight: 800;">YES @ $0.46</span>
-        </div>
-      </div>
     `;
+  }
+}
+
+// Automatically sync public positions if an address or key is provided
+async function syncPolymarketPositions() {
+  const polyIdentifier = localStorage.getItem('poly_key_id');
+  if (!polyIdentifier) return;
+
+  // Check if identifier is a public Polygon address (0x...)
+  if (/^0x[a-fA-F0-9]{40}$/.test(polyIdentifier.trim())) {
+    try {
+      const res = await fetch(`https://data-api.polymarket.com/positions?user=${polyIdentifier.trim()}`);
+      if (!res.ok) return;
+      const positions = await res.json();
+      if (Array.isArray(positions) && positions.length > 0) {
+        const current = loadLocalFleetTickets();
+        positions.forEach(p => {
+          const slipId = `poly_${p.conditionId || p.asset}`;
+          if (!current.some(c => c.id === slipId)) {
+            current.unshift({
+              id: slipId,
+              book: 'Polymarket',
+              odds: `@$${(p.curPrice || p.avgPrice || 0.50).toFixed(2)}`,
+              stake: parseFloat(p.initialValue || (p.size * (p.avgPrice || 0.5))),
+              payout: parseFloat(p.currentValue || (p.size * 1.0)),
+              timestamp: Date.now(),
+              legs: [`${p.title || 'Market Position'} — ${p.outcome || 'YES'} (${p.size} shares)`]
+            });
+          }
+        });
+        saveLocalFleetTickets(current);
+      }
+    } catch (err) {
+      console.warn("Public Poly sync skipped:", err);
+    }
   }
 }
 
@@ -1018,6 +1017,7 @@ function saveVaultCredentials() {
 
   alert("Credentials securely locked into local browser storage.");
   updateVaultStatusUI();
+  syncPolymarketPositions();
 }
 
 function clearLocalStorageVault() {
@@ -1145,7 +1145,7 @@ function renderFleetTickets() {
   container.innerHTML = tickets.map((t, idx) => `
     <div class="ticket-card">
       <div style="display: flex; justify-content: space-between; font-weight: bold; margin-bottom: 4px;">
-        <span style="color: var(--accent-cyan);">${t.book} [${t.betId || 'Manual Slip'}]</span>
+        <span style="color: var(--accent-cyan);">${t.book} [${t.betId || 'Slip'}]</span>
         <span style="color: var(--accent-gold);">${t.odds ? (t.odds.startsWith('+') || t.odds.startsWith('-') ? t.odds : '+' + t.odds) : ''} | Ret: $${t.payout ? t.payout.toFixed(2) : '--'}</span>
       </div>
       <div style="color: var(--text-muted); font-size: 9px; margin-bottom: 6px; display: flex; justify-content: space-between;">
@@ -1165,7 +1165,7 @@ function removeSlip(index) {
   saveLocalFleetTickets(tickets);
 }
 
-// --- POLLING & INGESTION ---
+// --- POLLING & SANITIZED PARSER ---
 async function pollSharedSlips() {
   const uuid = getOrCreateClientUuid();
   try {
@@ -1264,6 +1264,7 @@ window.addEventListener('DOMContentLoaded', () => {
   if (ttlSelect) ttlSelect.value = getUserTtl();
   renderFleetTickets();
   checkIncomingShareTarget();
+  syncPolymarketPositions();
   setInterval(pollSharedSlips, 10000);
 });
 </script>
