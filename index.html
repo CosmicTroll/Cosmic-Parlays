@@ -124,6 +124,29 @@
       border-color: var(--accent-cyan);
     }
 
+    /* Market Pick Cards */
+    .market-card {
+      background: #080c18;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .market-card-head {
+      display: flex;
+      justify-content: space-between;
+      font-weight: 800;
+      font-size: 11px;
+    }
+    .market-card-meta {
+      display: flex;
+      justify-content: space-between;
+      font-size: 10px;
+      color: var(--text-muted);
+    }
+
     /* Grids */
     .stat-grid {
       display: grid;
@@ -276,10 +299,10 @@
 
   <!-- Sorter & Filter Subbar -->
   <div class="pill-nav">
-    <button class="pill-btn active" onclick="switchSubFilter(this)">🎯 Picks</button>
-    <button class="pill-btn" onclick="switchSubFilter(this)">🎮 Esports</button>
-    <button class="pill-btn" onclick="switchSubFilter(this)">🏈 Sports</button>
-    <button class="pill-btn" onclick="switchSubFilter(this)">🏛 Politics</button>
+    <button class="pill-btn active" onclick="switchSubFilter('all', this)">🎯 Picks</button>
+    <button class="pill-btn" onclick="switchSubFilter('esports', this)">🎮 Esports</button>
+    <button class="pill-btn" onclick="switchSubFilter('sports', this)">🏈 Sports</button>
+    <button class="pill-btn" onclick="switchSubFilter('politics', this)">🏛 Politics</button>
   </div>
 
   <!-- VIEW 1: PICKS & MARKETS (DEFAULT VIEW) -->
@@ -299,18 +322,89 @@
       </div>
     </div>
 
-    <!-- Esports Sample Feed -->
-    <div class="card">
+    <!-- TOP 3 SPORTS PICKS CARD -->
+    <div class="card market-section" id="section-sports">
       <div class="card-header">
-        <span>🎮 Esports Desk (Top Picks)</span>
-        <span style="font-size: 10px; color: var(--accent-cyan); cursor: pointer;">Open Hub →</span>
+        <span>🏈 Top 3 Sports Picks (MLB / NFL EV)</span>
+        <span class="tag" style="color: var(--accent-cyan);">Edge Screened</span>
       </div>
-      <div style="background: #080c18; border: 1px solid var(--border-color); border-radius: 8px; padding: 10px;">
-        <div style="display: flex; justify-content: space-between; font-weight: 800; font-size: 11px;">
-          <span>Counter-Strike: Saint Sinners vs KUUSAMO.gg</span>
-          <span class="tag" style="background: #1b1330; color: var(--accent-pink);">POLY.US</span>
+      <div style="display: flex; flex-direction: column; gap: 8px;">
+        <!-- Sports Pick 1 -->
+        <div class="market-card">
+          <div class="market-card-head">
+            <span>Brewers @ Phillies — First 5 Under 6.5 Total Runs</span>
+            <span class="tag" style="background: #1b1330; color: var(--accent-pink);">POLY.US</span>
+          </div>
+          <div class="market-card-meta">
+            <span>Pick: YES Under 6.5 F5 @ $0.83 (83% Implied)</span>
+            <span style="color: var(--accent-green); font-weight: 800;">+20.4% ROI</span>
+          </div>
         </div>
-        <div style="color: var(--text-muted); font-size: 10px; margin-top: 4px;">Pick: YES [Map 1 Winner] @ $0.50 • 50% Implied</div>
+        <!-- Sports Pick 2 -->
+        <div class="market-card">
+          <div class="market-card-head">
+            <span>Rays @ Yankees (G2) — First 5 Under 6.5 Total Runs</span>
+            <span class="tag" style="background: #1b1330; color: var(--accent-pink);">POLY.US</span>
+          </div>
+          <div class="market-card-meta">
+            <span>Pick: YES Under 6.5 F5 @ $0.85 (85% Implied)</span>
+            <span style="color: var(--accent-green); font-weight: 800;">+17.6% ROI</span>
+          </div>
+        </div>
+        <!-- Sports Pick 3 -->
+        <div class="market-card">
+          <div class="market-card-head">
+            <span>Mets @ Rangers — Texas Rangers +2.5 Runline</span>
+            <span class="tag" style="background: #12281a; color: var(--accent-green);">KALSHI</span>
+          </div>
+          <div class="market-card-meta">
+            <span>Pick: YES Rangers +2.5 @ $0.78 (78% Implied)</span>
+            <span style="color: var(--accent-green); font-weight: 800;">+28.2% ROI</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TOP 3 ESPORTS PICKS CARD -->
+    <div class="card market-section" id="section-esports">
+      <div class="card-header">
+        <span>🎮 Esports Desk (Top 3 Picks)</span>
+        <span style="font-size: 10px; color: var(--accent-cyan); cursor: pointer;" onclick="switchSubFilter('esports', document.querySelectorAll('.pill-btn')[1])">Open Hub →</span>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 8px;">
+        <!-- Esports Pick 1 -->
+        <div class="market-card">
+          <div class="market-card-head">
+            <span>CS2: Saint Sinners vs KUUSAMO.gg (BO3)</span>
+            <span class="tag" style="background: #1b1330; color: var(--accent-pink);">POLY.US</span>
+          </div>
+          <div class="market-card-meta">
+            <span>Pick: YES [Map 1 Winner] @ $0.50 (50% Implied)</span>
+            <span style="color: var(--accent-green); font-weight: 800;">+100% ROI</span>
+          </div>
+        </div>
+        <!-- Esports Pick 2 -->
+        <div class="market-card">
+          <div class="market-card-head">
+            <span>CS2: Saint Sinners vs KUUSAMO.gg — Rounds Spread</span>
+            <span class="tag" style="background: #1b1330; color: var(--accent-pink);">POLY.US</span>
+          </div>
+          <div class="market-card-meta">
+            <span>Pick: YES [Map 1 Rounds Handicap -2.5] @ $0.55</span>
+            <span style="color: var(--accent-green); font-weight: 800;">+81.8% ROI</span>
+          </div>
+        </div>
+        <!-- Esports Pick 3 -->
+        <div class="market-card">
+          <div class="market-card-head">
+            <span>Dota 2: MOUZ vs Hokori — Match Winner</span>
+            <span class="tag" style="background: #12281a; color: var(--accent-green);">KALSHI</span>
+          </div>
+          <div class="market-card-meta">
+            <span>Pick: YES MOUZ Winner @ $0.83 (83% Implied)</span>
+            <span style="color: var(--accent-green); font-weight: 800;">+20.5% ROI</span>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -445,7 +539,7 @@
 </div>
 
 <script>
-// --- NAVIGATION TABS ---
+// --- NAVIGATION & CATEGORY FILTERS ---
 function switchNavTab(viewId, element) {
   document.querySelectorAll('.tab-view').forEach(v => v.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
@@ -454,9 +548,26 @@ function switchNavTab(viewId, element) {
   if (element) element.classList.add('active');
 }
 
-function switchSubFilter(button) {
+function switchSubFilter(category, button) {
   document.querySelectorAll('.pill-btn').forEach(b => b.classList.remove('active'));
   button.classList.add('active');
+
+  const sportsSec = document.getElementById('section-sports');
+  const esportsSec = document.getElementById('section-esports');
+
+  if (category === 'all') {
+    if (sportsSec) sportsSec.style.display = 'block';
+    if (esportsSec) esportsSec.style.display = 'block';
+  } else if (category === 'sports') {
+    if (sportsSec) sportsSec.style.display = 'block';
+    if (esportsSec) esportsSec.style.display = 'none';
+  } else if (category === 'esports') {
+    if (sportsSec) sportsSec.style.display = 'none';
+    if (esportsSec) esportsSec.style.display = 'block';
+  } else {
+    if (sportsSec) sportsSec.style.display = 'none';
+    if (esportsSec) esportsSec.style.display = 'none';
+  }
 }
 
 // --- BYOK CREDENTIALS & PURGE SYSTEM ---
