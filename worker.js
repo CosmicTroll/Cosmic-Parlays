@@ -1,6 +1,7 @@
 // ============================================================================
-// COSMIC TERMINAL / PARLAYS - PRODUCTION WORKER (v2.3-fast-feed)
-// Zero-Trust Telemetry, Live 15-Min Market Feeds & Gemini Copilot Engine
+// COSMIC TERMINAL / PARLAYS - MASTER WORKER (v2.5-zero-hallucination)
+// Programmatic Multi-Sport Verification Engine, Live Kalshi Feeds,
+// Polymarket Streaming, Ephemeral Fleet Queue & Quant-Restricted Gemini Copilot
 // ============================================================================
 
 const CORS_HEADERS = {
@@ -87,14 +88,117 @@ export default {
       return new Response(JSON.stringify({ 
         status: "healthy", 
         env: "production", 
-        build: "2.3.0-fast-feed" 
+        build: "2.5.0-universal-zero-hallucination" 
       }), {
         headers: { ...CORS_HEADERS, "Content-Type": "application/json" }
       });
     }
 
     // ------------------------------------------------------------------------
-    // 2. Kalshi 15-Minute Live Fast Feed Proxy
+    // 2. Universal Real-Time Sports Verification Engine (Official Feeds Only)
+    // GET /api/verify/:sport
+    // ------------------------------------------------------------------------
+    if (url.pathname.startsWith("/api/verify/")) {
+      const sport = url.pathname.replace("/api/verify/", "").toLowerCase();
+
+      // MLB Live Linescores, Innings & Final State
+      if (sport === "mlb") {
+        try {
+          const mlbRes = await fetch("https://statsapi.mlb.com/api/v1/schedule?sportId=1&hydrate=linescore,team", {
+            headers: { "Accept": "application/json", "User-Agent": "CosmicTerminal/2.5" }
+          });
+          const data = await mlbRes.text();
+          return new Response(data, {
+            headers: { ...CORS_HEADERS, "Content-Type": "application/json" }
+          });
+        } catch (err) {
+          return new Response(JSON.stringify({ error: "MLB score verification feed delayed", details: err.message }), {
+            status: 502,
+            headers: { ...CORS_HEADERS, "Content-Type": "application/json" }
+          });
+        }
+      }
+
+      // NFL Live Scoreboard, Quarters & Completion State
+      if (sport === "nfl") {
+        try {
+          const nflRes = await fetch("https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard", {
+            headers: { "Accept": "application/json", "User-Agent": "CosmicTerminal/2.5" }
+          });
+          const data = await nflRes.text();
+          return new Response(data, {
+            headers: { ...CORS_HEADERS, "Content-Type": "application/json" }
+          });
+        } catch (err) {
+          return new Response(JSON.stringify({ error: "NFL score verification feed delayed", details: err.message }), {
+            status: 502,
+            headers: { ...CORS_HEADERS, "Content-Type": "application/json" }
+          });
+        }
+      }
+
+      // NBA Live Scoreboard & Period Status
+      if (sport === "nba") {
+        try {
+          const nbaRes = await fetch("https://site.api.espn.com/apis/site/v2/sports/basketball/nba/scoreboard", {
+            headers: { "Accept": "application/json", "User-Agent": "CosmicTerminal/2.5" }
+          });
+          const data = await nbaRes.text();
+          return new Response(data, {
+            headers: { ...CORS_HEADERS, "Content-Type": "application/json" }
+          });
+        } catch (err) {
+          return new Response(JSON.stringify({ error: "NBA score verification feed delayed", details: err.message }), {
+            status: 502,
+            headers: { ...CORS_HEADERS, "Content-Type": "application/json" }
+          });
+        }
+      }
+
+      // NHL Live Scoreboard, Period & Penalty Status
+      if (sport === "nhl") {
+        try {
+          const nhlRes = await fetch("https://site.api.espn.com/apis/site/v2/sports/hockey/nhl/scoreboard", {
+            headers: { "Accept": "application/json", "User-Agent": "CosmicTerminal/2.5" }
+          });
+          const data = await nhlRes.text();
+          return new Response(data, {
+            headers: { ...CORS_HEADERS, "Content-Type": "application/json" }
+          });
+        } catch (err) {
+          return new Response(JSON.stringify({ error: "NHL score verification feed delayed", details: err.message }), {
+            status: 502,
+            headers: { ...CORS_HEADERS, "Content-Type": "application/json" }
+          });
+        }
+      }
+
+      return new Response(JSON.stringify({ error: "Unsupported verification sport endpoint" }), {
+        status: 400,
+        headers: { ...CORS_HEADERS, "Content-Type": "application/json" }
+      });
+    }
+
+    // Legacy Route Fallback for MLB Verification
+    if (url.pathname === "/api/sports/verify-score") {
+      try {
+        const mlbRes = await fetch("https://statsapi.mlb.com/api/v1/schedule?sportId=1&hydrate=linescore,team", {
+          headers: { "Accept": "application/json", "User-Agent": "CosmicTerminal/2.5" }
+        });
+        const data = await mlbRes.text();
+        return new Response(data, {
+          headers: { ...CORS_HEADERS, "Content-Type": "application/json" }
+        });
+      } catch (err) {
+        return new Response(JSON.stringify({ error: "Score verification feed delayed", details: err.message }), {
+          status: 502,
+          headers: { ...CORS_HEADERS, "Content-Type": "application/json" }
+        });
+      }
+    }
+
+    // ------------------------------------------------------------------------
+    // 3. Kalshi 15-Minute Live Fast Feed Proxy
     // GET /api/kalshi/15min/live
     // ------------------------------------------------------------------------
     if (url.pathname === "/api/kalshi/15min/live") {
@@ -103,7 +207,7 @@ export default {
         const fetchPromises = seriesList.map(async (seriesTicker) => {
           try {
             const res = await fetch(`https://api.elections.kalshi.com/trade-api/v2/events/${seriesTicker}?with_nested_markets=true`, {
-              headers: { "Accept": "application/json", "User-Agent": "CosmicTerminal/2.3" }
+              headers: { "Accept": "application/json", "User-Agent": "CosmicTerminal/2.5" }
             });
             if (!res.ok) return null;
             return await res.json();
@@ -125,14 +229,14 @@ export default {
     }
 
     // ------------------------------------------------------------------------
-    // 3. Kalshi Perpetuals Markets Proxy
+    // 4. Kalshi Perpetuals Markets Proxy
     // ------------------------------------------------------------------------
     if (url.pathname === "/api/kalshi/perps") {
       try {
         const response = await fetch("https://api.elections.kalshi.com/trade-api/v2/perpetuals/markets", {
           headers: { 
             "Accept": "application/json", 
-            "User-Agent": "CosmicTerminal/2.3" 
+            "User-Agent": "CosmicTerminal/2.5" 
           }
         });
         const data = await response.text();
@@ -149,7 +253,7 @@ export default {
     }
 
     // ------------------------------------------------------------------------
-    // 4. Kalshi Authenticated RSA Relay
+    // 5. Kalshi Authenticated RSA Relay (Order Placement & Private Portfolio)
     // ------------------------------------------------------------------------
     if (url.pathname.startsWith("/api/kalshi/trade/")) {
       const kalshiPath = url.pathname.replace("/api/kalshi/trade", "");
@@ -190,13 +294,13 @@ export default {
     }
 
     // ------------------------------------------------------------------------
-    // 5. Polymarket Gamma / CLOB Proxy
+    // 6. Polymarket Gamma / CLOB Proxy
     // ------------------------------------------------------------------------
     if (url.pathname === "/api/polymarket/markets") {
       try {
         const target = `https://gamma-api.polymarket.com/events?closed=false&limit=20${url.search.replace("?", "&")}`;
         const polyRes = await fetch(target, { 
-          headers: { "Accept": "application/json" } 
+          headers: { "Accept": "application/json", "User-Agent": "CosmicTerminal/2.5" } 
         });
         const bodyText = await polyRes.text();
         return new Response(bodyText, {
@@ -211,7 +315,7 @@ export default {
     }
 
     // ------------------------------------------------------------------------
-    // 6. Ephemeral Ticket Ingestion (Customizable TTL)
+    // 7. Ephemeral Ticket Ingestion (Customizable TTL)
     // POST /api/fleet/ingest/:uuid
     // ------------------------------------------------------------------------
     if (url.pathname.startsWith("/api/fleet/ingest/")) {
@@ -243,7 +347,7 @@ export default {
     }
 
     // ------------------------------------------------------------------------
-    // 7. Read-and-Burn Drain Queue
+    // 8. Read-and-Burn Drain Queue
     // GET /api/fleet/pull/:uuid
     // ------------------------------------------------------------------------
     if (url.pathname.startsWith("/api/fleet/pull/")) {
@@ -269,7 +373,7 @@ export default {
     }
 
     // ------------------------------------------------------------------------
-    // 8. Gemini Agentic Intelligence Relay for 15-Min Fast Markets
+    // 9. Quant-Restricted Gemini Agentic Copilot Relay
     // POST /api/agent/gemini
     // ------------------------------------------------------------------------
     if (url.pathname === "/api/agent/gemini" && request.method === "POST") {
@@ -279,24 +383,27 @@ export default {
         
         if (!clientApiKey) {
           return new Response(JSON.stringify({ 
-            error: "Missing Gemini API Key. Save key in BYOK Vault or configure Worker secret." 
+            error: "Missing Gemini API Key. Save key in Settings or configure Worker secret." 
           }), { status: 400, headers: CORS_HEADERS });
         }
 
         const promptText = `
-You are an institutional quantitative trading copilot for Kalshi 15-minute binary prediction markets.
-Analyze the following live market state:
+You are an algorithmic quantitative analyst. You receive real-time spot prices, targets, and verified score states.
+You MUST NOT predict, speculate on, or declare match settlement status.
+Your output is strictly restricted to calculating taker/maker spread drag, edge percentages, and risk recommendations based strictly on the provided real-time variables.
+
+Input State:
 - Market: ${payload.ticker || 'Unknown'} (${payload.title || ''})
 - Target Strike: ${payload.targetPrice || 'N/A'}
 - Current Spot: ${payload.currentPrice || 'N/A'}
-- Minutes Left: ${payload.minutesLeft || '15'}m
-- Current Probabilities: ABOVE @ ${payload.yesOdds || '50'}% | BELOW @ ${payload.noOdds || '50'}%
+- Minutes Left in Candle: ${payload.minutesLeft || '15'}m
+- Current Order Book Probabilities: ABOVE @ ${payload.yesOdds || '50'}% | BELOW @ ${payload.noOdds || '50'}%
 
-Provide:
-1. Conviction Call: [BUY ABOVE / BUY BELOW / PASS]
-2. Calculated Edge & Risk Assessment: (Include taker fee drag warning and recommend limit orders)
-3. Concise Core Catalyst: 2 sentences explaining why the 15-minute candle will resolve above or below the target.
-Format cleanly in plaintext without conversational filler.`;
+Instructions:
+1. Output Call: [BUY ABOVE / BUY BELOW / PASS]
+2. Calculate mathematical edge and taker fee friction. Recommend resting limit bids inside the spread.
+3. Provide exactly two factual sentences on momentum and price distance relative to target.
+Do NOT use conversational filler. Deliver raw quantitative analysis only.`;
 
         const geminiRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${clientApiKey}`, {
           method: "POST",
