@@ -1,9 +1,61 @@
+# ============================================================================
+# COSMIC TERMINAL / PARLAYS - MASTER WRANGLER CONFIGURATION
+# Production Edge Runtime, 60s Autonomous Cron Sentinel & Telemetry Bindings
+# ============================================================================
+
 name = "cosmic-parlays"
 main = "worker.js"
 compatibility_date = "2024-09-01"
 compatibility_flags = ["nodejs_compat"]
+
+# Public routing & workers.dev assignment
 workers_dev = true
 
-# Cron Trigger for background sweeps
+# ----------------------------------------------------------------------------
+# 1. 60-Second Autonomous Sentinel Cron Trigger
+# Executes scheduled() in worker.js every minute to evaluate active tickets
+# against live MLB, NFL, and NBA game states for mathematical elimination.
+# ----------------------------------------------------------------------------
 [triggers]
-crons = ["*/5 * * * *"]
+crons = ["* * * * *"]
+
+# ----------------------------------------------------------------------------
+# 2. KV Namespace Bindings
+# Stores read-and-burn fleet queues, client alert webhooks, and active slips.
+# ----------------------------------------------------------------------------
+[[kv_namespaces]]
+binding = "FLEET_KV"
+id = "c7d7ba4e59074d2b9634e7da471168ef" # Replace with your production KV namespace ID (wrangler kv namespace create FLEET_KV)
+preview_id = "preview_c7d7ba4e59074d2b9634e7da471168ef"
+
+# ----------------------------------------------------------------------------
+# 3. Environment Variables (Public Runtime Defaults)
+# ----------------------------------------------------------------------------
+[vars]
+ENVIRONMENT = "production"
+BUILD_VERSION = "3.0.0-universal-salvage"
+CORS_ALLOW_ORIGIN = "*"
+DEFAULT_SLIP_TTL = "1800"
+
+# ----------------------------------------------------------------------------
+# 4. Secret Environment Variables (Informational / Setup Guide)
+# Do NOT place raw API keys directly into this file.
+# Run the following commands in your CLI to bind production secrets:
+#
+#   npx wrangler secret put GEMINI_API_KEY
+#   npx wrangler secret put KALSHI_API_KEY
+#   npx wrangler secret put KALSHI_PRIVATE_KEY
+#   npx wrangler secret put POLY_API_KEY
+#   npx wrangler secret put POLY_PRIVATE_KEY
+# ----------------------------------------------------------------------------
+
+# ----------------------------------------------------------------------------
+# 5. Build & Asset Settings
+# ----------------------------------------------------------------------------
+[build]
+command = ""
+watch_dir = "."
+
+[observability]
+enabled = true
+head_sampling_rate = 1
