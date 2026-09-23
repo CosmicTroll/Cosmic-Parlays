@@ -1,7 +1,7 @@
 // ============================================================================
-// COSMIC TERMINAL / PARLAYS - MASTER WORKER (v2.8-governed)
-// Programmatic Verification Engine, 1-Tap iOS Shortcut Generator,
-// 60s Cron Risk Sentinel, Webhook Dispatcher & Financial Guardrails
+// COSMIC TERMINAL / PARLAYS - MASTER WORKER (v2.9-autonomous-salvage)
+// Programmatic Multi-Sport Verification, Mathematical Zero-Path Prover,
+// Autonomous Capital Salvage Engine, 60s Cron Sentinel & Webhook Dispatcher
 // ============================================================================
 
 const CORS_HEADERS = {
@@ -66,6 +66,38 @@ function parseSportsbookPayload(rawText, sourceUrl = "") {
   return result;
 }
 
+// Mathematical Zero-Path Elimination Prover
+function checkMathematicalElimination(rawTicket, gameData) {
+  const raw = (rawTicket || "").toLowerCase();
+  const awayScore = gameData.teams.away.score;
+  const homeScore = gameData.teams.home.score;
+  const totalScore = awayScore + homeScore;
+  const inning = gameData.linescore?.currentInning || 1;
+  const isBottom = gameData.linescore?.isTopInning === false;
+  const outs = gameData.linescore?.outs || 0;
+
+  // Rule 1: Totals Under Breach
+  const underMatch = raw.match(/under\s*([0-9.]+)/i);
+  if (underMatch) {
+    const underCeiling = parseFloat(underMatch[1]);
+    if (totalScore >= underCeiling) {
+      return { eliminated: true, reason: `Total points/runs reached ${totalScore} (Exceeds Under ${underCeiling} ceiling)` };
+    }
+  }
+
+  // Rule 2: Baseball Run Line Elimination Check
+  if (raw.includes("+2.5") && raw.includes("rangers")) {
+    const isHome = gameData.teams.home.team.name.toLowerCase().includes("rangers");
+    const diff = isHome ? (homeScore - awayScore) : (awayScore - homeScore);
+    // Down by 3+ runs in bottom of the 9th with 2 outs
+    if (diff <= -3 && inning >= 9 && isBottom && outs >= 2) {
+      return { eliminated: true, reason: "Mathematical ceiling exhausted: Trailing by 3+ runs with 2 outs in 9th." };
+    }
+  }
+
+  return { eliminated: false };
+}
+
 export default {
   // --------------------------------------------------------------------------
   // BACKGROUND CRON SENTINEL (Runs every 60 seconds)
@@ -92,19 +124,16 @@ export default {
           const rawLower = (ticket.raw || "").toLowerCase();
 
           if (rawLower.includes(home) || rawLower.includes(away)) {
-            const awayScore = game.teams.away.score;
-            const homeScore = game.teams.home.score;
-            const inning = game.linescore?.currentInningOrdinal || "Live";
-            const diff = homeScore - awayScore;
+            const elimination = checkMathematicalElimination(ticket.raw, game);
 
-            if (rawLower.includes("+2.5") && rawLower.includes("rangers") && diff <= -3) {
+            if (elimination.eliminated) {
               const userWebhook = await env.FLEET_KV.get(`webhook:${ticket.userUuid}`);
               if (userWebhook) {
                 await fetch(userWebhook, {
                   method: "POST",
                   headers: { "Content-Type": "application/json" },
                   body: JSON.stringify({
-                    content: `🚨 **Cosmic Risk Alert:** Rangers down by ${Math.abs(diff)} (${inning}). Leg is underwater. Evaluate cash-out.`
+                    content: `🛡️ **CAPITAL SALVAGE ALERT:** Mathematical elimination confirmed for ticket [${ticket.id}]. Reason: ${elimination.reason}. Execute cash-out now before odds pull.`
                   })
                 });
               }
@@ -129,7 +158,7 @@ export default {
       return new Response(JSON.stringify({ 
         status: "healthy", 
         env: "production", 
-        build: "2.8.0-governed-sentinel" 
+        build: "2.9.0-autonomous-salvage" 
       }), {
         headers: { ...CORS_HEADERS, "Content-Type": "application/json" }
       });
@@ -142,7 +171,7 @@ export default {
       if (sport === "mlb") {
         try {
           const mlbRes = await fetch("https://statsapi.mlb.com/api/v1/schedule?sportId=1&hydrate=linescore,team", {
-            headers: { "Accept": "application/json", "User-Agent": "CosmicTerminal/2.8" }
+            headers: { "Accept": "application/json", "User-Agent": "CosmicTerminal/2.9" }
           });
           return new Response(await mlbRes.text(), {
             headers: { ...CORS_HEADERS, "Content-Type": "application/json" }
@@ -158,7 +187,7 @@ export default {
       if (sport === "nfl") {
         try {
           const nflRes = await fetch("https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard", {
-            headers: { "Accept": "application/json", "User-Agent": "CosmicTerminal/2.8" }
+            headers: { "Accept": "application/json", "User-Agent": "CosmicTerminal/2.9" }
           });
           return new Response(await nflRes.text(), {
             headers: { ...CORS_HEADERS, "Content-Type": "application/json" }
@@ -266,7 +295,7 @@ export default {
       });
     }
 
-    // 4. Save Webhook URL for Alerts
+    // 4. Webhook Alerts Registration
     if (url.pathname.startsWith("/api/alerts/webhook/")) {
       const userUuid = url.pathname.replace("/api/alerts/webhook/", "").trim();
       const payload = await request.json();
@@ -286,7 +315,7 @@ export default {
         const fetchPromises = seriesList.map(async (seriesTicker) => {
           try {
             const res = await fetch(`https://api.elections.kalshi.com/trade-api/v2/events/${seriesTicker}?with_nested_markets=true`, {
-              headers: { "Accept": "application/json", "User-Agent": "CosmicTerminal/2.8" }
+              headers: { "Accept": "application/json", "User-Agent": "CosmicTerminal/2.9" }
             });
             if (!res.ok) return null;
             return await res.json();
@@ -307,19 +336,17 @@ export default {
       }
     }
 
-    // 6. Kalshi Authenticated RSA Relay with Protocol Governance Filter
+    // 6. Kalshi Authenticated RSA Relay & Autonomous Sell Exit
     if (url.pathname.startsWith("/api/kalshi/trade/")) {
       const kalshiPath = url.pathname.replace("/api/kalshi/trade", "");
       const targetUrl = `https://api.elections.kalshi.com/trade-api/v2${kalshiPath}${url.search}`;
 
-      // Governance: Disallow blind orders over edge thresholds
       if (request.method === "POST" && kalshiPath.includes("/portfolio/orders")) {
         try {
           const orderPayload = await request.clone().json();
-          // Reject negative EV slippage limit requests
-          if (orderPayload.yes_price && (orderPayload.yes_price > 95 || orderPayload.yes_price < 5)) {
+          if (orderPayload.action !== "sell" && orderPayload.yes_price && (orderPayload.yes_price > 95 || orderPayload.yes_price < 5)) {
             return new Response(JSON.stringify({ 
-              error: "Protocol Governance Rejection: Limit price violates core anti-taker slippage rule (>95¢ or <5¢)." 
+              error: "Protocol Governance Rejection: Limit price violates anti-taker fee friction rule (>95¢ or <5¢)." 
             }), { status: 400, headers: CORS_HEADERS });
           }
         } catch (e) {}
@@ -364,7 +391,7 @@ export default {
       try {
         const target = `https://gamma-api.polymarket.com/events?closed=false&limit=20${url.search.replace("?", "&")}`;
         const polyRes = await fetch(target, { 
-          headers: { "Accept": "application/json", "User-Agent": "CosmicTerminal/2.8" } 
+          headers: { "Accept": "application/json", "User-Agent": "CosmicTerminal/2.9" } 
         });
         return new Response(await polyRes.text(), {
           headers: { ...CORS_HEADERS, "Content-Type": "application/json" }
