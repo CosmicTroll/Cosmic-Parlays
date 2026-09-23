@@ -1001,15 +1001,20 @@
         </div>
       </div>
 
-      <!-- 15-Minute Fast Markets Desk -->
+      <!-- 15-Minute Fast Markets Desk (Full 8 Series Suite) -->
       <div id="perp-sub-15m" style="display: none; flex-direction: column; gap: 10px;">
         <div style="font-size: 11px; color: var(--text-muted); line-height: 1.4; margin-bottom: 6px;">
-          Settles strictly on clock quarter-hours (<strong>:00, :15, :30, :45</strong>)[span_28](start_span)[span_28](end_span). The countdown timer updates live and tracks remaining candle duration[span_29](start_span)[span_29](end_span).
+          Settles strictly on clock quarter-hours (<strong>:00, :15, :30, :45</strong>)[span_6](start_span)[span_6](end_span). Countdown timer updates live across all 8 series[span_7](start_span)[span_7](end_span).
         </div>
 
+        <div style="font-weight: 800; font-size: 10px; color: var(--accent-gold); text-transform: uppercase;">
+          🛢️ 15-Min Commodities &amp; Energy
+        </div>
+
+        <!-- 1. Gold 15m -->
         <div class="market-card">
           <div class="market-card-head">
-            <span>Gold 15-Min — Target: $4,349.63</span>
+            <span>Gold 15-Min (KXGOLD15M) — Target: $4,349.63</span>
             <span class="tag live-15m-timer" style="background: #2d1616; color: var(--accent-red); font-weight: 800;">● 15:00</span>
           </div>
           <div class="market-card-meta">
@@ -1024,6 +1029,47 @@
           <div class="ai-agent-box" id="ai-box-gold"></div>
         </div>
 
+        <!-- 2. Silver 15m -->
+        <div class="market-card">
+          <div class="market-card-head">
+            <span>Silver 15-Min (KXSLV15M) — Target: $66.82</span>
+            <span class="tag live-15m-timer" style="background: #2d1616; color: var(--accent-red); font-weight: 800;">● 15:00</span>
+          </div>
+          <div class="market-card-meta">
+            <span>Current: $66.84 (+$0.02 above)</span>
+            <span style="color: var(--accent-cyan); font-weight: bold;">CFTC Series</span>
+          </div>
+          <div class="action-tray">
+            <button class="btn btn-green" onclick="openOrderModal('Silver 15m Above', 0.58, 'BUY ABOVE', 'kalshi')">Above 58% (58¢)</button>
+            <button class="btn btn-red" onclick="openOrderModal('Silver 15m Below', 0.43, 'BUY BELOW', 'kalshi')">Below 43% (43¢)</button>
+            <button class="btn btn-ai-inline" onclick="executeInlineMarketAnalysis('Silver 15-Min', 'Current: $66.84 vs Target: $66.82', 'ai-box-slv')">🤖 Ask Gemini</button>
+          </div>
+          <div class="ai-agent-box" id="ai-box-slv"></div>
+        </div>
+
+        <!-- 3. WTI Crude 15m -->
+        <div class="market-card">
+          <div class="market-card-head">
+            <span>WTI Crude 15-Min (KXWTI15M) — Target: $90.28</span>
+            <span class="tag live-15m-timer" style="background: #2d1616; color: var(--accent-red); font-weight: 800;">● 15:00</span>
+          </div>
+          <div class="market-card-meta">
+            <span>Current: $90.15 (-$0.13 below)</span>
+            <span style="color: var(--accent-cyan); font-weight: bold;">CFTC Series</span>
+          </div>
+          <div class="action-tray">
+            <button class="btn btn-green" onclick="openOrderModal('Crude 15m Above', 0.42, 'BUY ABOVE', 'kalshi')">Above 42% (42¢)</button>
+            <button class="btn btn-red" onclick="openOrderModal('Crude 15m Below', 0.59, 'BUY BELOW', 'kalshi')">Below 59% (59¢)</button>
+            <button class="btn btn-ai-inline" onclick="executeInlineMarketAnalysis('WTI Crude 15-Min', 'Current: $90.15 vs Target: $90.28', 'ai-box-wti15m')">🤖 Ask Gemini</button>
+          </div>
+          <div class="ai-agent-box" id="ai-box-wti15m"></div>
+        </div>
+
+        <div style="font-weight: 800; font-size: 10px; color: var(--accent-cyan); text-transform: uppercase; margin-top: 6px;">
+          🪙 15-Min Crypto Series
+        </div>
+
+        <!-- 4. BTC 15m -->
         <div class="market-card">
           <div class="market-card-head">
             <span>BTC 15-Min (KXBTC15M) — Target: $85,029.68</span>
@@ -1039,6 +1085,78 @@
             <button class="btn btn-ai-inline" onclick="executeInlineMarketAnalysis('BTC 15-Min (KXBTC15M)', 'Spot: $85,062.10 vs Target: $85,029.68', 'ai-box-btc')">🤖 Ask Gemini</button>
           </div>
           <div class="ai-agent-box" id="ai-box-btc"></div>
+        </div>
+
+        <!-- 5. ETH 15m -->
+        <div class="market-card">
+          <div class="market-card-head">
+            <span>ETH 15-Min (KXETH15M) — Target: $2,720.82</span>
+            <span class="tag live-15m-timer" style="background: #2d1616; color: var(--accent-red); font-weight: 800;">● 15:00</span>
+          </div>
+          <div class="market-card-meta">
+            <span>Spot: $2,722.15 (+$1.33 above)</span>
+            <span style="color: var(--accent-cyan); font-weight: bold;">CFTC Series</span>
+          </div>
+          <div class="action-tray">
+            <button class="btn btn-green" onclick="openOrderModal('ETH 15m Above', 0.54, 'BUY ABOVE', 'kalshi')">Above 54% (54¢)</button>
+            <button class="btn btn-red" onclick="openOrderModal('ETH 15m Below', 0.47, 'BUY BELOW', 'kalshi')">Below 47% (47¢)</button>
+            <button class="btn btn-ai-inline" onclick="executeInlineMarketAnalysis('ETH 15-Min (KXETH15M)', 'Spot: $2,722.15 vs Target: $2,720.82', 'ai-box-eth15m')">🤖 Ask Gemini</button>
+          </div>
+          <div class="ai-agent-box" id="ai-box-eth15m"></div>
+        </div>
+
+        <!-- 6. SOL 15m -->
+        <div class="market-card">
+          <div class="market-card-head">
+            <span>SOL 15-Min (KXSOL15M) — Target: $184.40</span>
+            <span class="tag live-15m-timer" style="background: #2d1616; color: var(--accent-red); font-weight: 800;">● 15:00</span>
+          </div>
+          <div class="market-card-meta">
+            <span>Spot: $184.18 (-$0.22 below)</span>
+            <span style="color: var(--accent-cyan); font-weight: bold;">CFTC Series</span>
+          </div>
+          <div class="action-tray">
+            <button class="btn btn-green" onclick="openOrderModal('SOL 15m Above', 0.46, 'BUY ABOVE', 'kalshi')">Above 46% (46¢)</button>
+            <button class="btn btn-red" onclick="openOrderModal('SOL 15m Below', 0.55, 'BUY BELOW', 'kalshi')">Below 55% (55¢)</button>
+            <button class="btn btn-ai-inline" onclick="executeInlineMarketAnalysis('SOL 15-Min (KXSOL15M)', 'Spot: $184.18 vs Target: $184.40', 'ai-box-sol15m')">🤖 Ask Gemini</button>
+          </div>
+          <div class="ai-agent-box" id="ai-box-sol15m"></div>
+        </div>
+
+        <!-- 7. XRP 15m -->
+        <div class="market-card">
+          <div class="market-card-head">
+            <span>XRP 15-Min (KXXRP15M) — Target: $0.5840</span>
+            <span class="tag live-15m-timer" style="background: #2d1616; color: var(--accent-red); font-weight: 800;">● 15:00</span>
+          </div>
+          <div class="market-card-meta">
+            <span>Spot: $0.5844 (+$0.0004 above)</span>
+            <span style="color: var(--accent-cyan); font-weight: bold;">CFTC Series</span>
+          </div>
+          <div class="action-tray">
+            <button class="btn btn-green" onclick="openOrderModal('XRP 15m Above', 0.52, 'BUY ABOVE', 'kalshi')">Above 52% (52¢)</button>
+            <button class="btn btn-red" onclick="openOrderModal('XRP 15m Below', 0.49, 'BUY BELOW', 'kalshi')">Below 49% (49¢)</button>
+            <button class="btn btn-ai-inline" onclick="executeInlineMarketAnalysis('XRP 15-Min (KXXRP15M)', 'Spot: $0.5844 vs Target: $0.5840', 'ai-box-xrp15m')">🤖 Ask Gemini</button>
+          </div>
+          <div class="ai-agent-box" id="ai-box-xrp15m"></div>
+        </div>
+
+        <!-- 8. DOGE 15m -->
+        <div class="market-card">
+          <div class="market-card-head">
+            <span>DOGE 15-Min (KXDOGE15M) — Target: $0.1280</span>
+            <span class="tag live-15m-timer" style="background: #2d1616; color: var(--accent-red); font-weight: 800;">● 15:00</span>
+          </div>
+          <div class="market-card-meta">
+            <span>Spot: $0.1283 (+$0.0003 above)</span>
+            <span style="color: var(--accent-cyan); font-weight: bold;">CFTC Series</span>
+          </div>
+          <div class="action-tray">
+            <button class="btn btn-green" onclick="openOrderModal('DOGE 15m Above', 0.53, 'BUY ABOVE', 'kalshi')">Above 53% (53¢)</button>
+            <button class="btn btn-red" onclick="openOrderModal('DOGE 15m Below', 0.48, 'BUY BELOW', 'kalshi')">Below 48% (48¢)</button>
+            <button class="btn btn-ai-inline" onclick="executeInlineMarketAnalysis('DOGE 15-Min (KXDOGE15M)', 'Spot: $0.1283 vs Target: $0.1280', 'ai-box-doge15m')">🤖 Ask Gemini</button>
+          </div>
+          <div class="ai-agent-box" id="ai-box-doge15m"></div>
         </div>
       </div>
     </div>
@@ -1261,12 +1379,12 @@
       <div class="input-group">
         <label class="stat-label">Large Order Circuit-Breaker Ceiling ($)</label>
         <input type="number" id="risk-ceiling-input" value="25.00" step="1.00" onchange="saveRiskSettings()">
-        <span style="font-size: 9px; color: var(--text-muted); margin-top: 2px;">Orders exceeding this amount require manual confirmation[span_30](start_span)[span_30](end_span).</span>
+        <span style="font-size: 9px; color: var(--text-muted); margin-top: 2px;">Orders exceeding this amount require manual confirmation[span_8](start_span)[span_8](end_span).</span>
       </div>
       <div class="input-group">
         <label class="stat-label">Autonomous Salvage Floor (%)</label>
         <input type="number" id="salvage-floor-input" value="20" min="5" max="50" onchange="saveRiskSettings()">
-        <span style="font-size: 9px; color: var(--text-muted); margin-top: 2px;">Programmatically liquidates contracts before zero equity is reached[span_31](start_span)[span_31](end_span).</span>
+        <span style="font-size: 9px; color: var(--text-muted); margin-top: 2px;">Programmatically liquidates contracts before zero equity is reached[span_9](start_span)[span_9](end_span).</span>
       </div>
     </div>
 
@@ -1277,7 +1395,7 @@
         <span class="tag">100% Client-Side</span>
       </div>
       <p style="font-size: 10px; color: var(--text-muted); margin-bottom: 12px; line-height: 1.4;">
-        API keys and private signatures are stored exclusively in your browser sandbox[span_32](start_span)[span_32](end_span). They never touch a remote server[span_33](start_span)[span_33](end_span).
+        API keys and private signatures are stored exclusively in your browser sandbox[span_10](start_span)[span_10](end_span). They never touch a remote server[span_11](start_span)[span_11](end_span).
       </p>
 
       <div style="font-weight: 800; font-size: 11px; color: var(--accent-green); margin-bottom: 6px;">🟢 Kalshi Domestic Trading API</div>
@@ -1474,6 +1592,7 @@
 <script>
 let currentTpMode = null;
 let activeOrderVenue = 'poly';
+let isCarouselPaused = false;
 
 // --- AUDIO CHIME SYNTHESIZER (WEB AUDIO API) ---
 function playAlertChime() {
@@ -1482,8 +1601,8 @@ function playAlertChime() {
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
     osc.type = 'sine';
-    osc.frequency.setValueAtTime(880, ctx.currentTime); // A5
-    osc.frequency.exponentialRampToValueAtTime(440, ctx.currentTime + 0.3); // Drop to A4
+    osc.frequency.setValueAtTime(880, ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(440, ctx.currentTime + 0.3);
     gain.gain.setValueAtTime(0.3, ctx.currentTime);
     gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
     osc.connect(gain);
@@ -1557,6 +1676,8 @@ function renderCarouselSet(pool, index, containerId, dotsId) {
 }
 
 function rotateCarousels() {
+  if (isCarouselPaused) return;
+
   sportsCarouselIndex = (sportsCarouselIndex + 1) % 3;
   esportsCarouselIndex = (esportsCarouselIndex + 1) % 3;
   renderCarouselSet(SPORTS_PICKS_POOL, sportsCarouselIndex, 'sports-picks-container', 'sports-dots');
@@ -1698,16 +1819,18 @@ function updateSynchronized15MinTimers() {
   });
 }
 
-// --- PER-MARKET ONE-TAP GEMINI ANALYST ---
+// --- PER-MARKET ONE-TAP GEMINI ANALYST (PAUSE & RESUME) ---
 async function executeInlineMarketAnalysis(title, meta, outputBoxId) {
   const box = document.getElementById(outputBoxId);
   if (!box) return;
 
-  if (box.style.display === 'block' && box.dataset.analyzed === 'true') {
+  if (box.style.display === 'block') {
     box.style.display = 'none';
+    isCarouselPaused = false;
     return;
   }
 
+  isCarouselPaused = true;
   box.style.display = 'block';
   box.innerHTML = '<span style="color: var(--accent-cyan);">⚡ Querying Gemini quant engine for live edge...</span>';
 
@@ -1735,7 +1858,6 @@ async function executeInlineMarketAnalysis(title, meta, outputBoxId) {
     const data = await res.json();
     if (data.analysis) {
       box.innerHTML = `<div style="color: #fff; white-space: pre-wrap; font-size: 11px;">${data.analysis}</div>`;
-      box.dataset.analyzed = 'true';
     } else {
       throw new Error("No response");
     }
@@ -1744,11 +1866,10 @@ async function executeInlineMarketAnalysis(title, meta, outputBoxId) {
       <div style="color: var(--accent-green); font-weight: 800;">Recommendation: High-Probability Limit Entry</div>
       <div style="color: var(--text-muted); font-size: 10px; margin-top: 4px;">
         • Edge Verified: Target pricing sits within quantitative safety parameters.<br>
-        • Execution Discipline: Post maker limit orders inside the resting spread to eliminate taker fee drag.<br>
+        • Execution Discipline: Post maker limit orders inside resting spread to avoid taker fee drag.<br>
         • Capital Protection: Set Auto-TP to +50% or hold to final settlement.
       </div>
     `;
-    box.dataset.analyzed = 'true';
   }
 }
 
@@ -1957,7 +2078,7 @@ function loadVaultCredentials() {
   updateVaultStatusUI();
 }
 
-// --- FLEET TRACKER & ZERO-PATH SALVAGE ENGINE ---
+// --- FLEET TRACKER & DEEP PARSER ---
 function getOrCreateClientUuid() {
   let uuid = localStorage.getItem('cosmic_fleet_uuid');
   if (!uuid) {
@@ -1972,6 +2093,10 @@ function getOrCreateClientUuid() {
 function updateTtlPreference() {
   const select = document.getElementById('user-ttl-select');
   if (select) localStorage.setItem('cosmic_slip_ttl', select.value);
+}
+
+function getUserTtl() {
+  return localStorage.getItem('cosmic_slip_ttl') || '1800';
 }
 
 function loadLocalFleetTickets() {
