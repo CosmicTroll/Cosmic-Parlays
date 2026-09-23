@@ -101,7 +101,7 @@
       margin-right: 6px;
     }
 
-    /* Desk Navigation */
+    /* Contextual Desk & Sorter Bars */
     .desk-nav, .sort-nav {
       display: flex;
       gap: 8px;
@@ -164,7 +164,7 @@
       color: var(--accent-cyan);
     }
 
-    /* Market Cards */
+    /* Market Items */
     .market-card {
       background: #070a16;
       border: 1px solid var(--border-color);
@@ -190,7 +190,19 @@
       color: var(--text-muted);
     }
 
-    /* 15-Minute Dedicated Layout */
+    /* Danger Pulse when Ticket is 1 score away from busting */
+    .ticket-danger {
+      border-color: var(--accent-red) !important;
+      background: rgba(255, 51, 68, 0.08) !important;
+      animation: pulseDanger 2s infinite;
+    }
+    @keyframes pulseDanger {
+      0% { box-shadow: 0 0 0 0 rgba(255, 51, 68, 0.4); }
+      70% { box-shadow: 0 0 0 10px rgba(255, 51, 68, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(255, 51, 68, 0); }
+    }
+
+    /* 15-Minute Fast Layout */
     .fast-header {
       display: flex;
       justify-content: space-between;
@@ -208,7 +220,6 @@
     .badge-gold { background: #eab308; color: #000; }
     .badge-silver { background: #94a3b8; color: #000; }
     .badge-oil { background: #3b82f6; color: #fff; }
-    .badge-btc { background: #f97316; color: #fff; }
 
     .target-title {
       font-size: 1.15rem;
@@ -292,12 +303,6 @@
     }
 
     /* Grids */
-    .stat-grid-4 {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 10px;
-      margin-bottom: 14px;
-    }
     .stat-grid-3 {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
@@ -392,6 +397,7 @@
       border-radius: 10px;
       padding: 12px;
       font-size: 0.82rem;
+      transition: all 0.3s ease;
     }
 
     .sparkline-svg {
@@ -499,16 +505,16 @@
     <span style="font-size: 0.75rem; color: var(--text-muted); text-decoration: underline; cursor: pointer; white-space: nowrap; margin-left: 8px;" onclick="promptAdPasskey()">Remove Ads ($5)</span>
   </div>
 
-  <!-- Dynamic Platform / Desk Switcher Bar -->
+  <!-- Dynamic Platform / Desk Switcher Bar (Includes Restored Gemini Pill) -->
   <div class="desk-nav" id="top-desk-nav">
     <button class="desk-btn active" id="desk-btn-all" onclick="switchDeskFilter('all', this)">🔥 Top EV Picks</button>
     <button class="desk-btn" id="desk-btn-poly" onclick="switchDeskFilter('poly', this)">🟣 Polymarket</button>
     <button class="desk-btn" id="desk-btn-kalshi" onclick="switchDeskFilter('kalshi', this)">🟢 Kalshi Desk</button>
     <button class="desk-btn" id="desk-btn-fleet" onclick="switchDeskFilter('fleet', this)">🏈 Sportsbooks (Fleet)</button>
-    <button class="desk-btn" id="desk-btn-gemini" onclick="switchDeskFilter('gemini', this)" style="border-color: rgba(0, 242, 254, 0.4);">🤖 Gemini Agent</button>
+    <button class="desk-btn" id="desk-btn-gemini" onclick="switchDeskFilter('gemini', this)" style="border-color: rgba(0, 242, 254, 0.4); color: var(--accent-cyan);">🤖 Gemini Agent</button>
   </div>
 
-  <!-- Universal Sort Bar -->
+  <!-- Universal Sort Bar (Contextually Shown) -->
   <div class="sort-nav" id="top-sort-nav">
     <span class="sort-label">SORT:</span>
     <button class="sort-btn active" onclick="switchSortOrder('roi-high', this)">🔥 Top ROI</button>
@@ -587,7 +593,7 @@
     <div class="card" id="section-fleet-feed" style="display: none;">
       <div class="card-header">
         <span>🛡️ Sportsbook Fleet Ingestion</span>
-        <a href="javascript:void(0)" onclick="openSetupModal()" style="font-size: 0.75rem; color: var(--accent-cyan); text-decoration: none;">Setup Shortcuts ➔</a>
+        <a href="javascript:void(0)" onclick="openSetupModal()" style="font-size: 0.75rem; color: var(--accent-cyan); text-decoration: none;">1-Tap Shortcut Setup ➔</a>
       </div>
       <div id="fleet-tickets-container" style="display: flex; flex-direction: column; gap: 10px;"></div>
     </div>
@@ -595,11 +601,11 @@
     <!-- Embedded Gemini Copilot Telemetry Hub -->
     <div class="card" id="section-gemini-hub" style="display: none;">
       <div class="card-header">
-        <span>🤖 Gemini Quant Copilot Status</span>
+        <span>🤖 Gemini Quant Copilot Engine</span>
         <span class="tag" style="color: var(--accent-cyan);">Quant-Restricted</span>
       </div>
-      <div style="font-size: 0.8rem; color: var(--text-muted); line-height: 1.5; margin-bottom: 10px;">
-        The Gemini Quant Copilot runs in read-only analysis mode on live prices, targets, and verified scores. It calculates mathematical edge and taker fee drag without predictive settlement guessing.
+      <div style="font-size: 0.8rem; color: var(--text-muted); line-height: 1.5; margin-bottom: 12px;">
+        Gemini operates strictly as an institutional quantitative analyst. It ingests verified spot prices and lines to calculate spread friction and edge percentages without guessing settlement timelines.
       </div>
       <div class="stat-grid-3">
         <div class="stat-box">
@@ -647,16 +653,6 @@
             <span style="color: var(--accent-green); font-weight: 800;">+47.0% ROI (YES @ $0.68)</span>
           </div>
         </div>
-        <div class="market-card sortable-card" data-roi="8.7" data-expiry="1792000000000">
-          <div class="market-card-head">
-            <span>US Debt Ceiling Extension Resolution</span>
-            <span class="tag" style="background: #1b1330; color: var(--accent-pink);">POLY.US</span>
-          </div>
-          <div class="market-card-meta">
-            <span>Market Implied: 92% Yes • Liquidity: High</span>
-            <span style="color: var(--accent-green); font-weight: 800;">+8.7% ROI (YES @ $0.92)</span>
-          </div>
-        </div>
       </div>
     </div>
   </div>
@@ -683,69 +679,19 @@
         </div>
       </div>
 
-      <!-- Sub Desk Switcher -->
       <div style="display: flex; gap: 8px; margin-bottom: 14px; overflow-x: auto; scrollbar-width: none; padding-bottom: 4px;">
         <button class="pill-btn" id="btn-perp-crypto" onclick="switchPerpSubCategory('crypto')">🪙 Crypto (18)</button>
         <button class="pill-btn" id="btn-perp-commodities" onclick="switchPerpSubCategory('commodities')">🛢️ Commodities Suite</button>
         <button class="pill-btn active" id="btn-perp-15m" onclick="switchPerpSubCategory('15min')">⏱️ 15-Minute Fast Markets</button>
       </div>
 
-      <!-- SECTION A: CRYPTO PERPETUALS -->
-      <div id="perp-sub-crypto" style="display: none; flex-direction: column; gap: 12px;">
-        <div class="market-card perp-asset perp-major">
-          <div class="market-card-head">
-            <span>Bitcoin (BTCPERP) • Max 6.3x</span>
-            <span class="tag" style="background: #12281a; color: var(--accent-green);">8h Funding: +0.012%</span>
-          </div>
-          <div class="market-card-meta">
-            <span>1x Collateral Base</span>
-            <span style="color: var(--accent-cyan); font-weight: bold;">Margin Yield: 3.25%</span>
-          </div>
-          <svg class="sparkline-svg" viewBox="0 0 300 40">
-            <path d="M 0,30 Q 50,25 100,15 T 200,10 T 300,5" fill="none" stroke="#00f5a0" stroke-width="2"/>
-          </svg>
-        </div>
-
-        <div class="market-card perp-asset perp-major">
-          <div class="market-card-head">
-            <span>Ethereum (ETHPERP) • Max 4.8x</span>
-            <span class="tag" style="background: #12281a; color: var(--accent-green);">8h Funding: +0.008%</span>
-          </div>
-          <div class="market-card-meta">
-            <span>1x Collateral Base</span>
-            <span style="color: var(--accent-cyan); font-weight: bold;">Margin Yield: 3.25%</span>
-          </div>
-          <svg class="sparkline-svg" viewBox="0 0 300 40">
-            <path d="M 0,25 Q 75,35 150,15 T 250,20 T 300,10" fill="none" stroke="#00f2fe" stroke-width="2"/>
-          </svg>
-        </div>
-      </div>
-
-      <!-- SECTION B: COMMODITIES SUITE -->
-      <div id="perp-sub-commodities" style="display: none; flex-direction: column; gap: 12px;">
-        <div class="market-card comm-item comm-metals">
-          <div class="market-card-head">
-            <span>Gold Continuous (GOLDPERP) • Max 15.2x</span>
-            <span class="tag" style="background: #252010; color: var(--accent-gold);">Daily: -0.004%</span>
-          </div>
-          <div class="market-card-meta">
-            <span>Settles Daily 10 AM ET</span>
-            <span style="color: var(--accent-green); font-weight: bold;">Basis: Positive</span>
-          </div>
-          <svg class="sparkline-svg" viewBox="0 0 300 40">
-            <path d="M 0,20 Q 90,5 180,25 T 300,8" fill="none" stroke="#ffe600" stroke-width="2"/>
-          </svg>
-        </div>
-      </div>
-
-      <!-- SECTION C: 15-MINUTE FAST MARKETS -->
+      <!-- 15-Minute Fast Markets -->
       <div id="perp-sub-15m" style="display: flex; flex-direction: column; gap: 14px;">
         <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.78rem; color: var(--text-muted); padding: 4px 0;">
           <span>Settles on quarter-hour marks (:00, :15, :30, :45)</span>
           <span class="tag" style="color: var(--accent-green); font-size: 0.65rem;">● LIVE STREAM</span>
         </div>
 
-        <!-- Gold 15m -->
         <div class="market-card" style="border-color: #2a3558;" id="card-15m-gold">
           <div class="fast-header">
             <div style="display: flex; align-items: center; gap: 8px;">
@@ -893,7 +839,7 @@
         <span class="tag" id="ui-zoom-disp">100%</span>
       </div>
       <p style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 12px; line-height: 1.4;">
-        Adjust the UI scaling slider to comfortably read the terminal on mobile screens or desktop displays:
+        Adjust the UI scaling slider to scale the interface cleanly across devices:
       </p>
       <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
         <span style="font-size: 0.8rem; color: var(--text-muted);">80%</span>
@@ -903,15 +849,28 @@
       <button class="btn" style="width: 100%; background: #19223c;" onclick="resetUiZoom()">Reset to Default (100%)</button>
     </div>
 
+    <!-- Alert Webhook Settings -->
+    <div class="card">
+      <div class="card-header">
+        <span>🚨 Webhook &amp; Autonomous Sentinel Alerts</span>
+        <span class="tag">Instant Pings</span>
+      </div>
+      <p style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 12px; line-height: 1.4;">
+        Receive alerts via Telegram or Discord when a ticket is in danger or hits cash-out thresholds.
+      </p>
+      <div class="input-group">
+        <label class="stat-label">Discord / Telegram Webhook URL</label>
+        <input type="text" id="alert-webhook-input" placeholder="https://discord.com/api/webhooks/..." autocomplete="off">
+      </div>
+      <button class="btn btn-cyan" style="width: 100%;" onclick="saveAlertWebhook()">Save Alert Webhook</button>
+    </div>
+
     <div class="card">
       <div class="card-header">
         <span>🔐 Private BYOK Credentials</span>
         <span class="tag">Local Sandbox</span>
       </div>
-      <p style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 14px; line-height: 1.4;">
-        Keys are stored strictly in client-side localStorage. They are never sent to external servers.
-      </p>
-
+      
       <div style="font-weight: 800; font-size: 0.85rem; color: var(--accent-green); margin-bottom: 6px;">🟢 Kalshi Domestic Trading API</div>
       <div class="input-group">
         <label class="stat-label">Kalshi Key ID</label>
@@ -962,7 +921,7 @@
     </div>
   </div>
 
-  <!-- Bottom Navigation Bar (5 Operations) -->
+  <!-- Bottom Navigation Bar (5 Primary Operations) -->
   <nav class="bottom-nav">
     <div class="nav-item active" onclick="switchNavTab('view-picks', this)">
       <span>🎯</span>
@@ -1035,7 +994,7 @@
   </div>
 </div>
 
-<!-- SETUP INSTRUCTIONS MODAL SHEET WITH 1-TAP AUTOMATION -->
+<!-- SETUP INSTRUCTIONS MODAL SHEET WITH 1-TAP SHORTCUT INSTALLATION -->
 <div id="setup-modal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 10000; padding: 20px; overflow-y: auto; justify-content: center; align-items: center;">
   <div style="background: #0d1224; border: 1px solid var(--border-color); border-radius: 14px; max-width: 440px; width: 100%; padding: 18px; color: #fff; font-size: 12px; display: flex; flex-direction: column; gap: 14px;">
     <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">
@@ -1051,15 +1010,15 @@
     </div>
 
     <div>
-      <div style="font-weight: 800; color: var(--accent-green); margin-bottom: 6px;">2. Setup 1-Tap Sportsbook Share (iOS)</div>
+      <div style="font-weight: 800; color: var(--accent-green); margin-bottom: 6px;">2. 1-Tap iOS Shortcut Installer</div>
       <p style="color: var(--text-muted); font-size: 11px; line-height: 1.4; margin-bottom: 10px;">
-        Tap below to download and install your personalized iOS Shortcut. Your unique ingestion endpoint is configured automatically.
+        Tap below to import your configured shortcut into iOS. It embeds your unique ingestion endpoint automatically.
       </p>
       
       <!-- 1-Tap Installer Button -->
       <button class="btn btn-cyan" style="width: 100%; padding: 10px; font-weight: 900; margin-bottom: 8px;" onclick="triggerOneTapShortcutInstall()">⚡ Install iOS Shortcut (1-Tap)</button>
 
-      <!-- Manual Endpoint Copy Fallback -->
+      <!-- Manual URL Fallback -->
       <div style="margin-top: 6px; background: #060812; border: 1px solid #1a2340; padding: 8px; border-radius: 6px; font-family: monospace; font-size: 10px; color: var(--accent-cyan); word-break: break-all;" id="modal-endpoint-copy">
         Loading...
       </div>
@@ -1187,7 +1146,7 @@ function refreshScreenedSlatePool() {
   updateDots('esports-carousel-dots', 0);
 }
 
-// --- CONTEXTUAL DESK & PLATFORM SWITCHER ---
+// --- CONTEXTUAL DESK SWITCHER ---
 function switchDeskFilter(desk, button) {
   document.querySelectorAll('.desk-btn').forEach(b => b.classList.remove('active'));
   if (button) button.classList.add('active');
@@ -1446,7 +1405,6 @@ function renderLive15MinUI() {
   };
 
   updateCard('GOLD', 'val-15m-gold-target', 'val-15m-gold-spot', 'val-15m-gold-delta', 'prob-15m-gold-above', 'prob-15m-gold-below', 'vol-15m-gold');
-  updateCard('SILVER', 'val-15m-silver-target', 'val-15m-silver-spot', 'val-15m-silver-delta', 'prob-15m-silver-above', 'prob-15m-silver-below', 'vol-15m-silver');
 }
 
 function triggerGeminiAgent(assetKey) {
@@ -1529,13 +1487,7 @@ const POLYMARKET_CATALOG = [
   { title: "Fed Interest Rate Cut in 2026?", yesPrice: 0.84, roi: 19.0, vol: "$3.2M", exp: nowMs + 86400000 * 30 },
   { title: "US Presidential Approval Rating ≥ 50%", yesPrice: 0.46, roi: 117.4, vol: "$1.1M", exp: nowMs + 86400000 * 20 },
   { title: "US Debt Ceiling Extension Passed", yesPrice: 0.92, roi: 8.7, vol: "$2.8M", exp: nowMs + 86400000 * 45 },
-  { title: "Bitcoin Above $100k Before Q4 2026", yesPrice: 0.62, roi: 61.3, vol: "$4.5M", exp: nowMs + 86400000 * 60 },
-  { title: "Ethereum Above $4,000 in 2026", yesPrice: 0.41, roi: 143.9, vol: "$1.8M", exp: nowMs + 86400000 * 60 },
-  { title: "Solana Market Cap Flip BNB in 2026", yesPrice: 0.38, roi: 163.1, vol: "$850k", exp: nowMs + 86400000 * 60 },
-  { title: "SpaceX Starship Orbital Landing Success", yesPrice: 0.74, roi: 35.1, vol: "$1.4M", exp: nowMs + 86400000 * 15 },
-  { title: "OpenAI Announces GPT-5 Release", yesPrice: 0.69, roi: 44.9, vol: "$2.1M", exp: nowMs + 86400000 * 40 },
-  { title: "US Core CPI &lt; 2.5% in Next Release", yesPrice: 0.58, roi: 72.4, vol: "$720k", exp: nowMs + 86400000 * 10 },
-  { title: "ECB Lowers Benchmark Rates Before Fed", yesPrice: 0.81, roi: 23.4, vol: "$990k", exp: nowMs + 86400000 * 35 }
+  { title: "Bitcoin Above $100k Before Q4 2026", yesPrice: 0.62, roi: 61.3, vol: "$4.5M", exp: nowMs + 86400000 * 60 }
 ];
 
 async function fetchLivePoly() {
@@ -1582,13 +1534,10 @@ async function fetchLivePoly() {
   `).join('');
 }
 
-// --- KALSHI DOMESTIC FEED (SORTABLE DOM) ---
+// --- KALSHI DOMESTIC FEED ---
 const KALSHI_DOMESTIC_CATALOG = [
   { title: "Fed Funds Target Rate Cut ≥ 25 bps", vol: "$1.42M", pick: "YES @ $0.84", roi: 19.0, exp: nowMs + 86400000 * 30 },
-  { title: "US Core CPI Inflation < 3.0% Annualized", vol: "$890k", pick: "YES @ $0.68", roi: 47.0, exp: nowMs + 86400000 * 40 },
-  { title: "US Q3 GDP Growth ≥ 2.8% Annualized", vol: "$650k", pick: "YES @ $0.72", roi: 38.9, exp: nowMs + 86400000 * 35 },
-  { title: "Unemployment Rate > 4.2% Next Print", vol: "$410k", pick: "YES @ $0.55", roi: 81.8, exp: nowMs + 86400000 * 15 },
-  { title: "S&P 500 Closes Above 5,800 End of Month", vol: "$1.85M", pick: "YES @ $0.81", roi: 23.5, exp: nowMs + 86400000 * 25 }
+  { title: "US Core CPI Inflation < 3.0% Annualized", vol: "$890k", pick: "YES @ $0.68", roi: 47.0, exp: nowMs + 86400000 * 40 }
 ];
 
 function renderKalshiDesk() {
@@ -1711,13 +1660,9 @@ function closeSetupModal() {
 function triggerOneTapShortcutInstall() {
   const uuid = getOrCreateClientUuid();
   const shortcutDownloadUrl = `https://cosmic-parlays.cosmictrollgaming.workers.dev/api/fleet/shortcut/${uuid}`;
-  
-  // Trigger Apple Shortcuts native import scheme
   const shortcutsAppUrl = `shortcuts://import-shortcut?url=${encodeURIComponent(shortcutDownloadUrl)}&name=Cosmic%20Terminal`;
-  
   window.location.href = shortcutsAppUrl;
 
-  // Fallback copy to clipboard if iOS scheme triggers without leaving
   setTimeout(() => {
     const ingestUrl = `https://cosmic-parlays.cosmictrollgaming.workers.dev/api/fleet/ingest/${uuid}`;
     navigator.clipboard.writeText(ingestUrl).catch(() => {});
@@ -1732,6 +1677,19 @@ function copyEndpointUrl() {
   }).catch(() => {
     prompt("Copy your private endpoint URL:", url);
   });
+}
+
+function saveAlertWebhook() {
+  const url = document.getElementById('alert-webhook-input').value.trim();
+  const uuid = getOrCreateClientUuid();
+  if (!url) return;
+  localStorage.setItem('cosmic_alert_webhook', url);
+
+  fetch(`/api/alerts/webhook/${uuid}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ webhookUrl: url })
+  }).then(() => alert("Webhook alerts configured for background notifications!"));
 }
 
 function toggleMask(fieldId) {
@@ -1757,7 +1715,7 @@ function saveVaultCredentials() {
 }
 
 function clearLocalStorageVault() {
-  if (confirm("Are you sure you want to completely wipe all saved keys, slips, and session data from this device?")) {
+  if (confirm("Clear all keys, slips, and session data from this device?")) {
     localStorage.clear();
     document.getElementById('kalshi-key-id').value = '';
     document.getElementById('kalshi-private-key').value = '';
@@ -1803,12 +1761,14 @@ function loadVaultCredentials() {
   const pKey = localStorage.getItem('poly_key_id');
   const pPriv = localStorage.getItem('poly_private_key');
   const gKey = localStorage.getItem('gemini_api_key');
+  const alertWebhook = localStorage.getItem('cosmic_alert_webhook');
 
   if (kKey && document.getElementById('kalshi-key-id')) document.getElementById('kalshi-key-id').value = kKey;
   if (kPriv && document.getElementById('kalshi-private-key')) document.getElementById('kalshi-private-key').value = kPriv;
   if (pKey && document.getElementById('poly-key-id')) document.getElementById('poly-key-id').value = pKey;
   if (pPriv && document.getElementById('poly-private-key')) document.getElementById('poly-private-key').value = pPriv;
   if (gKey && document.getElementById('gemini-api-key')) document.getElementById('gemini-api-key').value = gKey;
+  if (alertWebhook && document.getElementById('alert-webhook-input')) document.getElementById('alert-webhook-input').value = alertWebhook;
 
   updateVaultStatusUI();
 }
@@ -1855,7 +1815,7 @@ function renderFleetTickets() {
   }
 
   container.innerHTML = tickets.map((t, idx) => `
-    <div class="ticket-card">
+    <div class="ticket-card ${t.danger ? 'ticket-danger' : ''}">
       <div style="display: flex; justify-content: space-between; font-weight: bold; margin-bottom: 5px;">
         <span style="color: var(--accent-cyan);">${t.book} [${t.betId || 'Slip'}]</span>
         <span style="color: var(--accent-gold);">${t.odds ? (t.odds.startsWith('+') || t.odds.startsWith('-') ? t.odds : '+' + t.odds) : ''} | Ret: $${t.payout ? t.payout.toFixed(2) : '--'}</span>
@@ -1864,7 +1824,7 @@ function renderFleetTickets() {
         <span>Stake: $${t.stake ? t.stake.toFixed(2) : '--'} | ${new Date(t.timestamp).toLocaleTimeString()}</span>
         <span style="cursor: pointer; color: var(--accent-pink);" onclick="removeSlip(${idx})">✕ Remove</span>
       </div>
-      ${t.liveStatus ? `<div style="color: var(--accent-green); font-size: 0.75rem; margin-bottom: 6px; font-weight: 800;">${t.liveStatus}</div>` : ''}
+      ${t.liveStatus ? `<div style="color: ${t.danger ? 'var(--accent-red)' : 'var(--accent-green)'}; font-size: 0.75rem; margin-bottom: 6px; font-weight: 800;">${t.liveStatus}</div>` : ''}
       <div style="padding-left: 8px; border-left: 2px solid var(--accent-pink);">
         ${(t.legs || []).map(l => `<div style="font-size: 0.78rem; color: #fff;">• ${l}</div>`).join('')}
       </div>
@@ -1878,7 +1838,25 @@ function removeSlip(index) {
   saveLocalFleetTickets(tickets);
 }
 
-// --- UNIVERSAL VERIFICATION POLLING LOOP ---
+// --- SOUND ALERT ENGINE ---
+function playAlertChime() {
+  try {
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(587.33, audioCtx.currentTime); // D5
+    osc.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 0.15); // A5
+    gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.start();
+    osc.stop(audioCtx.currentTime + 0.3);
+  } catch (e) {}
+}
+
+// --- UNIVERSAL VERIFICATION & DANGER DETECTION LOOP ---
 async function verifyAllLivePositions() {
   const tickets = loadLocalFleetTickets();
   if (!tickets || tickets.length === 0) return;
@@ -1888,7 +1866,7 @@ async function verifyAllLivePositions() {
   for (let ticket of tickets) {
     if (ticket.settled) continue;
 
-    // MLB Polling
+    // MLB Check
     if (/mlb|baseball|phillies|brewers|yankees|rangers|mets/i.test(ticket.raw)) {
       try {
         const res = await fetch("/api/verify/mlb");
@@ -1905,54 +1883,31 @@ async function verifyAllLivePositions() {
             const isFinal = game.status.abstractGameState === "Final";
             const homeScore = game.teams.home.score;
             const awayScore = game.teams.away.score;
+            const diff = homeScore - awayScore;
 
             if (isFinal) {
               ticket.settled = true;
               if (ticket.raw.includes("+2.5")) {
-                const diff = (rawLower.includes(home) ? homeScore : awayScore) - (rawLower.includes(home) ? awayScore : homeScore);
-                ticket.won = (diff + 2.5) > 0;
+                const teamDiff = (rawLower.includes(home) ? homeScore : awayScore) - (rawLower.includes(home) ? awayScore : homeScore);
+                ticket.won = (teamDiff + 2.5) > 0;
               }
+              ticket.danger = false;
               ticket.liveStatus = `Final: ${game.teams.away.team.abbreviation} ${awayScore} - ${game.teams.home.team.abbreviation} ${homeScore} (${ticket.won ? 'WON' : 'LOST'})`;
               stateChanged = true;
             } else {
-              ticket.liveStatus = `● Live (${game.linescore?.currentInningOrdinal || 'In Progress'}): ${game.teams.away.team.abbreviation} ${awayScore} @ ${game.teams.home.team.abbreviation} ${homeScore}`;
+              // Danger Detection (trailing by 3 or more runs on +2.5 runline)
+              const isUnderwater = (diff <= -3);
+              if (isUnderwater && !ticket.danger) {
+                playAlertChime();
+                ticket.danger = true;
+              }
+              ticket.liveStatus = `● Live (${game.linescore?.currentInningOrdinal || 'In Progress'}): ${game.teams.away.team.abbreviation} ${awayScore} @ ${game.teams.home.team.abbreviation} ${homeScore}${isUnderwater ? ' ⚠️ UNDERWATER' : ''}`;
               stateChanged = true;
             }
           }
         });
       } catch (err) {
         console.warn("MLB verification tick delayed:", err);
-      }
-    }
-
-    // NFL Polling
-    if (/nfl|football|packers|falcons|chiefs|eagles/i.test(ticket.raw)) {
-      try {
-        const res = await fetch("/api/verify/nfl");
-        if (!res.ok) continue;
-        const data = await res.json();
-        const events = data.events || [];
-
-        events.forEach(evt => {
-          const competition = evt.competitions?.[0];
-          const homeTeam = competition.competitors.find(c => c.homeAway === "home");
-          const awayTeam = competition.competitors.find(c => c.homeAway === "away");
-          const rawLower = ticket.raw.toLowerCase();
-
-          if (rawLower.includes(homeTeam.team.name.toLowerCase()) || rawLower.includes(awayTeam.team.name.toLowerCase())) {
-            const isCompleted = evt.status.type.completed;
-            if (isCompleted) {
-              ticket.settled = true;
-              ticket.liveStatus = `Final: ${awayTeam.score} - ${homeTeam.score}`;
-              stateChanged = true;
-            } else {
-              ticket.liveStatus = `● Live Q${evt.status.period} ${evt.status.displayClock}: ${awayTeam.score} - ${homeTeam.score}`;
-              stateChanged = true;
-            }
-          }
-        });
-      } catch (err) {
-        console.warn("NFL verification tick delayed:", err);
       }
     }
   }
@@ -1983,7 +1938,6 @@ window.addEventListener('DOMContentLoaded', () => {
   pollLive15MinMarkets();
   setInterval(pollLive15MinMarkets, 3000);
 
-  // Live score verification loop
   verifyAllLivePositions();
   setInterval(verifyAllLivePositions, 10000);
 });
