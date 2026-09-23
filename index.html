@@ -23,9 +23,7 @@
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    html {
-      font-size: calc(14px * var(--ui-zoom));
-    }
+    html { font-size: calc(14px * var(--ui-zoom)); }
     body {
       background-color: var(--bg-base);
       color: var(--text-main);
@@ -45,7 +43,6 @@
       gap: 14px;
     }
 
-    /* Top Bar */
     .top-bar {
       display: flex;
       justify-content: space-between;
@@ -80,7 +77,6 @@
       cursor: default;
     }
 
-    /* Sponsor Banner */
     .sponsor-bar {
       background: #0e1428;
       border: 1px solid #1f2d52;
@@ -101,7 +97,6 @@
       margin-right: 6px;
     }
 
-    /* Contextual Desk & Sorter Bars */
     .desk-nav, .sort-nav {
       display: flex;
       gap: 8px;
@@ -138,7 +133,6 @@
       letter-spacing: 0.5px;
     }
 
-    /* Cards */
     .card {
       background: var(--bg-card);
       border: 1px solid var(--border-color);
@@ -164,7 +158,6 @@
       color: var(--accent-cyan);
     }
 
-    /* Market Items */
     .market-card {
       background: #070a16;
       border: 1px solid var(--border-color);
@@ -190,7 +183,6 @@
       color: var(--text-muted);
     }
 
-    /* Danger Pulse when Ticket is 1 score away from busting */
     .ticket-danger {
       border-color: var(--accent-red) !important;
       background: rgba(255, 51, 68, 0.08) !important;
@@ -202,7 +194,6 @@
       100% { box-shadow: 0 0 0 0 rgba(255, 51, 68, 0); }
     }
 
-    /* 15-Minute Fast Layout */
     .fast-header {
       display: flex;
       justify-content: space-between;
@@ -302,7 +293,6 @@
       transform: scale(0.98);
     }
 
-    /* Grids */
     .stat-grid-3 {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
@@ -329,7 +319,6 @@
       font-weight: 900;
     }
 
-    /* Inputs */
     .input-group {
       display: flex;
       flex-direction: column;
@@ -364,7 +353,6 @@
       font-size: 0.95rem;
     }
 
-    /* Buttons */
     .btn {
       background: #19223c;
       border: 1px solid var(--border-color);
@@ -434,7 +422,6 @@
       border-radius: 6px;
     }
 
-    /* Bottom Nav Bar */
     .bottom-nav {
       position: fixed;
       bottom: 0;
@@ -505,7 +492,7 @@
     <span style="font-size: 0.75rem; color: var(--text-muted); text-decoration: underline; cursor: pointer; white-space: nowrap; margin-left: 8px;" onclick="promptAdPasskey()">Remove Ads ($5)</span>
   </div>
 
-  <!-- Dynamic Platform / Desk Switcher Bar (Includes Restored Gemini Pill) -->
+  <!-- Dynamic Platform / Desk Switcher Bar -->
   <div class="desk-nav" id="top-desk-nav">
     <button class="desk-btn active" id="desk-btn-all" onclick="switchDeskFilter('all', this)">🔥 Top EV Picks</button>
     <button class="desk-btn" id="desk-btn-poly" onclick="switchDeskFilter('poly', this)">🟣 Polymarket</button>
@@ -514,7 +501,7 @@
     <button class="desk-btn" id="desk-btn-gemini" onclick="switchDeskFilter('gemini', this)" style="border-color: rgba(0, 242, 254, 0.4); color: var(--accent-cyan);">🤖 Gemini Agent</button>
   </div>
 
-  <!-- Universal Sort Bar (Contextually Shown) -->
+  <!-- Universal Sort Bar -->
   <div class="sort-nav" id="top-sort-nav">
     <span class="sort-label">SORT:</span>
     <button class="sort-btn active" onclick="switchSortOrder('roi-high', this)">🔥 Top ROI</button>
@@ -831,7 +818,7 @@
     </div>
   </div>
 
-  <!-- VIEW 6: SETTINGS -->
+  <!-- VIEW 6: SETTINGS (INCLUDES LARGE ORDER CEILING & FINANCIAL GUARDRAILS) -->
   <div class="tab-view" id="view-settings">
     <div class="card">
       <div class="card-header">
@@ -847,6 +834,32 @@
         <span style="font-size: 0.8rem; color: var(--text-muted);">140%</span>
       </div>
       <button class="btn" style="width: 100%; background: #19223c;" onclick="resetUiZoom()">Reset to Default (100%)</button>
+    </div>
+
+    <!-- Core Financial Philosophy & Risk Safeguards -->
+    <div class="card">
+      <div class="card-header">
+        <span>🛡️ Financial Philosophy &amp; Order Guardrails</span>
+        <span class="tag" style="color: var(--accent-gold);">Enforced</span>
+      </div>
+      <p style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 12px; line-height: 1.4;">
+        Set your safety limits. Orders larger than this ceiling will halt and require typing <code>CONFIRM</code> before dispatch.
+      </p>
+      
+      <div class="input-group">
+        <label class="stat-label">Large Order Threshold ($ Risk Cap)</label>
+        <input type="number" id="large-order-threshold" value="25.00" min="1" step="1" onchange="saveFinancialSettings()">
+      </div>
+
+      <div class="input-group">
+        <label class="stat-label">Exposure Multiplier Cap (Default 1.5x Cash Base)</label>
+        <input type="number" id="exposure-cap" value="1.5" min="1.0" max="2.0" step="0.1" disabled style="opacity: 0.7;">
+      </div>
+
+      <div style="display: flex; align-items: center; gap: 8px; margin-top: 6px;">
+        <input type="checkbox" id="slippage-filter-toggle" checked onchange="saveFinancialSettings()" style="width: 16px; height: 16px;">
+        <label for="slippage-filter-toggle" style="font-size: 0.75rem; color: var(--text-muted);">Reject high-friction orders (&gt;95¢ or &lt;5¢)</label>
+      </div>
     </div>
 
     <!-- Alert Webhook Settings -->
@@ -948,7 +961,7 @@
 
 </div>
 
-<!-- 15-MIN ORDER CONFIRMATION MODAL -->
+<!-- 15-MIN ORDER CONFIRMATION MODAL WITH PHILOSOPHY GUARDRAIL VALIDATOR -->
 <div id="order-modal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 10000; padding: 20px; overflow-y: auto; justify-content: center; align-items: center;">
   <div style="background: #0d1226; border: 1.5px solid var(--border-color); border-radius: 14px; max-width: 440px; width: 100%; padding: 20px; color: #fff; font-size: 13px; display: flex; flex-direction: column; gap: 14px; box-shadow: 0 0 30px rgba(0, 242, 254, 0.25);">
     <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">
@@ -987,6 +1000,15 @@
       </div>
     </div>
 
+    <!-- Large Order Affirmation Step -->
+    <div id="large-order-warning" style="display: none; background: rgba(255, 51, 68, 0.15); border: 1px solid var(--accent-red); border-radius: 8px; padding: 10px;">
+      <div style="font-weight: 800; color: var(--accent-red); font-size: 11px;">⚠️ LARGE TRANSACTION DETECTED</div>
+      <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">
+        This order exceeds your configured threshold. Type <strong>CONFIRM</strong> to authorize:
+      </div>
+      <input type="text" id="large-order-confirm-input" placeholder="Type CONFIRM..." style="margin-top: 6px;">
+    </div>
+
     <div style="display: flex; gap: 10px; margin-top: 4px;">
       <button class="btn" style="flex: 1; background: #19223c;" onclick="closeOrderModal()">Cancel</button>
       <button class="btn btn-gold" style="flex: 2;" onclick="submitKalshiOrder()">Place Limit Order</button>
@@ -1015,17 +1037,15 @@
         Tap below to import your configured shortcut into iOS. It embeds your unique ingestion endpoint automatically.
       </p>
       
-      <!-- 1-Tap Installer Button -->
       <button class="btn btn-cyan" style="width: 100%; padding: 10px; font-weight: 900; margin-bottom: 8px;" onclick="triggerOneTapShortcutInstall()">⚡ Install iOS Shortcut (1-Tap)</button>
 
-      <!-- Manual URL Fallback -->
       <div style="margin-top: 6px; background: #060812; border: 1px solid #1a2340; padding: 8px; border-radius: 6px; font-family: monospace; font-size: 10px; color: var(--accent-cyan); word-break: break-all;" id="modal-endpoint-copy">
         Loading...
       </div>
       <button class="btn btn-gold" style="width: 100%; margin-top: 6px; padding: 6px; font-size: 11px;" onclick="copyEndpointUrl()">Copy Private URL</button>
     </div>
 
-    <button class="btn" style="width: 100%; background: #19223c; margin-top: 4px;" onclick="closeSetupModal()">Got It</button>
+    <button class="btn" style="width: 100%; background: #19223c;" onclick="closeSetupModal()">Got It</button>
   </div>
 </div>
 
@@ -1050,6 +1070,31 @@ function resetUiZoom() {
   updateUiZoom(1.0);
   const slider = document.getElementById('ui-zoom-slider');
   if (slider) slider.value = 1.0;
+}
+
+// --- FINANCIAL PHILOSOPHY & THRESHOLD CONTROLS ---
+function saveFinancialSettings() {
+  const threshold = document.getElementById('large-order-threshold').value;
+  const slippage = document.getElementById('slippage-filter-toggle').checked;
+  localStorage.setItem('cosmic_large_order_threshold', threshold);
+  localStorage.setItem('cosmic_slippage_filter', slippage ? 'true' : 'false');
+}
+
+function loadFinancialSettings() {
+  const threshold = localStorage.getItem('cosmic_large_order_threshold') || '25.00';
+  const slippage = localStorage.getItem('cosmic_slippage_filter') !== 'false';
+  const thresholdInput = document.getElementById('large-order-threshold');
+  const slippageToggle = document.getElementById('slippage-filter-toggle');
+  if (thresholdInput) thresholdInput.value = threshold;
+  if (slippageToggle) slippageToggle.checked = slippage;
+}
+
+function getLargeOrderThreshold() {
+  return parseFloat(localStorage.getItem('cosmic_large_order_threshold') || '25.00');
+}
+
+function isSlippageFilterEnabled() {
+  return localStorage.getItem('cosmic_slippage_filter') !== 'false';
 }
 
 // --- DYNAMIC 2026 FORWARD RELATIVE QUEUE POOLS ---
@@ -1290,7 +1335,7 @@ function updateSynchronized15MinTimers() {
   });
 }
 
-// --- DYNAMIC ORDER EXECUTION MODAL ---
+// --- DYNAMIC ORDER MODAL WITH CIRCUIT BREAKER ---
 let activeOrderContext = null;
 
 function openOrderModal(assetKey, side) {
@@ -1306,6 +1351,8 @@ function openOrderModal(assetKey, side) {
   
   document.getElementById('order-limit-price').value = currentProb > 0 ? currentProb : 50;
   document.getElementById('order-qty').value = 5;
+  document.getElementById('large-order-warning').style.display = 'none';
+  document.getElementById('large-order-confirm-input').value = '';
   calculateOrderEstimate();
 
   const modal = document.getElementById('order-modal');
@@ -1332,20 +1379,47 @@ function calculateOrderEstimate() {
   document.getElementById('order-est-cost').textContent = `$${maxCost.toFixed(2)}`;
   document.getElementById('order-est-fee').textContent = `$${estFee.toFixed(2)}`;
   document.getElementById('order-est-profit').textContent = `+$${netProfit.toFixed(2)} (+${roiPct.toFixed(1)}%)`;
+
+  // Circuit Breaker Evaluation
+  const largeThreshold = getLargeOrderThreshold();
+  const warningBox = document.getElementById('large-order-warning');
+  if (maxCost >= largeThreshold) {
+    warningBox.style.display = 'block';
+  } else {
+    warningBox.style.display = 'none';
+  }
 }
 
 function submitKalshiOrder() {
   const kKey = localStorage.getItem('kalshi_key_id');
   if (!kKey) {
-    alert("BYOK Vault Standby: Please configure your Kalshi Key ID and RSA PEM in Settings before routing live orders.");
+    alert("BYOK Vault Standby: Configure your Kalshi Key ID and RSA PEM in Settings before placing live orders.");
     switchNavTab('view-settings', null);
     closeOrderModal();
     return;
   }
 
-  const qty = document.getElementById('order-qty').value;
-  const price = document.getElementById('order-limit-price').value;
-  alert(`Order Dispatched to Edge Relay!\nPlaced ${qty} contracts on ${activeOrderContext.assetKey} [${activeOrderContext.side}] limit at ${price}¢.`);
+  const qty = parseInt(document.getElementById('order-qty').value, 10) || 1;
+  const price = parseInt(document.getElementById('order-limit-price').value, 10) || 50;
+  const maxCost = qty * (price / 100);
+
+  // Philosophy Check 1: Slippage & Negative EV Filter
+  if (isSlippageFilterEnabled() && (price > 95 || price < 5)) {
+    alert("Protocol Safety Warning: Limit price violates anti-taker fee friction rule (>95¢ or <5¢). Please place a resting bid closer to the median.");
+    return;
+  }
+
+  // Philosophy Check 2: Large Order Consent Verification
+  const largeThreshold = getLargeOrderThreshold();
+  if (maxCost >= largeThreshold) {
+    const confirmationText = document.getElementById('large-order-confirm-input').value.trim();
+    if (confirmationText !== "CONFIRM") {
+      alert(`Safety Check: This order is $${maxCost.toFixed(2)} (exceeds your $${largeThreshold.toFixed(2)} threshold). You must type CONFIRM to submit.`);
+      return;
+    }
+  }
+
+  alert(`Order Authorized & Routed to Relay!\nPlaced ${qty} contracts on ${activeOrderContext.assetKey} [${activeOrderContext.side}] limit at ${price}¢.`);
   closeOrderModal();
 }
 
@@ -1474,9 +1548,9 @@ async function runGeminiCopilot(assetKey, ticker, title, targetPrice, currentPri
         <span style="font-size: 10px; color: var(--accent-gold); font-weight: 800;">${Math.abs(delta) > 0.5 ? 'HIGH CONVICTION' : 'TIGHT SPREAD'}</span>
       </div>
       <div style="color: var(--text-muted); font-size: 11px; line-height: 1.4;">
-        • <strong>Candle Status:</strong> ${minLeft}m to CFTC settlement bracket.<br>
+        • <strong>Candle Status:</strong> ${minLeft}m to settlement bracket.<br>
         • <strong>Delta to Target:</strong> ${delta >= 0 ? '+' : ''}${delta.toFixed(3)} ($${Math.abs(delta).toFixed(3)} ${delta >= 0 ? 'above' : 'below'} strike).<br>
-        • <strong>Execution Guidance:</strong> Glow applied to recommended side. Place resting limit orders inside the spread to avoid taker fee leakage.
+        • <strong>Execution Guidance:</strong> Glow applied to recommended side. Place resting limit bids inside the spread.
       </div>
     `;
   }
@@ -1845,8 +1919,8 @@ function playAlertChime() {
     const osc = audioCtx.createOscillator();
     const gain = audioCtx.createGain();
     osc.type = 'sine';
-    osc.frequency.setValueAtTime(587.33, audioCtx.currentTime); // D5
-    osc.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 0.15); // A5
+    osc.frequency.setValueAtTime(587.33, audioCtx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 0.15);
     gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
     gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
     osc.connect(gain);
@@ -1866,7 +1940,6 @@ async function verifyAllLivePositions() {
   for (let ticket of tickets) {
     if (ticket.settled) continue;
 
-    // MLB Check
     if (/mlb|baseball|phillies|brewers|yankees|rangers|mets/i.test(ticket.raw)) {
       try {
         const res = await fetch("/api/verify/mlb");
@@ -1895,7 +1968,6 @@ async function verifyAllLivePositions() {
               ticket.liveStatus = `Final: ${game.teams.away.team.abbreviation} ${awayScore} - ${game.teams.home.team.abbreviation} ${homeScore} (${ticket.won ? 'WON' : 'LOST'})`;
               stateChanged = true;
             } else {
-              // Danger Detection (trailing by 3 or more runs on +2.5 runline)
               const isUnderwater = (diff <= -3);
               if (isUnderwater && !ticket.danger) {
                 playAlertChime();
@@ -1922,6 +1994,7 @@ async function verifyAllLivePositions() {
 // --- INITIALIZATION ---
 window.addEventListener('DOMContentLoaded', () => {
   loadUiZoom();
+  loadFinancialSettings();
   checkAdState();
   getOrCreateClientUuid();
   loadVaultCredentials();
