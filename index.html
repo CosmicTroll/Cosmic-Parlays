@@ -294,6 +294,12 @@
       transform: scale(0.98);
     }
 
+    .stat-grid-4 {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-bottom: 14px;
+    }
     .stat-grid-3 {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
@@ -497,6 +503,28 @@
 
   <!-- VIEW 1: PICKS & MULTI-DESK -->
   <div class="tab-view active" id="view-picks">
+    <!-- Capital Shielding & Sniper Telemetry Bar -->
+    <div class="card" style="border-color: rgba(0, 242, 254, 0.3);">
+      <div class="card-header">
+        <span>⚡ Auto-Sniper &amp; Shielded Capital</span>
+        <span class="tag" id="sniper-status-tag" style="background: rgba(0, 245, 160, 0.1); color: var(--accent-green);">ARMED (HPT &ge; 85)</span>
+      </div>
+      <div class="stat-grid-3" style="margin-bottom: 0;">
+        <div class="stat-box">
+          <span class="stat-label">Total Liquid</span>
+          <span class="stat-value" id="disp-total-funds" style="color: #fff;">$250.00</span>
+        </div>
+        <div class="stat-box">
+          <span class="stat-label">Shielded Vault</span>
+          <span class="stat-value" id="disp-shielded-funds" style="color: var(--accent-gold);">$100.00</span>
+        </div>
+        <div class="stat-box">
+          <span class="stat-label">Deployable Max</span>
+          <span class="stat-value" id="disp-deployable-funds" style="color: var(--accent-green);">$150.00</span>
+        </div>
+      </div>
+    </div>
+
     <div class="card">
       <div class="card-header">
         <span>🎟️ Active Slips &amp; Local Exposure</span>
@@ -811,7 +839,38 @@
       <button class="btn" style="width: 100%; background: #19223c;" onclick="resetUiZoom()">Reset to Default (100%)</button>
     </div>
 
-    <!-- Core Financial Philosophy, Risk Safeguards & Universal Autonomous Salvage -->
+    <!-- CAPITAL SHIELDING & AUTONOMOUS SNIPER SUITE -->
+    <div class="card" style="border-color: rgba(0, 245, 160, 0.4);">
+      <div class="card-header">
+        <span>🎯 Capital-Shielded Auto-Sniper Engine</span>
+        <span class="tag" style="color: var(--accent-green);">HPT &ge; 85 Guardrail</span>
+      </div>
+      <p style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 12px; line-height: 1.4;">
+        Configure autonomous execution for mathematical opportunities matching an edge score of 85 or greater. Capital below the shielded reserve floor is strictly untouchable.
+      </p>
+
+      <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
+        <input type="checkbox" id="auto-sniper-toggle" checked onchange="saveFinancialSettings()" style="width: 16px; height: 16px;">
+        <label for="auto-sniper-toggle" style="font-size: 0.78rem; color: #fff; font-weight: bold;">Enable Autonomous Sniper (Resting Limit Inside Spread)</label>
+      </div>
+
+      <div class="input-group">
+        <label class="stat-label">Total Liquid Capital Balance ($)</label>
+        <input type="number" id="total-funds-input" value="250.00" min="0" step="10" onchange="saveFinancialSettings()">
+      </div>
+
+      <div class="input-group">
+        <label class="stat-label">Shielded Reserve Capital Floor ($ Untouchable)</label>
+        <input type="number" id="shielded-funds-input" value="100.00" min="0" step="10" onchange="saveFinancialSettings()">
+      </div>
+
+      <div class="input-group">
+        <label class="stat-label">Max Sniper Position Allocation ($ / Trade)</label>
+        <input type="number" id="sniper-max-trade-input" value="25.00" min="1" step="5" onchange="saveFinancialSettings()">
+      </div>
+    </div>
+
+    <!-- Universal Mathematical Salvage & Order Safeguards -->
     <div class="card">
       <div class="card-header">
         <span>🛡️ Universal Mathematical Salvage &amp; Philosophy</span>
@@ -1059,17 +1118,29 @@ function resetUiZoom() {
   if (slider) slider.value = 1.0;
 }
 
-// --- FINANCIAL PHILOSOPHY & THRESHOLD CONTROLS ---
+// --- FINANCIAL PHILOSOPHY, CAPITAL SHIELDING & SNIPER CONTROLS ---
 function saveFinancialSettings() {
   const threshold = document.getElementById('large-order-threshold').value;
   const salvageFloor = document.getElementById('salvage-floor-percent').value;
   const autoSalvage = document.getElementById('autonomous-salvage-toggle').checked;
   const slippage = document.getElementById('slippage-filter-toggle').checked;
-  
+
+  const autoSniper = document.getElementById('auto-sniper-toggle').checked;
+  const totalFunds = parseFloat(document.getElementById('total-funds-input').value) || 0;
+  const shieldedFunds = parseFloat(document.getElementById('shielded-funds-input').value) || 0;
+  const maxSniperTrade = parseFloat(document.getElementById('sniper-max-trade-input').value) || 25.0;
+
   localStorage.setItem('cosmic_large_order_threshold', threshold);
   localStorage.setItem('cosmic_salvage_floor', salvageFloor);
   localStorage.setItem('cosmic_autonomous_salvage', autoSalvage ? 'true' : 'false');
   localStorage.setItem('cosmic_slippage_filter', slippage ? 'true' : 'false');
+
+  localStorage.setItem('cosmic_auto_sniper', autoSniper ? 'true' : 'false');
+  localStorage.setItem('cosmic_total_funds', totalFunds.toFixed(2));
+  localStorage.setItem('cosmic_shielded_funds', shieldedFunds.toFixed(2));
+  localStorage.setItem('cosmic_sniper_max_trade', maxSniperTrade.toFixed(2));
+
+  updateCapitalShieldDisplay();
 }
 
 function loadFinancialSettings() {
@@ -1078,15 +1149,60 @@ function loadFinancialSettings() {
   const autoSalvage = localStorage.getItem('cosmic_autonomous_salvage') !== 'false';
   const slippage = localStorage.getItem('cosmic_slippage_filter') !== 'false';
 
-  const thresholdInput = document.getElementById('large-order-threshold');
-  const salvageInput = document.getElementById('salvage-floor-percent');
-  const autoSalvageToggle = document.getElementById('autonomous-salvage-toggle');
-  const slippageToggle = document.getElementById('slippage-filter-toggle');
+  const autoSniper = localStorage.getItem('cosmic_auto_sniper') !== 'false';
+  const totalFunds = localStorage.getItem('cosmic_total_funds') || '250.00';
+  const shieldedFunds = localStorage.getItem('cosmic_shielded_funds') || '100.00';
+  const maxSniperTrade = localStorage.getItem('cosmic_sniper_max_trade') || '25.00';
 
-  if (thresholdInput) thresholdInput.value = threshold;
-  if (salvageInput) salvageInput.value = salvageFloor;
-  if (autoSalvageToggle) autoSalvageToggle.checked = autoSalvage;
-  if (slippageToggle) slippageToggle.checked = slippage;
+  if (document.getElementById('large-order-threshold')) document.getElementById('large-order-threshold').value = threshold;
+  if (document.getElementById('salvage-floor-percent')) document.getElementById('salvage-floor-percent').value = salvageFloor;
+  if (document.getElementById('autonomous-salvage-toggle')) document.getElementById('autonomous-salvage-toggle').checked = autoSalvage;
+  if (document.getElementById('slippage-filter-toggle')) document.getElementById('slippage-filter-toggle').checked = slippage;
+
+  if (document.getElementById('auto-sniper-toggle')) document.getElementById('auto-sniper-toggle').checked = autoSniper;
+  if (document.getElementById('total-funds-input')) document.getElementById('total-funds-input').value = totalFunds;
+  if (document.getElementById('shielded-funds-input')) document.getElementById('shielded-funds-input').value = shieldedFunds;
+  if (document.getElementById('sniper-max-trade-input')) document.getElementById('sniper-max-trade-input').value = maxSniperTrade;
+
+  updateCapitalShieldDisplay();
+}
+
+function updateCapitalShieldDisplay() {
+  const total = parseFloat(localStorage.getItem('cosmic_total_funds') || '250.00');
+  const shielded = parseFloat(localStorage.getItem('cosmic_shielded_funds') || '100.00');
+  const deployable = Math.max(0, total - shielded);
+  const isSniperActive = localStorage.getItem('cosmic_auto_sniper') !== 'false';
+
+  const dispTotal = document.getElementById('disp-total-funds');
+  const dispShield = document.getElementById('disp-shielded-funds');
+  const dispDeploy = document.getElementById('disp-deployable-funds');
+  const tag = document.getElementById('sniper-status-tag');
+
+  if (dispTotal) dispTotal.textContent = `$${total.toFixed(2)}`;
+  if (dispShield) dispShield.textContent = `$${shielded.toFixed(2)}`;
+  if (dispDeploy) dispDeploy.textContent = `$${deployable.toFixed(2)}`;
+
+  if (tag) {
+    if (isSniperActive && deployable > 0) {
+      tag.textContent = "ARMED (HPT ≥ 85)";
+      tag.style.background = "rgba(0, 245, 160, 0.1)";
+      tag.style.color = "var(--accent-green)";
+    } else if (isSniperActive && deployable <= 0) {
+      tag.textContent = "STANDBY (SHIELD EXHAUSTION)";
+      tag.style.background = "rgba(255, 230, 0, 0.1)";
+      tag.style.color = "var(--accent-gold)";
+    } else {
+      tag.textContent = "OFFLINE";
+      tag.style.background = "#151a2d";
+      tag.style.color = "var(--text-muted)";
+    }
+  }
+}
+
+function getDeployableCapital() {
+  const total = parseFloat(localStorage.getItem('cosmic_total_funds') || '250.00');
+  const shielded = parseFloat(localStorage.getItem('cosmic_shielded_funds') || '100.00');
+  return Math.max(0, total - shielded);
 }
 
 function getLargeOrderThreshold() {
@@ -1099,6 +1215,10 @@ function isSlippageFilterEnabled() {
 
 function isAutonomousSalvageEnabled() {
   return localStorage.getItem('cosmic_autonomous_salvage') !== 'false';
+}
+
+function isAutoSniperEnabled() {
+  return localStorage.getItem('cosmic_auto_sniper') !== 'false';
 }
 
 // --- DYNAMIC 2026 QUEUE POOLS ---
@@ -1325,7 +1445,7 @@ function updateSynchronized15MinTimers() {
   });
 }
 
-// --- DYNAMIC ORDER MODAL WITH CIRCUIT BREAKER ---
+// --- ORDER ESTIMATION & CONFIRMATION ---
 let activeOrderContext = null;
 
 function openOrderModal(assetKey, side) {
@@ -1410,6 +1530,30 @@ function submitKalshiOrder() {
   closeOrderModal();
 }
 
+// --- AUTONOMOUS SNIPER EXECUTION ENGINE (HPT >= 85) ---
+function evaluateAutoSniperOpportunity(market) {
+  if (!isAutoSniperEnabled()) return;
+
+  const hptScore = market.hptScore || market.roiNum || 0;
+  if (hptScore < 85) return;
+
+  const deployableCapital = getDeployableCapital();
+  if (deployableCapital <= 1.00) return;
+
+  const maxTradeAllocation = parseFloat(localStorage.getItem('cosmic_sniper_max_trade') || '25.00');
+  const allowedStake = Math.min(deployableCapital, maxTradeAllocation, getLargeOrderThreshold());
+  if (allowedStake < 1.00) return;
+
+  console.warn(`[AUTO-SNIPER] Qualified HPT ${hptScore} opportunity detected on ${market.match || market.title}.`);
+  console.warn(`[AUTO-SNIPER] Sizing calculated: $${allowedStake.toFixed(2)} from deployable capital reserve.`);
+
+  if (market.book === "Kalshi" || market.book === "Polymarket") {
+    console.warn(`[AUTO-SNIPER] Routing post-only resting bid inside spread at best execution tick.`);
+  } else {
+    playAlertChime();
+  }
+}
+
 // --- LIVE 15-MIN DATA STREAMING & GEMINI GLOW ---
 const live15MinState = {
   GOLD: { ticker: "KXGOLD15M", title: "Gold 15m Close", target: 0, spot: 0, aboveProb: 0, belowProb: 0, vol: "Syncing..." },
@@ -1466,6 +1610,7 @@ function renderLive15MinUI() {
   };
 
   updateCard('GOLD', 'val-15m-gold-target', 'val-15m-gold-spot', 'val-15m-gold-delta', 'prob-15m-gold-above', 'prob-15m-gold-below', 'vol-15m-gold');
+  updateCard('SILVER', 'val-15m-silver-target', 'val-15m-silver-spot', 'val-15m-silver-delta', 'prob-15m-silver-above', 'prob-15m-silver-below', 'vol-15m-silver');
 }
 
 function triggerGeminiAgent(assetKey) {
@@ -1545,8 +1690,8 @@ async function runGeminiCopilot(assetKey, ticker, title, targetPrice, currentPri
 
 // --- DYNAMIC POLYMARKET FEED ---
 const POLYMARKET_CATALOG = [
-  { title: "Fed Interest Rate Cut in 2026?", yesPrice: 0.84, roi: 19.0, vol: "$3.2M", exp: nowMs + 86400000 * 30 },
-  { title: "US Presidential Approval Rating ≥ 50%", yesPrice: 0.46, roi: 117.4, vol: "$1.1M", exp: nowMs + 86400000 * 20 }
+  { title: "Fed Interest Rate Cut in 2026?", yesPrice: 0.84, roi: 19.0, hptScore: 78, vol: "$3.2M", exp: nowMs + 86400000 * 30 },
+  { title: "US Presidential Approval Rating ≥ 50%", yesPrice: 0.46, roi: 117.4, hptScore: 89, vol: "$1.1M", exp: nowMs + 86400000 * 20 }
 ];
 
 async function fetchLivePoly() {
@@ -1719,7 +1864,6 @@ function triggerOneTapShortcutInstall() {
   const uuid = getOrCreateClientUuid();
   const ingestUrl = `https://cosmic-parlays.cosmictrollgaming.workers.dev/api/fleet/ingest/${uuid}`;
 
-  // Copy private ingestion URL to clipboard and open directly into Apple Shortcuts new editor
   navigator.clipboard.writeText(ingestUrl).then(() => {
     alert("Private endpoint copied to clipboard!\n\nOpening Shortcuts directly into the New Shortcut editor. Paste this URL into the 'Get Contents of URL' action.");
     window.location.href = "shortcuts://create-shortcut";
