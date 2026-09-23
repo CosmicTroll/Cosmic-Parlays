@@ -1,7 +1,7 @@
 // ============================================================================
-// COSMIC TERMINAL - MASTER WORKER (v3.2.2-dual-clearing-edge)
+// COSMIC TERMINAL - MASTER WORKER (v3.3.0-expanded-fast-desk)
 // Sovereign Edge Execution, Defensive Schema Proving, Anti-Stale Circuit Breaker,
-// Kalshi 15M Open Query, Polymarket US Domestic Balance Relay,
+// Kalshi Full 8-Asset 15M Live Resolver, Polymarket US Domestic Balance Relay,
 // Autonomous Salvage/Sniper Engine & Thin-Book Partial Fill Management
 // ============================================================================
 
@@ -125,13 +125,12 @@ export default {
     if (!env.FLEET_KV) return;
 
     try {
-      // 1. Fetch live multi-sport feeds with defensive circuit breakers
       let mlbGames = [];
       let nflGames = [];
 
       try {
         const mlbRes = await fetch("https://statsapi.mlb.com/api/v1/schedule?sportId=1&hydrate=linescore,team", {
-          headers: { "Accept": "application/json", "User-Agent": "CosmicTerminal/3.2.2" }
+          headers: { "Accept": "application/json", "User-Agent": "CosmicTerminal/3.3.0" }
         });
         if (mlbRes.ok) {
           const mlbData = await mlbRes.json();
@@ -143,7 +142,7 @@ export default {
 
       try {
         const nflRes = await fetch("https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard", {
-          headers: { "Accept": "application/json", "User-Agent": "CosmicTerminal/3.2.2" }
+          headers: { "Accept": "application/json", "User-Agent": "CosmicTerminal/3.3.0" }
         });
         if (nflRes.ok) {
           const nflData = await nflRes.json();
@@ -153,7 +152,6 @@ export default {
         console.warn("[Circuit Breaker] NFL feed delayed, skipping cycle safely.");
       }
 
-      // 2. Process all user queues in KV
       const list = await env.FLEET_KV.list({ prefix: "queue:" });
 
       for (const key of list.keys) {
@@ -214,7 +212,7 @@ export default {
           }
         }
 
-        // Autonomous Salvage Trigger (Runs directly on Edge)
+        // Autonomous Salvage Trigger
         if (elimination.eliminated) {
           const mutex = await env.FLEET_KV.get(`lock:salvage:${ticket.id}`);
           if (!mutex) {
@@ -224,7 +222,6 @@ export default {
             ticket.liveStatus = `🚨 ZERO-PATH CONFIRMED: ${elimination.reason}`;
             await env.FLEET_KV.put(key.name, JSON.stringify(ticket));
 
-            // Push instant alert
             const userWebhook = await env.FLEET_KV.get(`webhook:${userUuid}`);
             if (userWebhook) {
               await fetch(userWebhook, {
@@ -257,7 +254,7 @@ export default {
       return new Response(JSON.stringify({ 
         status: "healthy", 
         env: "production", 
-        build: "3.2.2-dual-clearing-edge",
+        build: "3.3.0-expanded-fast-desk",
         edgeAutonomous: true
       }), {
         headers: { ...CORS_HEADERS, "Content-Type": "application/json" }
@@ -265,7 +262,7 @@ export default {
     }
 
     // ------------------------------------------------------------------------
-    // 2. Synchronize User Account Configuration to KV (Shielded funds & keys)
+    // 2. Synchronize User Account Configuration to KV
     // ------------------------------------------------------------------------
     if (url.pathname.startsWith("/api/user/sync/") && request.method === "POST") {
       const userUuid = url.pathname.replace("/api/user/sync/", "").trim();
@@ -288,7 +285,7 @@ export default {
       if (sport === "mlb") {
         try {
           const res = await fetch("https://statsapi.mlb.com/api/v1/schedule?sportId=1&hydrate=linescore,team", {
-            headers: { "Accept": "application/json", "User-Agent": "CosmicTerminal/3.2.2" }
+            headers: { "Accept": "application/json", "User-Agent": "CosmicTerminal/3.3.0" }
           });
           return new Response(await res.text(), {
             headers: { ...CORS_HEADERS, "Content-Type": "application/json" }
@@ -301,7 +298,7 @@ export default {
       if (sport === "nfl") {
         try {
           const res = await fetch("https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard", {
-            headers: { "Accept": "application/json", "User-Agent": "CosmicTerminal/3.2.2" }
+            headers: { "Accept": "application/json", "User-Agent": "CosmicTerminal/3.3.0" }
           });
           return new Response(await res.text(), {
             headers: { ...CORS_HEADERS, "Content-Type": "application/json" }
@@ -314,7 +311,7 @@ export default {
       if (sport === "nba") {
         try {
           const res = await fetch("https://site.api.espn.com/apis/site/v2/sports/basketball/nba/scoreboard", {
-            headers: { "Accept": "application/json", "User-Agent": "CosmicTerminal/3.2.2" }
+            headers: { "Accept": "application/json", "User-Agent": "CosmicTerminal/3.3.0" }
           });
           return new Response(await res.text(), {
             headers: { ...CORS_HEADERS, "Content-Type": "application/json" }
@@ -328,15 +325,18 @@ export default {
     }
 
     // ------------------------------------------------------------------------
-    // 4. Kalshi 15-Minute Live Feed (Direct Open Markets Query)
+    // 4. Kalshi 15-Minute Live Feed (Full 8-Asset Commodities & Crypto Series)
     // ------------------------------------------------------------------------
     if (url.pathname === "/api/kalshi/15min/live") {
       try {
-        const seriesList = ["KXGOLD15M", "KXSLV15M", "KXBTC15M"];
+        const seriesList = [
+          "KXGOLD15M", "KXSLV15M", "KXWTI15M", 
+          "KXBTC15M", "KXETH15M", "KXSOL15M", "KXXRP15M", "KXDOGE15M"
+        ];
         const fetchPromises = seriesList.map(async (seriesTicker) => {
           try {
             const res = await fetch(`https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=${seriesTicker}&status=open&limit=1`, {
-              headers: { "Accept": "application/json", "User-Agent": "CosmicTerminal/3.2.2" }
+              headers: { "Accept": "application/json", "User-Agent": "CosmicTerminal/3.3.0" }
             });
             if (!res.ok) return null;
             const data = await res.json();
@@ -425,7 +425,7 @@ export default {
             "X-PM-Access-Key": pmKey,
             "X-PM-Signature": pmSig || "",
             "X-PM-Timestamp": pmTs,
-            "User-Agent": "CosmicTerminal/3.2.2"
+            "User-Agent": "CosmicTerminal/3.3.0"
           }
         });
 
@@ -450,7 +450,7 @@ export default {
       try {
         const target = `https://gamma-api.polymarket.com/events?closed=false&limit=20${url.search.replace("?", "&")}`;
         const polyRes = await fetch(target, { 
-          headers: { "Accept": "application/json", "User-Agent": "CosmicTerminal/3.2.2" } 
+          headers: { "Accept": "application/json", "User-Agent": "CosmicTerminal/3.3.0" } 
         });
         return new Response(await polyRes.text(), {
           headers: { ...CORS_HEADERS, "Content-Type": "application/json" }
