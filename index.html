@@ -329,7 +329,6 @@
         <span class="tag" style="color: var(--accent-cyan);">Edge Screened</span>
       </div>
       <div style="display: flex; flex-direction: column; gap: 8px;">
-        <!-- Sports Pick 1 -->
         <div class="market-card">
           <div class="market-card-head">
             <span>Brewers @ Phillies — First 5 Under 6.5 Total Runs</span>
@@ -340,7 +339,6 @@
             <span style="color: var(--accent-green); font-weight: 800;">+20.4% ROI</span>
           </div>
         </div>
-        <!-- Sports Pick 2 -->
         <div class="market-card">
           <div class="market-card-head">
             <span>Rays @ Yankees (G2) — First 5 Under 6.5 Total Runs</span>
@@ -351,7 +349,6 @@
             <span style="color: var(--accent-green); font-weight: 800;">+17.6% ROI</span>
           </div>
         </div>
-        <!-- Sports Pick 3 -->
         <div class="market-card">
           <div class="market-card-head">
             <span>Mets @ Rangers — Texas Rangers +2.5 Runline</span>
@@ -372,7 +369,6 @@
         <span style="font-size: 10px; color: var(--accent-cyan); cursor: pointer;" onclick="switchSubFilter('esports', document.querySelectorAll('.pill-btn')[1])">Open Hub →</span>
       </div>
       <div style="display: flex; flex-direction: column; gap: 8px;">
-        <!-- Esports Pick 1 -->
         <div class="market-card">
           <div class="market-card-head">
             <span>CS2: Saint Sinners vs KUUSAMO.gg (BO3)</span>
@@ -383,7 +379,6 @@
             <span style="color: var(--accent-green); font-weight: 800;">+100% ROI</span>
           </div>
         </div>
-        <!-- Esports Pick 2 -->
         <div class="market-card">
           <div class="market-card-head">
             <span>CS2: Saint Sinners vs KUUSAMO.gg — Rounds Spread</span>
@@ -394,7 +389,6 @@
             <span style="color: var(--accent-green); font-weight: 800;">+81.8% ROI</span>
           </div>
         </div>
-        <!-- Esports Pick 3 -->
         <div class="market-card">
           <div class="market-card-head">
             <span>Dota 2: MOUZ vs Hokori — Match Winner</span>
@@ -432,11 +426,17 @@
         </div>
       </div>
 
+      <!-- Instructions Link Banner -->
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding: 8px 10px; background: rgba(0, 242, 254, 0.05); border: 1px solid rgba(0, 242, 254, 0.2); border-radius: 8px;">
+        <span style="font-size: 11px; color: var(--text-muted);">Want 1-tap bet sharing from DraftKings &amp; FanDuel?</span>
+        <a href="javascript:void(0)" onclick="openSetupModal()" style="font-size: 11px; font-weight: 800; color: var(--accent-cyan); text-decoration: none;">Setup Guide ➔</a>
+      </div>
+
       <!-- Ingest Controls -->
       <div style="display: flex; gap: 6px; margin-bottom: 12px; align-items: flex-end;">
         <div style="flex: 2;">
           <label class="stat-label">Manual Paste Fallback</label>
-          <input type="text" id="manual-slip-input" placeholder="Paste sportsbook receipt...">
+          <input type="text" id="manual-slip-input" placeholder="Paste sportsbook receipt or link...">
         </div>
         <div style="flex: 1;">
           <label class="stat-label">Retention (TTL)</label>
@@ -485,7 +485,7 @@
         <span class="tag">100% Client-Side</span>
       </div>
       <p style="font-size: 10px; color: var(--text-muted); margin-bottom: 10px; line-height: 1.4;">
-        Your credentials are saved strictly in your local browser storage [source: 12]. They never touch a remote server [source: 12].
+        Your credentials are saved strictly in your local browser storage [source: 35]. They never touch a remote server [source: 35].
       </p>
 
       <div class="input-group">
@@ -538,8 +538,55 @@
 
 </div>
 
+<!-- SETUP INSTRUCTIONS MODAL SHEET -->
+<div id="setup-modal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 10000; padding: 20px; overflow-y: auto; justify-content: center; align-items: center;">
+  <div style="background: #0d1224; border: 1px solid var(--border-color); border-radius: 14px; max-width: 440px; width: 100%; padding: 18px; color: #fff; font-size: 12px; display: flex; flex-direction: column; gap: 14px; box-shadow: 0 0 30px rgba(0, 242, 254, 0.2);">
+    
+    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">
+      <span style="font-weight: 900; font-size: 14px; color: var(--accent-cyan);">🚀 Terminal Mobile Setup Guide</span>
+      <span style="cursor: pointer; font-size: 16px; color: var(--text-muted);" onclick="closeSetupModal()">✕</span>
+    </div>
+
+    <!-- Part 1: Add to Home Screen -->
+    <div>
+      <div style="font-weight: 800; color: var(--accent-gold); margin-bottom: 4px;">1. Add to Home Screen (PWA Mode)</div>
+      <p style="color: var(--text-muted); font-size: 11px; line-height: 1.4;">
+        1. Open this URL in mobile Safari.<br>
+        2. Tap the <strong>Share</strong> button (box with upward arrow) at the bottom [source: 14].<br>
+        3. Scroll down and tap <strong>Add to Home Screen</strong> [source: 14].<br>
+        4. Tap <strong>Add</strong> in the top right. Launch directly from your home screen for full-screen performance [source: 16, 28].
+      </p>
+    </div>
+
+    <!-- Part 2: 1-Tap iOS Shortcut Bridge -->
+    <div>
+      <div style="font-weight: 800; color: var(--accent-green); margin-bottom: 4px;">2. Setup 1-Tap Sportsbook Share (iOS)</div>
+      <p style="color: var(--text-muted); font-size: 11px; line-height: 1.4; margin-bottom: 8px;">
+        Route slips directly into your private queue with a native iOS shortcut [source: 17, 18, 22]:
+      </p>
+      
+      <ol style="padding-left: 16px; color: var(--text-muted); font-size: 11px; line-height: 1.5;">
+        <li>Open the <strong>Shortcuts</strong> app and tap <strong>+</strong> [source: 17].</li>
+        <li>Rename it to <code>Cosmic Terminal</code>.</li>
+        <li>Tap the info <strong>(i)</strong> icon at the bottom and toggle ON <strong>Show in Share Sheet</strong> [source: 17].</li>
+        <li>Set input to receive <strong>URLs</strong> and <strong>Text</strong> [source: 22].</li>
+        <li>Add the action <strong>Get Contents of URL</strong> [source: 18, 22].</li>
+        <li>Set Method to <strong>POST</strong>, Request Body to <strong>JSON</strong>, Header <code>Content-Type: application/json</code>, and Body Key <code>text</code> = <strong>Shortcut Input</strong> [source: 18, 22].</li>
+        <li>Paste your unique endpoint URL into the URL field [source: 18, 22]:</li>
+      </ol>
+
+      <div style="margin-top: 8px; background: #060812; border: 1px solid #1a2340; padding: 8px; border-radius: 6px; font-family: monospace; font-size: 10px; color: var(--accent-cyan); word-break: break-all;" id="modal-endpoint-copy">
+        Loading...
+      </div>
+      <button class="btn btn-gold" style="width: 100%; margin-top: 6px; padding: 6px; font-size: 11px;" onclick="copyEndpointUrl()">Copy My Private URL</button>
+    </div>
+
+    <button class="btn" style="width: 100%; background: #19223c; margin-top: 4px;" onclick="closeSetupModal()">Got It</button>
+  </div>
+</div>
+
 <script>
-// --- NAVIGATION & CATEGORY FILTERS ---
+// --- NAVIGATION & FILTERS ---
 function switchNavTab(viewId, element) {
   document.querySelectorAll('.tab-view').forEach(v => v.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
@@ -568,6 +615,32 @@ function switchSubFilter(category, button) {
     if (sportsSec) sportsSec.style.display = 'none';
     if (esportsSec) esportsSec.style.display = 'none';
   }
+}
+
+// --- SETUP MODAL CONTROLS ---
+function openSetupModal() {
+  const uuid = getOrCreateClientUuid();
+  const endpointEl = document.getElementById('modal-endpoint-copy');
+  if (endpointEl) {
+    endpointEl.textContent = `https://cosmic-parlays.cosmictrollgaming.workers.dev/api/fleet/ingest/${uuid}`;
+  }
+  const modal = document.getElementById('setup-modal');
+  if (modal) modal.style.display = 'flex';
+}
+
+function closeSetupModal() {
+  const modal = document.getElementById('setup-modal');
+  if (modal) modal.style.display = 'none';
+}
+
+function copyEndpointUrl() {
+  const uuid = getOrCreateClientUuid();
+  const url = `https://cosmic-parlays.cosmictrollgaming.workers.dev/api/fleet/ingest/${uuid}`;
+  navigator.clipboard.writeText(url).then(() => {
+    alert("Private endpoint URL copied to clipboard! Paste it directly into your iOS Shortcut.");
+  }).catch(() => {
+    prompt("Copy your private endpoint URL:", url);
+  });
 }
 
 // --- BYOK CREDENTIALS & PURGE SYSTEM ---
@@ -715,7 +788,7 @@ function renderFleetTickets() {
     <div class="ticket-card">
       <div style="display: flex; justify-content: space-between; font-weight: bold; margin-bottom: 4px;">
         <span style="color: var(--accent-cyan);">${t.book} [${t.betId || 'Manual Slip'}]</span>
-        <span style="color: var(--accent-gold);">${t.odds || ''} | Ret: $${t.payout ? t.payout.toFixed(2) : '--'}</span>
+        <span style="color: var(--accent-gold);">${t.odds ? (t.odds.startsWith('+') || t.odds.startsWith('-') ? t.odds : '+' + t.odds) : ''} | Ret: $${t.payout ? t.payout.toFixed(2) : '--'}</span>
       </div>
       <div style="color: var(--text-muted); font-size: 9px; margin-bottom: 6px; display: flex; justify-content: space-between;">
         <span>Stake: $${t.stake ? t.stake.toFixed(2) : '--'} | ${new Date(t.timestamp).toLocaleTimeString()}</span>
@@ -734,7 +807,7 @@ function removeSlip(index) {
   saveLocalFleetTickets(tickets);
 }
 
-// --- POLLING & INGESTION ---
+// --- POLLING & PARSING ---
 async function pollSharedSlips() {
   const uuid = getOrCreateClientUuid();
   try {
@@ -749,10 +822,11 @@ async function pollSharedSlips() {
       saveLocalFleetTickets(current);
     }
   } catch (err) {
-    console.warn("Poll deferred:", err);
+    console.warn("Slip poll deferred:", err);
   }
 }
 
+// Sanitized parser: ignores URL paths & UUID strings so -4656 is never parsed as odds
 function ingestManualSlip() {
   const input = document.getElementById('manual-slip-input');
   if (!input || !input.value.trim()) return;
@@ -760,18 +834,33 @@ function ingestManualSlip() {
   const raw = input.value.trim();
   const ticket = {
     id: `manual_${Date.now()}`,
-    book: raw.includes('DraftKings') ? 'DraftKings' : raw.includes('FanDuel') ? 'FanDuel' : 'Sportsbook',
+    book: /draftkings/i.test(raw) ? 'DraftKings' : /fanduel/i.test(raw) ? 'FanDuel' : /polymarket/i.test(raw) ? 'Polymarket' : 'Sportsbook',
     raw: raw,
     timestamp: Date.now(),
-    legs: [raw.length > 120 ? raw.slice(0, 120) + '...' : raw]
+    legs: []
   };
 
-  const odds = raw.match(/([+-]\d{3,4})\b/);
-  if (odds) ticket.odds = odds[1];
-  const stake = raw.match(/(?:Wager|Stake|Amount):\s*\$([0-9.]+)/i);
-  if (stake) ticket.stake = parseFloat(stake[1]);
-  const payout = raw.match(/(?:Payout|To Win|Return):\s*\$([0-9.]+)/i);
-  if (payout) ticket.payout = parseFloat(payout[1]);
+  // Strip URLs prior to regex extraction so UUIDs in links don't trigger odds matching
+  const textWithoutUrls = raw.replace(/https?:\/\/[^\s]+/g, '');
+
+  const oddsMatch = textWithoutUrls.match(/(?:^|\s)([+-]\d{3,4})\b/);
+  if (oddsMatch) ticket.odds = oddsMatch[1];
+
+  const stakeMatch = raw.match(/(?:Wager|Stake|Amount):\s*\$([0-9.]+)/i);
+  if (stakeMatch) ticket.stake = parseFloat(stakeMatch[1]);
+
+  const payoutMatch = raw.match(/(?:Payout|To Win|Return):\s*\$([0-9.]+)/i);
+  if (payoutMatch) ticket.payout = parseFloat(payoutMatch[1]);
+
+  if (ticket.stake === undefined || ticket.payout === undefined) {
+    const userStake = prompt(`Enter Wager/Stake ($) for this ${ticket.book} slip:`, "1.00");
+    if (userStake) ticket.stake = parseFloat(userStake) || 0;
+
+    const userPayout = prompt(`Enter Potential Return/Payout ($) for this ${ticket.book} slip:`, "2.00");
+    if (userPayout) ticket.payout = parseFloat(userPayout) || 0;
+  }
+
+  ticket.legs = [raw.length > 120 ? raw.slice(0, 120) + '...' : raw];
 
   const current = loadLocalFleetTickets();
   current.unshift(ticket);
@@ -788,11 +877,22 @@ function checkIncomingShareTarget() {
     const raw = `${text || ''} ${url || ''}`.trim();
     const ticket = {
       id: `share_${Date.now()}`,
-      book: raw.includes('DraftKings') ? 'DraftKings' : raw.includes('FanDuel') ? 'FanDuel' : 'Sportsbook',
+      book: /draftkings/i.test(raw) ? 'DraftKings' : /fanduel/i.test(raw) ? 'FanDuel' : /polymarket/i.test(raw) ? 'Polymarket' : 'Sportsbook',
       raw: raw,
       timestamp: Date.now(),
       legs: [raw.length > 120 ? raw.slice(0, 120) + '...' : raw]
     };
+
+    const textWithoutUrls = raw.replace(/https?:\/\/[^\s]+/g, '');
+    const oddsMatch = textWithoutUrls.match(/(?:^|\s)([+-]\d{3,4})\b/);
+    if (oddsMatch) ticket.odds = oddsMatch[1];
+
+    const stakeMatch = raw.match(/(?:Wager|Stake|Amount):\s*\$([0-9.]+)/i);
+    if (stakeMatch) ticket.stake = parseFloat(stakeMatch[1]);
+
+    const payoutMatch = raw.match(/(?:Payout|To Win|Return):\s*\$([0-9.]+)/i);
+    if (payoutMatch) ticket.payout = parseFloat(payoutMatch[1]);
+
     const current = loadLocalFleetTickets();
     current.unshift(ticket);
     saveLocalFleetTickets(current);
