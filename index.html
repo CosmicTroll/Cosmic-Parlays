@@ -347,7 +347,7 @@
   <div class="sponsor-bar" id="sponsor-banner">
     <div>
       <span class="sponsor-tag">SPONSOR</span>
-      <span>Trade US elections &amp; prediction markets with 0 fees on Polymarket.us. <a href="https://polymarket.us" target="_blank" style="color: var(--accent-cyan); text-decoration: none; font-weight: bold;">Join Polymarket →</a></span>
+      <span>Trade US prediction markets with zero fees on Polymarket.us. <a href="https://polymarket.us" target="_blank" style="color: var(--accent-cyan); text-decoration: none; font-weight: bold;">Join Polymarket.us →</a></span>
     </div>
     <span style="font-size: 10px; color: var(--text-muted); text-decoration: underline; cursor: pointer; white-space: nowrap; margin-left: 8px;" onclick="promptAdPasskey()">Remove Ads ($5)</span>
   </div>
@@ -637,7 +637,7 @@
     </div>
   </div>
 
-  <!-- VIEW 8: BYOK VAULT & SECURITY -->
+  <!-- VIEW 8: BYOK VAULT & SECURITY (DUAL API KEYS) -->
   <div class="tab-view" id="view-vault">
     <div class="card">
       <div class="card-header">
@@ -666,13 +666,15 @@
 
     <div class="card">
       <div class="card-header">
-        <span>🔐 Bring Your Own Key (BYOK) Settings</span>
+        <span>🔐 Bring Your Own Key (BYOK) API Credentials</span>
         <span class="tag">100% Client-Side</span>
       </div>
-      <p style="font-size: 10px; color: var(--text-muted); margin-bottom: 10px; line-height: 1.4;">
-        Your credentials are saved strictly in your local browser storage. They never touch a remote server.
+      <p style="font-size: 10px; color: var(--text-muted); margin-bottom: 12px; line-height: 1.4;">
+        API keys and private signatures are stored exclusively in your browser sandbox. They are never transmitted to a central server[span_2](start_span)[span_2](end_span)[span_3](start_span)[span_3](end_span).
       </p>
 
+      <!-- KALSHI CREDENTIALS -->
+      <div style="font-weight: 800; font-size: 11px; color: var(--accent-green); margin-bottom: 6px;">🟢 Kalshi Domestic Trading API</div>
       <div class="input-group">
         <label class="stat-label">Kalshi Key ID</label>
         <div class="password-wrapper">
@@ -681,7 +683,7 @@
         </div>
       </div>
 
-      <div class="input-group">
+      <div class="input-group" style="margin-bottom: 14px;">
         <label class="stat-label">Kalshi Private Key (RSA PEM)</label>
         <div class="password-wrapper">
           <input type="password" id="kalshi-private-key" placeholder="Paste RSA Private Key PEM..." autocomplete="off">
@@ -689,22 +691,32 @@
         </div>
       </div>
 
+      <!-- POLYMARKET US CREDENTIALS -->
+      <div style="font-weight: 800; font-size: 11px; color: var(--accent-pink); margin-bottom: 6px;">🟣 Polymarket.us Domestic Trading API</div>
       <div class="input-group">
-        <label class="stat-label">Polymarket.us Account Handle / API Key</label>
+        <label class="stat-label">Polymarket.us API Key ID</label>
         <div class="password-wrapper">
-          <input type="password" id="poly-key-id" placeholder="Enter Polymarket.us Handle or API Key" autocomplete="off">
+          <input type="password" id="poly-key-id" placeholder="Paste Polymarket.us Key UUID..." autocomplete="off">
           <button type="button" class="toggle-visibility" onclick="toggleMask('poly-key-id')">👁</button>
         </div>
       </div>
 
-      <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 8px;">
-        <button class="btn btn-gold" onclick="saveVaultCredentials()">Save Credentials Locally</button>
+      <div class="input-group">
+        <label class="stat-label">Polymarket.us Private Signing Key</label>
+        <div class="password-wrapper">
+          <input type="password" id="poly-private-key" placeholder="Paste Private Key / Secret..." autocomplete="off">
+          <button type="button" class="toggle-visibility" onclick="toggleMask('poly-private-key')">👁</button>
+        </div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 10px;">
+        <button class="btn btn-gold" onclick="saveVaultCredentials()">Save API Credentials Locally</button>
         <button class="btn btn-danger" onclick="clearLocalStorageVault()">⚠️ Clear All Keys &amp; Slips from Storage</button>
       </div>
     </div>
   </div>
 
-  <!-- Bottom Navigation Bar (Full 8 Tabs with Dynamic Badge) -->
+  <!-- Bottom Navigation Bar -->
   <nav class="bottom-nav">
     <div class="nav-item active" onclick="switchNavTab('view-picks', this)">
       <span>🎯</span>
@@ -757,9 +769,9 @@
       <div style="font-weight: 800; color: var(--accent-gold); margin-bottom: 4px;">1. Add to Home Screen (PWA Mode)</div>
       <p style="color: var(--text-muted); font-size: 11px; line-height: 1.4;">
         1. Open this URL in mobile Safari.<br>
-        2. Tap the <strong>Share</strong> button (box with upward arrow) at the bottom.<br>
+        2. Tap the <strong>Share</strong> button at the bottom.<br>
         3. Scroll down and tap <strong>Add to Home Screen</strong>.<br>
-        4. Tap <strong>Add</strong> in the top right. Launch directly from your home screen for full-screen performance.
+        4. Tap <strong>Add</strong> in the top right. Launch directly from your home screen.
       </p>
     </div>
 
@@ -954,7 +966,7 @@ function copyEndpointUrl() {
   });
 }
 
-// --- BYOK VAULT & PURGE SYSTEM ---
+// --- BYOK VAULT & PURGE SYSTEM (DUAL API KEYS) ---
 function toggleMask(fieldId) {
   const el = document.getElementById(fieldId);
   if (el) el.type = el.type === 'password' ? 'text' : 'password';
@@ -964,10 +976,12 @@ function saveVaultCredentials() {
   const kKey = document.getElementById('kalshi-key-id').value.trim();
   const kPriv = document.getElementById('kalshi-private-key').value.trim();
   const pKey = document.getElementById('poly-key-id').value.trim();
+  const pPriv = document.getElementById('poly-private-key').value.trim();
 
   if (kKey) localStorage.setItem('kalshi_key_id', kKey);
   if (kPriv) localStorage.setItem('kalshi_private_key', kPriv);
   if (pKey) localStorage.setItem('poly_key_id', pKey);
+  if (pPriv) localStorage.setItem('poly_private_key', pPriv);
 
   alert("Credentials securely locked into local browser storage.");
   updateVaultStatusUI();
@@ -979,6 +993,7 @@ function clearLocalStorageVault() {
     document.getElementById('kalshi-key-id').value = '';
     document.getElementById('kalshi-private-key').value = '';
     document.getElementById('poly-key-id').value = '';
+    document.getElementById('poly-private-key').value = '';
     renderFleetTickets();
     updateVaultStatusUI();
     alert("Local storage wiped completely.");
@@ -1025,10 +1040,12 @@ function loadVaultCredentials() {
   const kKey = localStorage.getItem('kalshi_key_id');
   const kPriv = localStorage.getItem('kalshi_private_key');
   const pKey = localStorage.getItem('poly_key_id');
+  const pPriv = localStorage.getItem('poly_private_key');
 
   if (kKey && document.getElementById('kalshi-key-id')) document.getElementById('kalshi-key-id').value = kKey;
   if (kPriv && document.getElementById('kalshi-private-key')) document.getElementById('kalshi-private-key').value = kPriv;
   if (pKey && document.getElementById('poly-key-id')) document.getElementById('poly-key-id').value = pKey;
+  if (pPriv && document.getElementById('poly-private-key')) document.getElementById('poly-private-key').value = pPriv;
 
   updateVaultStatusUI();
 }
