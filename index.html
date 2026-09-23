@@ -507,7 +507,7 @@
     <button class="desk-btn" id="desk-btn-fleet" onclick="switchDeskFilter('fleet', this)">🏈 Sportsbooks (Fleet)</button>
   </div>
 
-  <!-- Universal Sort Bar (Applies to Active View) -->
+  <!-- Universal Sort Bar -->
   <div class="sort-nav">
     <span class="sort-label">SORT:</span>
     <button class="sort-btn active" onclick="switchSortOrder('roi-high', this)">🔥 Top ROI</button>
@@ -592,7 +592,7 @@
     </div>
   </div>
 
-  <!-- VIEW 2: MACRO DESK (SORTABLE DOM) -->
+  <!-- VIEW 2: MACRO DESK (DYNAMIC LIVE TIMESTAMPS) -->
   <div class="tab-view" id="view-macro">
     <div class="card">
       <div class="card-header">
@@ -600,7 +600,7 @@
         <span class="tag">CFTC Contracts</span>
       </div>
       <div id="macro-picks-container" style="display: flex; flex-direction: column; gap: 10px;">
-        <div class="market-card sortable-card" data-roi="19.0" data-expiry="1730000000000">
+        <div class="market-card sortable-card" data-roi="19.0" data-expiry="1790000000000">
           <div class="market-card-head">
             <span>Fed Funds Target Rate Cut ≥ 25 bps</span>
             <span class="tag" style="background: #12281a; color: var(--accent-green);">KALSHI</span>
@@ -610,7 +610,7 @@
             <span style="color: var(--accent-green); font-weight: 800;">+19.0% ROI (YES @ $0.84)</span>
           </div>
         </div>
-        <div class="market-card sortable-card" data-roi="47.0" data-expiry="1731000000000">
+        <div class="market-card sortable-card" data-roi="47.0" data-expiry="1791000000000">
           <div class="market-card-head">
             <span>US Core CPI Inflation &lt; 3.0% Annualized</span>
             <span class="tag" style="background: #12281a; color: var(--accent-green);">KALSHI</span>
@@ -620,7 +620,7 @@
             <span style="color: var(--accent-green); font-weight: 800;">+47.0% ROI (YES @ $0.68)</span>
           </div>
         </div>
-        <div class="market-card sortable-card" data-roi="8.7" data-expiry="1732000000000">
+        <div class="market-card sortable-card" data-roi="8.7" data-expiry="1792000000000">
           <div class="market-card-head">
             <span>US Debt Ceiling Extension Resolution</span>
             <span class="tag" style="background: #1b1330; color: var(--accent-pink);">POLY.US</span>
@@ -634,7 +634,7 @@
     </div>
   </div>
 
-  <!-- VIEW 3: KALSHI PERPETUALS, COMMODITIES & 15-MIN DESK (PURE KALSHI VENUE) -->
+  <!-- VIEW 3: KALSHI PERPETUALS, COMMODITIES & 15-MIN DESK -->
   <div class="tab-view" id="view-perps">
     <div class="card">
       <div class="card-header">
@@ -671,7 +671,7 @@
             <span class="tag" style="background: #12281a; color: var(--accent-green);">8h Funding: +0.012%</span>
           </div>
           <div class="market-card-meta">
-            <span>Spot: $85,029.68 • 1x Collateral Base</span>
+            <span>1x Collateral Base</span>
             <span style="color: var(--accent-cyan); font-weight: bold;">Margin Yield: 3.25%</span>
           </div>
           <svg class="sparkline-svg" viewBox="0 0 300 40">
@@ -685,7 +685,7 @@
             <span class="tag" style="background: #12281a; color: var(--accent-green);">8h Funding: +0.008%</span>
           </div>
           <div class="market-card-meta">
-            <span>Spot: $2,720.82 • 1x Collateral Base</span>
+            <span>1x Collateral Base</span>
             <span style="color: var(--accent-cyan); font-weight: bold;">Margin Yield: 3.25%</span>
           </div>
           <svg class="sparkline-svg" viewBox="0 0 300 40">
@@ -699,7 +699,7 @@
             <span class="tag" style="background: #12281a; color: var(--accent-green);">8h Funding: +0.019%</span>
           </div>
           <div class="market-card-meta">
-            <span>Spot: $116.84 • 1x Collateral Base</span>
+            <span>1x Collateral Base</span>
             <span style="color: var(--accent-cyan); font-weight: bold;">Margin Yield: 3.25%</span>
           </div>
           <svg class="sparkline-svg" viewBox="0 0 300 40">
@@ -716,7 +716,7 @@
             <span class="tag" style="background: #252010; color: var(--accent-gold);">Daily: -0.004%</span>
           </div>
           <div class="market-card-meta">
-            <span>Benchmark: $4,349.63/oz • Settles Daily 10 AM ET</span>
+            <span>Settles Daily 10 AM ET</span>
             <span style="color: var(--accent-green); font-weight: bold;">Basis: Positive</span>
           </div>
           <svg class="sparkline-svg" viewBox="0 0 300 40">
@@ -730,7 +730,7 @@
             <span class="tag" style="background: #252010; color: var(--accent-gold);">Daily: +0.001%</span>
           </div>
           <div class="market-card-meta">
-            <span>Benchmark: $67.42/oz • Settles Daily 10 AM ET</span>
+            <span>Settles Daily 10 AM ET</span>
             <span style="color: var(--accent-green); font-weight: bold;">Basis: Neutral</span>
           </div>
           <svg class="sparkline-svg" viewBox="0 0 300 40">
@@ -740,12 +740,12 @@
 
         <div class="market-card comm-item comm-energy">
           <div class="market-card-head">
-            <span>WTI Crude Oil Continuous • 10 Contracts</span>
+            <span>WTI Crude Oil Continuous</span>
             <span class="tag" style="background: #2b1414; color: var(--accent-red);">-10.40% Today</span>
           </div>
           <div class="market-card-meta">
-            <span>Spot Benchmark: $90.28 / barrel</span>
-            <span style="color: var(--accent-green); font-weight: bold;">Active Depth: High</span>
+            <span>Active Depth: High</span>
+            <span style="color: var(--accent-green); font-weight: bold;">Active Continuous</span>
           </div>
           <svg class="sparkline-svg" viewBox="0 0 300 40">
             <path d="M 0,10 Q 80,18 160,28 T 300,35" fill="none" stroke="#ff3344" stroke-width="2"/>
@@ -774,11 +774,11 @@
 
           <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-top: 4px;">
             <div>
-              <div class="target-title" id="val-15m-gold-target">Target $4,343.61</div>
-              <div class="current-spot-text" id="val-15m-gold-spot">Current $4,344.23</div>
+              <div class="target-title" id="val-15m-gold-target">Target: Loading...</div>
+              <div class="current-spot-text" id="val-15m-gold-spot">Current: Connecting...</div>
             </div>
             <div class="delta-indicator delta-above" id="val-15m-gold-delta">
-              +$0.63 above target
+              Connecting...
             </div>
           </div>
 
@@ -791,20 +791,20 @@
           </div>
 
           <div class="binary-split-tray">
-            <div class="binary-btn btn-above" id="btn-gold-above" onclick="openOrderModal('GOLD', 'Above', 89, 4343.61)">
+            <div class="binary-btn btn-above" id="btn-gold-above" onclick="openOrderModal('GOLD', 'Above')">
               <span>Above</span>
               <span style="opacity: 0.7;">·</span>
-              <span id="prob-15m-gold-above">89%</span>
+              <span id="prob-15m-gold-above">--%</span>
             </div>
-            <div class="binary-btn btn-below" id="btn-gold-below" onclick="openOrderModal('GOLD', 'Below', 11, 4343.61)">
+            <div class="binary-btn btn-below" id="btn-gold-below" onclick="openOrderModal('GOLD', 'Below')">
               <span>Below</span>
               <span style="opacity: 0.7;">·</span>
-              <span id="prob-15m-gold-below">11%</span>
+              <span id="prob-15m-gold-below">--%</span>
             </div>
           </div>
 
           <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 6px; font-size: 0.78rem; color: var(--text-muted);">
-            <span id="vol-15m-gold">$224,205 vol</span>
+            <span id="vol-15m-gold">Live Volume Stream</span>
             <button class="btn btn-cyan" style="padding: 5px 12px; font-size: 0.78rem;" onclick="triggerGeminiAgent('GOLD')">🤖 Gemini Analysis</button>
           </div>
           <div class="ai-agent-box" id="ai-box-gold">Evaluating candle momentum...</div>
@@ -824,11 +824,11 @@
 
           <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-top: 4px;">
             <div>
-              <div class="target-title" id="val-15m-silver-target">Target $66.828</div>
-              <div class="current-spot-text" id="val-15m-silver-spot">Current $66.780</div>
+              <div class="target-title" id="val-15m-silver-target">Target: Loading...</div>
+              <div class="current-spot-text" id="val-15m-silver-spot">Current: Connecting...</div>
             </div>
             <div class="delta-indicator delta-below" id="val-15m-silver-delta">
-              -$0.048 below target
+              Connecting...
             </div>
           </div>
 
@@ -841,20 +841,20 @@
           </div>
 
           <div class="binary-split-tray">
-            <div class="binary-btn btn-above" id="btn-silver-above" onclick="openOrderModal('SILVER', 'Above', 17, 66.828)">
+            <div class="binary-btn btn-above" id="btn-silver-above" onclick="openOrderModal('SILVER', 'Above')">
               <span>Above</span>
               <span style="opacity: 0.7;">·</span>
-              <span id="prob-15m-silver-above">17%</span>
+              <span id="prob-15m-silver-above">--%</span>
             </div>
-            <div class="binary-btn btn-below" id="btn-silver-below" onclick="openOrderModal('SILVER', 'Below', 83, 66.828)">
+            <div class="binary-btn btn-below" id="btn-silver-below" onclick="openOrderModal('SILVER', 'Below')">
               <span>Below</span>
               <span style="opacity: 0.7;">·</span>
-              <span id="prob-15m-silver-below">83%</span>
+              <span id="prob-15m-silver-below">--%</span>
             </div>
           </div>
 
           <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 6px; font-size: 0.78rem; color: var(--text-muted);">
-            <span id="vol-15m-silver">$97,908 vol</span>
+            <span id="vol-15m-silver">Live Volume Stream</span>
             <button class="btn btn-cyan" style="padding: 5px 12px; font-size: 0.78rem;" onclick="triggerGeminiAgent('SILVER')">🤖 Gemini Analysis</button>
           </div>
           <div class="ai-agent-box" id="ai-box-silver">Evaluating candle momentum...</div>
@@ -863,7 +863,7 @@
     </div>
   </div>
 
-  <!-- VIEW 4: SPREADS & ARBITRAGE (SORTABLE DOM) -->
+  <!-- VIEW 4: SPREADS & ARBITRAGE (DYNAMIC DOM SORTING) -->
   <div class="tab-view" id="view-spreads">
     <div class="card">
       <div class="card-header">
@@ -871,7 +871,7 @@
         <span class="tag" style="background: #12281a; color: var(--accent-green);">227 Spreads Screened</span>
       </div>
       <div id="spreads-container" style="display: flex; flex-direction: column; gap: 10px;">
-        <div class="market-card sortable-card" data-roi="34.0" data-expiry="1730000000000">
+        <div class="market-card sortable-card" data-roi="34.0" data-expiry="1790000000000">
           <div class="market-card-head">
             <span>Fed Funds Rate Cut ≥ 25 bps Resolution</span>
             <span class="tag" style="background: #12281a; color: var(--accent-green);">+3.4% ARB</span>
@@ -881,7 +881,7 @@
             <span style="color: var(--accent-cyan); font-weight: 800;">+34.0% ROI (Risk-Free Net)</span>
           </div>
         </div>
-        <div class="market-card sortable-card" data-roi="28.0" data-expiry="1731000000000">
+        <div class="market-card sortable-card" data-roi="28.0" data-expiry="1791000000000">
           <div class="market-card-head">
             <span>US Core CPI Inflation &lt; 3.0% Annualized</span>
             <span class="tag" style="background: #12281a; color: var(--accent-green);">+2.8% ARB</span>
@@ -891,7 +891,7 @@
             <span style="color: var(--accent-cyan); font-weight: 800;">+28.0% ROI (Risk-Free Net)</span>
           </div>
         </div>
-        <div class="market-card sortable-card" data-roi="19.0" data-expiry="1732000000000">
+        <div class="market-card sortable-card" data-roi="19.0" data-expiry="1792000000000">
           <div class="market-card-head">
             <span>US Debt Ceiling Extension Resolution</span>
             <span class="tag" style="background: #12281a; color: var(--accent-green);">+1.9% ARB</span>
@@ -970,7 +970,7 @@
     </div>
   </div>
 
-  <!-- VIEW 6: SETTINGS (ISOLATED CREDENTIALS & ZOOM SLIDER) -->
+  <!-- VIEW 6: SETTINGS (ZOOM SLIDER & KEYS) -->
   <div class="tab-view" id="view-settings">
     <div class="card">
       <div class="card-header">
@@ -1047,7 +1047,7 @@
     </div>
   </div>
 
-  <!-- Bottom Navigation Bar (Streamlined to 5 Operations) -->
+  <!-- Bottom Navigation Bar (5 Primary Operations) -->
   <nav class="bottom-nav">
     <div class="nav-item active" onclick="switchNavTab('view-picks', this)">
       <span>🎯</span>
@@ -1084,7 +1084,7 @@
 
     <div>
       <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase;">Target Comparison</div>
-      <div style="font-size: 16px; font-weight: 900;" id="order-target-display">Target $4,343.61</div>
+      <div style="font-size: 16px; font-weight: 900;" id="order-target-display">Target Strike: Connecting...</div>
       <div style="font-size: 12px; margin-top: 2px;" id="order-side-display">Action: <strong style="color: var(--accent-green);">ABOVE (YES)</strong></div>
     </div>
 
@@ -1095,13 +1095,13 @@
 
     <div class="input-group">
       <label class="stat-label">Limit Price Cap (1¢ - 99¢)</label>
-      <input type="number" id="order-limit-price" value="89" min="1" max="99" oninput="calculateOrderEstimate()">
+      <input type="number" id="order-limit-price" value="50" min="1" max="99" oninput="calculateOrderEstimate()">
     </div>
 
     <div style="background: #070914; border: 1px solid var(--border-color); border-radius: 8px; padding: 12px; display: flex; flex-direction: column; gap: 6px;">
       <div style="display: flex; justify-content: space-between; font-size: 12px;">
         <span style="color: var(--text-muted);">Max Position Cost:</span>
-        <strong id="order-est-cost">$4.45</strong>
+        <strong id="order-est-cost">$2.50</strong>
       </div>
       <div style="display: flex; justify-content: space-between; font-size: 12px;">
         <span style="color: var(--text-muted);">Estimated Maker Fee:</span>
@@ -1109,7 +1109,7 @@
       </div>
       <div style="display: flex; justify-content: space-between; font-size: 13px; border-top: 1px dashed var(--border-color); padding-top: 6px;">
         <span style="color: var(--text-muted);">Potential Net Profit:</span>
-        <strong style="color: var(--accent-green);" id="order-est-profit">+$0.53 (+11.9%)</strong>
+        <strong style="color: var(--accent-green);" id="order-est-profit">+$2.48</strong>
       </div>
     </div>
 
@@ -1167,29 +1167,31 @@ function resetUiZoom() {
   if (slider) slider.value = 1.0;
 }
 
-// --- QUEUE POOLS (TOP 9 MATCHES) ---
+// --- DYNAMIC 2026 FORWARD RELATIVE QUEUE POOLS ---
+const nowMs = Date.now();
+
 let SPORTS_PICKS_POOL = [
-  { match: "Nationals @ Tigers — First 5 Under 4.5 Runs", book: "POLY.US", bookBg: "#1b1330", bookColor: "var(--accent-pink)", pick: "YES Under 4.5 F5 @ $0.78 (78% Implied)", roi: "+28.2% ROI", roiNum: 28.2, time: "Tomorrow 1:10 PM ET", expiry: 1727111400000 },
-  { match: "Blue Jays @ Orioles — Baltimore Orioles Moneyline", book: "KALSHI", bookBg: "#12281a", bookColor: "var(--accent-green)", pick: "YES Orioles ML @ $0.82 (82% Implied)", roi: "+22.0% ROI", roiNum: 22.0, time: "Tomorrow 1:35 PM ET", expiry: 1727112900000 },
-  { match: "NFL TNF: Falcons @ Packers — Over 44.5 Total Points", book: "POLY.US", bookBg: "#1b1330", bookColor: "var(--accent-pink)", pick: "YES Over 44.5 @ $0.84 (84% Implied)", roi: "+19.0% ROI", roiNum: 19.0, time: "Thursday 8:15 PM ET", expiry: 1727223300000 },
-  { match: "Royals @ Guardians — Cleveland Guardians ML", book: "KALSHI", bookBg: "#12281a", bookColor: "var(--accent-green)", pick: "YES Guardians ML @ $0.76 (76% Implied)", roi: "+31.5% ROI", roiNum: 31.5, time: "Tomorrow 1:10 PM ET", expiry: 1727111400000 },
-  { match: "Padres @ Dodgers — Shohei Ohtani 1+ Hits", book: "POLY.US", bookBg: "#1b1330", bookColor: "var(--accent-pink)", pick: "YES 1+ Hits @ $0.85 (85% Implied)", roi: "+17.6% ROI", roiNum: 17.6, time: "Tomorrow 10:10 PM ET", expiry: 1727143800000 },
-  { match: "Braves @ Mets — First 5 Under 5.5 Runs", book: "POLY.US", bookBg: "#1b1330", bookColor: "var(--accent-pink)", pick: "YES Under 5.5 F5 @ $0.81 (81% Implied)", roi: "+23.4% ROI", roiNum: 23.4, time: "Tomorrow 7:10 PM ET", expiry: 1727133000000 },
-  { match: "Twins @ Red Sox — Boston Red Sox +1.5 Spread", book: "KALSHI", bookBg: "#12281a", bookColor: "var(--accent-green)", pick: "YES Sox +1.5 @ $0.87 (87% Implied)", roi: "+14.9% ROI", roiNum: 14.9, time: "Tomorrow 7:10 PM ET", expiry: 1727133000000 },
-  { match: "Phillies @ Cubs — Zack Wheeler 6+ Strikeouts", book: "POLY.US", bookBg: "#1b1330", bookColor: "var(--accent-pink)", pick: "YES 6+ Ks @ $0.79 (79% Implied)", roi: "+26.5% ROI", roiNum: 26.5, time: "Thursday 2:20 PM ET", expiry: 1727202000000 },
-  { match: "Cardinals @ Rockies — Total Runs Under 12.5", book: "KALSHI", bookBg: "#12281a", bookColor: "var(--accent-green)", pick: "YES Under 12.5 @ $0.83 (83% Implied)", roi: "+20.5% ROI", roiNum: 20.5, time: "Tomorrow 3:10 PM ET", expiry: 1727118600000 }
+  { match: "Nationals @ Tigers — First 5 Under 4.5 Runs", book: "POLY.US", bookBg: "#1b1330", bookColor: "var(--accent-pink)", pick: "YES Under 4.5 F5 @ $0.78 (78% Implied)", roi: "+28.2% ROI", roiNum: 28.2, time: "Tomorrow 1:10 PM ET", expiry: nowMs + (15 * 3600 * 1000) },
+  { match: "Blue Jays @ Orioles — Baltimore Orioles Moneyline", book: "KALSHI", bookBg: "#12281a", bookColor: "var(--accent-green)", pick: "YES Orioles ML @ $0.82 (82% Implied)", roi: "+22.0% ROI", roiNum: 22.0, time: "Tomorrow 1:35 PM ET", expiry: nowMs + (15.5 * 3600 * 1000) },
+  { match: "NFL TNF: Falcons @ Packers — Over 44.5 Total Points", book: "POLY.US", bookBg: "#1b1330", bookColor: "var(--accent-pink)", pick: "YES Over 44.5 @ $0.84 (84% Implied)", roi: "+19.0% ROI", roiNum: 19.0, time: "Thursday 8:15 PM ET", expiry: nowMs + (46 * 3600 * 1000) },
+  { match: "Royals @ Guardians — Cleveland Guardians ML", book: "KALSHI", bookBg: "#12281a", bookColor: "var(--accent-green)", pick: "YES Guardians ML @ $0.76 (76% Implied)", roi: "+31.5% ROI", roiNum: 31.5, time: "Tomorrow 1:10 PM ET", expiry: nowMs + (15 * 3600 * 1000) },
+  { match: "Padres @ Dodgers — Shohei Ohtani 1+ Hits", book: "POLY.US", bookBg: "#1b1330", bookColor: "var(--accent-pink)", pick: "YES 1+ Hits @ $0.85 (85% Implied)", roi: "+17.6% ROI", roiNum: 17.6, time: "Tomorrow 10:10 PM ET", expiry: nowMs + (24 * 3600 * 1000) },
+  { match: "Braves @ Mets — First 5 Under 5.5 Runs", book: "POLY.US", bookBg: "#1b1330", bookColor: "var(--accent-pink)", pick: "YES Under 5.5 F5 @ $0.81 (81% Implied)", roi: "+23.4% ROI", roiNum: 23.4, time: "Tomorrow 7:10 PM ET", expiry: nowMs + (21 * 3600 * 1000) },
+  { match: "Twins @ Red Sox — Boston Red Sox +1.5 Spread", book: "KALSHI", bookBg: "#12281a", bookColor: "var(--accent-green)", pick: "YES Sox +1.5 @ $0.87 (87% Implied)", roi: "+14.9% ROI", roiNum: 14.9, time: "Tomorrow 7:10 PM ET", expiry: nowMs + (21 * 3600 * 1000) },
+  { match: "Phillies @ Cubs — Zack Wheeler 6+ Strikeouts", book: "POLY.US", bookBg: "#1b1330", bookColor: "var(--accent-pink)", pick: "YES 6+ Ks @ $0.79 (79% Implied)", roi: "+26.5% ROI", roiNum: 26.5, time: "Thursday 2:20 PM ET", expiry: nowMs + (40 * 3600 * 1000) },
+  { match: "Cardinals @ Rockies — Total Runs Under 12.5", book: "KALSHI", bookBg: "#12281a", bookColor: "var(--accent-green)", pick: "YES Under 12.5 @ $0.83 (83% Implied)", roi: "+20.5% ROI", roiNum: 20.5, time: "Tomorrow 3:10 PM ET", expiry: nowMs + (17 * 3600 * 1000) }
 ];
 
 let ESPORTS_PICKS_POOL = [
-  { match: "CS2: G2 Ares vs INOX Division (BO3)", book: "POLY.US", bookBg: "#1b1330", bookColor: "var(--accent-pink)", pick: "YES G2 Ares Winner @ $0.53 (53% Implied)", roi: "+88.7% ROI", roiNum: 88.7, time: "Tomorrow 4:00 AM ET", expiry: 1727078400000 },
-  { match: "CS2: Optibet vs Four Magic (BO3)", book: "POLY.US", bookBg: "#1b1330", bookColor: "var(--accent-pink)", pick: "YES Optibet Map 1 @ $0.71 (71% Implied)", roi: "+40.8% ROI", roiNum: 40.8, time: "Tomorrow 11:15 AM ET", expiry: 1727104500000 },
-  { match: "CS2: Procyon Gaming vs ODDIK", book: "KALSHI", bookBg: "#12281a", bookColor: "var(--accent-green)", pick: "YES ODDIK Winner @ $0.80 (80% Implied)", roi: "+25.0% ROI", roiNum: 25.0, time: "Tomorrow 5:00 PM ET", expiry: 1727125200000 },
-  { match: "Dota 2: Team Spirit vs Tundra Esports", book: "POLY.US", bookBg: "#1b1330", bookColor: "var(--accent-pink)", pick: "YES Spirit Map 1 @ $0.65 (65% Implied)", roi: "+53.8% ROI", roiNum: 53.8, time: "Tomorrow 8:00 AM ET", expiry: 1727092800000 },
-  { match: "CS2: SAW vs Cloud9 — Map 1 Rounds Handicap", book: "KALSHI", bookBg: "#12281a", bookColor: "var(--accent-green)", pick: "YES SAW +3.5 Rounds @ $0.82", roi: "+22.0% ROI", roiNum: 22.0, time: "Tomorrow 1:30 PM ET", expiry: 1727112600000 },
-  { match: "LoL Worlds: Bilibili Gaming vs T1", book: "POLY.US", bookBg: "#1b1330", bookColor: "var(--accent-pink)", pick: "YES Match Over 3.5 Maps @ $0.74", roi: "+35.1% ROI", roiNum: 35.1, time: "Thursday 10:00 AM ET", expiry: 1727186400000 },
-  { match: "CS2: Astralis vs FaZe Clan (BO3)", book: "KALSHI", bookBg: "#12281a", bookColor: "var(--accent-green)", pick: "YES FaZe Clan ML @ $0.77 (77% Implied)", roi: "+29.8% ROI", roiNum: 29.8, time: "Thursday 1:00 PM ET", expiry: 1727197200000 },
-  { match: "Valorant: Sentinels vs Gen.G (Champions)", book: "POLY.US", bookBg: "#1b1330", bookColor: "var(--accent-pink)", pick: "YES Sentinels Map 1 @ $0.68", roi: "+47.0% ROI", roiNum: 47.0, time: "Thursday 4:00 PM ET", expiry: 1727208000000 },
-  { match: "Dota 2: BetBoom vs Gaimin Gladiators", book: "POLY.US", bookBg: "#1b1330", bookColor: "var(--accent-pink)", pick: "YES GG Match Winner @ $0.83", roi: "+20.5% ROI", roiNum: 20.5, time: "Friday 9:00 AM ET", expiry: 1727269200000 }
+  { match: "CS2: G2 Ares vs INOX Division (BO3)", book: "POLY.US", bookBg: "#1b1330", bookColor: "var(--accent-pink)", pick: "YES G2 Ares Winner @ $0.53 (53% Implied)", roi: "+88.7% ROI", roiNum: 88.7, time: "Tomorrow 4:00 AM ET", expiry: nowMs + (6 * 3600 * 1000) },
+  { match: "CS2: Optibet vs Four Magic (BO3)", book: "POLY.US", bookBg: "#1b1330", bookColor: "var(--accent-pink)", pick: "YES Optibet Map 1 @ $0.71 (71% Implied)", roi: "+40.8% ROI", roiNum: 40.8, time: "Tomorrow 11:15 AM ET", expiry: nowMs + (13 * 3600 * 1000) },
+  { match: "CS2: Procyon Gaming vs ODDIK", book: "KALSHI", bookBg: "#12281a", bookColor: "var(--accent-green)", pick: "YES ODDIK Winner @ $0.80 (80% Implied)", roi: "+25.0% ROI", roiNum: 25.0, time: "Tomorrow 5:00 PM ET", expiry: nowMs + (19 * 3600 * 1000) },
+  { match: "Dota 2: Team Spirit vs Tundra Esports", book: "POLY.US", bookBg: "#1b1330", bookColor: "var(--accent-pink)", pick: "YES Spirit Map 1 @ $0.65 (65% Implied)", roi: "+53.8% ROI", roiNum: 53.8, time: "Tomorrow 8:00 AM ET", expiry: nowMs + (10 * 3600 * 1000) },
+  { match: "CS2: SAW vs Cloud9 — Map 1 Rounds Handicap", book: "KALSHI", bookBg: "#12281a", bookColor: "var(--accent-green)", pick: "YES SAW +3.5 Rounds @ $0.82", roi: "+22.0% ROI", roiNum: 22.0, time: "Tomorrow 1:30 PM ET", expiry: nowMs + (15.5 * 3600 * 1000) },
+  { match: "LoL Worlds: Bilibili Gaming vs T1", book: "POLY.US", bookBg: "#1b1330", bookColor: "var(--accent-pink)", pick: "YES Match Over 3.5 Maps @ $0.74", roi: "+35.1% ROI", roiNum: 35.1, time: "Thursday 10:00 AM ET", expiry: nowMs + (36 * 3600 * 1000) },
+  { match: "CS2: Astralis vs FaZe Clan (BO3)", book: "KALSHI", bookBg: "#12281a", bookColor: "var(--accent-green)", pick: "YES FaZe Clan ML @ $0.77 (77% Implied)", roi: "+29.8% ROI", roiNum: 29.8, time: "Thursday 1:00 PM ET", expiry: nowMs + (39 * 3600 * 1000) },
+  { match: "Valorant: Sentinels vs Gen.G (Champions)", book: "POLY.US", bookBg: "#1b1330", bookColor: "var(--accent-pink)", pick: "YES Sentinels Map 1 @ $0.68", roi: "+47.0% ROI", roiNum: 47.0, time: "Thursday 4:00 PM ET", expiry: nowMs + (42 * 3600 * 1000) },
+  { match: "Dota 2: BetBoom vs Gaimin Gladiators", book: "POLY.US", bookBg: "#1b1330", bookColor: "var(--accent-pink)", pick: "YES GG Match Winner @ $0.83", roi: "+20.5% ROI", roiNum: 20.5, time: "Friday 9:00 AM ET", expiry: nowMs + (60 * 3600 * 1000) }
 ];
 
 let sportsPageIndex = 0;
@@ -1248,9 +1250,9 @@ function startCarouselRotators() {
 }
 
 function refreshScreenedSlatePool() {
-  const now = Date.now();
-  SPORTS_PICKS_POOL = SPORTS_PICKS_POOL.filter(m => m.expiry > now);
-  ESPORTS_PICKS_POOL = ESPORTS_PICKS_POOL.filter(m => m.expiry > now);
+  const currentNow = Date.now();
+  SPORTS_PICKS_POOL = SPORTS_PICKS_POOL.filter(m => m.expiry > currentNow);
+  ESPORTS_PICKS_POOL = ESPORTS_PICKS_POOL.filter(m => m.expiry > currentNow);
   sportsPageIndex = 0;
   esportsPageIndex = 0;
   renderCarouselPage('sports-picks-container', SPORTS_PICKS_POOL, 0);
@@ -1264,7 +1266,6 @@ function switchDeskFilter(desk, button) {
   document.querySelectorAll('.desk-btn').forEach(b => b.classList.remove('active'));
   if (button) button.classList.add('active');
 
-  // Ensure user is on Desk tab when using top desk pills
   switchNavTab('view-picks', document.querySelectorAll('.bottom-nav .nav-item')[0], false);
 
   const sportsSec = document.getElementById('section-sports');
@@ -1273,7 +1274,6 @@ function switchDeskFilter(desk, button) {
   const kalshiSec = document.getElementById('section-kalshi-feed');
   const fleetSec = document.getElementById('section-fleet-feed');
 
-  // Strict Contextual Visibility
   sportsSec.style.display = 'none';
   esportsSec.style.display = 'none';
   polySec.style.display = 'none';
@@ -1303,7 +1303,6 @@ function switchSortOrder(order, button) {
   const activeView = document.querySelector('.tab-view.active');
   if (!activeView) return;
 
-  // 1. Sort Desk pools if on picks view and Top EV is showing
   if (activeView.id === 'view-picks' && document.getElementById('section-sports').style.display !== 'none') {
     clearInterval(sportsTimer);
     clearInterval(esportsTimer);
@@ -1325,7 +1324,6 @@ function switchSortOrder(order, button) {
     updateDots('esports-carousel-dots', 0);
   }
 
-  // 2. Universal DOM sorter for all sortable card containers
   const containers = activeView.querySelectorAll('#macro-picks-container, #spreads-container, #poly-live-feed, #kalshi-live-feed');
   containers.forEach(container => {
     const cards = Array.from(container.querySelectorAll('.sortable-card'));
@@ -1344,7 +1342,7 @@ function switchSortOrder(order, button) {
   });
 }
 
-// --- GLOBAL BOTTOM NAVIGATION (WITH VENUE ISOLATION) ---
+// --- GLOBAL BOTTOM NAVIGATION ---
 function switchNavTab(viewId, element, updateTopBar = true) {
   document.querySelectorAll('.tab-view').forEach(v => v.classList.remove('active'));
   document.querySelectorAll('.bottom-nav .nav-item').forEach(n => n.classList.remove('active'));
@@ -1354,22 +1352,17 @@ function switchNavTab(viewId, element, updateTopBar = true) {
 
   const topDeskNav = document.getElementById('top-desk-nav');
 
-  // Contextual Isolation: Hide unrelated top filters when on dedicated tabs
   if (viewId === 'view-perps') {
-    // Pure Kalshi Perps View: hide top Poly/Desk nav bar
     if (topDeskNav) topDeskNav.style.display = 'none';
     pollLive15MinMarkets();
   } else if (viewId === 'view-macro' || viewId === 'view-spreads' || viewId === 'view-vault' || viewId === 'view-settings') {
-    // Non-desk venues: hide top desk nav bar
     if (topDeskNav) topDeskNav.style.display = 'none';
     if (viewId === 'view-vault') calculateVaultEarnings();
   } else {
-    // Desk view: restore top venue switcher
     if (topDeskNav) topDeskNav.style.display = 'flex';
   }
 }
 
-// PERPETUALS SUB-DESK CONTROLS
 function switchPerpSubCategory(sub) {
   document.getElementById('perp-sub-crypto').style.display = sub === 'crypto' ? 'flex' : 'none';
   document.getElementById('perp-sub-commodities').style.display = sub === 'commodities' ? 'flex' : 'none';
@@ -1398,17 +1391,21 @@ function updateSynchronized15MinTimers() {
   });
 }
 
-// --- ORDER EXECUTION MODAL ---
+// --- DYNAMIC ORDER EXECUTION MODAL ---
 let activeOrderContext = null;
 
-function openOrderModal(assetKey, side, currentProb, targetPrice) {
+function openOrderModal(assetKey, side) {
+  const currentData = live15MinState[assetKey] || { target: 0, spot: 0, aboveProb: 50, belowProb: 50 };
+  const currentProb = side === 'Above' ? currentData.aboveProb : currentData.belowProb;
+  const targetPrice = currentData.target;
+
   activeOrderContext = { assetKey, side, currentProb, targetPrice };
   document.getElementById('order-modal-title').textContent = `Kalshi ${assetKey} 15-Min Order`;
-  document.getElementById('order-target-display').textContent = `Target Strike: $${targetPrice}`;
+  document.getElementById('order-target-display').textContent = `Target Strike: $${targetPrice > 0 ? targetPrice : 'Connecting...'}`;
   const sideEl = document.getElementById('order-side-display');
   sideEl.innerHTML = `Action: <strong style="color: ${side === 'Above' ? 'var(--accent-green)' : 'var(--accent-red)'};">${side.toUpperCase()} (${side === 'Above' ? 'YES' : 'NO'})</strong>`;
   
-  document.getElementById('order-limit-price').value = currentProb;
+  document.getElementById('order-limit-price').value = currentProb > 0 ? currentProb : 50;
   document.getElementById('order-qty').value = 5;
   calculateOrderEstimate();
 
@@ -1455,8 +1452,8 @@ function submitKalshiOrder() {
 
 // --- LIVE 15-MIN DATA STREAMING & GEMINI GLOW ---
 const live15MinState = {
-  GOLD: { ticker: "KXGOLD15M", title: "Gold 15m Close", target: 4343.61, spot: 4344.23, aboveProb: 89, belowProb: 11, vol: "$224,205 vol" },
-  SILVER: { ticker: "KXSLV15M", title: "Silver 15m Bracket", target: 66.828, spot: 66.780, aboveProb: 17, belowProb: 83, vol: "$97,908 vol" }
+  GOLD: { ticker: "KXGOLD15M", title: "Gold 15m Close", target: 0, spot: 0, aboveProb: 0, belowProb: 0, vol: "Syncing..." },
+  SILVER: { ticker: "KXSLV15M", title: "Silver 15m Bracket", target: 0, spot: 0, aboveProb: 0, belowProb: 0, vol: "Syncing..." }
 };
 
 async function pollLive15MinMarkets() {
@@ -1474,8 +1471,8 @@ async function pollLive15MinMarkets() {
         else if (ticker.includes("SLV")) assetKey = "SILVER";
 
         if (assetKey && live15MinState[assetKey]) {
-          const target = parseFloat(m.floor_strike || m.strike_price || m.target_price) || live15MinState[assetKey].target;
-          const spot = parseFloat(m.last_price_dollars || m.current_value || m.index_price) || live15MinState[assetKey].spot;
+          const target = parseFloat(m.floor_strike || m.strike_price || m.target_price) || 0;
+          const spot = parseFloat(m.last_price_dollars || m.current_value || m.index_price) || 0;
           const aboveProb = Math.round((m.yes_bid || m.last_price || 50));
           const belowProb = 100 - aboveProb;
 
@@ -1494,32 +1491,30 @@ async function pollLive15MinMarkets() {
 }
 
 function renderLive15MinUI() {
-  const g = live15MinState.GOLD;
-  const gDelta = g.spot - g.target;
-  document.getElementById('val-15m-gold-target').textContent = `Target $${g.target.toFixed(2)}`;
-  document.getElementById('val-15m-gold-spot').textContent = `Current $${g.spot.toFixed(2)}`;
-  const gDeltaEl = document.getElementById('val-15m-gold-delta');
-  gDeltaEl.textContent = `${gDelta >= 0 ? '+' : ''}$${gDelta.toFixed(2)} ${gDelta >= 0 ? 'above' : 'below'} target`;
-  gDeltaEl.className = `delta-indicator ${gDelta >= 0 ? 'delta-above' : 'delta-below'}`;
-  document.getElementById('prob-15m-gold-above').textContent = `${g.aboveProb}%`;
-  document.getElementById('prob-15m-gold-below').textContent = `${g.belowProb}%`;
-  document.getElementById('vol-15m-gold').textContent = g.vol;
+  const updateCard = (key, targetId, spotId, deltaId, aboveId, belowId, volId) => {
+    const d = live15MinState[key];
+    if (!d || d.target === 0) return;
+    const delta = d.spot - d.target;
+    document.getElementById(targetId).textContent = `Target $${d.target.toFixed(2)}`;
+    document.getElementById(spotId).textContent = `Current $${d.spot.toFixed(2)}`;
+    const deltaEl = document.getElementById(deltaId);
+    deltaEl.textContent = `${delta >= 0 ? '+' : ''}$${delta.toFixed(2)} ${delta >= 0 ? 'above' : 'below'} target`;
+    deltaEl.className = `delta-indicator ${delta >= 0 ? 'delta-above' : 'delta-below'}`;
+    document.getElementById(aboveId).textContent = `${d.aboveProb}%`;
+    document.getElementById(belowId).textContent = `${d.belowProb}%`;
+    document.getElementById(volId).textContent = d.vol;
+  };
 
-  const s = live15MinState.SILVER;
-  const sDelta = s.spot - s.target;
-  document.getElementById('val-15m-silver-target').textContent = `Target $${s.target.toFixed(3)}`;
-  document.getElementById('val-15m-silver-spot').textContent = `Current $${s.spot.toFixed(3)}`;
-  const sDeltaEl = document.getElementById('val-15m-silver-delta');
-  sDeltaEl.textContent = `${sDelta >= 0 ? '+' : ''}$${sDelta.toFixed(3)} ${sDelta >= 0 ? 'above' : 'below'} target`;
-  sDeltaEl.className = `delta-indicator ${sDelta >= 0 ? 'delta-above' : 'delta-below'}`;
-  document.getElementById('prob-15m-silver-above').textContent = `${s.aboveProb}%`;
-  document.getElementById('prob-15m-silver-below').textContent = `${s.belowProb}%`;
-  document.getElementById('vol-15m-silver').textContent = s.vol;
+  updateCard('GOLD', 'val-15m-gold-target', 'val-15m-gold-spot', 'val-15m-gold-delta', 'prob-15m-gold-above', 'prob-15m-gold-below', 'vol-15m-gold');
+  updateCard('SILVER', 'val-15m-silver-target', 'val-15m-silver-spot', 'val-15m-silver-delta', 'prob-15m-silver-above', 'prob-15m-silver-below', 'vol-15m-silver');
 }
 
 function triggerGeminiAgent(assetKey) {
   const item = live15MinState[assetKey];
-  if (!item) return;
+  if (!item || item.target === 0) {
+    alert("Streaming market data... Please retry in a moment.");
+    return;
+  }
   const boxId = assetKey === 'GOLD' ? 'ai-box-gold' : 'ai-box-silver';
   runGeminiCopilot(assetKey, item.ticker, item.title, item.target, item.spot, boxId);
 }
@@ -1589,18 +1584,18 @@ async function runGeminiCopilot(assetKey, ticker, title, targetPrice, currentPri
   }
 }
 
-// --- DYNAMIC POLYMARKET FEED (10-MARKET CATALOG) ---
+// --- DYNAMIC POLYMARKET FEED ---
 const POLYMARKET_CATALOG = [
-  { title: "Fed Interest Rate Cut in 2026?", yesPrice: 0.84, roi: 19.0, vol: "$3.2M", exp: 1730000000000 },
-  { title: "US Presidential Approval Rating ≥ 50%", yesPrice: 0.46, roi: 117.4, vol: "$1.1M", exp: 1729000000000 },
-  { title: "US Debt Ceiling Extension Passed", yesPrice: 0.92, roi: 8.7, vol: "$2.8M", exp: 1732000000000 },
-  { title: "Bitcoin Above $100k Before Q4 2026", yesPrice: 0.62, roi: 61.3, vol: "$4.5M", exp: 1735689600000 },
-  { title: "Ethereum Above $4,000 in 2026", yesPrice: 0.41, roi: 143.9, vol: "$1.8M", exp: 1735689600000 },
-  { title: "Solana Market Cap Flip BNB in 2026", yesPrice: 0.38, roi: 163.1, vol: "$850k", exp: 1735689600000 },
-  { title: "SpaceX Starship Orbital Landing Success", yesPrice: 0.74, roi: 35.1, vol: "$1.4M", exp: 1729500000000 },
-  { title: "OpenAI Announces GPT-5 Release", yesPrice: 0.69, roi: 44.9, vol: "$2.1M", exp: 1731500000000 },
-  { title: "US Core CPI &lt; 2.5% in Next Release", yesPrice: 0.58, roi: 72.4, vol: "$720k", exp: 1728500000000 },
-  { title: "ECB Lowers Benchmark Rates Before Fed", yesPrice: 0.81, roi: 23.4, vol: "$990k", exp: 1730500000000 }
+  { title: "Fed Interest Rate Cut in 2026?", yesPrice: 0.84, roi: 19.0, vol: "$3.2M", exp: nowMs + 86400000 * 30 },
+  { title: "US Presidential Approval Rating ≥ 50%", yesPrice: 0.46, roi: 117.4, vol: "$1.1M", exp: nowMs + 86400000 * 20 },
+  { title: "US Debt Ceiling Extension Passed", yesPrice: 0.92, roi: 8.7, vol: "$2.8M", exp: nowMs + 86400000 * 45 },
+  { title: "Bitcoin Above $100k Before Q4 2026", yesPrice: 0.62, roi: 61.3, vol: "$4.5M", exp: nowMs + 86400000 * 60 },
+  { title: "Ethereum Above $4,000 in 2026", yesPrice: 0.41, roi: 143.9, vol: "$1.8M", exp: nowMs + 86400000 * 60 },
+  { title: "Solana Market Cap Flip BNB in 2026", yesPrice: 0.38, roi: 163.1, vol: "$850k", exp: nowMs + 86400000 * 60 },
+  { title: "SpaceX Starship Orbital Landing Success", yesPrice: 0.74, roi: 35.1, vol: "$1.4M", exp: nowMs + 86400000 * 15 },
+  { title: "OpenAI Announces GPT-5 Release", yesPrice: 0.69, roi: 44.9, vol: "$2.1M", exp: nowMs + 86400000 * 40 },
+  { title: "US Core CPI &lt; 2.5% in Next Release", yesPrice: 0.58, roi: 72.4, vol: "$720k", exp: nowMs + 86400000 * 10 },
+  { title: "ECB Lowers Benchmark Rates Before Fed", yesPrice: 0.81, roi: 23.4, vol: "$990k", exp: nowMs + 86400000 * 35 }
 ];
 
 async function fetchLivePoly() {
@@ -1647,13 +1642,13 @@ async function fetchLivePoly() {
   `).join('');
 }
 
-// --- KALSHI DOMESTIC FEED (FULLY SORTABLE DOM) ---
+// --- KALSHI DOMESTIC FEED (SORTABLE DOM) ---
 const KALSHI_DOMESTIC_CATALOG = [
-  { title: "Fed Funds Target Rate Cut ≥ 25 bps", vol: "$1.42M", pick: "YES @ $0.84", roi: 19.0, exp: 1730000000000 },
-  { title: "US Core CPI Inflation < 3.0% Annualized", vol: "$890k", pick: "YES @ $0.68", roi: 47.0, exp: 1731000000000 },
-  { title: "US Q3 GDP Growth ≥ 2.8% Annualized", vol: "$650k", pick: "YES @ $0.72", roi: 38.9, exp: 1730500000000 },
-  { title: "Unemployment Rate > 4.2% Next Print", vol: "$410k", pick: "YES @ $0.55", roi: 81.8, exp: 1729000000000 },
-  { title: "S&P 500 Closes Above 5,800 End of Month", vol: "$1.85M", pick: "YES @ $0.81", roi: 23.5, exp: 1729800000000 }
+  { title: "Fed Funds Target Rate Cut ≥ 25 bps", vol: "$1.42M", pick: "YES @ $0.84", roi: 19.0, exp: nowMs + 86400000 * 30 },
+  { title: "US Core CPI Inflation < 3.0% Annualized", vol: "$890k", pick: "YES @ $0.68", roi: 47.0, exp: nowMs + 86400000 * 40 },
+  { title: "US Q3 GDP Growth ≥ 2.8% Annualized", vol: "$650k", pick: "YES @ $0.72", roi: 38.9, exp: nowMs + 86400000 * 35 },
+  { title: "Unemployment Rate > 4.2% Next Print", vol: "$410k", pick: "YES @ $0.55", roi: 81.8, exp: nowMs + 86400000 * 15 },
+  { title: "S&P 500 Closes Above 5,800 End of Month", vol: "$1.85M", pick: "YES @ $0.81", roi: 23.5, exp: nowMs + 86400000 * 25 }
 ];
 
 function renderKalshiDesk() {
