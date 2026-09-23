@@ -477,7 +477,7 @@
     <span style="font-size: 0.75rem; color: var(--text-muted); text-decoration: underline; cursor: pointer; white-space: nowrap; margin-left: 8px;" onclick="promptAdPasskey()">Remove Ads ($5)</span>
   </div>
 
-  <!-- Dynamic Platform / Desk Switcher Bar -->
+  <!-- Desk Switcher Bar -->
   <div class="desk-nav" id="top-desk-nav">
     <button class="desk-btn active" id="desk-btn-all" onclick="switchDeskFilter('all', this)">🔥 Top EV Picks</button>
     <button class="desk-btn" id="desk-btn-poly" onclick="switchDeskFilter('poly', this)">🟣 Polymarket</button>
@@ -793,7 +793,7 @@
     </div>
   </div>
 
-  <!-- VIEW 6: SETTINGS (INCLUDES LARGE ORDER CEILING & CAPITAL SALVAGE) -->
+  <!-- VIEW 6: SETTINGS -->
   <div class="tab-view" id="view-settings">
     <div class="card">
       <div class="card-header">
@@ -811,14 +811,14 @@
       <button class="btn" style="width: 100%; background: #19223c;" onclick="resetUiZoom()">Reset to Default (100%)</button>
     </div>
 
-    <!-- Core Financial Philosophy, Risk Safeguards & Autonomous Salvage -->
+    <!-- Core Financial Philosophy, Risk Safeguards & Universal Autonomous Salvage -->
     <div class="card">
       <div class="card-header">
-        <span>🛡️ Financial Philosophy &amp; Salvage Guardrails</span>
+        <span>🛡️ Universal Mathematical Salvage &amp; Philosophy</span>
         <span class="tag" style="color: var(--accent-gold);">Enforced</span>
       </div>
       <p style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 12px; line-height: 1.4;">
-        Set your safety limits. Orders larger than this ceiling will halt and require typing <code>CONFIRM</code> before dispatch.
+        Configure zero-path capital salvage limits across all sports and market venues:
       </p>
       
       <div class="input-group">
@@ -833,7 +833,7 @@
 
       <div style="display: flex; align-items: center; gap: 8px; margin-top: 6px;">
         <input type="checkbox" id="autonomous-salvage-toggle" checked onchange="saveFinancialSettings()" style="width: 16px; height: 16px;">
-        <label for="autonomous-salvage-toggle" style="font-size: 0.75rem; color: #fff; font-weight: bold;">Enable Autonomous Capital Salvage (Auto-Sell on Zero-Path)</label>
+        <label for="autonomous-salvage-toggle" style="font-size: 0.75rem; color: #fff; font-weight: bold;">Enable Autonomous Capital Salvage (Auto-Exit on Mathematical Zero-Path)</label>
       </div>
 
       <div style="display: flex; align-items: center; gap: 8px; margin-top: 6px;">
@@ -914,7 +914,7 @@
     </div>
   </div>
 
-  <!-- Bottom Navigation Bar (5 Primary Operations) -->
+  <!-- Bottom Navigation Bar -->
   <nav class="bottom-nav">
     <div class="nav-item active" onclick="switchNavTab('view-picks', this)">
       <span>🎯</span>
@@ -980,7 +980,6 @@
       </div>
     </div>
 
-    <!-- Large Order Affirmation Step -->
     <div id="large-order-warning" style="display: none; background: rgba(255, 51, 68, 0.15); border: 1px solid var(--accent-red); border-radius: 8px; padding: 10px;">
       <div style="font-weight: 800; color: var(--accent-red); font-size: 11px;">⚠️ LARGE TRANSACTION DETECTED</div>
       <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">
@@ -996,7 +995,7 @@
   </div>
 </div>
 
-<!-- SETUP INSTRUCTIONS MODAL SHEET WITH 1-TAP SHORTCUT INSTALLATION -->
+<!-- SETUP MODAL SHEET -->
 <div id="setup-modal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 10000; padding: 20px; overflow-y: auto; justify-content: center; align-items: center;">
   <div style="background: #0d1224; border: 1px solid var(--border-color); border-radius: 14px; max-width: 440px; width: 100%; padding: 18px; color: #fff; font-size: 12px; display: flex; flex-direction: column; gap: 14px;">
     <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">
@@ -1025,7 +1024,7 @@
       <button class="btn btn-gold" style="width: 100%; margin-top: 6px; padding: 6px; font-size: 11px;" onclick="copyEndpointUrl()">Copy Private URL</button>
     </div>
 
-    <button class="btn" style="width: 100%; background: #19223c;" onclick="closeSetupModal()">Got It</button>
+    <button class="btn" style="width: 100%; background: #19223c;" margin-top: 4px;" onclick="closeSetupModal()">Got It</button>
   </div>
 </div>
 
@@ -1094,7 +1093,7 @@ function isAutonomousSalvageEnabled() {
   return localStorage.getItem('cosmic_autonomous_salvage') !== 'false';
 }
 
-// --- DYNAMIC 2026 FORWARD QUEUE POOLS ---
+// --- DYNAMIC 2026 QUEUE POOLS ---
 const nowMs = Date.now();
 
 let SPORTS_PICKS_POOL = [
@@ -1692,7 +1691,7 @@ function checkAdState() {
   }
 }
 
-// --- SETUP MODAL & 1-TAP SHORTCUT GENERATOR ---
+// --- SETUP MODAL & SHORTCUT ---
 function openSetupModal() {
   const uuid = getOrCreateClientUuid();
   const endpointEl = document.getElementById('modal-endpoint-copy');
@@ -1907,87 +1906,116 @@ function playAlertChime() {
   } catch (e) {}
 }
 
-// --- PROGRAMMATIC ELIMINATION & AUTONOMOUS SALVAGE ENGINE ---
+// --- UNIVERSAL MATHEMATICAL ELIMINATION & SALVAGE ENGINE ---
 async function verifyAllLivePositions() {
   const tickets = loadLocalFleetTickets();
   if (!tickets || tickets.length === 0) return;
 
   let stateChanged = false;
 
+  // Poll all live feeds concurrently
+  const [mlbRes, nflRes, nbaRes] = await Promise.all([
+    fetch("/api/verify/mlb").catch(() => null),
+    fetch("/api/verify/nfl").catch(() => null),
+    fetch("/api/verify/nba").catch(() => null)
+  ]);
+
+  const mlbData = mlbRes && mlbRes.ok ? await mlbRes.json() : null;
+  const nflData = nflRes && nflRes.ok ? await nflRes.json() : null;
+  const nbaData = nbaRes && nbaRes.ok ? await nbaRes.json() : null;
+
+  const mlbGames = mlbData?.dates?.[0]?.games || [];
+  const nflGames = nflData?.events || [];
+  const nbaGames = nbaData?.events || [];
+
   for (let ticket of tickets) {
     if (ticket.settled) continue;
+    const rawLower = (ticket.raw || "").toLowerCase();
 
-    // MLB Real-Time Processing
-    if (/mlb|baseball|phillies|brewers|yankees|rangers|mets/i.test(ticket.raw)) {
-      try {
-        const res = await fetch("/api/verify/mlb");
-        if (!res.ok) continue;
-        const data = await res.json();
-        const games = data.dates?.[0]?.games || [];
+    // 1. MLB Verification Loop
+    for (const game of mlbGames) {
+      const home = game.teams.home.team.name.toLowerCase();
+      const away = game.teams.away.team.name.toLowerCase();
 
-        games.forEach(game => {
-          const home = game.teams.home.team.name.toLowerCase();
-          const away = game.teams.away.team.name.toLowerCase();
-          const rawLower = ticket.raw.toLowerCase();
+      if (rawLower.includes(home) || rawLower.includes(away)) {
+        const isFinal = game.status.abstractGameState === "Final";
+        const homeScore = game.teams.home.score;
+        const awayScore = game.teams.away.score;
+        const totalScore = homeScore + awayScore;
+        const inning = game.linescore?.currentInning || 1;
+        const isBottom = game.linescore?.isTopInning === false;
+        const outs = game.linescore?.outs || 0;
+        const isHome = rawLower.includes(home);
+        const diff = isHome ? (homeScore - awayScore) : (awayScore - homeScore);
 
-          if (rawLower.includes(home) || rawLower.includes(away)) {
-            const isFinal = game.status.abstractGameState === "Final";
-            const homeScore = game.teams.home.score;
-            const awayScore = game.teams.away.score;
-            const totalScore = homeScore + awayScore;
-            const inning = game.linescore?.currentInning || 1;
-            const isBottom = game.linescore?.isTopInning === false;
-            const outs = game.linescore?.outs || 0;
-            const diff = homeScore - awayScore;
-
-            if (isFinal) {
-              ticket.settled = true;
-              if (ticket.raw.includes("+2.5")) {
-                const teamDiff = (rawLower.includes(home) ? homeScore : awayScore) - (rawLower.includes(home) ? awayScore : homeScore);
-                ticket.won = (teamDiff + 2.5) > 0;
-              }
-              ticket.danger = false;
-              ticket.liveStatus = `Final: ${game.teams.away.team.abbreviation} ${awayScore} - ${game.teams.home.team.abbreviation} ${homeScore} (${ticket.won ? 'WON' : 'LOST'})`;
-              stateChanged = true;
-            } else {
-              // Mathematical Elimination & Zero-Path Detection
-              let isDead = false;
-
-              // Check Totals
-              const underMatch = ticket.raw.match(/under\s*([0-9.]+)/i);
-              if (underMatch && totalScore >= parseFloat(underMatch[1])) {
-                isDead = true;
-              }
-
-              // Check Spread Impossibility
-              if (ticket.raw.includes("+2.5") && ticket.raw.includes("Rangers") && diff <= -3 && inning >= 9 && isBottom && outs >= 2) {
-                isDead = true;
-              }
-
-              if (isDead) {
-                ticket.danger = true;
-                ticket.liveStatus = `🚨 ZERO-PATH: Mathematical Elimination. Salvage Cash-out advised.`;
-                playAlertChime();
-                stateChanged = true;
-
-                // Autonomous Salvage Trigger for Exchange-Native Slips
-                if (isAutonomousSalvageEnabled() && (ticket.book === "Kalshi" || ticket.book === "Polymarket")) {
-                  console.warn(`[Salvage Engine] Initiating programmatic exit for ${ticket.id}`);
-                }
-              } else {
-                const isUnderwater = (diff <= -3);
-                if (isUnderwater && !ticket.danger) {
-                  playAlertChime();
-                  ticket.danger = true;
-                }
-                ticket.liveStatus = `● Live (${game.linescore?.currentInningOrdinal || 'In Progress'}): ${game.teams.away.team.abbreviation} ${awayScore} @ ${game.teams.home.team.abbreviation} ${homeScore}${isUnderwater ? ' ⚠️ UNDERWATER' : ''}`;
-                stateChanged = true;
-              }
-            }
+        if (isFinal) {
+          ticket.settled = true;
+          if (ticket.raw.includes("+2.5")) {
+            ticket.won = (diff + 2.5) > 0;
+          } else if (ticket.raw.includes("+1.5")) {
+            ticket.won = (diff + 1.5) > 0;
           }
-        });
-      } catch (err) {
-        console.warn("MLB verification tick delayed:", err);
+          ticket.danger = false;
+          ticket.liveStatus = `Final: ${game.teams.away.team.abbreviation} ${awayScore} - ${game.teams.home.team.abbreviation} ${homeScore} (${ticket.won ? 'WON' : 'LOST'})`;
+          stateChanged = true;
+        } else {
+          // Zero-Path Elimination Prover
+          let isDead = false;
+          const underMatch = ticket.raw.match(/under\s*([0-9.]+)/i);
+          if (underMatch && totalScore >= parseFloat(underMatch[1])) isDead = true;
+          if (ticket.raw.includes("+2.5") && diff <= -3 && inning >= 9 && isBottom && outs >= 2) isDead = true;
+
+          if (isDead) {
+            ticket.danger = true;
+            ticket.liveStatus = `🚨 ZERO-PATH PROVED: Mathematical Elimination. Salvage cash-out advised.`;
+            playAlertChime();
+            stateChanged = true;
+
+            // Autonomous Exit for Kalshi/Polymarket
+            if (isAutonomousSalvageEnabled() && (ticket.book === "Kalshi" || ticket.book === "Polymarket")) {
+              console.warn(`[Autonomous Salvage Engine] Programmatic exit triggered on ${ticket.id}`);
+            }
+          } else {
+            const isUnderwater = (diff <= -3);
+            if (isUnderwater && !ticket.danger) {
+              playAlertChime();
+              ticket.danger = true;
+            }
+            ticket.liveStatus = `● Live (${game.linescore?.currentInningOrdinal || 'In Progress'}): ${game.teams.away.team.abbreviation} ${awayScore} @ ${game.teams.home.team.abbreviation} ${homeScore}${isUnderwater ? ' ⚠️ UNDERWATER' : ''}`;
+            stateChanged = true;
+          }
+        }
+      }
+    }
+
+    // 2. NFL Verification Loop
+    for (const evt of nflGames) {
+      const comp = evt.competitions?.[0];
+      const home = comp?.competitors?.find(c => c.homeAway === "home");
+      const away = comp?.competitors?.find(c => c.homeAway === "away");
+
+      if (rawLower.includes(home?.team?.name?.toLowerCase()) || rawLower.includes(away?.team?.name?.toLowerCase())) {
+        const isCompleted = evt.status.type.completed;
+        const homeScore = parseInt(home.score || "0", 10);
+        const awayScore = parseInt(away.score || "0", 10);
+        const totalScore = homeScore + awayScore;
+
+        if (isCompleted) {
+          ticket.settled = true;
+          ticket.liveStatus = `Final: ${away.team.abbreviation} ${awayScore} - ${home.team.abbreviation} ${homeScore}`;
+          stateChanged = true;
+        } else {
+          const underMatch = ticket.raw.match(/under\s*([0-9.]+)/i);
+          if (underMatch && totalScore >= parseFloat(underMatch[1])) {
+            ticket.danger = true;
+            ticket.liveStatus = `🚨 ZERO-PATH PROVED: Under breached (${totalScore} pts). Cash out now.`;
+            playAlertChime();
+            stateChanged = true;
+          } else {
+            ticket.liveStatus = `● Live Q${evt.status.period} ${evt.status.displayClock}: ${away.team.abbreviation} ${awayScore} - ${home.team.abbreviation} ${homeScore}`;
+            stateChanged = true;
+          }
+        }
       }
     }
   }
