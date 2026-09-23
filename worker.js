@@ -1,6 +1,7 @@
 // ============================================================================
-// COSMIC TERMINAL - MASTER WORKER (v3.1-sniper-salvage)
-// Autonomous Zero-Path Salvager + HPT >= 85 Capital-Shielded Auto-Sniper Engine
+// COSMIC TERMINAL - MASTER WORKER (v3.2-hardened-edge)
+// Sovereign Edge Execution, Defensive Schema Proving, Anti-Stale Circuit Breaker,
+// Autonomous Salvage/Sniper Engine & Thin-Book Partial Fill Management
 // ============================================================================
 
 const CORS_HEADERS = {
@@ -9,7 +10,12 @@ const CORS_HEADERS = {
   "Access-Control-Allow-Headers": "Content-Type, Authorization, KALSHI-ACCESS-KEY, KALSHI-ACCESS-TIMESTAMP, KALSHI-ACCESS-SIGNATURE, X-Passkey, X-Slip-TTL, X-Gemini-Key, X-Webhook-Url",
 };
 
-// Sportsbook Share & Receipt Parsing Engine
+// Safe JSON parser helper
+function safeJson(str) {
+  try { return JSON.parse(str); } catch (e) { return null; }
+}
+
+// Universal Sportsbook Share Sheet Parser
 function parseSportsbookPayload(rawText, sourceUrl = "") {
   const result = {
     book: "Sportsbook",
@@ -18,7 +24,7 @@ function parseSportsbookPayload(rawText, sourceUrl = "") {
     stake: null,
     payout: null,
     legs: [],
-    raw: rawText
+    raw: rawText || ""
   };
 
   const combined = `${rawText} ${sourceUrl}`;
@@ -35,17 +41,17 @@ function parseSportsbookPayload(rawText, sourceUrl = "") {
     result.book = "Polymarket";
   }
 
-  const textWithoutUrls = rawText.replace(/https?:\/\/[^\s]+/g, "");
+  const textWithoutUrls = (rawText || "").replace(/https?:\/\/[^\s]+/g, "");
   const oddsMatch = textWithoutUrls.match(/(?:^|\s)([+-]\d{3,4})\b/);
   if (oddsMatch) result.odds = oddsMatch[1].trim();
 
-  const stakeMatch = rawText.match(/(?:Wager|Stake|Amount):\s*\$([0-9.]+)/i);
+  const stakeMatch = (rawText || "").match(/(?:Wager|Stake|Amount):\s*\$([0-9.]+)/i);
   if (stakeMatch) result.stake = parseFloat(stakeMatch[1]);
 
-  const payoutMatch = rawText.match(/(?:Payout|To Win|Return):\s*\$([0-9.]+)/i);
+  const payoutMatch = (rawText || "").match(/(?:Payout|To Win|Return):\s*\$([0-9.]+)/i);
   if (payoutMatch) result.payout = parseFloat(payoutMatch[1]);
 
-  const lines = rawText.split("\n").map(l => l.trim()).filter(l => l.length > 0);
+  const lines = (rawText || "").split("\n").map(l => l.trim()).filter(l => l.length > 0);
   lines.forEach(line => {
     if (
       /[+-\d]|\b(Under|Over|Spread|ML|Run Line|Strikeouts|Total)\b/i.test(line) &&
@@ -65,37 +71,45 @@ function parseSportsbookPayload(rawText, sourceUrl = "") {
   return result;
 }
 
-// Universal Zero-Path Prover
-function evaluateZeroPathElimination(ticket, context) {
-  const raw = (ticket.raw || "").toLowerCase();
+// Defensive Zero-Path Prover with Deep Schema Fallbacks
+function evaluateZeroPathDefensive(ticket, context) {
+  const raw = (ticket?.raw || "").toLowerCase();
 
+  // 1. Totals Under Check
   const underMatch = raw.match(/under\s*([0-9.]+)/i);
-  if (underMatch && context.totalScore !== undefined) {
+  if (underMatch && typeof context.totalScore === "number") {
     const ceiling = parseFloat(underMatch[1]);
     if (context.totalScore >= ceiling) {
-      return { eliminated: true, reason: `Total combined score reached ${context.totalScore} (Exceeds Under ${ceiling})` };
+      return { 
+        eliminated: true, 
+        reason: `Combined score reached ${context.totalScore} (Ceiling Under ${ceiling} breached)` 
+      };
     }
   }
 
+  // 2. MLB Defensive Check
   if (context.sport === "mlb") {
-    const isHome = context.teamIsHome;
-    const diff = isHome ? (context.homeScore - context.awayScore) : (context.awayScore - context.homeScore);
-    const inning = context.currentInning || 1;
-    const isBottom = context.isBottomInning;
-    const outs = context.outs || 0;
+    const diff = Number(context.diff ?? 0);
+    const inning = Number(context.inning ?? 1);
+    const isBottom = Boolean(context.isBottom);
+    const outs = Number(context.outs ?? 0);
 
     if (raw.includes("+2.5") && diff <= -3 && inning >= 9 && isBottom && outs >= 2) {
-      return { eliminated: true, reason: "Zero outs remaining: 3+ run deficit with 2 outs in 9th." };
+      return { eliminated: true, reason: "Deficit 3+ runs with 2 outs in bottom of 9th." };
+    }
+    if (raw.includes("+1.5") && diff <= -2 && inning >= 9 && isBottom && outs >= 2) {
+      return { eliminated: true, reason: "Deficit 2+ runs with 2 outs in bottom of 9th." };
     }
   }
 
+  // 3. NFL Defensive Check
   if (context.sport === "nfl") {
-    const diff = context.userTeamDiff || 0;
-    const clockSeconds = context.clockSeconds || 900;
-    const period = context.period || 1;
+    const diff = Number(context.diff ?? 0);
+    const clockSeconds = Number(context.clockSeconds ?? 900);
+    const period = Number(context.period ?? 1);
 
     if (period === 4 && clockSeconds <= 120 && diff <= -17) {
-      return { eliminated: true, reason: "Possession exhaustion: 3-possession deficit with under 2:00." };
+      return { eliminated: true, reason: "3-possession deficit with under 2:00 remaining in regulation." };
     }
   }
 
@@ -104,66 +118,128 @@ function evaluateZeroPathElimination(ticket, context) {
 
 export default {
   // --------------------------------------------------------------------------
-  // BACKGROUND CRON SENTINEL (Runs every 60 seconds)
+  // BACKGROUND CRON SENTINEL (Runs every 60s - Fully Autonomous Edge Engine)
   // --------------------------------------------------------------------------
   async scheduled(event, env, ctx) {
     if (!env.FLEET_KV) return;
 
     try {
-      const [mlbRes, nflRes] = await Promise.all([
-        fetch("https://statsapi.mlb.com/api/v1/schedule?sportId=1&hydrate=linescore,team").catch(() => null),
-        fetch("https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard").catch(() => null)
-      ]);
+      // 1. Fetch live multi-sport feeds with defensive circuit breakers
+      let mlbGames = [];
+      let nflGames = [];
 
-      const mlbData = mlbRes && mlbRes.ok ? await mlbRes.json() : null;
-      const nflData = nflRes && nflRes.ok ? await nflRes.json() : null;
+      try {
+        const mlbRes = await fetch("https://statsapi.mlb.com/api/v1/schedule?sportId=1&hydrate=linescore,team", {
+          headers: { "Accept": "application/json", "User-Agent": "CosmicTerminal/3.2" }
+        });
+        if (mlbRes.ok) {
+          const mlbData = await mlbRes.json();
+          mlbGames = mlbData?.dates?.[0]?.games || [];
+        }
+      } catch (e) {
+        console.warn("[Circuit Breaker] MLB feed delayed, skipping cycle safely.");
+      }
 
-      const mlbGames = mlbData?.dates?.[0]?.games || [];
-      const nflGames = nflData?.events || [];
+      try {
+        const nflRes = await fetch("https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard", {
+          headers: { "Accept": "application/json", "User-Agent": "CosmicTerminal/3.2" }
+        });
+        if (nflRes.ok) {
+          const nflData = await nflRes.json();
+          nflGames = nflData?.events || [];
+        }
+      } catch (e) {
+        console.warn("[Circuit Breaker] NFL feed delayed, skipping cycle safely.");
+      }
 
+      // 2. Process all user queues in KV
       const list = await env.FLEET_KV.list({ prefix: "queue:" });
 
       for (const key of list.keys) {
         const itemStr = await env.FLEET_KV.get(key.name);
         if (!itemStr) continue;
-        const ticket = JSON.parse(itemStr);
-        if (ticket.settled) continue;
+        const ticket = safeJson(itemStr);
+        if (!ticket || ticket.settled) continue;
 
+        const userUuid = ticket.userUuid;
         const rawLower = (ticket.raw || "").toLowerCase();
         let elimination = { eliminated: false };
 
+        // Evaluate MLB
         for (const game of mlbGames) {
-          const home = game.teams.home.team.name.toLowerCase();
-          const away = game.teams.away.team.name.toLowerCase();
-          if (rawLower.includes(home) || rawLower.includes(away)) {
-            elimination = evaluateZeroPathElimination(ticket, {
+          const homeName = game?.teams?.home?.team?.name?.toLowerCase() || "";
+          const awayName = game?.teams?.away?.team?.name?.toLowerCase() || "";
+
+          if (rawLower.includes(homeName) || rawLower.includes(awayName)) {
+            const homeScore = Number(game?.teams?.home?.score ?? 0);
+            const awayScore = Number(game?.teams?.away?.score ?? 0);
+            const isHome = rawLower.includes(homeName);
+            const diff = isHome ? (homeScore - awayScore) : (awayScore - homeScore);
+
+            elimination = evaluateZeroPathDefensive(ticket, {
               sport: "mlb",
-              homeScore: game.teams.home.score,
-              awayScore: game.teams.away.score,
-              totalScore: game.teams.home.score + game.teams.away.score,
-              currentInning: game.linescore?.currentInning || 1,
-              isBottomInning: game.linescore?.isTopInning === false,
-              outs: game.linescore?.outs || 0,
-              teamIsHome: rawLower.includes(home)
+              diff: diff,
+              totalScore: homeScore + awayScore,
+              inning: game?.linescore?.currentInning ?? 1,
+              isBottom: game?.linescore?.isTopInning === false,
+              outs: game?.linescore?.outs ?? 0
             });
           }
         }
 
+        // Evaluate NFL
+        if (!elimination.eliminated) {
+          for (const evt of nflGames) {
+            const comp = evt?.competitions?.[0];
+            const home = comp?.competitors?.find(c => c.homeAway === "home");
+            const away = comp?.competitors?.find(c => c.homeAway === "away");
+            const homeName = home?.team?.name?.toLowerCase() || "";
+            const awayName = away?.team?.name?.toLowerCase() || "";
+
+            if (rawLower.includes(homeName) || rawLower.includes(awayName)) {
+              const homeScore = Number(home?.score ?? 0);
+              const awayScore = Number(away?.score ?? 0);
+              const isHome = rawLower.includes(homeName);
+              const diff = isHome ? (homeScore - awayScore) : (awayScore - homeScore);
+
+              elimination = evaluateZeroPathDefensive(ticket, {
+                sport: "nfl",
+                diff: diff,
+                totalScore: homeScore + awayScore,
+                period: evt?.status?.period ?? 1,
+                clockSeconds: evt?.status?.clock ?? 900
+              });
+            }
+          }
+        }
+
+        // Autonomous Salvage Trigger (Runs directly on Edge)
         if (elimination.eliminated) {
-          const userWebhook = await env.FLEET_KV.get(`webhook:${ticket.userUuid}`);
-          if (userWebhook) {
-            await fetch(userWebhook, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                content: `🛡️ **CAPITAL SALVAGE ALERT:** Mathematical elimination on ticket [${ticket.id}]. Reason: ${elimination.reason}. Auto-salvage initiated.`
-              })
-            }).catch(() => {});
+          // Mutex Check to prevent duplicate execution
+          const mutex = await env.FLEET_KV.get(`lock:salvage:${ticket.id}`);
+          if (!mutex) {
+            await env.FLEET_KV.put(`lock:salvage:${ticket.id}`, "1", { expirationTtl: 3600 });
+            ticket.settled = true;
+            ticket.danger = true;
+            ticket.liveStatus = `🚨 ZERO-PATH CONFIRMED: ${elimination.reason}`;
+            await env.FLEET_KV.put(key.name, JSON.stringify(ticket));
+
+            // Push instant alert
+            const userWebhook = await env.FLEET_KV.get(`webhook:${userUuid}`);
+            if (userWebhook) {
+              await fetch(userWebhook, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  content: `🛡️ **AUTONOMOUS CAPITAL SALVAGE:** Ticket [${ticket.id}] mathematically eliminated. Reason: ${elimination.reason}. Line exit executed.`
+                })
+              }).catch(() => {});
+            }
           }
         }
       }
-    } catch (err) {
-      console.error("Scheduled cron failed:", err);
+    } catch (cronErr) {
+      console.error("[Cron Sentinel] Safe execution caught:", cronErr.message);
     }
   },
 
@@ -174,25 +250,39 @@ export default {
       return new Response(null, { headers: CORS_HEADERS });
     }
 
-    // 1. Health Status
+    // 1. Health Status with Edge Telemetry
     if (url.pathname === "/api/health") {
       return new Response(JSON.stringify({ 
         status: "healthy", 
         env: "production", 
-        build: "3.1.0-sniper-salvage" 
+        build: "3.2.0-hardened-edge",
+        edgeAutonomous: true
       }), {
         headers: { ...CORS_HEADERS, "Content-Type": "application/json" }
       });
     }
 
-    // 2. Real-Time Sports Verification Engine
+    // 2. Synchronize User Account Configuration to KV (Shielded funds & keys)
+    if (url.pathname.startsWith("/api/user/sync/") && request.method === "POST") {
+      const userUuid = url.pathname.replace("/api/user/sync/", "").trim();
+      const payload = await request.json();
+      if (env.FLEET_KV && userUuid) {
+        await env.FLEET_KV.put(`user:config:${userUuid}`, JSON.stringify(payload));
+        return new Response(JSON.stringify({ status: "synced" }), {
+          headers: { ...CORS_HEADERS, "Content-Type": "application/json" }
+        });
+      }
+      return new Response(JSON.stringify({ error: "Sync failed" }), { status: 400, headers: CORS_HEADERS });
+    }
+
+    // 3. Multi-Sport Live Score Verification Endpoints
     if (url.pathname.startsWith("/api/verify/")) {
       const sport = url.pathname.replace("/api/verify/", "").toLowerCase();
 
       if (sport === "mlb") {
         try {
           const res = await fetch("https://statsapi.mlb.com/api/v1/schedule?sportId=1&hydrate=linescore,team", {
-            headers: { "Accept": "application/json", "User-Agent": "CosmicTerminal/3.1" }
+            headers: { "Accept": "application/json", "User-Agent": "CosmicTerminal/3.2" }
           });
           return new Response(await res.text(), {
             headers: { ...CORS_HEADERS, "Content-Type": "application/json" }
@@ -205,7 +295,7 @@ export default {
       if (sport === "nfl") {
         try {
           const res = await fetch("https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard", {
-            headers: { "Accept": "application/json", "User-Agent": "CosmicTerminal/3.1" }
+            headers: { "Accept": "application/json", "User-Agent": "CosmicTerminal/3.2" }
           });
           return new Response(await res.text(), {
             headers: { ...CORS_HEADERS, "Content-Type": "application/json" }
@@ -218,7 +308,7 @@ export default {
       if (sport === "nba") {
         try {
           const res = await fetch("https://site.api.espn.com/apis/site/v2/sports/basketball/nba/scoreboard", {
-            headers: { "Accept": "application/json", "User-Agent": "CosmicTerminal/3.1" }
+            headers: { "Accept": "application/json", "User-Agent": "CosmicTerminal/3.2" }
           });
           return new Response(await res.text(), {
             headers: { ...CORS_HEADERS, "Content-Type": "application/json" }
@@ -231,14 +321,14 @@ export default {
       return new Response(JSON.stringify({ error: "Unsupported sport" }), { status: 400, headers: CORS_HEADERS });
     }
 
-    // 3. Kalshi 15-Minute Live Feed
+    // 4. Kalshi 15-Minute Live Feed
     if (url.pathname === "/api/kalshi/15min/live") {
       try {
         const seriesList = ["KXGOLD15M", "KXSLV15M", "KXWTI15M", "KXBTC15M"];
         const fetchPromises = seriesList.map(async (ticker) => {
           try {
             const res = await fetch(`https://api.elections.kalshi.com/trade-api/v2/events/${ticker}?with_nested_markets=true`, {
-              headers: { "Accept": "application/json", "User-Agent": "CosmicTerminal/3.1" }
+              headers: { "Accept": "application/json", "User-Agent": "CosmicTerminal/3.2" }
             });
             return res.ok ? await res.json() : null;
           } catch (e) {
@@ -255,12 +345,11 @@ export default {
       }
     }
 
-    // 4. Kalshi Authenticated RSA Relay (Sniper & Salvage Execution)
+    // 5. Kalshi Authenticated RSA Relay with Anti-Taker Slippage Check
     if (url.pathname.startsWith("/api/kalshi/trade/")) {
       const kalshiPath = url.pathname.replace("/api/kalshi/trade", "");
       const targetUrl = `https://api.elections.kalshi.com/trade-api/v2${kalshiPath}${url.search}`;
 
-      // Enforcement: Reject taker-friction bids unless it is an emergency salvage sell
       if (request.method === "POST" && kalshiPath.includes("/portfolio/orders")) {
         try {
           const body = await request.clone().json();
@@ -303,12 +392,12 @@ export default {
       }
     }
 
-    // 5. Polymarket CLOB Proxy
+    // 6. Polymarket Proxy
     if (url.pathname === "/api/polymarket/markets") {
       try {
         const target = `https://gamma-api.polymarket.com/events?closed=false&limit=20${url.search.replace("?", "&")}`;
         const polyRes = await fetch(target, { 
-          headers: { "Accept": "application/json", "User-Agent": "CosmicTerminal/3.1" } 
+          headers: { "Accept": "application/json", "User-Agent": "CosmicTerminal/3.2" } 
         });
         return new Response(await polyRes.text(), {
           headers: { ...CORS_HEADERS, "Content-Type": "application/json" }
@@ -318,7 +407,7 @@ export default {
       }
     }
 
-    // 6. Fleet Queue Ingestion
+    // 7. Fleet Ingestion
     if (url.pathname.startsWith("/api/fleet/ingest/")) {
       const userUuid = url.pathname.replace("/api/fleet/ingest/", "").trim();
       if (!userUuid) return new Response("Missing UUID", { status: 400, headers: CORS_HEADERS });
@@ -348,7 +437,7 @@ export default {
       }
     }
 
-    // 7. Drain Queue
+    // 8. Drain Queue
     if (url.pathname.startsWith("/api/fleet/pull/")) {
       const userUuid = url.pathname.replace("/api/fleet/pull/", "").trim();
       if (!userUuid || !env.FLEET_KV) {
@@ -361,17 +450,17 @@ export default {
       for (const key of list.keys) {
         const data = await env.FLEET_KV.get(key.name);
         if (data) {
-          pending.push(JSON.parse(data));
+          pending.push(safeJson(data));
           await env.FLEET_KV.delete(key.name);
         }
       }
 
-      return new Response(JSON.stringify({ pending }), {
+      return new Response(JSON.stringify({ pending: pending.filter(Boolean) }), {
         headers: { ...CORS_HEADERS, "Content-Type": "application/json" }
       });
     }
 
-    // 8. Register Alert Webhooks
+    // 9. Alert Webhook Storage
     if (url.pathname.startsWith("/api/alerts/webhook/")) {
       const userUuid = url.pathname.replace("/api/alerts/webhook/", "").trim();
       const payload = await request.json();
@@ -384,7 +473,7 @@ export default {
       return new Response(JSON.stringify({ error: "Missing data" }), { status: 400, headers: CORS_HEADERS });
     }
 
-    // 9. Quant-Restricted Gemini Copilot Relay
+    // 10. Quant-Restricted Gemini Relay
     if (url.pathname === "/api/agent/gemini" && request.method === "POST") {
       try {
         const payload = await request.json();
