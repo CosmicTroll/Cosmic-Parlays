@@ -96,7 +96,7 @@
       margin-right: 6px;
     }
 
-    /* Sub-nav filters & Sorters */
+    /* Filter & Sorter Bars */
     .pill-nav, .sort-nav {
       display: flex;
       gap: 6px;
@@ -493,16 +493,6 @@
             <span style="color: var(--accent-green); font-weight: 800;">YES @ $0.68</span>
           </div>
         </div>
-        <div class="market-card">
-          <div class="market-card-head">
-            <span>US Debt Ceiling Extension Passed Before Deadline</span>
-            <span class="tag" style="background: #1b1330; color: var(--accent-pink);">POLY.US</span>
-          </div>
-          <div class="market-card-meta">
-            <span>Market Implied: 92% Yes • Liquidity: High</span>
-            <span style="color: var(--accent-green); font-weight: 800;">YES @ $0.92</span>
-          </div>
-        </div>
       </div>
     </div>
   </div>
@@ -534,7 +524,7 @@
     </div>
   </div>
 
-  <!-- VIEW 4: POLYMARKET MARKETS -->
+  <!-- VIEW 4: POLYMARKET US MARKETS -->
   <div class="tab-view" id="view-poly">
     <div class="card">
       <div class="card-header">
@@ -700,9 +690,9 @@
       </div>
 
       <div class="input-group">
-        <label class="stat-label">Polymarket.us API Key OR Public Wallet (0x...)</label>
+        <label class="stat-label">Polymarket.us Account Handle / API Key</label>
         <div class="password-wrapper">
-          <input type="password" id="poly-key-id" placeholder="Paste Key or 0x... Wallet Address" autocomplete="off">
+          <input type="password" id="poly-key-id" placeholder="Enter Polymarket.us Handle or API Key" autocomplete="off">
           <button type="button" class="toggle-visibility" onclick="toggleMask('poly-key-id')">👁</button>
         </div>
       </div>
@@ -714,7 +704,7 @@
     </div>
   </div>
 
-  <!-- Bottom Navigation Bar (Dynamic Badge Added) -->
+  <!-- Bottom Navigation Bar (Full 8 Tabs with Dynamic Badge) -->
   <nav class="bottom-nav">
     <div class="nav-item active" onclick="switchNavTab('view-picks', this)">
       <span>🎯</span>
@@ -845,7 +835,6 @@ function refreshCurrentTab() {
   if (activeTab.id === 'view-fleet') pollSharedSlips();
   if (activeTab.id === 'view-perps') fetchLivePerps();
   if (activeTab.id === 'view-poly') fetchLivePoly();
-  syncPolymarketPositions();
 }
 
 // --- MONETIZATION & ADS ---
@@ -939,41 +928,6 @@ async function fetchLivePoly() {
   }
 }
 
-// Automatically sync public positions if an address or key is provided
-async function syncPolymarketPositions() {
-  const polyIdentifier = localStorage.getItem('poly_key_id');
-  if (!polyIdentifier) return;
-
-  // Check if identifier is a public Polygon address (0x...)
-  if (/^0x[a-fA-F0-9]{40}$/.test(polyIdentifier.trim())) {
-    try {
-      const res = await fetch(`https://data-api.polymarket.com/positions?user=${polyIdentifier.trim()}`);
-      if (!res.ok) return;
-      const positions = await res.json();
-      if (Array.isArray(positions) && positions.length > 0) {
-        const current = loadLocalFleetTickets();
-        positions.forEach(p => {
-          const slipId = `poly_${p.conditionId || p.asset}`;
-          if (!current.some(c => c.id === slipId)) {
-            current.unshift({
-              id: slipId,
-              book: 'Polymarket',
-              odds: `@$${(p.curPrice || p.avgPrice || 0.50).toFixed(2)}`,
-              stake: parseFloat(p.initialValue || (p.size * (p.avgPrice || 0.5))),
-              payout: parseFloat(p.currentValue || (p.size * 1.0)),
-              timestamp: Date.now(),
-              legs: [`${p.title || 'Market Position'} — ${p.outcome || 'YES'} (${p.size} shares)`]
-            });
-          }
-        });
-        saveLocalFleetTickets(current);
-      }
-    } catch (err) {
-      console.warn("Public Poly sync skipped:", err);
-    }
-  }
-}
-
 // --- SETUP MODAL CONTROLS ---
 function openSetupModal() {
   const uuid = getOrCreateClientUuid();
@@ -1017,7 +971,6 @@ function saveVaultCredentials() {
 
   alert("Credentials securely locked into local browser storage.");
   updateVaultStatusUI();
-  syncPolymarketPositions();
 }
 
 function clearLocalStorageVault() {
@@ -1264,7 +1217,6 @@ window.addEventListener('DOMContentLoaded', () => {
   if (ttlSelect) ttlSelect.value = getUserTtl();
   renderFleetTickets();
   checkIncomingShareTarget();
-  syncPolymarketPositions();
   setInterval(pollSharedSlips, 10000);
 });
 </script>
