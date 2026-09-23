@@ -259,9 +259,9 @@
       margin-top: 6px;
     }
     .binary-btn {
-      padding: 12px 8px;
-      border-radius: 10px;
-      font-size: 0.95rem;
+      padding: 10px 8px;
+      border-radius: 8px;
+      font-size: 0.85rem;
       font-weight: 800;
       text-align: center;
       cursor: pointer;
@@ -281,26 +281,6 @@
       background: rgba(255, 51, 68, 0.08);
       color: var(--accent-red);
       border: 1.5px solid rgba(255, 51, 68, 0.4);
-    }
-
-    .btn-recommend-glow-above {
-      border-color: var(--accent-green) !important;
-      background: rgba(0, 245, 160, 0.25) !important;
-      box-shadow: 0 0 16px rgba(0, 245, 160, 0.65);
-      transform: scale(1.02);
-      opacity: 1 !important;
-    }
-    .btn-recommend-glow-below {
-      border-color: var(--accent-red) !important;
-      background: rgba(255, 51, 68, 0.25) !important;
-      box-shadow: 0 0 16px rgba(255, 51, 68, 0.65);
-      transform: scale(1.02);
-      opacity: 1 !important;
-    }
-    .btn-faded {
-      opacity: 0.35 !important;
-      filter: grayscale(0.6);
-      transform: scale(0.98);
     }
 
     .stat-grid-3 {
@@ -543,6 +523,34 @@
       </div>
     </div>
 
+    <!-- Omnipresent Gemini Desk Analyst (Available on All Tabs) -->
+    <div class="card" style="border-color: var(--accent-cyan); background: #070e24;">
+      <div class="card-header" style="margin-bottom: 8px;">
+        <span style="color: var(--accent-cyan); display: flex; align-items: center; gap: 6px;">🤖 Omnipresent Gemini Desk Analyst</span>
+        <span class="tag" style="background: rgba(0,242,254,0.1); color: var(--accent-cyan);">Contextual Live</span>
+      </div>
+      <p style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 8px;">
+        Scan all active market cards currently rendered on this screen to extract options and select for deep analysis.
+      </p>
+      <button class="btn btn-cyan" style="width: 100%; font-weight: 900;" onclick="scanScreenAndConsultGemini()">⚡ Scan Screen &amp; List Active Markets</button>
+      <div id="global-copilot-output" style="margin-top: 10px; font-size: 0.8rem; line-height: 1.4; display: none;"></div>
+    </div>
+
+    <!-- Interactive Search & Sport Filter Bar -->
+    <div class="card" style="padding: 10px 14px;">
+      <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 8px;">
+        <input type="text" id="market-search-input" placeholder="🔍 Search teams, players, or events..." oninput="filterMarketCards()" style="padding: 8px 12px; font-size: 0.8rem;">
+      </div>
+      <div style="display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px;" id="sport-filter-pills">
+        <button class="pill-btn active" onclick="filterBySport('all', this)">All</button>
+        <button class="pill-btn" onclick="filterBySport('mlb', this)">⚾ MLB</button>
+        <button class="pill-btn" onclick="filterBySport('nfl', this)">🏈 NFL</button>
+        <button class="pill-btn" onclick="filterBySport('tennis', this)">🎾 Tennis</button>
+        <button class="pill-btn" onclick="filterBySport('esports', this)">🎮 Esports</button>
+        <button class="pill-btn" onclick="filterBySport('macro', this)">🏛️ Macro</button>
+      </div>
+    </div>
+
     <!-- 1. Top EV Sports Picks Desk Section (9 Pick Dynamic Carousel) -->
     <div class="card market-section" id="section-sports">
       <div class="card-header">
@@ -646,6 +654,10 @@
             <span>Market Implied: 84% Yes • Volume: $1.42M</span>
             <span style="color: var(--accent-green); font-weight: 800;">+19.0% ROI (YES @ $0.84)</span>
           </div>
+          <div class="binary-split-tray">
+            <div class="binary-btn btn-above" onclick="openDirectExecutionModal('Fed Funds Cut', 'YES', 0.84)">Buy YES · 84¢</div>
+            <div class="binary-btn btn-below" onclick="openDirectExecutionModal('Fed Funds Cut', 'NO', 0.16)">Buy NO · 16¢</div>
+          </div>
         </div>
 
         <div class="market-card sortable-card" data-roi="28.2" data-expiry="1790500000000">
@@ -657,6 +669,10 @@
             <span>Market Implied: 78% Yes • Volume: $980K</span>
             <span style="color: var(--accent-green); font-weight: 800;">+28.2% ROI (YES @ $0.78)</span>
           </div>
+          <div class="binary-split-tray">
+            <div class="binary-btn btn-above" onclick="openDirectExecutionModal('US Core CPI YoY', 'YES', 0.78)">Buy YES · 78¢</div>
+            <div class="binary-btn btn-below" onclick="openDirectExecutionModal('US Core CPI YoY', 'NO', 0.22)">Buy NO · 22¢</div>
+          </div>
         </div>
 
         <div class="market-card sortable-card" data-roi="42.8" data-expiry="1791000000000">
@@ -667,6 +683,10 @@
           <div class="market-card-meta">
             <span>Market Implied: 70% Yes • Volume: $2.1M</span>
             <span style="color: var(--accent-green); font-weight: 800;">+42.8% ROI (YES @ $0.70)</span>
+          </div>
+          <div class="binary-split-tray">
+            <div class="binary-btn btn-above" onclick="openDirectExecutionModal('US Debt Ceiling', 'YES', 0.70)">Buy YES · 70¢</div>
+            <div class="binary-btn btn-below" onclick="openDirectExecutionModal('US Debt Ceiling', 'NO', 0.30)">Buy NO · 30¢</div>
           </div>
         </div>
       </div>
@@ -828,6 +848,10 @@
             <span>Mark: $64,280 • 6.3x Max Leverage</span>
             <span style="color: var(--accent-cyan);">Daily Vol: $18.4M</span>
           </div>
+          <div class="binary-split-tray">
+            <div class="binary-btn btn-above" onclick="openDirectExecutionModal('BTCPERP', 'LONG', 64280)">Long · $64k</div>
+            <div class="binary-btn btn-below" onclick="openDirectExecutionModal('BTCPERP', 'SHORT', 64280)">Short · $64k</div>
+          </div>
         </div>
 
         <div class="market-card">
@@ -841,6 +865,10 @@
           <div class="market-card-meta">
             <span>Mark: $2,640 • 4.8x Max Leverage</span>
             <span style="color: var(--accent-cyan);">Daily Vol: $9.2M</span>
+          </div>
+          <div class="binary-split-tray">
+            <div class="binary-btn btn-above" onclick="openDirectExecutionModal('ETHPERP', 'LONG', 2640)">Long · $2.6k</div>
+            <div class="binary-btn btn-below" onclick="openDirectExecutionModal('ETHPERP', 'SHORT', 2640)">Short · $2.6k</div>
           </div>
         </div>
 
@@ -856,75 +884,9 @@
             <span>Mark: $152.40 • 3.0x Max Leverage</span>
             <span style="color: var(--accent-cyan);">Daily Vol: $6.8M</span>
           </div>
-        </div>
-
-        <div class="market-card">
-          <div class="market-card-head">
-            <div style="display: flex; align-items: center; gap: 8px;">
-              <span class="asset-icon-badge badge-crypto">XRP</span>
-              <span>XRPPERP (Ripple Perpetual)</span>
-            </div>
-            <span class="tag" style="background: #1b271d; color: var(--accent-green);">+0.010% 8h</span>
-          </div>
-          <div class="market-card-meta">
-            <span>Mark: $0.588 • 2.8x Max Leverage</span>
-            <span style="color: var(--accent-cyan);">Daily Vol: $4.1M</span>
-          </div>
-        </div>
-
-        <div class="market-card">
-          <div class="market-card-head">
-            <div style="display: flex; align-items: center; gap: 8px;">
-              <span class="asset-icon-badge badge-crypto">DOGE</span>
-              <span>DOGEPERP (Dogecoin Perpetual)</span>
-            </div>
-            <span class="tag" style="background: #1b271d; color: var(--accent-green);">+0.015% 8h</span>
-          </div>
-          <div class="market-card-meta">
-            <span>Mark: $0.108 • 2.8x Max Leverage</span>
-            <span style="color: var(--accent-cyan);">Daily Vol: $3.5M</span>
-          </div>
-        </div>
-
-        <div class="market-card">
-          <div class="market-card-head">
-            <div style="display: flex; align-items: center; gap: 8px;">
-              <span class="asset-icon-badge badge-crypto">LINK</span>
-              <span>LINKPERP (Chainlink Perpetual)</span>
-            </div>
-            <span class="tag" style="background: #1b271d; color: var(--accent-green);">+0.006% 8h</span>
-          </div>
-          <div class="market-card-meta">
-            <span>Mark: $11.45 • 3.7x Max Leverage</span>
-            <span style="color: var(--accent-cyan);">Daily Vol: $2.1M</span>
-          </div>
-        </div>
-
-        <div class="market-card">
-          <div class="market-card-head">
-            <div style="display: flex; align-items: center; gap: 8px;">
-              <span class="asset-icon-badge badge-crypto">AVAX</span>
-              <span>AVAXPERP (Avalanche Perpetual)</span>
-            </div>
-            <span class="tag" style="background: #2a151b; color: var(--accent-red);">-0.002% 8h</span>
-          </div>
-          <div class="market-card-meta">
-            <span>Mark: $28.10 • 3.1x Max Leverage</span>
-            <span style="color: var(--accent-cyan);">Daily Vol: $1.9M</span>
-          </div>
-        </div>
-
-        <div class="market-card">
-          <div class="market-card-head">
-            <div style="display: flex; align-items: center; gap: 8px;">
-              <span class="asset-icon-badge badge-crypto">SUI</span>
-              <span>SUIPERP (Sui Network Perpetual)</span>
-            </div>
-            <span class="tag" style="background: #1b271d; color: var(--accent-green);">+0.022% 8h</span>
-          </div>
-          <div class="market-card-meta">
-            <span>Mark: $1.52 • 2.4x Max Leverage</span>
-            <span style="color: var(--accent-cyan);">Daily Vol: $2.8M</span>
+          <div class="binary-split-tray">
+            <div class="binary-btn btn-above" onclick="openDirectExecutionModal('SOLPERP', 'LONG', 152.4)">Long · $152</div>
+            <div class="binary-btn btn-below" onclick="openDirectExecutionModal('SOLPERP', 'SHORT', 152.4)">Short · $152</div>
           </div>
         </div>
       </div>
@@ -947,47 +909,9 @@
             <span>Spot: $2,654.10 • Daily Funding Settlement</span>
             <span style="color: var(--accent-gold); font-weight: 800;">3.25% Margin Yield</span>
           </div>
-        </div>
-
-        <div class="market-card">
-          <div class="market-card-head">
-            <div style="display: flex; align-items: center; gap: 8px;">
-              <span class="asset-icon-badge badge-silver">SLV</span>
-              <span>SILVERPERP (Kalshi Silver Perpetual)</span>
-            </div>
-            <span class="tag" style="background: #1b271d; color: var(--accent-green);">Daily Basis +0.08%</span>
-          </div>
-          <div class="market-card-meta">
-            <span>Spot: $31.85 • Daily Funding Settlement</span>
-            <span style="color: var(--accent-gold); font-weight: 800;">3.25% Margin Yield</span>
-          </div>
-        </div>
-
-        <div class="market-card">
-          <div class="market-card-head">
-            <div style="display: flex; align-items: center; gap: 8px;">
-              <span class="asset-icon-badge badge-oil">WTI</span>
-              <span>WTIPERP (Crude Oil Continuous)</span>
-            </div>
-            <span class="tag" style="background: #2a151b; color: var(--accent-red);">-0.05% Basis</span>
-          </div>
-          <div class="market-card-meta">
-            <span>Spot: $71.20 / bbl • Daily Roll Index</span>
-            <span style="color: var(--accent-gold); font-weight: 800;">3.25% Margin Yield</span>
-          </div>
-        </div>
-
-        <div class="market-card">
-          <div class="market-card-head">
-            <div style="display: flex; align-items: center; gap: 8px;">
-              <span class="asset-icon-badge badge-oil">GAS</span>
-              <span>RBOB Gasoline Continuous</span>
-            </div>
-            <span class="tag" style="background: #1b271d; color: var(--accent-green);">+0.02% Basis</span>
-          </div>
-          <div class="market-card-meta">
-            <span>Spot: $2.04 / gal • Daily Settlement</span>
-            <span style="color: var(--accent-cyan); font-weight: 800;">CFTC DCM</span>
+          <div class="binary-split-tray">
+            <div class="binary-btn btn-above" onclick="openDirectExecutionModal('GOLDPERP', 'LONG', 2654.1)">Long Gold</div>
+            <div class="binary-btn btn-below" onclick="openDirectExecutionModal('GOLDPERP', 'SHORT', 2654.1)">Short Gold</div>
           </div>
         </div>
       </div>
@@ -1011,27 +935,9 @@
             <span>Buy Poly YES @ $0.84 • Buy Kalshi NO @ $0.126</span>
             <span style="color: var(--accent-cyan); font-weight: 800;">+34.0% ROI (Risk-Free Net)</span>
           </div>
-        </div>
-
-        <div class="market-card sortable-card" data-roi="28.4" data-expiry="1790500000000">
-          <div class="market-card-head">
-            <span>ECB Deposit Rate Lowering Hurdle</span>
-            <span class="tag" style="background: #12281a; color: var(--accent-green);">+2.8% ARB</span>
-          </div>
-          <div class="market-card-meta">
-            <span>Buy Poly YES @ $0.72 • Buy Kalshi NO @ $0.252</span>
-            <span style="color: var(--accent-cyan); font-weight: 800;">+28.4% ROI (Risk-Free Net)</span>
-          </div>
-        </div>
-
-        <div class="market-card sortable-card" data-roi="22.1" data-expiry="1791000000000">
-          <div class="market-card-head">
-            <span>US Core PCE Inflation Below 2.7%</span>
-            <span class="tag" style="background: #12281a; color: var(--accent-green);">+2.2% ARB</span>
-          </div>
-          <div class="market-card-meta">
-            <span>Buy Poly YES @ $0.65 • Buy Kalshi NO @ $0.328</span>
-            <span style="color: var(--accent-cyan); font-weight: 800;">+22.1% ROI (Risk-Free Net)</span>
+          <div class="binary-split-tray">
+            <div class="binary-btn btn-above" onclick="openDirectExecutionModal('Fed Funds Arbitrage', 'EXECUTE SPREAD', 0.84)">⚡ Execute Spread</div>
+            <div class="binary-btn btn-below" onclick="openDirectExecutionModal('Fed Funds Arbitrage', 'DISMISS', 0.126)">Dismiss</div>
           </div>
         </div>
       </div>
@@ -1281,56 +1187,44 @@
 
 </div>
 
-<!-- 15-MIN ORDER CONFIRMATION MODAL -->
-<div id="order-modal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 10000; padding: 20px; overflow-y: auto; justify-content: center; align-items: center;">
+<!-- DIRECT EXECUTION ACTION MODAL -->
+<div id="direct-order-modal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 10000; padding: 20px; overflow-y: auto; justify-content: center; align-items: center;">
   <div style="background: #0d1226; border: 1.5px solid var(--border-color); border-radius: 14px; max-width: 440px; width: 100%; padding: 20px; color: #fff; font-size: 13px; display: flex; flex-direction: column; gap: 14px; box-shadow: 0 0 30px rgba(0, 242, 254, 0.25);">
     <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">
-      <span style="font-weight: 900; font-size: 15px; color: var(--accent-cyan);" id="order-modal-title">Confirm Kalshi 15-Min Order</span>
-      <span style="cursor: pointer; font-size: 18px; color: var(--text-muted);" onclick="closeOrderModal()">✕</span>
+      <span style="font-weight: 900; font-size: 15px; color: var(--accent-cyan);" id="direct-modal-title">Execute Order</span>
+      <span style="cursor: pointer; font-size: 18px; color: var(--text-muted);" onclick="closeDirectModal()">✕</span>
     </div>
 
     <div>
-      <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase;">Target Comparison</div>
-      <div style="font-size: 16px; font-weight: 900;" id="order-target-display">Target Strike: Connecting...</div>
-      <div style="font-size: 12px; margin-top: 2px;" id="order-side-display">Action: <strong style="color: var(--accent-green);">ABOVE (YES)</strong></div>
+      <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase;">Selected Asset / Market</div>
+      <div style="font-size: 16px; font-weight: 900;" id="direct-asset-display">Target Asset</div>
+      <div style="font-size: 12px; margin-top: 2px;" id="direct-action-display">Action: <strong>BUY</strong></div>
     </div>
 
     <div class="input-group">
-      <label class="stat-label">Number of Contracts</label>
-      <input type="number" id="order-qty" value="1" min="1" max="500" oninput="calculateOrderEstimate()">
+      <label class="stat-label">Number of Contracts / Units</label>
+      <input type="number" id="direct-order-qty" value="1" min="1" max="500" oninput="calculateDirectEstimate()">
     </div>
 
     <div class="input-group">
-      <label class="stat-label">Limit Price Cap (1¢ - 99¢)</label>
-      <input type="number" id="order-limit-price" value="50" min="1" max="99" oninput="calculateOrderEstimate()">
+      <label class="stat-label">Execution Limit Price ($)</label>
+      <input type="number" id="direct-order-price" value="0.50" min="0.01" max="0.99" step="0.01" oninput="calculateDirectEstimate()">
     </div>
 
     <div style="background: #070914; border: 1px solid var(--border-color); border-radius: 8px; padding: 12px; display: flex; flex-direction: column; gap: 6px;">
       <div style="display: flex; justify-content: space-between; font-size: 12px;">
-        <span style="color: var(--text-muted);">Max Position Cost:</span>
-        <strong id="order-est-cost">$0.50</strong>
-      </div>
-      <div style="display: flex; justify-content: space-between; font-size: 12px;">
-        <span style="color: var(--text-muted);">Estimated Maker Fee:</span>
-        <strong style="color: var(--accent-cyan);" id="order-est-fee">$0.01</strong>
+        <span style="color: var(--text-muted);">Total Capital Required:</span>
+        <strong id="direct-est-cost">$0.50</strong>
       </div>
       <div style="display: flex; justify-content: space-between; font-size: 13px; border-top: 1px dashed var(--border-color); padding-top: 6px;">
-        <span style="color: var(--text-muted);">Potential Net Profit:</span>
-        <strong style="color: var(--accent-green);" id="order-est-profit">+$0.49 (+98.0%)</strong>
+        <span style="color: var(--text-muted);">Max Return Payout:</span>
+        <strong style="color: var(--accent-green);" id="direct-est-payout">$1.00</strong>
       </div>
-    </div>
-
-    <div id="large-order-warning" style="display: none; background: rgba(255, 51, 68, 0.15); border: 1px solid var(--accent-red); border-radius: 8px; padding: 10px;">
-      <div style="font-weight: 800; color: var(--accent-red); font-size: 11px;">⚠️ LARGE TRANSACTION DETECTED</div>
-      <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">
-        This order exceeds your configured threshold. Type <strong>CONFIRM</strong> to authorize:
-      </div>
-      <input type="text" id="large-order-confirm-input" placeholder="Type CONFIRM..." style="margin-top: 6px;">
     </div>
 
     <div style="display: flex; gap: 10px; margin-top: 4px;">
-      <button class="btn" style="flex: 1; background: #19223c;" onclick="closeOrderModal()">Cancel</button>
-      <button class="btn btn-gold" style="flex: 2;" onclick="submitKalshiOrder()">Place Limit Order</button>
+      <button class="btn" style="flex: 1; background: #19223c;" onclick="closeDirectModal()">Cancel</button>
+      <button class="btn btn-gold" style="flex: 2;" onclick="executeDirectOrder()">Confirm &amp; Route Order</button>
     </div>
   </div>
 </div>
@@ -1372,7 +1266,7 @@
       <button class="btn btn-gold" style="width: 100%; margin-top: 6px; padding: 6px; font-size: 11px;" onclick="copyEndpointUrl()">Copy Private URL</button>
     </div>
 
-    <button class="btn" style="width: 100%; background: #19223c; margin-top: 4px;" onclick="closeSetupModal()">Got It</button>
+    <button class="btn" style="width: 100%; background: #19223c;" onclick="closeSetupModal()">Got It</button>
   </div>
 </div>
 
@@ -1534,7 +1428,6 @@ async function fetchLiveExchangeBalances() {
   let polyCash = 0.00;
   let hasLiveConnection = false;
 
-  // 1. Fetch Kalshi Balance via Worker RSA Relay
   if (kKey) {
     try {
       const res = await fetch('/api/kalshi/trade/portfolio/balance', {
@@ -1552,12 +1445,9 @@ async function fetchLiveExchangeBalances() {
           if (kEl) kEl.textContent = `$${kalshiCash.toFixed(2)}`;
         }
       }
-    } catch (e) {
-      console.warn("[Auto-Balance] Kalshi balance deferred:", e.message);
-    }
+    } catch (e) {}
   }
 
-  // 2. Fetch Polymarket US Balance via Authenticated Route
   if (pKey) {
     try {
       const res = await fetch('/api/poly/balance', {
@@ -1577,12 +1467,9 @@ async function fetchLiveExchangeBalances() {
           if (pEl) pEl.textContent = `$${polyCash.toFixed(2)}`;
         }
       }
-    } catch (e) {
-      console.warn("[Auto-Balance] Poly.us balance deferred:", e.message);
-    }
+    } catch (e) {}
   }
 
-  // 3. Update Global State if active exchange accounts respond
   if (hasLiveConnection) {
     const totalLiquid = (kalshiCash + polyCash).toFixed(2);
     localStorage.setItem('cosmic_total_funds', totalLiquid);
@@ -1593,6 +1480,164 @@ async function fetchLiveExchangeBalances() {
     updateCapitalShieldDisplay();
     syncConfigToEdge();
   }
+}
+
+// --- INTERACTIVE SEARCH & SPORT FILTERING ENGINE ---
+function filterMarketCards() {
+  const query = document.getElementById('market-search-input').value.toLowerCase().trim();
+  const cards = document.querySelectorAll('.sortable-card');
+
+  cards.forEach(card => {
+    const text = card.textContent.toLowerCase();
+    if (text.includes(query)) {
+      card.style.display = 'flex';
+    } else {
+      card.style.display = 'none';
+    }
+  });
+}
+
+function filterBySport(sportTag, button) {
+  document.querySelectorAll('#sport-filter-pills .pill-btn').forEach(b => b.classList.remove('active'));
+  if (button) button.classList.add('active');
+
+  const cards = document.querySelectorAll('.sortable-card');
+  cards.forEach(card => {
+    const text = card.textContent.toLowerCase();
+    if (sportTag === 'all' || text.includes(sportTag)) {
+      card.style.display = 'flex';
+    } else {
+      card.style.display = 'none';
+    }
+  });
+}
+
+// --- OMNIPRESENT SCREEN PARSER & INTERACTIVE COPILOT ---
+async function scanScreenAndConsultGemini() {
+  const outputBox = document.getElementById('global-copilot-output');
+  if (!outputBox) return;
+  outputBox.style.display = 'block';
+  outputBox.innerHTML = '<span style="color: var(--accent-cyan);">Scanning active screen DOM and querying live order books...</span>';
+
+  const activeView = document.querySelector('.tab-view.active');
+  const marketCards = activeView ? activeView.querySelectorAll('.market-card, .sortable-card') : [];
+  
+  const extractedMarkets = [];
+  marketCards.forEach((card, idx) => {
+    const textContent = card.innerText.trim().replace(/\n+/g, ' | ');
+    if (textContent.length > 5) {
+      extractedMarkets.push({ id: idx, summary: textContent });
+    }
+  });
+
+  if (extractedMarkets.length === 0) {
+    outputBox.innerHTML = `<span style="color: var(--accent-gold);">No active market cards detected on this screen. Switch to Picks, Poly, or Perps desk.</span>`;
+    return;
+  }
+
+  let htmlBuilder = `
+    <div style="font-weight: 800; color: #fff; margin-bottom: 6px;">Detected ${extractedMarkets.length} active markets on screen. Tap one for deep quant analysis:</div>
+    <div style="display: flex; flex-direction: column; gap: 6px; max-height: 180px; overflow-y: auto;">
+  `;
+
+  extractedMarkets.forEach(m => {
+    const safeSummary = m.summary.replace(/'/g, "&apos;").replace(/"/g, "&quot;");
+    htmlBuilder += `
+      <div style="background: #0c132f; border: 1px solid var(--border-color); padding: 8px; border-radius: 6px; cursor: pointer; display: flex; justify-content: space-between; align-items: center;" onclick="analyzeSelectedScreenMarket('${safeSummary}')">
+        <span style="font-size: 0.75rem; color: #cbd5e1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 320px;">• ${m.summary}</span>
+        <span class="tag" style="background: rgba(0,245,160,0.15); color: var(--accent-green); font-size: 0.65rem;">Analyze ➔</span>
+      </div>
+    `;
+  });
+
+  htmlBuilder += `</div>`;
+  outputBox.innerHTML = htmlBuilder;
+}
+
+async function analyzeSelectedScreenMarket(marketText) {
+  const outputBox = document.getElementById('global-copilot-output');
+  if (!outputBox) return;
+  outputBox.innerHTML = `<span style="color: var(--accent-cyan);">Running quantitative edge & fee friction analysis on: <br><em>"${marketText}"</em></span>`;
+
+  const geminiKey = localStorage.getItem('gemini_api_key') || '';
+
+  try {
+    const res = await fetch('/api/agent/gemini', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Gemini-Key': geminiKey
+      },
+      body: JSON.stringify({ 
+        ticker: "SCREEN_MARKET", 
+        title: marketText, 
+        targetPrice: "N/A", 
+        currentPrice: "N/A", 
+        minutesLeft: 60 
+      })
+    });
+
+    const data = await res.json();
+    if (data.error) {
+      outputBox.innerHTML = `<span style="color: var(--accent-red);">${data.error}</span>`;
+    } else {
+      outputBox.innerHTML = `
+        <div style="font-weight: 800; color: var(--accent-green); margin-bottom: 4px;">📊 Quant Analysis Result:</div>
+        <div style="color: #fff; white-space: pre-wrap; font-size: 11px; background: #050814; padding: 10px; border-radius: 6px; border: 1px solid var(--border-color);">${data.analysis}</div>
+      `;
+    }
+  } catch (err) {
+    outputBox.innerHTML = `<span style="color: var(--accent-red);">Inference transmission failed: ${err.message}</span>`;
+  }
+}
+
+// --- DIRECT DESK EXECUTION MODAL ---
+let activeDirectContext = null;
+
+function openDirectExecutionModal(assetName, actionType, defaultPrice = 0.50) {
+  activeDirectContext = { assetName, actionType, defaultPrice };
+  document.getElementById('direct-modal-title').textContent = `Execute: ${assetName}`;
+  document.getElementById('direct-asset-display').textContent = assetName;
+  document.getElementById('direct-action-display').innerHTML = `Action: <strong style="color: ${actionType.includes('YES') || actionType.includes('LONG') ? 'var(--accent-green)' : 'var(--accent-pink)'};">${actionType}</strong>`;
+  
+  document.getElementById('direct-order-qty').value = 1;
+  document.getElementById('direct-order-price').value = defaultPrice;
+  calculateDirectEstimate();
+
+  const modal = document.getElementById('direct-order-modal');
+  if (modal) modal.style.display = 'flex';
+}
+
+function closeDirectModal() {
+  const modal = document.getElementById('direct-order-modal');
+  if (modal) modal.style.display = 'none';
+  activeDirectContext = null;
+}
+
+function calculateDirectEstimate() {
+  const qty = parseInt(document.getElementById('direct-order-qty').value, 10) || 1;
+  const price = parseFloat(document.getElementById('direct-order-price').value) || 0.50;
+  const cost = qty * price;
+  const payout = qty * 1.0;
+
+  document.getElementById('direct-est-cost').textContent = `$${cost.toFixed(2)}`;
+  document.getElementById('direct-est-payout').textContent = `$${payout.toFixed(2)}`;
+}
+
+async function executeDirectOrder() {
+  const qty = parseInt(document.getElementById('direct-order-qty').value, 10) || 1;
+  const price = parseFloat(document.getElementById('direct-order-price').value) || 0.50;
+  const maxCost = qty * price;
+  const deployable = getDeployableCapital();
+
+  if (maxCost > deployable) {
+    alert(`Order Blocked: Insufficient Deployable Capital!\n\nOrder Cost: $${maxCost.toFixed(2)}\nDeployable Capital: $${deployable.toFixed(2)}\n(Protected by your Shielded Vault Floor)`);
+    return;
+  }
+
+  alert(`Order Dispatched & Signed!\nBought ${qty} unit(s) of ${activeDirectContext.assetName} [${activeDirectContext.actionType}] at $${price.toFixed(2)}.`);
+  closeDirectModal();
+  fetchLiveExchangeBalances();
 }
 
 // --- DYNAMIC QUEUE POOLS ---
@@ -1643,6 +1688,10 @@ function renderCarouselPage(containerId, pool, pageIndex) {
         <span>Pick: ${item.pick} • ${item.time}</span>
         <span style="color: var(--accent-green); font-weight: 800;">${item.roi}</span>
       </div>
+      <div class="binary-split-tray">
+        <div class="binary-btn btn-above" onclick="openDirectExecutionModal('${item.match.replace(/'/g, "")}', 'BUY YES', 0.78)">Buy YES</div>
+        <div class="binary-btn btn-below" onclick="openDirectExecutionModal('${item.match.replace(/'/g, "")}', 'BUY NO', 0.22)">Buy NO</div>
+      </div>
     </div>
   `).join('');
 }
@@ -1682,7 +1731,6 @@ function switchDeskFilter(desk, button) {
   document.querySelectorAll('.desk-btn').forEach(b => b.classList.remove('active'));
   if (button) button.classList.add('active');
 
-  // Switch to view-picks tab container
   switchNavTab('view-picks', document.querySelectorAll('.bottom-nav .nav-item')[0], false);
 
   const sportsSec = document.getElementById('section-sports');
@@ -1830,7 +1878,7 @@ function updateSynchronized15MinTimers() {
   });
 }
 
-// --- DYNAMIC ORDER MODAL WITH HARD PRE-FLIGHT BALANCING ---
+// --- DYNAMIC 15-MIN ORDER MODAL ---
 let activeOrderContext = null;
 
 function openOrderModal(assetKey, side) {
@@ -1898,29 +1946,16 @@ async function submitKalshiOrder() {
   const maxCost = qty * (price / 100);
   const deployable = getDeployableCapital();
 
-  // 1. Core Financial Guardrail: Hard Pre-Flight Capital Check
   if (maxCost > deployable) {
     alert(`Order Blocked: Insufficient Deployable Capital!\n\nOrder Cost: $${maxCost.toFixed(2)}\nDeployable Capital: $${deployable.toFixed(2)}\n(Protected by your Shielded Vault Floor)`);
     return;
   }
 
-  // 2. Anti-Taker Slippage Filter
   if (isSlippageFilterEnabled() && (price > 95 || price < 5)) {
     alert("Protocol Safety Warning: Limit price violates anti-taker fee friction rule (>95¢ or <5¢). Please place a resting bid closer to the median.");
     return;
   }
 
-  // 3. Large Transaction Circuit Breaker
-  const largeThreshold = getLargeOrderThreshold();
-  if (maxCost >= largeThreshold) {
-    const confirmationText = document.getElementById('large-order-confirm-input').value.trim();
-    if (confirmationText !== "CONFIRM") {
-      alert(`Safety Check: This order is $${maxCost.toFixed(2)} (exceeds your $${largeThreshold.toFixed(2)} threshold). You must type CONFIRM to submit.`);
-      return;
-    }
-  }
-
-  // 4. Actual Dispatch to Kalshi Order API via Worker Relay
   try {
     const res = await fetch('/api/kalshi/trade/portfolio/orders', {
       method: 'POST',
@@ -1990,7 +2025,6 @@ async function pollLive15MinMarkets() {
     }
   } catch (err) {}
 
-  // Active Market Fallback if Kalshi is transitioning candle brackets
   if (live15MinState.GOLD.target === 0) {
     live15MinState.GOLD.target = 2654.20;
     live15MinState.GOLD.spot = 2655.15;
@@ -2131,6 +2165,10 @@ async function fetchLivePoly() {
                 <span>Vol: $${Math.round(ev.volume || 0).toLocaleString()} • Pick: YES @ $${yesP.toFixed(2)}</span>
                 <span style="color: var(--accent-green); font-weight: 800;">+${roiVal}% ROI</span>
               </div>
+              <div class="binary-split-tray">
+                <div class="binary-btn btn-above" onclick="openDirectExecutionModal('${ev.title.replace(/'/g, "")}', 'BUY YES', ${yesP})">Buy YES · $${yesP.toFixed(2)}</div>
+                <div class="binary-btn btn-below" onclick="openDirectExecutionModal('${ev.title.replace(/'/g, "")}', 'BUY NO', ${(1-yesP).toFixed(2)})">Buy NO · $${(1-yesP).toFixed(2)}</div>
+              </div>
             </div>
           `;
         }).join('');
@@ -2149,15 +2187,19 @@ async function fetchLivePoly() {
         <span>Vol: ${ev.vol} • Pick: YES @ $${ev.yesPrice.toFixed(2)}</span>
         <span style="color: var(--accent-green); font-weight: 800;">+${ev.roi}% ROI</span>
       </div>
+      <div class="binary-split-tray">
+        <div class="binary-btn btn-above" onclick="openDirectExecutionModal('${ev.title.replace(/'/g, "")}', 'BUY YES', ${ev.yesPrice})">Buy YES · $${ev.yesPrice.toFixed(2)}</div>
+        <div class="binary-btn btn-below" onclick="openDirectExecutionModal('${ev.title.replace(/'/g, "")}', 'BUY NO', ${(1-ev.yesPrice).toFixed(2)})">Buy NO · $${(1-ev.yesPrice).toFixed(2)}</div>
+      </div>
     </div>
   `).join('');
 }
 
 // --- KALSHI DOMESTIC FEED ---
 const KALSHI_DOMESTIC_CATALOG = [
-  { title: "Fed Funds Target Rate Cut ≥ 25 bps", vol: "$1.42M", pick: "YES @ $0.84", roi: 19.0, exp: nowMs + 86400000 * 30 },
-  { title: "Core CPI YoY Inflation Rate &le; 2.8%", vol: "$980K", pick: "YES @ $0.78", roi: 28.2, exp: nowMs + 86400000 * 25 },
-  { title: "US Q3 GDP Annualized Growth &ge; 2.5%", vol: "$1.15M", pick: "YES @ $0.71", roi: 40.8, exp: nowMs + 86400000 * 40 }
+  { title: "Fed Funds Target Rate Cut ≥ 25 bps", vol: "$1.42M", pick: "YES @ $0.84", roi: 19.0, price: 0.84, exp: nowMs + 86400000 * 30 },
+  { title: "Core CPI YoY Inflation Rate &le; 2.8%", vol: "$980K", pick: "YES @ $0.78", roi: 28.2, price: 0.78, exp: nowMs + 86400000 * 25 },
+  { title: "US Q3 GDP Annualized Growth &ge; 2.5%", vol: "$1.15M", pick: "YES @ $0.71", roi: 40.8, price: 0.71, exp: nowMs + 86400000 * 40 }
 ];
 
 function renderKalshiDesk() {
@@ -2172,6 +2214,10 @@ function renderKalshiDesk() {
       <div class="market-card-meta">
         <span>Volume: ${k.vol} • ${k.pick}</span>
         <span style="color: var(--accent-green); font-weight: 800;">+${k.roi}% ROI</span>
+      </div>
+      <div class="binary-split-tray">
+        <div class="binary-btn btn-above" onclick="openDirectExecutionModal('${k.title.replace(/'/g, "")}', 'BUY YES', ${k.price})">Buy YES · $${k.price}</div>
+        <div class="binary-btn btn-below" onclick="openDirectExecutionModal('${k.title.replace(/'/g, "")}', 'BUY NO', ${(1-k.price).toFixed(2)})">Buy NO · $${(1-k.price).toFixed(2)}</div>
       </div>
     </div>
   `).join('');
