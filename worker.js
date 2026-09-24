@@ -1,7 +1,7 @@
 // ============================================================================
-// COSMIC TERMINAL / PARLAYS - MASTER WORKER (v3.4.0-hybrid-index)
+// COSMIC TERMINAL / PARLAYS - MASTER WORKER (v3.4.1-kofi-billing)
 // Zero-List Architecture, Ephemeral Ingestion, Anti-Taker Slippage Safeguards,
-// 60s High-Capacity GET Sentinel & Quant-Restricted Gemini Copilot Relay
+// 60s High-Capacity GET Sentinel, Gemini Copilot & Ko-fi SaaS Webhooks
 // ============================================================================
 
 const CORS_HEADERS = {
@@ -94,7 +94,6 @@ export default {
         const tickets = await env.FLEET_KV.get(userIndexKey, { type: "json" }) || [];
 
         if (tickets.length === 0) {
-          // No active slips remaining; purge from registry
           continue;
         }
 
@@ -147,12 +146,67 @@ export default {
       return new Response(null, { headers: CORS_HEADERS });
     }
 
+    // ------------------------------------------------------------------------
+    // KO-FI WEBHOOK & PASSKEY GENERATOR
+    // POST /api/billing/kofi-webhook
+    // ------------------------------------------------------------------------
+    if (url.pathname === "/api/billing/kofi-webhook" && request.method === "POST") {
+      try {
+        const formData = await request.formData();
+        const dataString = formData.get("data");
+        
+        if (!dataString) {
+          return new Response("Missing Ko-fi data payload", { status: 400, headers: CORS_HEADERS });
+        }
+
+        const payload = JSON.parse(dataString);
+        
+        // 1. Verify Ko-fi Token
+        const expectedToken = env.KOFI_WEBHOOK_SECRET;
+        if (!expectedToken || payload.verification_token !== expectedToken) {
+          return new Response("Unauthorized: Invalid Ko-fi verification token.", { status: 401, headers: CORS_HEADERS });
+        }
+
+        // 2. Determine Tier & Issue Edge Passkey
+        const customerEmail = payload.email || "anonymous";
+        const amount = parseFloat(payload.amount);
+        const tierName = (payload.tier_name || "").toLowerCase();
+        
+        let assignedTier = "pro"; // Default $5 fallback
+        if (tierName.includes("institutional") || amount >= 79.00) {
+          assignedTier = "institutional";
+        } else if (tierName.includes("sentinel") || amount >= 29.00) {
+          assignedTier = "sentinel";
+        }
+        
+        // Generate a cryptographically random passkey prefixing the tier
+        const passkey = `cosmic_${assignedTier}_${crypto.randomUUID().replace(/-/g, '')}`;
+        
+        // Store in FLEET_KV
+        if (env.FLEET_KV) {
+          await env.FLEET_KV.put(`passkey:${passkey}`, JSON.stringify({
+            status: "active",
+            tier: assignedTier,
+            email: customerEmail,
+            issuedAt: Date.now(),
+            kofi_id: payload.kofi_transaction_id
+          }));
+        }
+        
+        console.log(`[Billing Edge] New ${assignedTier.toUpperCase()} passkey issued for ${customerEmail}`);
+        
+        return new Response(JSON.stringify({ received: true }), { status: 200, headers: CORS_HEADERS });
+      } catch (err) {
+        return new Response(JSON.stringify({ error: err.message }), { status: 500, headers: CORS_HEADERS });
+      }
+    }
+
     // 1. Health Status
     if (url.pathname === "/api/health") {
       return new Response(JSON.stringify({ 
         status: "healthy", 
         env: "production", 
-        build: "3.4.0-hybrid-index",
+        build: "3.4.1-kofi-billing",
         listBudgetSafe: true
       }), {
         headers: { ...CORS_HEADERS, "Content-Type": "application/json" }
@@ -303,7 +357,7 @@ export default {
       return new Response(JSON.stringify({ error: "Missing webhook URL or KV" }), { status: 400, headers: CORS_HEADERS });
     }
 
-    // 5. Kalshi 15-Minute Live Fast Feed Proxy (8 Series Coverage)
+    // 5. Kalshi 15-Minute Live Fast Feed Proxy
     if (url.pathname === "/api/kalshi/15min/live") {
       try {
         const seriesList = ["KXGOLD15M", "KXSLV15M", "KXWTI15M", "KXBTC15M", "KXETH15M", "KXSOL15M", "KXXRP15M", "KXDOGE15M"];
