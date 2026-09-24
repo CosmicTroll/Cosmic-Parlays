@@ -1,7 +1,7 @@
 // ============================================================================
-// COSMIC TERMINAL / PARLAYS - MASTER WORKER (v3.4.1-kofi-billing)
+// COSMIC TERMINAL / PARLAYS - MASTER WORKER (v3.4.2-automated-mailer)
 // Zero-List Architecture, Ephemeral Ingestion, Anti-Taker Slippage Safeguards,
-// 60s High-Capacity GET Sentinel, Gemini Copilot & Ko-fi SaaS Webhooks
+// 60s High-Capacity GET Sentinel, Gemini Copilot & Resend Auto-Mailer
 // ============================================================================
 
 const CORS_HEADERS = {
@@ -75,27 +75,22 @@ export default {
     if (!env.FLEET_KV) return;
 
     try {
-      // 1. Fetch live MLB scoreboard
       const mlbRes = await fetch("https://statsapi.mlb.com/api/v1/schedule?sportId=1&hydrate=linescore,team", {
         headers: { "Accept": "application/json", "User-Agent": "CosmicTerminal/3.4" }
       });
       const mlbData = mlbRes.ok ? await mlbRes.json() : null;
       const games = mlbData?.dates?.[0]?.games || [];
 
-      // 2. Fetch Active Users Registry using GET (100k free tier allowance)
       const activeUsers = await env.FLEET_KV.get("active_fleet_users", { type: "json" }) || [];
       if (activeUsers.length === 0) return;
 
       const updatedActiveUsers = [];
 
       for (const uuid of activeUsers) {
-        // Direct key GET instead of env.FLEET_KV.list()
         const userIndexKey = `user:slips:${uuid}`;
         const tickets = await env.FLEET_KV.get(userIndexKey, { type: "json" }) || [];
 
-        if (tickets.length === 0) {
-          continue;
-        }
+        if (tickets.length === 0) continue;
 
         updatedActiveUsers.push(uuid);
 
@@ -130,7 +125,6 @@ export default {
         }
       }
 
-      // Sync active registry back if cleared
       if (updatedActiveUsers.length !== activeUsers.length) {
         await env.FLEET_KV.put("active_fleet_users", JSON.stringify(updatedActiveUsers), { expirationTtl: 86400 });
       }
@@ -147,7 +141,7 @@ export default {
     }
 
     // ------------------------------------------------------------------------
-    // KO-FI WEBHOOK & PASSKEY GENERATOR
+    // KO-FI WEBHOOK & RESEND AUTO-MAILER
     // POST /api/billing/kofi-webhook
     // ------------------------------------------------------------------------
     if (url.pathname === "/api/billing/kofi-webhook" && request.method === "POST") {
@@ -155,34 +149,31 @@ export default {
         const formData = await request.formData();
         const dataString = formData.get("data");
         
-        if (!dataString) {
-          return new Response("Missing Ko-fi data payload", { status: 400, headers: CORS_HEADERS });
-        }
+        if (!dataString) return new Response("Missing data", { status: 400, headers: CORS_HEADERS });
 
         const payload = JSON.parse(dataString);
         
         // 1. Verify Ko-fi Token
         const expectedToken = env.KOFI_WEBHOOK_SECRET;
         if (!expectedToken || payload.verification_token !== expectedToken) {
-          return new Response("Unauthorized: Invalid Ko-fi verification token.", { status: 401, headers: CORS_HEADERS });
+          return new Response("Unauthorized", { status: 401, headers: CORS_HEADERS });
         }
 
-        // 2. Determine Tier & Issue Edge Passkey
+        // 2. Determine Tier & Generate Passkey
         const customerEmail = payload.email || "anonymous";
         const amount = parseFloat(payload.amount);
         const tierName = (payload.tier_name || "").toLowerCase();
         
-        let assignedTier = "pro"; // Default $5 fallback
+        let assignedTier = "pro"; 
         if (tierName.includes("institutional") || amount >= 79.00) {
           assignedTier = "institutional";
         } else if (tierName.includes("sentinel") || amount >= 29.00) {
           assignedTier = "sentinel";
         }
         
-        // Generate a cryptographically random passkey prefixing the tier
         const passkey = `cosmic_${assignedTier}_${crypto.randomUUID().replace(/-/g, '')}`;
         
-        // Store in FLEET_KV
+        // 3. Store Entitlement in FLEET_KV
         if (env.FLEET_KV) {
           await env.FLEET_KV.put(`passkey:${passkey}`, JSON.stringify({
             status: "active",
@@ -192,8 +183,40 @@ export default {
             kofi_id: payload.kofi_transaction_id
           }));
         }
-        
-        console.log(`[Billing Edge] New ${assignedTier.toUpperCase()} passkey issued for ${customerEmail}`);
+
+        // 4. Send Automated Email via Resend API
+        if (env.RESEND_API_KEY && customerEmail !== "anonymous") {
+          const emailHtml = `
+            <div style="font-family: sans-serif; padding: 20px; color: #333;">
+              <h2 style="color: #0d1224;">Welcome to Cosmic Terminal 🚀</h2>
+              <p>Your transaction was successful. Here is your unique private passkey:</p>
+              <div style="background: #f4f4f5; padding: 12px; border-radius: 6px; font-family: monospace; font-size: 16px; margin: 20px 0;">
+                ${passkey}
+              </div>
+              <p><strong>Next Steps:</strong></p>
+              <ol>
+                <li>Open your Cosmic Terminal.</li>
+                <li>Go to the <strong>Vault</strong> tab.</li>
+                <li>Paste this key into the Passkey field.</li>
+              </ol>
+              <p>See you on the edge.</p>
+            </div>
+          `;
+
+          await fetch("https://api.resend.com/emails", {
+            method: "POST",
+            headers: {
+              "Authorization": `Bearer ${env.RESEND_API_KEY}`,
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+              from: "Cosmic Terminal <onboarding@resend.dev>", 
+              to: customerEmail,
+              subject: "Your Cosmic Terminal Passkey",
+              html: emailHtml
+            })
+          });
+        }
         
         return new Response(JSON.stringify({ received: true }), { status: 200, headers: CORS_HEADERS });
       } catch (err) {
@@ -206,8 +229,7 @@ export default {
       return new Response(JSON.stringify({ 
         status: "healthy", 
         env: "production", 
-        build: "3.4.1-kofi-billing",
-        listBudgetSafe: true
+        build: "3.4.2-automated-mailer"
       }), {
         headers: { ...CORS_HEADERS, "Content-Type": "application/json" }
       });
@@ -222,14 +244,9 @@ export default {
           const mlbRes = await fetch("https://statsapi.mlb.com/api/v1/schedule?sportId=1&hydrate=linescore,team", {
             headers: { "Accept": "application/json", "User-Agent": "CosmicTerminal/3.4" }
           });
-          return new Response(await mlbRes.text(), {
-            headers: { ...CORS_HEADERS, "Content-Type": "application/json" }
-          });
+          return new Response(await mlbRes.text(), { headers: { ...CORS_HEADERS, "Content-Type": "application/json" } });
         } catch (err) {
-          return new Response(JSON.stringify({ error: "MLB verification delayed", details: err.message }), {
-            status: 502,
-            headers: { ...CORS_HEADERS, "Content-Type": "application/json" }
-          });
+          return new Response(JSON.stringify({ error: "MLB verification delayed" }), { status: 502, headers: { ...CORS_HEADERS, "Content-Type": "application/json" } });
         }
       }
 
@@ -238,103 +255,21 @@ export default {
           const nflRes = await fetch("https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard", {
             headers: { "Accept": "application/json", "User-Agent": "CosmicTerminal/3.4" }
           });
-          return new Response(await nflRes.text(), {
-            headers: { ...CORS_HEADERS, "Content-Type": "application/json" }
-          });
+          return new Response(await nflRes.text(), { headers: { ...CORS_HEADERS, "Content-Type": "application/json" } });
         } catch (err) {
-          return new Response(JSON.stringify({ error: "NFL verification delayed", details: err.message }), {
-            status: 502,
-            headers: { ...CORS_HEADERS, "Content-Type": "application/json" }
-          });
+          return new Response(JSON.stringify({ error: "NFL verification delayed" }), { status: 502, headers: { ...CORS_HEADERS, "Content-Type": "application/json" } });
         }
       }
 
-      return new Response(JSON.stringify({ error: "Unsupported verification sport" }), {
-        status: 400,
-        headers: { ...CORS_HEADERS, "Content-Type": "application/json" }
-      });
+      return new Response(JSON.stringify({ error: "Unsupported verification sport" }), { status: 400, headers: { ...CORS_HEADERS, "Content-Type": "application/json" } });
     }
 
     // 3. Dynamic 1-Tap iOS Shortcut Generator
     if (url.pathname.startsWith("/api/fleet/shortcut/")) {
       const userUuid = url.pathname.replace("/api/fleet/shortcut/", "").trim();
       const ingestUrl = `https://${url.host}/api/fleet/ingest/${userUuid}`;
-
-      const plistXml = `<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0">
-<dict>
-  <key>WFWorkflowActions</key>
-  <array>
-    <dict>
-      <key>WFWorkflowActionIdentifier</key>
-      <string>is.workflow.actions.downloadurl</string>
-      <key>WFWorkflowActionParameters</key>
-      <dict>
-        <key>WFURLActionURL</key>
-        <string>${ingestUrl}</string>
-        <key>WFHTTPMethod</key>
-        <string>POST</string>
-        <key>WFHTTPBodyType</key>
-        <string>JSON</string>
-        <key>WFJSONValues</key>
-        <dict>
-          <key>Value</key>
-          <dict>
-            <key>WFDictionaryFieldValueItems</key>
-            <array>
-              <dict>
-                <key>WFItemType</key>
-                <integer>0</integer>
-                <key>WFKey</key>
-                <dict>
-                  <key>Value</key>
-                  <dict>
-                    <key>string</key>
-                    <string>text</string>
-                  </dict>
-                  <key>WFSerializationType</key>
-                  <string>WFTextTokenString</string>
-                </dict>
-                <key>WFValue</key>
-                <dict>
-                  <key>Value</key>
-                  <dict>
-                    <key>attachmentsByRange</key>
-                    <dict>
-                      <key>{0, 1}</key>
-                      <dict>
-                        <key>Type</key>
-                        <string>ExtensionInput</string>
-                      </dict>
-                    </dict>
-                    <key>string</key>
-                    <string>&#xFFFC;</string>
-                  </dict>
-                  <key>WFSerializationType</key>
-                  <string>WFTextTokenString</string>
-                </dict>
-              </dict>
-            </array>
-          </dict>
-          <key>WFSerializationType</key>
-          <string>WFSerializedDictionary</string>
-        </dict>
-      </dict>
-    </dict>
-  </array>
-  <key>WFWorkflowInputContentItemClasses</key>
-  <array>
-    <string>WFURLContentItem</string>
-    <string>WFStringContentItem</string>
-  </array>
-  <key>WFWorkflowTypes</key>
-  <array>
-    <string>ActionExtension</string>
-  </array>
-</dict>
-</plist>`;
-
+      const plistXml = `<?xml version="1.0" encoding="UTF-8"?>\n<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">\n<plist version="1.0">\n<dict>\n  <key>WFWorkflowActions</key>\n  <array>\n    <dict>\n      <key>WFWorkflowActionIdentifier</key>\n      <string>is.workflow.actions.downloadurl</string>\n      <key>WFWorkflowActionParameters</key>\n      <dict>\n        <key>WFURLActionURL</key>\n        <string>${ingestUrl}</string>\n        <key>WFHTTPMethod</key>\n        <string>POST</string>\n        <key>WFHTTPBodyType</key>\n        <string>JSON</string>\n        <key>WFJSONValues</key>\n        <dict>\n          <key>Value</key>\n          <dict>\n            <key>WFDictionaryFieldValueItems</key>\n            <array>\n              <dict>\n                <key>WFItemType</key>\n                <integer>0</integer>\n                <key>WFKey</key>\n                <dict>\n                  <key>Value</key>\n                  <dict><key>string</key><string>text</string></dict>\n                  <key>WFSerializationType</key>\n                  <string>WFTextTokenString</string>\n                </dict>\n                <key>WFValue</key>\n                <dict>\n                  <key>Value</key>\n                  <dict>\n                    <key>attachmentsByRange</key>\n                    <dict><key>{0, 1}</key><dict><key>Type</key><string>ExtensionInput</string></dict></dict>\n                    <key>string</key><string>&#xFFFC;</string>\n                  </dict>\n                  <key>WFSerializationType</key>\n                  <string>WFTextTokenString</string>\n                </dict>\n              </dict>\n            </array>\n          </dict>\n          <key>WFSerializationType</key>\n          <string>WFSerializedDictionary</string>\n        </dict>\n      </dict>\n    </dict>\n  </array>\n  <key>WFWorkflowInputContentItemClasses</key>\n  <array><string>WFURLContentItem</string><string>WFStringContentItem</string></array>\n  <key>WFWorkflowTypes</key>\n  <array><string>ActionExtension</string></array>\n</dict>\n</plist>`;
+      
       return new Response(plistXml, {
         headers: {
           ...CORS_HEADERS,
@@ -350,9 +285,7 @@ export default {
       const payload = await request.json();
       if (env.FLEET_KV && payload.webhookUrl) {
         await env.FLEET_KV.put(`webhook:${userUuid}`, payload.webhookUrl);
-        return new Response(JSON.stringify({ status: "saved" }), {
-          headers: { ...CORS_HEADERS, "Content-Type": "application/json" }
-        });
+        return new Response(JSON.stringify({ status: "saved" }), { headers: { ...CORS_HEADERS, "Content-Type": "application/json" } });
       }
       return new Response(JSON.stringify({ error: "Missing webhook URL or KV" }), { status: 400, headers: CORS_HEADERS });
     }
@@ -368,20 +301,12 @@ export default {
             });
             if (!res.ok) return null;
             return await res.json();
-          } catch (e) {
-            return null;
-          }
+          } catch (e) { return null; }
         });
-
         const results = await Promise.all(fetchPromises);
-        return new Response(JSON.stringify({ markets: results.filter(Boolean) }), {
-          headers: { ...CORS_HEADERS, "Content-Type": "application/json" }
-        });
+        return new Response(JSON.stringify({ markets: results.filter(Boolean) }), { headers: { ...CORS_HEADERS, "Content-Type": "application/json" } });
       } catch (err) {
-        return new Response(JSON.stringify({ error: "Failed to poll 15m books", details: err.message }), {
-          status: 502,
-          headers: { ...CORS_HEADERS, "Content-Type": "application/json" }
-        });
+        return new Response(JSON.stringify({ error: "Failed to poll 15m books" }), { status: 502, headers: { ...CORS_HEADERS, "Content-Type": "application/json" } });
       }
     }
 
@@ -394,18 +319,12 @@ export default {
         try {
           const orderPayload = await request.clone().json();
           if (orderPayload.yes_price && (orderPayload.yes_price > 95 || orderPayload.yes_price < 5)) {
-            return new Response(JSON.stringify({ 
-              error: "Protocol Governance Rejection: Limit price violates core anti-taker slippage rule (>95¢ or <5¢)." 
-            }), { status: 400, headers: CORS_HEADERS });
+            return new Response(JSON.stringify({ error: "Protocol Governance Rejection: Limit price violates core anti-taker slippage rule." }), { status: 400, headers: CORS_HEADERS });
           }
         } catch (e) {}
       }
 
-      const forwardHeaders = {
-        "Content-Type": "application/json",
-        "Accept": "application/json"
-      };
-
+      const forwardHeaders = { "Content-Type": "application/json", "Accept": "application/json" };
       const keyHeader = request.headers.get("KALSHI-ACCESS-KEY");
       const tsHeader = request.headers.get("KALSHI-ACCESS-TIMESTAMP");
       const sigHeader = request.headers.get("KALSHI-ACCESS-SIGNATURE");
@@ -420,18 +339,10 @@ export default {
           headers: forwardHeaders,
           body: request.method !== "GET" ? await request.text() : undefined
         });
-
         const res = await fetch(kalshiReq);
-        const resBody = await res.text();
-        return new Response(resBody, {
-          status: res.status,
-          headers: { ...CORS_HEADERS, "Content-Type": "application/json" }
-        });
+        return new Response(await res.text(), { status: res.status, headers: { ...CORS_HEADERS, "Content-Type": "application/json" } });
       } catch (err) {
-        return new Response(JSON.stringify({ error: "Kalshi trade proxy failed", details: err.message }), {
-          status: 502,
-          headers: { ...CORS_HEADERS, "Content-Type": "application/json" }
-        });
+        return new Response(JSON.stringify({ error: "Kalshi trade proxy failed" }), { status: 502, headers: { ...CORS_HEADERS, "Content-Type": "application/json" } });
       }
     }
 
@@ -439,17 +350,10 @@ export default {
     if (url.pathname === "/api/polymarket/markets") {
       try {
         const target = `https://gamma-api.polymarket.com/events?closed=false&limit=20${url.search.replace("?", "&")}`;
-        const polyRes = await fetch(target, { 
-          headers: { "Accept": "application/json", "User-Agent": "CosmicTerminal/3.4" } 
-        });
-        return new Response(await polyRes.text(), {
-          headers: { ...CORS_HEADERS, "Content-Type": "application/json" }
-        });
+        const polyRes = await fetch(target, { headers: { "Accept": "application/json", "User-Agent": "CosmicTerminal/3.4" } });
+        return new Response(await polyRes.text(), { headers: { ...CORS_HEADERS, "Content-Type": "application/json" } });
       } catch (err) {
-        return new Response(JSON.stringify({ error: "Polymarket query failed", details: err.message }), {
-          status: 502,
-          headers: { ...CORS_HEADERS, "Content-Type": "application/json" }
-        });
+        return new Response(JSON.stringify({ error: "Polymarket query failed" }), { status: 502, headers: { ...CORS_HEADERS, "Content-Type": "application/json" } });
       }
     }
 
@@ -470,18 +374,12 @@ export default {
         if (userTtl > 86400) userTtl = 86400;
 
         if (env.FLEET_KV) {
-          // Read user active index key via GET
           const userKey = `user:slips:${userUuid}`;
           let userSlips = await env.FLEET_KV.get(userKey, { type: "json" }) || [];
-          
-          // Append new ticket (preventing duplicates)
           userSlips = userSlips.filter(s => s.id !== parsedTicket.id);
           userSlips.push(parsedTicket);
-
-          // Standard PUT back to user bucket
           await env.FLEET_KV.put(userKey, JSON.stringify(userSlips), { expirationTtl: userTtl });
 
-          // Update active users index
           let activeUsers = await env.FLEET_KV.get("active_fleet_users", { type: "json" }) || [];
           if (!activeUsers.includes(userUuid)) {
             activeUsers.push(userUuid);
@@ -490,12 +388,7 @@ export default {
         }
 
         const isPaid = !!request.headers.get("X-Passkey");
-        return new Response(JSON.stringify({ 
-          status: "queued", 
-          ttl: userTtl, 
-          ticket: parsedTicket,
-          instantEdgeEvaluated: isPaid
-        }), {
+        return new Response(JSON.stringify({ status: "queued", ttl: userTtl, ticket: parsedTicket, instantEdgeEvaluated: isPaid }), {
           headers: { ...CORS_HEADERS, "Content-Type": "application/json" }
         });
       } catch (err) {
@@ -503,24 +396,19 @@ export default {
       }
     }
 
-    // 9. Read-and-Burn Drain Queue (Direct Key Fetch)
+    // 9. Read-and-Burn Drain Queue
     if (url.pathname.startsWith("/api/fleet/pull/")) {
       const userUuid = url.pathname.replace("/api/fleet/pull/", "").trim();
-      if (!userUuid || !env.FLEET_KV) {
-        return new Response(JSON.stringify({ pending: [] }), { headers: CORS_HEADERS });
-      }
+      if (!userUuid || !env.FLEET_KV) return new Response(JSON.stringify({ pending: [] }), { headers: CORS_HEADERS });
 
       const userKey = `user:slips:${userUuid}`;
       const slips = await env.FLEET_KV.get(userKey, { type: "json" }) || [];
 
-      // Burn records upon delivery
       if (slips.length > 0) {
         await env.FLEET_KV.delete(userKey);
       }
 
-      return new Response(JSON.stringify({ pending: slips }), {
-        headers: { ...CORS_HEADERS, "Content-Type": "application/json" }
-      });
+      return new Response(JSON.stringify({ pending: slips }), { headers: { ...CORS_HEADERS, "Content-Type": "application/json" } });
     }
 
     // 10. Quant-Restricted Gemini Copilot Relay
@@ -529,29 +417,9 @@ export default {
         const payload = await request.json();
         const clientApiKey = request.headers.get("X-Gemini-Key") || env.GEMINI_API_KEY;
         
-        if (!clientApiKey) {
-          return new Response(JSON.stringify({ 
-            error: "Missing Gemini API Key. Save key in Settings." 
-          }), { status: 400, headers: CORS_HEADERS });
-        }
+        if (!clientApiKey) return new Response(JSON.stringify({ error: "Missing Gemini API Key." }), { status: 400, headers: CORS_HEADERS });
 
-        const promptText = `
-You are an algorithmic quantitative analyst. You receive real-time spot prices, targets, and verified score states.
-You MUST NOT predict, speculate on, or declare match settlement status.
-Your output is strictly restricted to calculating taker/maker spread drag, edge percentages, and risk recommendations based strictly on the provided real-time variables.
-
-Input State:
-- Market: ${payload.ticker || 'Unknown'} (${payload.title || ''})
-- Target Strike: ${payload.targetPrice || 'N/A'}
-- Current Spot: ${payload.currentPrice || 'N/A'}
-- Minutes Left in Candle: ${payload.minutesLeft || '15'}m
-- Current Order Book Probabilities: ABOVE @ ${payload.yesOdds || '50'}% | BELOW @ ${payload.noOdds || '50'}%
-
-Instructions:
-1. Output Call: [BUY ABOVE / BUY BELOW / PASS]
-2. Calculate mathematical edge and taker fee friction. Recommend resting limit bids inside the spread.
-3. Provide exactly two factual sentences on momentum and price distance relative to target.
-Do NOT use conversational filler. Deliver raw quantitative analysis only.`;
+        const promptText = `You are an algorithmic quantitative analyst. You receive real-time spot prices, targets, and verified score states. You MUST NOT predict, speculate on, or declare match settlement status. Your output is strictly restricted to calculating taker/maker spread drag, edge percentages, and risk recommendations based strictly on the provided real-time variables. Input State: - Market: ${payload.ticker || 'Unknown'} (${payload.title || ''}) - Target Strike: ${payload.targetPrice || 'N/A'} - Current Spot: ${payload.currentPrice || 'N/A'} - Minutes Left in Candle: ${payload.minutesLeft || '15'}m - Current Order Book Probabilities: ABOVE @ ${payload.yesOdds || '50'}% | BELOW @ ${payload.noOdds || '50'}% Instructions: 1. Output Call: [BUY ABOVE / BUY BELOW / PASS] 2. Calculate mathematical edge and taker fee friction. Recommend resting limit bids inside the spread. 3. Provide exactly two factual sentences on momentum and price distance relative to target. Do NOT use conversational filler. Deliver raw quantitative analysis only.`;
 
         const safetySettings = [
           { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" },
@@ -563,18 +431,13 @@ Do NOT use conversational filler. Deliver raw quantitative analysis only.`;
         const geminiRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${clientApiKey}`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ 
-            contents: [{ parts: [{ text: promptText }] }],
-            safetySettings: safetySettings
-          })
+          body: JSON.stringify({ contents: [{ parts: [{ text: promptText }] }], safetySettings })
         });
 
         const geminiData = await geminiRes.json();
         const outputText = geminiData?.candidates?.[0]?.content?.parts?.[0]?.text || "No inference returned.";
 
-        return new Response(JSON.stringify({ analysis: outputText }), {
-          headers: { ...CORS_HEADERS, "Content-Type": "application/json" }
-        });
+        return new Response(JSON.stringify({ analysis: outputText }), { headers: { ...CORS_HEADERS, "Content-Type": "application/json" } });
       } catch (err) {
         return new Response(JSON.stringify({ error: err.message }), { status: 500, headers: CORS_HEADERS });
       }
