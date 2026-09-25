@@ -1,7 +1,8 @@
 # ============================================================================
-# COSMIC TERMINAL - MASTER WRANGLER CONFIGURATION
-# Production Edge Runtime, 60s Autonomous Cron Sentinel & Telemetry Bindings
+# COSMIC TERMINAL / PARLAYS - MASTER WRANGLER CONFIGURATION
+# Production Edge Runtime, 60s Autonomous GET Sentinel & Telemetry Bindings
 # ============================================================================
+
 name = "cosmic-parlays"
 main = "worker.js"
 compatibility_date = "2024-09-01"
@@ -9,16 +10,26 @@ compatibility_flags = ["nodejs_compat"]
 
 workers_dev = true
 
+# ----------------------------------------------------------------------------
+# 1. Autonomous Sentinel Cron Trigger
+# Runs every minute using deterministic GET calls (Zero List Operations)
+# ----------------------------------------------------------------------------
 [triggers]
 crons = ["* * * * *"]
 
+# ----------------------------------------------------------------------------
+# 2. KV Namespace Bindings
+# ----------------------------------------------------------------------------
 [[kv_namespaces]]
 binding = "FLEET_KV"
 id = "c7d7ba4e59074d2b9634e7da471168ef"
 
+# ----------------------------------------------------------------------------
+# 3. Environment Variables
+# ----------------------------------------------------------------------------
 [vars]
 ENVIRONMENT = "production"
-BUILD_VERSION = "4.0.0-modular-master"
+BUILD_VERSION = "4.1.0-monolithic-master"
 CORS_ALLOW_ORIGIN = "*"
 DEFAULT_SLIP_TTL = "1800"
 
