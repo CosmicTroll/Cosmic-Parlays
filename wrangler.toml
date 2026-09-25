@@ -1,5 +1,5 @@
 # ============================================================================
-# COSMIC TERMINAL / PARLAYS - MASTER WRANGLER CONFIGURATION
+# COSMIC TERMINAL / PARLAYS - PRODUCTION WRANGLER CONFIGURATION
 # Production Edge Runtime, 60s Autonomous GET Sentinel & Telemetry Bindings
 # ============================================================================
 
@@ -8,35 +8,22 @@ main = "worker.js"
 compatibility_date = "2024-09-01"
 compatibility_flags = ["nodejs_compat"]
 
-# Public routing & workers.dev assignment
 workers_dev = true
 
-# ----------------------------------------------------------------------------
-# 1. Autonomous Sentinel Cron Trigger
-# Runs every minute without list operations, using deterministic GET calls
-# ----------------------------------------------------------------------------
 [triggers]
 crons = ["* * * * *"]
 
-# ----------------------------------------------------------------------------
-# 2. KV Namespace Bindings
-# ----------------------------------------------------------------------------
 [[kv_namespaces]]
 binding = "FLEET_KV"
 id = "c7d7ba4e59074d2b9634e7da471168ef"
+preview_id = "preview_c7d7ba4e59074d2b9634e7da471168ef"
 
-# ----------------------------------------------------------------------------
-# 3. Environment Variables (Public Runtime Defaults)
-# ----------------------------------------------------------------------------
 [vars]
 ENVIRONMENT = "production"
-BUILD_VERSION = "3.4.0-hybrid-index"
+BUILD_VERSION = "3.4.1-production-master"
 CORS_ALLOW_ORIGIN = "*"
 DEFAULT_SLIP_TTL = "1800"
 
-# ----------------------------------------------------------------------------
-# 4. Build & Observability
-# ----------------------------------------------------------------------------
 [build]
 command = ""
 watch_dir = "."
