@@ -1,1790 +1,1365 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>Cosmic Terminal | Institutional BYOK Execution</title>
-  <link rel="manifest" href="/manifest.json">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <style>
-    /* ============================================================================
-       COSMIC TERMINAL - CORE STYLESHEET (Uncompressed & Expanded)
-       ============================================================================ */
-    :root {
-      --bg: #060712;
-      --surface: #0e1122;
-      --card: #14182e;
-      --accent: #00f2fe;
-      --accent-poly: #8a2be2;
-      --accent-kalshi: #00e676;
-      --danger: #ff3366;
-      --text: #e2e8f0;
-      --muted: #64748b;
-      --border: #1e293b;
-      --ui-zoom: 100%;
-    }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
+<title>Cosmic Terminal — Sovereign Desk</title>
+<meta name="theme-color" content="#060712">
+<meta name="description" content="Sovereign BYOK terminal for Kalshi, Polymarket US, crypto/commodity perpetuals, and read-only sportsbook fleet monitoring.">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'%3E%3Crect width='96' height='96' rx='18' fill='%23060712'/%3E%3Ccircle cx='48' cy='48' r='28' fill='none' stroke='%2300f2fe' stroke-width='4'/%3E%3Ccircle cx='48' cy='48' r='7' fill='%2300e676'/%3E%3C/svg%3E">
+<style>
+/* ==========================================================================
+   COSMIC TERMINAL — DESIGN TOKENS
+   Palette:  bg #060712 · surface #0e1122 · card #14182e
+             cyan #00f2fe (edge/live) · green #00e676 (kalshi/profit)
+             red #ff3366 (danger/short) · amber #ffb703 (warn/pending)
+   Type:     ui-monospace for all data/tickers/prices (a terminal reads
+             numbers, not prose) · system sans for labels/copy/nav.
+   Layout:   fixed header, horizontal desk-tabs, single active desk panel,
+             bottom tab bar on narrow viewports. Dense left-aligned grid
+             of data cards — no centered marketing composition.
+   ========================================================================== */
+:root{
+  --bg:#060712; --surface:#0e1122; --card:#14182e; --card-hi:#191e3c;
+  --line:#1f2444; --line-soft:#171b34;
+  --cyan:#00f2fe; --cyan-dim:#0aa7ad;
+  --green:#00e676; --green-dim:#0f7a44;
+  --red:#ff3366; --red-dim:#7a1030;
+  --amber:#ffb703; --amber-dim:#8a6100;
+  --ink:#e8ecff; --ink-dim:#9aa3c7; --ink-faint:#5c6390;
+  --mono: ui-monospace, "SF Mono", "Cascadia Mono", "Consolas", monospace;
+  --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --ui-zoom: 100%;
+  --radius: 10px;
+  --safe-t: env(safe-area-inset-top, 0px);
+  --safe-b: env(safe-area-inset-bottom, 0px);
+}
+:root:not([data-theme="light"]){ color-scheme: dark; }
+*,*::before,*::after{ box-sizing:border-box; }
+html,body{ height:100%; }
+html{ scroll-padding-top: calc(var(--safe-t) + 96px); }
+body{
+  margin:0; background:var(--bg); color:var(--ink);
+  font-family:var(--sans);
+  font-size:calc(14px * (var(--ui-zoom) / 100));
+  -webkit-font-smoothing:antialiased;
+  padding-top:var(--safe-t); padding-bottom:var(--safe-b);
+  background-image:
+    radial-gradient(ellipse 900px 500px at 15% -10%, rgba(0,242,254,0.07), transparent 60%),
+    radial-gradient(ellipse 700px 500px at 100% 0%, rgba(0,230,118,0.05), transparent 55%);
+  background-attachment:fixed;
+}
+@media (prefers-reduced-motion: reduce){ *{ animation-duration:0.001ms !important; transition-duration:0.001ms !important; } }
+a{ color:var(--cyan); text-decoration:none; }
+button{ font-family:inherit; }
+::selection{ background:rgba(0,242,254,0.25); }
+:focus-visible{ outline:2px solid var(--cyan); outline-offset:2px; border-radius:4px; }
 
-    * { 
-      box-sizing: border-box; 
-      margin: 0; 
-      padding: 0; 
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, monospace; 
-    }
-    
-    body { 
-      background: var(--bg); 
-      color: var(--text); 
-      padding-bottom: 90px; 
-      zoom: var(--ui-zoom); 
-      overflow-x: hidden; 
-    }
+.mono{ font-family:var(--mono); font-variant-numeric:tabular-nums; }
+.dim{ color:var(--ink-dim); }
+.faint{ color:var(--ink-faint); }
+.up{ color:var(--green); } .down{ color:var(--red); } .warn{ color:var(--amber); } .live{ color:var(--cyan); }
 
-    /* --- HEADER --- */
-    header {
-      background: var(--surface);
-      border-bottom: 1px solid var(--border);
-      padding: 12px 16px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      position: sticky;
-      top: 0;
-      z-index: 100;
-    }
-    
-    .brand { 
-      font-size: 15px; 
-      font-weight: 800; 
-      letter-spacing: 0.5px; 
-      display: flex; 
-      align-items: center; 
-      gap: 8px; 
-    }
-    
-    .header-actions { 
-      display: flex; 
-      gap: 8px; 
-      align-items: center; 
-    }
-    
-    .btn { 
-      background: var(--card); 
-      border: 1px solid var(--border); 
-      color: var(--text); 
-      padding: 6px 12px; 
-      border-radius: 8px; 
-      font-size: 11px; 
-      font-weight: 700; 
-      cursor: pointer; 
-    }
-    
-    .btn:active { 
-      opacity: 0.7; 
-    }
-    
-    .badge-active { 
-      background: rgba(0, 230, 118, 0.15); 
-      color: var(--accent-kalshi); 
-      border: 1px solid rgba(0, 230, 118, 0.4); 
-      padding: 6px 12px; 
-      border-radius: 8px; 
-      font-size: 11px; 
-      font-weight: 700; 
-    }
+/* ---------- header ---------- */
+header.topbar{
+  position:sticky; top:var(--safe-t); z-index:40;
+  display:flex; align-items:center; gap:12px;
+  padding:10px 16px; background:rgba(6,7,18,0.88); backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--line-soft);
+}
+.brand{ display:flex; align-items:center; gap:10px; font-weight:700; letter-spacing:0.2px; white-space:nowrap; }
+.brand .mark{
+  width:26px; height:26px; border-radius:7px; position:relative; flex:none;
+  background:conic-gradient(from 200deg, var(--cyan), var(--green), var(--cyan));
+  box-shadow:0 0 14px rgba(0,242,254,0.45);
+}
+.brand .mark::after{ content:""; position:absolute; inset:6px; border-radius:4px; background:var(--bg); }
+.brand .name{ font-size:15px; }
+.brand .sub{ font-size:11px; color:var(--ink-faint); font-weight:500; }
+.spacer{ flex:1; }
+.pill{
+  display:inline-flex; align-items:center; gap:6px; padding:5px 10px; border-radius:999px;
+  border:1px solid var(--line); background:var(--surface); font-size:11.5px; color:var(--ink-dim);
+  white-space:nowrap;
+}
+.pill.edge{ border-color:rgba(0,242,254,0.35); color:var(--cyan); }
+.pill.edge .dot{ width:6px; height:6px; border-radius:50%; background:var(--cyan); box-shadow:0 0 8px var(--cyan); animation:pulse 1.8s ease-in-out infinite; }
+@keyframes pulse{ 0%,100%{ opacity:1;} 50%{ opacity:0.35;} }
+.iconbtn{
+  width:34px; height:34px; border-radius:9px; border:1px solid var(--line); background:var(--surface);
+  color:var(--ink); display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:15px;
+  flex:none;
+}
+.iconbtn:hover{ border-color:var(--cyan); color:var(--cyan); }
+.iconbtn.spinning svg{ animation:spin 0.7s linear infinite; }
+@keyframes spin{ to{ transform:rotate(360deg); } }
+a.kofi{
+  display:flex; align-items:center; gap:6px; padding:6px 11px; border-radius:9px;
+  border:1px solid var(--amber-dim); background:rgba(255,183,3,0.08); color:var(--amber); font-size:12px; font-weight:600;
+  white-space:nowrap;
+}
+a.kofi:hover{ background:rgba(255,183,3,0.16); }
 
-    /* --- SEARCH & NAV TRAYS --- */
-    .search-tray { 
-      padding: 12px 16px 6px; 
-      display: flex; 
-      gap: 8px; 
-    }
-    
-    .search-input { 
-      flex: 1; 
-      background: var(--surface); 
-      border: 1px solid var(--border); 
-      border-radius: 8px; 
-      padding: 8px 12px; 
-      color: #fff; 
-      font-size: 12px; 
-    }
+/* ---------- desk nav ---------- */
+nav.desknav{
+  display:flex; gap:4px; padding:8px 16px; overflow-x:auto; background:var(--surface);
+  border-bottom:1px solid var(--line-soft); position:sticky; top:calc(var(--safe-t) + 53px); z-index:39;
+  scrollbar-width:none;
+}
+nav.desknav::-webkit-scrollbar{ display:none; }
+.desktab{
+  flex:none; padding:8px 14px; border-radius:8px; border:1px solid transparent; background:transparent;
+  color:var(--ink-dim); cursor:pointer; font-size:13px; font-weight:600; display:flex; align-items:center; gap:6px;
+}
+.desktab:hover{ color:var(--ink); }
+.desktab.active{ background:var(--card); border-color:var(--line); color:var(--cyan); }
 
-    .desk-nav { 
-      display: flex; 
-      gap: 8px; 
-      padding: 12px 16px; 
-      overflow-x: auto; 
-      scrollbar-width: none; 
-    }
-    
-    .desk-nav::-webkit-scrollbar { 
-      display: none; 
-    }
-    
-    .desk-btn { 
-      background: var(--surface); 
-      border: 1px solid var(--border); 
-      color: var(--muted); 
-      padding: 6px 12px; 
-      border-radius: 8px; 
-      font-size: 12px; 
-      font-weight: 700; 
-      cursor: pointer; 
-      white-space: nowrap; 
-    }
-    
-    .desk-btn.active { 
-      background: var(--card); 
-      color: var(--accent); 
-      border-color: var(--accent); 
-    }
+/* ---------- toolbar (search / filter / sort) ---------- */
+.toolbar{ display:flex; flex-wrap:wrap; gap:10px; align-items:center; padding:12px 16px; }
+.searchbox{
+  flex:1 1 220px; display:flex; align-items:center; gap:8px; background:var(--surface);
+  border:1px solid var(--line); border-radius:9px; padding:8px 12px;
+}
+.searchbox input{
+  flex:1; background:transparent; border:none; outline:none; color:var(--ink); font-size:13px; font-family:var(--sans);
+}
+.searchbox input::placeholder{ color:var(--ink-faint); }
+.filterpills{ display:flex; gap:6px; flex-wrap:wrap; }
+.fpill{
+  padding:6px 12px; border-radius:999px; border:1px solid var(--line); background:var(--surface);
+  color:var(--ink-dim); font-size:12.5px; cursor:pointer; white-space:nowrap;
+}
+.fpill.active{ border-color:var(--cyan); color:var(--cyan); background:rgba(0,242,254,0.08); }
+.sortbtns{ display:flex; gap:6px; }
+.sortbtn{
+  padding:6px 11px; border-radius:8px; border:1px solid var(--line); background:var(--surface);
+  color:var(--ink-dim); font-size:12px; cursor:pointer; white-space:nowrap;
+}
+.sortbtn.active{ border-color:var(--green); color:var(--green); }
 
-    .sorting-tray { 
-      display: flex; 
-      align-items: center; 
-      padding: 0 16px 12px; 
-      gap: 12px; 
-      overflow-x: auto;
-      scrollbar-width: none;
-    }
+/* ---------- layout / desks ---------- */
+main{ padding:4px 16px 90px; max-width:1180px; margin:0 auto; }
+.desk{ display:none; }
+.desk.active{ display:block; animation:fadein 0.18s ease; }
+@keyframes fadein{ from{ opacity:0; transform:translateY(4px);} to{ opacity:1; transform:none;} }
+.deskhead{ display:flex; align-items:baseline; justify-content:space-between; margin:18px 0 10px; }
+.deskhead h2{ font-size:15px; margin:0; letter-spacing:0.2px; }
+.deskhead .count{ font-size:12px; color:var(--ink-faint); }
 
-    .sorting-tray::-webkit-scrollbar {
-      display: none;
-    }
-    
-    .sort-btn { 
-      background: var(--surface); 
-      border: 1px solid var(--border); 
-      color: var(--muted); 
-      padding: 6px 12px; 
-      border-radius: 6px; 
-      font-size: 10px; 
-      font-weight: 700; 
-      cursor: pointer; 
-      white-space: nowrap;
-    }
-    
-    .sort-btn.active { 
-      background: var(--card); 
-      color: #fff; 
-      border-color: var(--accent); 
-    }
+.grid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(260px,1fr)); gap:10px; }
+.grid.wide{ grid-template-columns:repeat(auto-fill, minmax(300px,1fr)); }
 
-    .pill-btn {
-      background: #0f1526;
-      border: 1px solid var(--border);
-      color: var(--muted);
-      padding: 6px 14px;
-      border-radius: 20px;
-      font-size: 11px;
-      font-weight: 700;
-      white-space: nowrap;
-      cursor: pointer;
-    }
+/* ---------- cards ---------- */
+.card{
+  background:var(--card); border:1px solid var(--line); border-radius:var(--radius); padding:13px;
+  display:flex; flex-direction:column; gap:8px; min-width:0;
+}
+.card.hot{ border-color:rgba(255,183,3,0.4); box-shadow:0 0 0 1px rgba(255,183,3,0.08) inset; }
+.card.danger{ border-color:var(--red); animation:dangerpulse 1.4s ease-in-out infinite; }
+@keyframes dangerpulse{ 0%,100%{ box-shadow:0 0 0 0 rgba(255,51,102,0.35);} 50%{ box-shadow:0 0 0 6px rgba(255,51,102,0);} }
+.crow{ display:flex; align-items:center; justify-content:space-between; gap:8px; }
+.ctitle{ display:flex; align-items:center; gap:8px; min-width:0; }
+.ctitle .glyph{ font-size:17px; flex:none; }
+.ctitle .name{ font-weight:700; font-size:13.5px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.ctitle .tag{ font-size:10.5px; color:var(--ink-faint); border:1px solid var(--line); border-radius:5px; padding:1px 5px; flex:none; }
+.cbig{ font-size:20px; font-weight:700; }
+.cmeta{ display:flex; gap:14px; font-size:11.5px; color:var(--ink-dim); flex-wrap:wrap; }
+.cmeta b{ color:var(--ink); font-weight:600; }
+.cbtnrow{ display:flex; gap:8px; margin-top:2px; }
+.btn{
+  flex:1; padding:8px 10px; border-radius:8px; border:1px solid var(--line); background:var(--surface);
+  color:var(--ink); font-weight:700; font-size:12.5px; cursor:pointer; text-align:center;
+}
+.btn.long, .btn.yes{ border-color:var(--green-dim); color:var(--green); }
+.btn.long:hover, .btn.yes:hover{ background:rgba(0,230,118,0.1); }
+.btn.short, .btn.no{ border-color:var(--red-dim); color:var(--red); }
+.btn.short:hover, .btn.no:hover{ background:rgba(255,51,102,0.1); }
+.btn.ghost{ background:transparent; }
+.btn.primary{ background:var(--cyan); border-color:var(--cyan); color:#00202a; }
+.btn:disabled{ opacity:0.4; cursor:not-allowed; }
+.spark{ display:block; width:100%; height:34px; }
+.progress{ height:4px; background:var(--line); border-radius:3px; overflow:hidden; }
+.progress > i{ display:block; height:100%; background:linear-gradient(90deg, var(--cyan), var(--green)); }
+.countdown{ font-family:var(--mono); font-weight:700; }
 
-    .pill-btn.active {
-      background: var(--card);
-      color: #fff;
-      border-color: var(--accent);
-    }
+.emptystate{
+  border:1px dashed var(--line); border-radius:var(--radius); padding:30px 16px; text-align:center;
+  color:var(--ink-faint); font-size:13px;
+}
+.emptystate .big{ font-size:26px; margin-bottom:6px; }
 
-    /* --- CARDS & MARKETS --- */
-    .card { 
-      background: var(--surface); 
-      border: 1px solid var(--border); 
-      border-radius: 12px; 
-      margin: 0 16px 16px; 
-      padding: 14px; 
-    }
-    
-    .card-header { 
-      font-size: 11px; 
-      font-weight: 800; 
-      text-transform: uppercase; 
-      color: var(--muted); 
-      display: flex; 
-      justify-content: space-between; 
-      margin-bottom: 12px; 
-    }
+/* ---------- hub carousel ---------- */
+.carousel{ display:flex; gap:10px; overflow-x:auto; scroll-snap-type:x proximity; padding-bottom:4px; scrollbar-width:thin; }
+.carousel .card{ flex:0 0 240px; scroll-snap-align:start; }
 
-    .market-card { 
-      background: var(--card); 
-      border: 1px solid var(--border); 
-      border-radius: 10px; 
-      padding: 12px; 
-      margin-bottom: 10px; 
-      position: relative; 
-      overflow: hidden; 
-    }
-    
-    .market-title { 
-      font-size: 13px; 
-      font-weight: 700; 
-      margin-bottom: 8px; 
-      line-height: 1.3; 
-    }
-    
-    .market-meta { 
-      display: flex; 
-      justify-content: space-between; 
-      font-size: 11px; 
-      color: var(--muted); 
-      margin-bottom: 10px; 
-    }
-    
-    .market-actions { 
-      display: grid; 
-      grid-template-columns: 1fr 1fr auto; 
-      gap: 8px; 
-    }
-    
-    .btn-buy { 
-      background: rgba(0, 230, 118, 0.15); 
-      color: var(--accent-kalshi); 
-      border: 1px solid var(--accent-kalshi); 
-      border-radius: 6px; 
-      padding: 6px; 
-      font-size: 11px; 
-      font-weight: 700; 
-      cursor: pointer; 
-    }
-    
-    .btn-sell { 
-      background: rgba(255, 51, 102, 0.15); 
-      color: var(--danger); 
-      border: 1px solid var(--danger); 
-      border-radius: 6px; 
-      padding: 6px; 
-      font-size: 11px; 
-      font-weight: 700; 
-      cursor: pointer; 
-    }
-    
-    .btn-gemini { 
-      background: rgba(0, 242, 254, 0.1); 
-      color: var(--accent); 
-      border: 1px solid var(--accent); 
-      border-radius: 6px; 
-      padding: 6px 10px; 
-      font-size: 11px; 
-      font-weight: 700; 
-      cursor: pointer; 
-      display: flex; 
-      align-items: center; 
-      justify-content: center; 
-      gap: 4px; 
-    }
+/* ---------- fleet ---------- */
+.ingestbox{
+  background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); padding:13px; margin-bottom:14px;
+}
+.ingestbox textarea{
+  width:100%; min-height:80px; background:var(--card); border:1px solid var(--line); border-radius:8px;
+  color:var(--ink); font-family:var(--mono); font-size:12.5px; padding:10px; resize:vertical;
+}
+.ingestbox .row{ display:flex; gap:8px; margin-top:8px; flex-wrap:wrap; }
+.ingestbox input[type=text]{
+  flex:1 1 180px; background:var(--card); border:1px solid var(--line); border-radius:8px; color:var(--ink);
+  padding:8px 10px; font-size:12.5px;
+}
+.leglist{ list-style:none; margin:6px 0 0; padding:0; display:flex; flex-direction:column; gap:4px; }
+.leglist li{ font-size:12px; color:var(--ink-dim); padding:5px 8px; background:var(--surface); border-radius:6px; border-left:2px solid var(--line); }
+.leglist li.dead{ color:var(--red); border-left-color:var(--red); text-decoration:line-through; }
 
-    /* --- GEMINI INFERENCE DRAWER --- */
-    .gemini-drawer { 
-      display: none; 
-      background: #090c1a; 
-      border: 1px solid var(--accent); 
-      border-radius: 6px; 
-      padding: 10px; 
-      margin-top: 10px; 
-      font-size: 11px; 
-      line-height: 1.4; 
-      color: #94a3b8; 
-    }
-    
-    .gemini-drawer.active { 
-      display: block; 
-      border-color: var(--accent-kalshi); 
-      box-shadow: 0 0 8px rgba(0, 230, 118, 0.2); 
-    }
+/* ---------- vault ---------- */
+.vaultgrid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:10px; margin-bottom:16px; }
+.balcard{ background:var(--card); border:1px solid var(--line); border-radius:var(--radius); padding:14px; }
+.balcard .label{ font-size:11px; color:var(--ink-faint); text-transform:none; }
+.balcard .value{ font-size:22px; font-weight:700; margin-top:4px; }
+.balcard.shield .value{ color:var(--amber); }
+.balcard.deploy .value{ color:var(--green); }
+.field{ margin-bottom:12px; }
+.field label{ display:block; font-size:12px; color:var(--ink-dim); margin-bottom:5px; }
+.field input, .field textarea{
+  width:100%; background:var(--surface); border:1px solid var(--line); border-radius:8px; color:var(--ink);
+  padding:9px 11px; font-size:13px; font-family:var(--mono);
+}
+.field textarea{ min-height:70px; resize:vertical; }
+.field .hint{ font-size:11px; color:var(--ink-faint); margin-top:4px; }
+.section-card{ background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); padding:16px; margin-bottom:14px; }
+.section-card h3{ margin:0 0 12px; font-size:13.5px; }
+.zoomrow{ display:flex; align-items:center; gap:12px; }
+input[type=range]{ flex:1; accent-color:var(--cyan); }
+.dangerzone{ border-color:var(--red-dim) !important; }
+.btn.danger{ border-color:var(--red); color:var(--red); background:transparent; }
+.btn.danger:hover{ background:rgba(255,51,102,0.1); }
 
-    /* --- BOTTOM NAV --- */
-    .bottom-bar { 
-      position: fixed; 
-      bottom: 0; 
-      left: 0; 
-      right: 0; 
-      background: var(--surface); 
-      border-top: 1px solid var(--border); 
-      display: flex; 
-      justify-content: space-around; 
-      padding: 8px 0 env(safe-area-inset-bottom, 8px); 
-      z-index: 100; 
-    }
-    
-    .nav-item { 
-      display: flex; 
-      flex-direction: column; 
-      align-items: center; 
-      gap: 3px; 
-      color: var(--muted); 
-      font-size: 10px; 
-      font-weight: 700; 
-      cursor: pointer; 
-      background: none; 
-      border: none; 
-    }
-    
-    .nav-item.active { 
-      color: var(--accent); 
-    }
+/* ---------- modal ---------- */
+.modal-overlay{
+  position:fixed; inset:0; width:100vw; height:100vh; background:rgba(2,3,10,0.72); backdrop-filter:blur(3px);
+  display:none; align-items:center; justify-content:center; z-index:100; padding:20px;
+}
+.modal-overlay.open{ display:flex; }
+.modal-sheet{
+  display:flex; flex-direction:column; gap:12px;
+  min-width:320px; max-width:400px; width:90vw; max-height:88vh; overflow-y:auto;
+  background:var(--card); border:1px solid var(--line); border-radius:14px; padding:18px;
+  box-shadow:0 20px 60px rgba(0,0,0,0.5);
+}
+.modal-sheet .mhead{ display:flex; align-items:center; justify-content:space-between; }
+.modal-sheet .mhead h3{ margin:0; font-size:15px; }
+.modal-sheet .mclose{ background:none; border:none; color:var(--ink-faint); font-size:18px; cursor:pointer; }
+.modal-row{ display:flex; flex-direction:column; gap:6px; }
+.modal-row label{ font-size:12px; color:var(--ink-dim); }
+.modal-row input{
+  background:var(--surface); border:1px solid var(--line); border-radius:8px; color:var(--ink); padding:10px 12px;
+  font-family:var(--mono); font-size:14px; width:100%;
+}
+.modal-total{ display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-top:1px dashed var(--line); border-bottom:1px dashed var(--line); }
+.modal-total .amt{ font-size:19px; font-weight:700; }
+.shieldwarn{
+  display:none; background:rgba(255,51,102,0.1); border:1px solid var(--red); color:var(--red);
+  border-radius:8px; padding:9px 11px; font-size:12px;
+}
+.shieldwarn.show{ display:block; }
+.modal-actions{ display:flex; gap:8px; }
 
-    /* --- TAB ROUTING --- */
-    .tab-view { 
-      display: none; 
-    }
-    
-    .tab-view.active { 
-      display: block; 
-    }
-    
-    /* --- VAULT & TELEMETRY --- */
-    .telemetry-grid { 
-      display: grid; 
-      grid-template-columns: repeat(2, 1fr); 
-      gap: 10px; 
-      margin-bottom: 12px; 
-    }
-    
-    .telemetry-box { 
-      background: var(--card); 
-      border: 1px solid var(--border); 
-      border-radius: 8px; 
-      padding: 10px; 
-    }
-    
-    .telemetry-box .label { 
-      font-size: 9px; 
-      font-weight: 800; 
-      color: var(--muted); 
-      text-transform: uppercase; 
-      margin-bottom: 4px; 
-    }
-    
-    .telemetry-box .value { 
-      font-size: 16px; 
-      font-weight: 800; 
-      color: #fff; 
-    }
+/* ---------- copilot drawer ---------- */
+.copilot{
+  position:fixed; right:14px; bottom:calc(var(--safe-b) + 78px); z-index:60; width:min(340px, calc(100vw - 28px));
+}
+.copilot-toggle{
+  width:52px; height:52px; border-radius:50%; border:1px solid var(--cyan); background:var(--card);
+  color:var(--cyan); font-size:20px; cursor:pointer; box-shadow:0 6px 20px rgba(0,242,254,0.25);
+  margin-left:auto; display:flex; align-items:center; justify-content:center;
+}
+.copilot-panel{
+  display:none; margin-top:10px; background:var(--card); border:1px solid var(--line); border-radius:12px;
+  padding:13px; max-height:340px; overflow-y:auto; box-shadow:0 12px 40px rgba(0,0,0,0.4);
+}
+.copilot-panel.open{ display:block; }
+.copilot-panel h4{ margin:0 0 8px; font-size:12.5px; color:var(--cyan); }
+.copilot-panel .body{ font-size:12.5px; line-height:1.5; color:var(--ink-dim); white-space:pre-wrap; }
+.copilot-panel .askrow{ display:flex; gap:6px; margin-top:10px; }
+.copilot-panel .askrow input{ flex:1; background:var(--surface); border:1px solid var(--line); border-radius:7px; color:var(--ink); padding:7px 9px; font-size:12px; }
 
-    .vault-input { 
-      width: 100%; 
-      background: var(--card); 
-      border: 1px solid var(--border); 
-      border-radius: 8px; 
-      padding: 10px; 
-      color: #fff; 
-      font-size: 12px; 
-      margin-bottom: 12px; 
-    }
-    
-    .vault-label { 
-      font-size: 10px; 
-      font-weight: 800; 
-      color: var(--muted); 
-      text-transform: uppercase; 
-      display: block; 
-      margin-bottom: 4px; 
-    }
-    
-    .progress-bar { 
-      width: 100%; 
-      height: 4px; 
-      background: var(--border); 
-      border-radius: 2px; 
-      overflow: hidden; 
-      margin-top: 6px; 
-    }
-    
-    .progress-fill { 
-      height: 100%; 
-      background: var(--accent-kalshi); 
-      width: 100%; 
-      transition: width 1s linear; 
-    }
-
-    /* --- EXECUTION MODAL (FIXED) --- */
-    .modal-overlay { 
-      position: fixed; 
-      top: 0; 
-      left: 0; 
-      right: 0; 
-      bottom: 0; 
-      background: rgba(0, 0, 0, 0.85); 
-      display: flex; 
-      justify-content: center; 
-      align-items: center; 
-      z-index: 9999; 
-    }
-    
-    .modal-content { 
-      background: var(--surface); 
-      border: 1px solid var(--accent); 
-      border-radius: 12px; 
-      width: 90vw; 
-      max-width: 400px; 
-      min-width: 320px; 
-      padding: 24px; 
-      box-sizing: border-box; 
-      display: flex; 
-      flex-direction: column; 
-      gap: 16px; 
-    }
-    
-    .modal-content h3 { 
-      font-size: 14px; 
-      margin-bottom: 8px; 
-      line-height: 1.4; 
-      color: #fff; 
-      text-align: center;
-    }
-    
-    .exec-details { 
-      display: flex; 
-      flex-direction: column; 
-      gap: 12px; 
-      margin-bottom: 10px; 
-    }
-    
-    .exec-row { 
-      display: flex; 
-      justify-content: space-between; 
-      align-items: center; 
-      font-size: 13px; 
-      font-weight: 700; 
-      color: var(--muted); 
-    }
-    
-    .exec-input { 
-      background: var(--card); 
-      border: 1px solid var(--border); 
-      color: #fff; 
-      padding: 10px; 
-      border-radius: 6px; 
-      width: 100px; 
-      text-align: right; 
-      font-size: 14px; 
-    }
-    
-    .modal-actions { 
-      display: flex; 
-      gap: 12px; 
-      margin-top: 10px;
-    }
-    
-    .modal-actions button { 
-      flex: 1; 
-      padding: 14px; 
-      font-size: 13px; 
-      border-radius: 8px; 
-      font-weight: 900;
-    }
-  </style>
+/* ---------- bottom tab bar (mobile) ---------- */
+.tabbar{
+  position:fixed; left:0; right:0; bottom:0; z-index:50; display:none;
+  background:rgba(6,7,18,0.95); backdrop-filter:blur(10px); border-top:1px solid var(--line-soft);
+  padding-bottom:var(--safe-b);
+}
+.tabbar .row{ display:flex; }
+.tabbtn{
+  flex:1; display:flex; flex-direction:column; align-items:center; gap:2px; padding:9px 0 8px;
+  background:none; border:none; color:var(--ink-faint); font-size:10.5px; cursor:pointer;
+}
+.tabbtn .ic{ font-size:18px; }
+.tabbtn.active{ color:var(--cyan); }
+@media (max-width: 760px){
+  .tabbar{ display:block; }
+  main{ padding-bottom:110px; }
+  nav.desknav{ display:none; }
+  .copilot{ bottom:calc(var(--safe-b) + 84px); }
+}
+.toast{
+  position:fixed; left:50%; bottom:calc(var(--safe-b) + 96px); transform:translateX(-50%); z-index:200;
+  background:var(--card-hi); border:1px solid var(--line); color:var(--ink); padding:10px 16px; border-radius:9px;
+  font-size:12.5px; box-shadow:0 8px 24px rgba(0,0,0,0.4); opacity:0; pointer-events:none; transition:opacity 0.2s;
+}
+.toast.show{ opacity:1; }
+</style>
 </head>
 <body>
 
-  <!-- =======================================================================
-       1. UNIFIED HEADER & TOP NAVIGATION
-       ======================================================================= -->
-  <header>
-    <div class="brand">
-      <span>🌌</span> Cosmic Terminal
-    </div>
-    <div class="header-actions">
-      <button class="btn" onclick="fetchLiveExchangeBalances()">
-        🔄 Refresh
-      </button>
-      <span class="badge-active">
-        Edge Active
-      </span>
-    </div>
-  </header>
-
-  <div class="search-tray">
-    <input type="text" id="global-search" class="search-input" placeholder="Search teams, markets, or assets..." oninput="handleSearch(this.value)">
-  </div>
-
-  <div class="desk-nav">
-    <button class="desk-btn active" onclick="switchDesk('hub', this)">🎯 Hub Desk</button>
-    <button class="desk-btn" onclick="switchDesk('poly', this)">🟣 Poly Desk</button>
-    <button class="desk-btn" onclick="switchDesk('kalshi', this)">🟢 Kalshi Desk</button>
-    <button class="desk-btn" onclick="switchDesk('sports', this)">🏈 Fleet Slips</button>
-    <button class="desk-btn" onclick="switchDesk('vault', this)">💼 Vault & PnL</button>
-  </div>
-
-  <!-- Universal Filtering & Sorting Tray -->
-  <div class="sorting-tray" id="global-sorter">
-    <span style="font-size: 11px; font-weight: 700; color: var(--muted);">Filter:</span>
-    <button class="pill-btn active" onclick="filterBySport('all', this)">All</button>
-    <button class="pill-btn" onclick="filterBySport('mlb', this)">⚾ MLB</button>
-    <button class="pill-btn" onclick="filterBySport('nfl', this)">🏈 NFL</button>
-    <button class="pill-btn" onclick="filterBySport('tennis', this)">🎾 Tennis</button>
-    <button class="pill-btn" onclick="filterBySport('esports', this)">🎮 Esports</button>
-    <button class="pill-btn" onclick="filterBySport('macro', this)">🏛️ Macro</button>
-    <div style="width: 1px; height: 16px; background: var(--border); margin: 0 4px;"></div>
-    <span style="font-size: 11px; font-weight: 700; color: var(--muted);">Sort:</span>
-    <button class="sort-btn active" onclick="switchSortOrder('roi-high', this)">ROI High</button>
-    <button class="sort-btn" onclick="switchSortOrder('roi-low', this)">ROI Low</button>
-    <button class="sort-btn" onclick="switchSortOrder('ending', this)">Ending Soon</button>
-  </div>
-
-  <!-- =======================================================================
-       2. TAB VIEWS & DYNAMIC CONTAINERS (Fully Expanded)
-       ======================================================================= -->
-  
-  <!-- VIEW: HUB (Sports & Esports) -->
-  <div id="view-hub" class="tab-view active">
-    
-    <!-- SPORTS CARD -->
-    <div class="card">
-      <div class="card-header">
-        <span>🏈 Top Sports Picks (Live Slate)</span>
-        <span style="color: var(--accent);">Auto-Rotating</span>
-      </div>
-      <div id="hub-sports-container">
-        
-        <div class="market-card" data-roi="12.4" data-expiry="1727400000000" data-sport="nfl">
-          <div class="market-title">NFL: Chiefs @ Bills - Under 48.5 Total Points</div>
-          <div class="market-meta">
-            <span>Vol: $1.2M</span>
-            <span>Target ROI: +12.4%</span>
-          </div>
-          <div class="market-actions">
-            <button class="btn-buy" onclick="openOrderModal('hub', 'YES', 'NFL: Chiefs @ Bills', 52)">Buy Yes 52¢</button>
-            <button class="btn-sell" onclick="openOrderModal('hub', 'NO', 'NFL: Chiefs @ Bills', 48)">Buy No 48¢</button>
-            <button class="btn-gemini" onclick="toggleGeminiDrawer(this, 'NFL: Chiefs @ Bills - Under 48.5 Total Points', 52, 48)">🤖 Copilot</button>
-          </div>
-          <div class="gemini-drawer"></div>
-        </div>
-
-        <div class="market-card" data-roi="8.5" data-expiry="1727500000000" data-sport="mlb">
-          <div class="market-title">MLB: Yankees +1.5 Runline vs Rays</div>
-          <div class="market-meta">
-            <span>Vol: $850K</span>
-            <span>Target ROI: +8.5%</span>
-          </div>
-          <div class="market-actions">
-            <button class="btn-buy" onclick="openOrderModal('hub', 'YES', 'MLB: Yankees +1.5', 65)">Buy Yes 65¢</button>
-            <button class="btn-sell" onclick="openOrderModal('hub', 'NO', 'MLB: Yankees +1.5', 35)">Buy No 35¢</button>
-            <button class="btn-gemini" onclick="toggleGeminiDrawer(this, 'MLB: Yankees +1.5 Runline vs Rays', 65, 35)">🤖 Copilot</button>
-          </div>
-          <div class="gemini-drawer"></div>
-        </div>
-
-        <div class="market-card" data-roi="18.2" data-expiry="1727600000000" data-sport="tennis">
-          <div class="market-title">Tennis: Alcaraz to win Wimbledon</div>
-          <div class="market-meta">
-            <span>Vol: $2.1M</span>
-            <span>Target ROI: +18.2%</span>
-          </div>
-          <div class="market-actions">
-            <button class="btn-buy" onclick="openOrderModal('hub', 'YES', 'Tennis: Alcaraz', 45)">Buy Yes 45¢</button>
-            <button class="btn-sell" onclick="openOrderModal('hub', 'NO', 'Tennis: Alcaraz', 55)">Buy No 55¢</button>
-            <button class="btn-gemini" onclick="toggleGeminiDrawer(this, 'Tennis: Alcaraz to win Wimbledon', 45, 55)">🤖 Copilot</button>
-          </div>
-          <div class="gemini-drawer"></div>
-        </div>
-
-        <div class="market-card" data-roi="9.1" data-expiry="1727650000000" data-sport="nba">
-          <div class="market-title">NBA: Celtics ML @ Knicks</div>
-          <div class="market-meta">
-            <span>Vol: $900K</span>
-            <span>Target ROI: +9.1%</span>
-          </div>
-          <div class="market-actions">
-            <button class="btn-buy" onclick="openOrderModal('hub', 'YES', 'NBA: Celtics ML', 55)">Buy Yes 55¢</button>
-            <button class="btn-sell" onclick="openOrderModal('hub', 'NO', 'NBA: Celtics ML', 45)">Buy No 45¢</button>
-            <button class="btn-gemini" onclick="toggleGeminiDrawer(this, 'NBA: Celtics ML @ Knicks', 55, 45)">🤖 Copilot</button>
-          </div>
-          <div class="gemini-drawer"></div>
-        </div>
-
-        <div class="market-card" data-roi="11.4" data-expiry="1727700000000" data-sport="nhl">
-          <div class="market-title">NHL: Panthers Moneyline vs Oilers</div>
-          <div class="market-meta">
-            <span>Vol: $650K</span>
-            <span>Target ROI: +11.4%</span>
-          </div>
-          <div class="market-actions">
-            <button class="btn-buy" onclick="openOrderModal('hub', 'YES', 'NHL: Panthers ML', 52)">Buy Yes 52¢</button>
-            <button class="btn-sell" onclick="openOrderModal('hub', 'NO', 'NHL: Panthers ML', 48)">Buy No 48¢</button>
-            <button class="btn-gemini" onclick="toggleGeminiDrawer(this, 'NHL: Panthers Moneyline vs Oilers', 52, 48)">🤖 Copilot</button>
-          </div>
-          <div class="gemini-drawer"></div>
-        </div>
-
-        <div class="market-card" data-roi="15.2" data-expiry="1727800000000" data-sport="soccer">
-          <div class="market-title">Soccer: Real Madrid to win Champions League</div>
-          <div class="market-meta">
-            <span>Vol: $3.4M</span>
-            <span>Target ROI: +15.2%</span>
-          </div>
-          <div class="market-actions">
-            <button class="btn-buy" onclick="openOrderModal('hub', 'YES', 'Soccer: Real Madrid', 38)">Buy Yes 38¢</button>
-            <button class="btn-sell" onclick="openOrderModal('hub', 'NO', 'Soccer: Real Madrid', 62)">Buy No 62¢</button>
-            <button class="btn-gemini" onclick="toggleGeminiDrawer(this, 'Soccer: Real Madrid to win Champions League', 38, 62)">🤖 Copilot</button>
-          </div>
-          <div class="gemini-drawer"></div>
-        </div>
-
-        <div class="market-card" data-roi="28.5" data-expiry="1727900000000" data-sport="golf">
-          <div class="market-title">Golf: Scottie Scheffler to win Masters</div>
-          <div class="market-meta">
-            <span>Vol: $1.1M</span>
-            <span>Target ROI: +28.5%</span>
-          </div>
-          <div class="market-actions">
-            <button class="btn-buy" onclick="openOrderModal('hub', 'YES', 'Golf: Scheffler', 22)">Buy Yes 22¢</button>
-            <button class="btn-sell" onclick="openOrderModal('hub', 'NO', 'Golf: Scheffler', 78)">Buy No 78¢</button>
-            <button class="btn-gemini" onclick="toggleGeminiDrawer(this, 'Golf: Scottie Scheffler to win Masters', 22, 78)">🤖 Copilot</button>
-          </div>
-          <div class="gemini-drawer"></div>
-        </div>
-
-      </div>
-    </div>
-
-    <!-- ESPORTS CARD -->
-    <div class="card">
-      <div class="card-header">
-        <span>🎮 Esports Desk (Live Queue)</span>
-        <span style="color: var(--accent-poly);">Auto-Rotating</span>
-      </div>
-      <div id="hub-esports-container">
-
-        <div class="market-card" data-roi="22.1" data-expiry="1727700000000" data-sport="esports">
-          <div class="market-title">CS2: G2 Esports to win Major</div>
-          <div class="market-meta">
-            <span>Vol: $450K</span>
-            <span>Target ROI: +22.1%</span>
-          </div>
-          <div class="market-actions">
-            <button class="btn-buy" onclick="openOrderModal('hub', 'YES', 'CS2: G2 Esports', 38)">Buy Yes 38¢</button>
-            <button class="btn-sell" onclick="openOrderModal('hub', 'NO', 'CS2: G2 Esports', 62)">Buy No 62¢</button>
-            <button class="btn-gemini" onclick="toggleGeminiDrawer(this, 'CS2: G2 Esports to win Major', 38, 62)">🤖 Copilot</button>
-          </div>
-          <div class="gemini-drawer"></div>
-        </div>
-
-        <div class="market-card" data-roi="14.5" data-expiry="1727800000000" data-sport="esports">
-          <div class="market-title">Dota 2: Team Liquid ML vs Gladiators</div>
-          <div class="market-meta">
-            <span>Vol: $320K</span>
-            <span>Target ROI: +14.5%</span>
-          </div>
-          <div class="market-actions">
-            <button class="btn-buy" onclick="openOrderModal('hub', 'YES', 'Dota 2: Team Liquid', 58)">Buy Yes 58¢</button>
-            <button class="btn-sell" onclick="openOrderModal('hub', 'NO', 'Dota 2: Team Liquid', 42)">Buy No 42¢</button>
-            <button class="btn-gemini" onclick="toggleGeminiDrawer(this, 'Dota 2: Team Liquid ML vs Gladiators', 58, 42)">🤖 Copilot</button>
-          </div>
-          <div class="gemini-drawer"></div>
-        </div>
-
-        <div class="market-card" data-roi="11.2" data-expiry="1727900000000" data-sport="esports">
-          <div class="market-title">LoL: T1 to win Worlds</div>
-          <div class="market-meta">
-            <span>Vol: $850K</span>
-            <span>Target ROI: +11.2%</span>
-          </div>
-          <div class="market-actions">
-            <button class="btn-buy" onclick="openOrderModal('hub', 'YES', 'LoL: T1 to win', 42)">Buy Yes 42¢</button>
-            <button class="btn-sell" onclick="openOrderModal('hub', 'NO', 'LoL: T1 to win', 58)">Buy No 58¢</button>
-            <button class="btn-gemini" onclick="toggleGeminiDrawer(this, 'LoL: T1 to win Worlds', 42, 58)">🤖 Copilot</button>
-          </div>
-          <div class="gemini-drawer"></div>
-        </div>
-        
-        <div class="market-card" data-roi="19.4" data-expiry="1728000000000" data-sport="esports">
-          <div class="market-title">Valorant: Sentinels to win VCT Champions</div>
-          <div class="market-meta">
-            <span>Vol: $610K</span>
-            <span>Target ROI: +19.4%</span>
-          </div>
-          <div class="market-actions">
-            <button class="btn-buy" onclick="openOrderModal('hub', 'YES', 'Valorant: Sentinels', 31)">Buy Yes 31¢</button>
-            <button class="btn-sell" onclick="openOrderModal('hub', 'NO', 'Valorant: Sentinels', 69)">Buy No 69¢</button>
-            <button class="btn-gemini" onclick="toggleGeminiDrawer(this, 'Valorant: Sentinels to win VCT Champions', 31, 69)">🤖 Copilot</button>
-          </div>
-          <div class="gemini-drawer"></div>
-        </div>
-
-        <div class="market-card" data-roi="12.8" data-expiry="1728100000000" data-sport="esports">
-          <div class="market-title">CS2: NaVi vs Vitality - Over 2.5 Maps</div>
-          <div class="market-meta">
-            <span>Vol: $290K</span>
-            <span>Target ROI: +12.8%</span>
-          </div>
-          <div class="market-actions">
-            <button class="btn-buy" onclick="openOrderModal('hub', 'YES', 'CS2: Over 2.5 Maps', 55)">Buy Yes 55¢</button>
-            <button class="btn-sell" onclick="openOrderModal('hub', 'NO', 'CS2: Over 2.5 Maps', 45)">Buy No 45¢</button>
-            <button class="btn-gemini" onclick="toggleGeminiDrawer(this, 'CS2: NaVi vs Vitality - Over 2.5 Maps', 55, 45)">🤖 Copilot</button>
-          </div>
-          <div class="gemini-drawer"></div>
-        </div>
-
-      </div>
+<header class="topbar">
+  <div class="brand">
+    <div class="mark"></div>
+    <div>
+      <div class="name">Cosmic Terminal</div>
+      <div class="sub">CPT · sovereign desk</div>
     </div>
   </div>
+  <div class="spacer"></div>
+  <a class="kofi" href="https://ko-fi.com/cosmictroll" target="_blank" rel="noopener">☕ Support</a>
+  <span class="pill edge" id="edgePill"><span class="dot"></span>Edge Active</span>
+  <button class="iconbtn" id="refreshBtn" title="Refresh all desks" aria-label="Refresh">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M21 12a9 9 0 1 1-2.6-6.36"/><path d="M21 3v6h-6"/></svg>
+  </button>
+</header>
 
-  <!-- VIEW: POLYMARKET -->
-  <div id="view-poly" class="tab-view">
-    <div class="card">
-      <div class="card-header">
-        <span>Polymarket Live Feed</span>
-        <span>Gamma API</span>
+<nav class="desknav" id="deskNav">
+  <button class="desktab active" data-desk="hub">🎯 Hub</button>
+  <button class="desktab" data-desk="poly">🟣 Poly</button>
+  <button class="desktab" data-desk="kalshi">🟢 Kalshi</button>
+  <button class="desktab" data-desk="fleet">🏈 Fleet</button>
+  <button class="desktab" data-desk="vault">💼 Vault</button>
+</nav>
+
+<div class="toolbar">
+  <div class="searchbox">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+    <input type="text" id="searchInput" placeholder="Search tickers, teams, markets…">
+  </div>
+  <div class="filterpills" id="filterPills">
+    <button class="fpill active" data-filter="all">All</button>
+    <button class="fpill" data-filter="mlb">⚾ MLB</button>
+    <button class="fpill" data-filter="nfl">🏈 NFL</button>
+    <button class="fpill" data-filter="tennis">🎾 Tennis</button>
+    <button class="fpill" data-filter="esports">🎮 Esports</button>
+    <button class="fpill" data-filter="macro">🏛️ Macro</button>
+  </div>
+  <div class="sortbtns" id="sortBtns">
+    <button class="sortbtn active" data-sort="default">Default</button>
+    <button class="sortbtn" data-sort="roiHigh">ROI High</button>
+    <button class="sortbtn" data-sort="roiLow">ROI Low</button>
+    <button class="sortbtn" data-sort="ending">Ending Soon</button>
+  </div>
+</div>
+
+<main>
+
+  <!-- ============================= DESK 1: HUB ============================= -->
+  <section class="desk active" id="desk-hub">
+    <div class="deskhead"><h2>Top Sports Picks</h2><span class="count" id="hubSportsCount">—</span></div>
+    <div class="carousel" id="hubSportsCarousel"></div>
+
+    <div class="deskhead"><h2>Esports Desk</h2><span class="count" id="hubEsportsCount">—</span></div>
+    <div class="carousel" id="hubEsportsCarousel"></div>
+
+    <div class="deskhead"><h2>Macro &amp; 15-Minute Flash</h2><span class="count"></span></div>
+    <div class="grid" id="hubMacroGrid"></div>
+  </section>
+
+  <!-- ============================= DESK 2: POLYMARKET ============================= -->
+  <section class="desk" id="desk-poly">
+    <div class="deskhead"><h2>Polymarket Live Feed</h2><span class="count" id="polyCount">—</span></div>
+    <div class="grid wide" id="polyGrid">
+      <div class="emptystate"><div class="big">🟣</div>Loading Polymarket events…</div>
+    </div>
+  </section>
+
+  <!-- ============================= DESK 3: KALSHI ============================= -->
+  <section class="desk" id="desk-kalshi">
+    <div class="deskhead"><h2>15-Minute Fast Markets</h2><span class="count">8 series</span></div>
+    <div class="grid" id="kalshi15Grid"></div>
+
+    <div class="deskhead"><h2>Crypto Perpetuals</h2><span class="count">18 assets</span></div>
+    <div class="grid" id="cryptoPerpGrid"></div>
+
+    <div class="deskhead"><h2>Continuous Commodities</h2><span class="count">5 contracts</span></div>
+    <div class="grid" id="commodityGrid"></div>
+  </section>
+
+  <!-- ============================= DESK 4: FLEET ============================= -->
+  <section class="desk" id="desk-fleet">
+    <div class="deskhead"><h2>Fleet Slips</h2><span class="count" id="fleetCount">—</span></div>
+    <div class="ingestbox">
+      <div class="field" style="margin-bottom:8px;">
+        <label>Paste a DraftKings / FanDuel slip (text, or a public slip link)</label>
+        <textarea id="ingestText" placeholder="3-Leg Parlay | DraftKings | +560 | Risk $10 to win $56.00&#10;1. Yankees ML&#10;2. Over 8.5 (Total Runs)&#10;3. Judge 1+ HR"></textarea>
       </div>
-      <div id="poly-live-feed">
-        
-        <div class="market-card" data-roi="6.2" data-expiry="1728000000000" data-sport="macro">
-          <div class="market-title">Fed Funds Rate Cut ≥ 25bps Next Meeting</div>
-          <div class="market-meta">
-            <span>Vol: $5.4M</span>
-            <span>Target ROI: +6.2%</span>
-          </div>
-          <div class="market-actions">
-            <button class="btn-buy" onclick="openOrderModal('poly', 'YES', 'Fed Funds Rate Cut', 82)">Buy Yes 82¢</button>
-            <button class="btn-sell" onclick="openOrderModal('poly', 'NO', 'Fed Funds Rate Cut', 18)">Buy No 18¢</button>
-            <button class="btn-gemini" onclick="toggleGeminiDrawer(this, 'Fed Funds Rate Cut ≥ 25bps Next Meeting', 82, 18)">🤖 Copilot</button>
-          </div>
-          <div class="gemini-drawer"></div>
-        </div>
-
-        <div class="market-card" data-roi="15.4" data-expiry="1728100000000" data-sport="macro">
-          <div class="market-title">US Core CPI YoY Under 2.8%</div>
-          <div class="market-meta">
-            <span>Vol: $1.8M</span>
-            <span>Target ROI: +15.4%</span>
-          </div>
-          <div class="market-actions">
-            <button class="btn-buy" onclick="openOrderModal('poly', 'YES', 'US Core CPI Under 2.8%', 41)">Buy Yes 41¢</button>
-            <button class="btn-sell" onclick="openOrderModal('poly', 'NO', 'US Core CPI Under 2.8%', 59)">Buy No 59¢</button>
-            <button class="btn-gemini" onclick="toggleGeminiDrawer(this, 'US Core CPI YoY Under 2.8%', 41, 59)">🤖 Copilot</button>
-          </div>
-          <div class="gemini-drawer"></div>
-        </div>
-
-        <div class="market-card" data-roi="21.0" data-expiry="1728200000000" data-sport="macro">
-          <div class="market-title">Bitcoin to hit $100k in 2026</div>
-          <div class="market-meta">
-            <span>Vol: $8.9M</span>
-            <span>Target ROI: +21.0%</span>
-          </div>
-          <div class="market-actions">
-            <button class="btn-buy" onclick="openOrderModal('poly', 'YES', 'BTC $100k', 33)">Buy Yes 33¢</button>
-            <button class="btn-sell" onclick="openOrderModal('poly', 'NO', 'BTC $100k', 67)">Buy No 67¢</button>
-            <button class="btn-gemini" onclick="toggleGeminiDrawer(this, 'Bitcoin to hit $100k in 2026', 33, 67)">🤖 Copilot</button>
-          </div>
-          <div class="gemini-drawer"></div>
-        </div>
-
-        <div class="market-card" data-roi="8.2" data-expiry="1728300000000" data-sport="macro">
-          <div class="market-title">Ethereum ETF Net Inflows > $500M this week</div>
-          <div class="market-meta">
-            <span>Vol: $2.1M</span>
-            <span>Target ROI: +8.2%</span>
-          </div>
-          <div class="market-actions">
-            <button class="btn-buy" onclick="openOrderModal('poly', 'YES', 'ETH ETF Inflows', 62)">Buy Yes 62¢</button>
-            <button class="btn-sell" onclick="openOrderModal('poly', 'NO', 'ETH ETF Inflows', 38)">Buy No 38¢</button>
-            <button class="btn-gemini" onclick="toggleGeminiDrawer(this, 'Ethereum ETF Net Inflows > $500M this week', 62, 38)">🤖 Copilot</button>
-          </div>
-          <div class="gemini-drawer"></div>
-        </div>
-
-        <div class="market-card" data-roi="12.0" data-expiry="1728400000000" data-sport="macro">
-          <div class="market-title">US Unemployment Rate > 4.1% Next Report</div>
-          <div class="market-meta">
-            <span>Vol: $3.5M</span>
-            <span>Target ROI: +12.0%</span>
-          </div>
-          <div class="market-actions">
-            <button class="btn-buy" onclick="openOrderModal('poly', 'YES', 'US Unemployment > 4.1%', 48)">Buy Yes 48¢</button>
-            <button class="btn-sell" onclick="openOrderModal('poly', 'NO', 'US Unemployment > 4.1%', 52)">Buy No 52¢</button>
-            <button class="btn-gemini" onclick="toggleGeminiDrawer(this, 'US Unemployment Rate > 4.1% Next Report', 48, 52)">🤖 Copilot</button>
-          </div>
-          <div class="gemini-drawer"></div>
-        </div>
-
+      <div class="row">
+        <input type="text" id="ingestUrl" placeholder="Optional public slip URL">
+        <button class="btn primary" id="ingestBtn" style="flex:0 0 140px;">Ingest Slip</button>
       </div>
+      <p class="field hint" style="margin-top:8px;">Read-only monitoring only — Cosmic Terminal never places bets on your behalf on DraftKings or FanDuel. Slips arrive via paste, share-sheet, or link, and the sentinel watches for mathematical (Zero-Path) elimination only — it never predicts an outcome.</p>
+    </div>
+    <div class="grid wide" id="fleetGrid">
+      <div class="emptystate"><div class="big">🏈</div>No slips yet — paste one above, or share a bet slip into this app from your phone's share sheet.</div>
+    </div>
+  </section>
+
+  <!-- ============================= DESK 5: VAULT ============================= -->
+  <section class="desk" id="desk-vault">
+    <div class="deskhead"><h2>Live Balances</h2><span class="count"></span></div>
+    <div class="vaultgrid">
+      <div class="balcard"><div class="label">Polymarket.us Cash</div><div class="value mono" id="balPoly">$0.00</div></div>
+      <div class="balcard"><div class="label">Kalshi Cash</div><div class="value mono" id="balKalshi">$0.00</div></div>
+      <div class="balcard deploy"><div class="label">Deployable Capital</div><div class="value mono" id="balDeployable">$0.00</div></div>
+      <div class="balcard shield"><div class="label">Shielded Reserve Floor</div><div class="value mono" id="balShield">$5.00</div></div>
+    </div>
+
+    <div class="section-card">
+      <h3>75/25 Capital Shield</h3>
+      <div class="field">
+        <label>Shielded Reserve (never deployable — protocol halts any order that would breach it)</label>
+        <input type="number" id="shieldedReserveInput" min="0" step="1" value="5">
+        <p class="hint">Total Liquid − Shielded Reserve = Deployable Capital. Orders exceeding Deployable Capital are hard-blocked before confirmation.</p>
+      </div>
+      <button class="btn primary" id="saveShieldBtn" style="max-width:220px;">Save Reserve</button>
+    </div>
+
+    <div class="section-card">
+      <h3>Worker Endpoint</h3>
+      <div class="field">
+        <label>Cosmic Terminal Worker URL (your Cloudflare Worker deployment)</label>
+        <input type="text" id="workerUrlInput" placeholder="https://cosmic-terminal.yoursubdomain.workers.dev">
+      </div>
+      <button class="btn primary" id="saveWorkerBtn" style="max-width:220px;">Save Endpoint</button>
+    </div>
+
+    <div class="section-card">
+      <h3>BYOK Credentials — stored only in this browser's localStorage</h3>
+      <div class="field">
+        <label>Kalshi Key ID</label>
+        <input type="text" id="kalshiKeyId" placeholder="00000000-0000-0000-0000-000000000000">
+      </div>
+      <div class="field">
+        <label>Kalshi Private Key (PEM)</label>
+        <textarea id="kalshiPem" placeholder="-----BEGIN PRIVATE KEY-----&#10;...&#10;-----END PRIVATE KEY-----"></textarea>
+      </div>
+      <div class="field">
+        <label>Polymarket API Key / Secret / Passphrase / Wallet Address</label>
+        <input type="text" id="polyKey" placeholder="API Key" style="margin-bottom:6px;">
+        <input type="text" id="polySecret" placeholder="API Secret" style="margin-bottom:6px;">
+        <input type="text" id="polyPassphrase" placeholder="API Passphrase" style="margin-bottom:6px;">
+        <input type="text" id="polyAddress" placeholder="Wallet Address (0x…)">
+      </div>
+      <div class="field">
+        <label>Gemini API Key (Quant Copilot)</label>
+        <input type="text" id="geminiKey" placeholder="AIza…">
+      </div>
+      <div class="field">
+        <label>Sentinel Alert Webhook (optional)</label>
+        <input type="text" id="fleetWebhook" placeholder="https://hooks.slack.com/… or https://ntfy.sh/your-topic">
+      </div>
+      <button class="btn primary" id="saveVaultBtn" style="max-width:220px;">Save Credentials</button>
+      <p class="hint" style="margin-top:8px;">Credentials never leave this device except as headers on the single request they authenticate. The Worker is a stateless relay — it does not have a database of user keys.</p>
+    </div>
+
+    <div class="section-card">
+      <h3>Terminal Telemetry</h3>
+      <div class="vaultgrid">
+        <div class="balcard"><div class="label">Lifetime PnL</div><div class="value mono" id="lifetimePnl">$0.00</div></div>
+        <div class="balcard"><div class="label">Kalshi Share</div><div class="value mono" id="pnlKalshiShare">—</div></div>
+        <div class="balcard"><div class="label">Polymarket Share</div><div class="value mono" id="pnlPolyShare">—</div></div>
+      </div>
+    </div>
+
+    <div class="section-card">
+      <h3>Display</h3>
+      <div class="zoomrow">
+        <span class="dim" style="font-size:12px;">UI Scale</span>
+        <input type="range" id="zoomSlider" min="80" max="140" step="5" value="100">
+        <span class="mono" id="zoomValue" style="width:44px;text-align:right;">100%</span>
+      </div>
+    </div>
+
+    <div class="section-card dangerzone">
+      <h3>Reset</h3>
+      <p class="hint" style="margin-bottom:10px;">Purges every credential, cached balance, and preference from this browser's localStorage. Cannot be undone.</p>
+      <button class="btn danger" id="purgeBtn">Purge Local Vault</button>
+    </div>
+  </section>
+
+</main>
+
+<div class="copilot" id="copilotWidget">
+  <button class="copilot-toggle" id="copilotToggle" title="Quant Copilot" aria-label="Quant Copilot">🧠</button>
+  <div class="copilot-panel" id="copilotPanel">
+    <h4>QUANT COPILOT — spread &amp; fee analysis only</h4>
+    <div class="body" id="copilotBody">Tap a market's "Analyze" action, or ask about the currently selected instrument's spread below. This copilot never predicts outcomes — it only reasons about price, spread, and fee drag.</div>
+    <div class="askrow">
+      <input type="text" id="copilotAsk" placeholder="e.g. is this spread worth resting a limit?">
+      <button class="btn primary" id="copilotAskBtn" style="flex:0 0 64px;">Ask</button>
     </div>
   </div>
+</div>
 
-  <!-- VIEW: KALSHI -->
-  <div id="view-kalshi" class="tab-view">
-    
-    <div class="card">
-      <div class="card-header">
-        <span>⏱️ 15-Minute Fast Markets (All 8 Active)</span>
-        <span id="global-15m-timer" style="color: var(--danger); font-weight: 800; font-variant-numeric: tabular-nums;">00:00</span>
-      </div>
-      <div id="kalshi-15m-feed">
-        
-        <!-- Explicit 8 Fast Markets -->
-        <div class="market-card" data-roi="8.5" data-expiry="1728000000000" data-sport="macro">
-          <div class="market-title">KXGOLD15M: Gold Price > 2660.00</div>
-          <div class="market-meta">
-            <span>Vol: 15m Series</span>
-            <span>Target ROI: +8.5%</span>
-          </div>
-          <div class="market-actions">
-            <button class="btn-buy" onclick="openOrderModal('kalshi', 'ABOVE', 'KXGOLD15M', 51)">Above 51¢</button>
-            <button class="btn-sell" onclick="openOrderModal('kalshi', 'BELOW', 'KXGOLD15M', 49)">Below 49¢</button>
-            <button class="btn-gemini" onclick="toggleGeminiDrawer(this, 'KXGOLD15M: Gold Price > 2660.00', 51, 49)">🤖 Copilot</button>
-          </div>
-          <div class="gemini-drawer"></div>
-          <div class="progress-bar"><div class="progress-fill"></div></div>
-        </div>
+<nav class="tabbar">
+  <div class="row">
+    <button class="tabbtn active" data-desk="hub"><span class="ic">🎯</span>Hub</button>
+    <button class="tabbtn" data-desk="poly"><span class="ic">🟣</span>Poly</button>
+    <button class="tabbtn" data-desk="kalshi"><span class="ic">🟢</span>Kalshi</button>
+    <button class="tabbtn" data-desk="fleet"><span class="ic">🏈</span>Fleet</button>
+    <button class="tabbtn" data-desk="vault"><span class="ic">💼</span>Vault</button>
+  </div>
+</nav>
 
-        <div class="market-card" data-roi="8.5" data-expiry="1728000000000" data-sport="macro">
-          <div class="market-title">KXSLV15M: Silver Price > 31.50</div>
-          <div class="market-meta">
-            <span>Vol: 15m Series</span>
-            <span>Target ROI: +8.5%</span>
-          </div>
-          <div class="market-actions">
-            <button class="btn-buy" onclick="openOrderModal('kalshi', 'ABOVE', 'KXSLV15M', 51)">Above 51¢</button>
-            <button class="btn-sell" onclick="openOrderModal('kalshi', 'BELOW', 'KXSLV15M', 49)">Below 49¢</button>
-            <button class="btn-gemini" onclick="toggleGeminiDrawer(this, 'KXSLV15M: Silver Price > 31.50', 51, 49)">🤖 Copilot</button>
-          </div>
-          <div class="gemini-drawer"></div>
-          <div class="progress-bar"><div class="progress-fill"></div></div>
-        </div>
+<!-- ============================= EXECUTION MODAL ============================= -->
+<div class="modal-overlay" id="execOverlay">
+  <div class="modal-sheet" role="dialog" aria-modal="true" aria-labelledby="execTitle">
+    <div class="mhead">
+      <h3 id="execTitle">Place Order</h3>
+      <button class="mclose" id="execClose" aria-label="Close">✕</button>
+    </div>
+    <div class="dim mono" id="execSubtitle" style="font-size:12px;"></div>
 
-        <div class="market-card" data-roi="8.5" data-expiry="1728000000000" data-sport="macro">
-          <div class="market-title">KXWTI15M: WTI Crude > 75.20</div>
-          <div class="market-meta">
-            <span>Vol: 15m Series</span>
-            <span>Target ROI: +8.5%</span>
-          </div>
-          <div class="market-actions">
-            <button class="btn-buy" onclick="openOrderModal('kalshi', 'ABOVE', 'KXWTI15M', 51)">Above 51¢</button>
-            <button class="btn-sell" onclick="openOrderModal('kalshi', 'BELOW', 'KXWTI15M', 49)">Below 49¢</button>
-            <button class="btn-gemini" onclick="toggleGeminiDrawer(this, 'KXWTI15M: WTI Crude > 75.20', 51, 49)">🤖 Copilot</button>
-          </div>
-          <div class="gemini-drawer"></div>
-          <div class="progress-bar"><div class="progress-fill"></div></div>
-        </div>
-
-        <div class="market-card" data-roi="8.5" data-expiry="1728000000000" data-sport="macro">
-          <div class="market-title">KXBTC15M: Bitcoin > 64500</div>
-          <div class="market-meta">
-            <span>Vol: 15m Series</span>
-            <span>Target ROI: +8.5%</span>
-          </div>
-          <div class="market-actions">
-            <button class="btn-buy" onclick="openOrderModal('kalshi', 'ABOVE', 'KXBTC15M', 51)">Above 51¢</button>
-            <button class="btn-sell" onclick="openOrderModal('kalshi', 'BELOW', 'KXBTC15M', 49)">Below 49¢</button>
-            <button class="btn-gemini" onclick="toggleGeminiDrawer(this, 'KXBTC15M: Bitcoin > 64500', 51, 49)">🤖 Copilot</button>
-          </div>
-          <div class="gemini-drawer"></div>
-          <div class="progress-bar"><div class="progress-fill"></div></div>
-        </div>
-
-        <div class="market-card" data-roi="8.5" data-expiry="1728000000000" data-sport="macro">
-          <div class="market-title">KXETH15M: Ethereum > 3450</div>
-          <div class="market-meta">
-            <span>Vol: 15m Series</span>
-            <span>Target ROI: +8.5%</span>
-          </div>
-          <div class="market-actions">
-            <button class="btn-buy" onclick="openOrderModal('kalshi', 'ABOVE', 'KXETH15M', 51)">Above 51¢</button>
-            <button class="btn-sell" onclick="openOrderModal('kalshi', 'BELOW', 'KXETH15M', 49)">Below 49¢</button>
-            <button class="btn-gemini" onclick="toggleGeminiDrawer(this, 'KXETH15M: Ethereum > 3450', 51, 49)">🤖 Copilot</button>
-          </div>
-          <div class="gemini-drawer"></div>
-          <div class="progress-bar"><div class="progress-fill"></div></div>
-        </div>
-
-        <div class="market-card" data-roi="8.5" data-expiry="1728000000000" data-sport="macro">
-          <div class="market-title">KXSOL15M: Solana > 145.20</div>
-          <div class="market-meta">
-            <span>Vol: 15m Series</span>
-            <span>Target ROI: +8.5%</span>
-          </div>
-          <div class="market-actions">
-            <button class="btn-buy" onclick="openOrderModal('kalshi', 'ABOVE', 'KXSOL15M', 51)">Above 51¢</button>
-            <button class="btn-sell" onclick="openOrderModal('kalshi', 'BELOW', 'KXSOL15M', 49)">Below 49¢</button>
-            <button class="btn-gemini" onclick="toggleGeminiDrawer(this, 'KXSOL15M: Solana > 145.20', 51, 49)">🤖 Copilot</button>
-          </div>
-          <div class="gemini-drawer"></div>
-          <div class="progress-bar"><div class="progress-fill"></div></div>
-        </div>
-
-        <div class="market-card" data-roi="8.5" data-expiry="1728000000000" data-sport="macro">
-          <div class="market-title">KXXRP15M: XRP > 0.58</div>
-          <div class="market-meta">
-            <span>Vol: 15m Series</span>
-            <span>Target ROI: +8.5%</span>
-          </div>
-          <div class="market-actions">
-            <button class="btn-buy" onclick="openOrderModal('kalshi', 'ABOVE', 'KXXRP15M', 51)">Above 51¢</button>
-            <button class="btn-sell" onclick="openOrderModal('kalshi', 'BELOW', 'KXXRP15M', 49)">Below 49¢</button>
-            <button class="btn-gemini" onclick="toggleGeminiDrawer(this, 'KXXRP15M: XRP > 0.58', 51, 49)">🤖 Copilot</button>
-          </div>
-          <div class="gemini-drawer"></div>
-          <div class="progress-bar"><div class="progress-fill"></div></div>
-        </div>
-
-        <div class="market-card" data-roi="8.5" data-expiry="1728000000000" data-sport="macro">
-          <div class="market-title">KXDOGE15M: Dogecoin > 0.12</div>
-          <div class="market-meta">
-            <span>Vol: 15m Series</span>
-            <span>Target ROI: +8.5%</span>
-          </div>
-          <div class="market-actions">
-            <button class="btn-buy" onclick="openOrderModal('kalshi', 'ABOVE', 'KXDOGE15M', 51)">Above 51¢</button>
-            <button class="btn-sell" onclick="openOrderModal('kalshi', 'BELOW', 'KXDOGE15M', 49)">Below 49¢</button>
-            <button class="btn-gemini" onclick="toggleGeminiDrawer(this, 'KXDOGE15M: Dogecoin > 0.12', 51, 49)">🤖 Copilot</button>
-          </div>
-          <div class="gemini-drawer"></div>
-          <div class="progress-bar"><div class="progress-fill"></div></div>
-        </div>
-
+    <div class="modal-row">
+      <label>Side</label>
+      <div class="cbtnrow">
+        <button class="btn yes" id="execSideYes">YES / LONG</button>
+        <button class="btn no" id="execSideNo">NO / SHORT</button>
       </div>
     </div>
-    
-    <div class="card">
-      <div class="card-header">
-        <span>⚡ Crypto Perpetuals (All 18 Active)</span>
-        <span>3.25% APR</span>
-      </div>
-      <div id="kalshi-perps-feed">
-        
-        <!-- Explicit 18 Crypto Perps -->
-        <div class="market-card" data-roi="0" data-expiry="0" data-sport="macro">
-          <div class="market-title">BTCPERP Continuous</div>
-          <div class="market-meta">
-            <span>Live Basis: +0.01%</span>
-            <span>Margin APR: 3.25%</span>
-          </div>
-          <svg width="100%" height="20" style="margin-bottom: 10px; border-bottom: 1px dashed var(--border);">
-            <path d="M0 10 Q 25 15, 50 10 T 100 5 T 150 10 T 200 5 T 250 15 T 300 10 T 350 5" stroke="var(--accent-kalshi)" fill="transparent" stroke-width="2"/>
-          </svg>
-          <div class="market-actions">
-            <button class="btn-buy" onclick="openOrderModal('kalshi', 'LONG', 'BTCPERP', 50)">Long</button>
-            <button class="btn-sell" onclick="openOrderModal('kalshi', 'SHORT', 'BTCPERP', 50)">Short</button>
-            <button class="btn-gemini" onclick="toggleGeminiDrawer(this, 'BTCPERP Technicals', 50, 50)">🤖 Copilot</button>
-          </div>
-          <div class="gemini-drawer"></div>
-        </div>
 
-        <div class="market-card" data-roi="0" data-expiry="0" data-sport="macro">
-          <div class="market-title">ETHPERP Continuous</div>
-          <div class="market-meta">
-            <span>Live Basis: +0.01%</span>
-            <span>Margin APR: 3.25%</span>
-          </div>
-          <svg width="100%" height="20" style="margin-bottom: 10px; border-bottom: 1px dashed var(--border);">
-            <path d="M0 10 Q 25 15, 50 10 T 100 5 T 150 10 T 200 5 T 250 15 T 300 10 T 350 5" stroke="var(--accent-kalshi)" fill="transparent" stroke-width="2"/>
-          </svg>
-          <div class="market-actions">
-            <button class="btn-buy" onclick="openOrderModal('kalshi', 'LONG', 'ETHPERP', 50)">Long</button>
-            <button class="btn-sell" onclick="openOrderModal('kalshi', 'SHORT', 'ETHPERP', 50)">Short</button>
-            <button class="btn-gemini" onclick="toggleGeminiDrawer(this, 'ETHPERP Technicals', 50, 50)">🤖 Copilot</button>
-          </div>
-          <div class="gemini-drawer"></div>
-        </div>
-
-        <div class="market-card" data-roi="0" data-expiry="0" data-sport="macro">
-          <div class="market-title">SOLPERP Continuous</div>
-          <div class="market-meta">
-            <span>Live Basis: +0.01%</span>
-            <span>Margin APR: 3.25%</span>
-          </div>
-          <svg width="100%" height="20" style="margin-bottom: 10px; border-bottom: 1px dashed var(--border);">
-            <path d="M0 10 Q 25 15, 50 10 T 100 5 T 150 10 T 200 5 T 250 15 T 300 10 T 350 5" stroke="var(--accent-kalshi)" fill="transparent" stroke-width="2"/>
-          </svg>
-          <div class="market-actions">
-            <button class="btn-buy" onclick="openOrderModal('kalshi', 'LONG', 'SOLPERP', 50)">Long</button>
-            <button class="btn-sell" onclick="openOrderModal('kalshi', 'SHORT', 'SOLPERP', 50)">Short</button>
-            <button class="btn-gemini" onclick="toggleGeminiDrawer(this, 'SOLPERP Technicals', 50, 50)">🤖 Copilot</button>
-          </div>
-          <div class="gemini-drawer"></div>
-        </div>
-
-        <div class="market-card" data-roi="0" data-expiry="0" data-sport="macro">
-          <div class="market-title">XRPPERP Continuous</div>
-          <div class="market-meta">
-            <span>Live Basis: +0.01%</span>
-            <span>Margin APR: 3.25%</span>
-          </div>
-          <svg width="100%" height="20" style="margin-bottom: 10px; border-bottom: 1px dashed var(--border);">
-            <path d="M0 10 Q 25 15, 50 10 T 100 5 T 150 10 T 200 5 T 250 15 T 300 10 T 350 5" stroke="var(--accent-kalshi)" fill="transparent" stroke-width="2"/>
-          </svg>
-          <div class="market-actions">
-            <button class="btn-buy" onclick="openOrderModal('kalshi', 'LONG', 'XRPPERP', 50)">Long</button>
-            <button class="btn-sell" onclick="openOrderModal('kalshi', 'SHORT', 'XRPPERP', 50)">Short</button>
-            <button class="btn-gemini" onclick="toggleGeminiDrawer(this, 'XRPPERP Technicals', 50, 50)">🤖 Copilot</button>
-          </div>
-          <div class="gemini-drawer"></div>
-        </div>
-
-        <div class="market-card" data-roi="0" data-expiry="0" data-sport="macro">
-          <div class="market-title">DOGEPERP Continuous</div>
-          <div class="market-meta">
-            <span>Live Basis: +0.01%</span>
-            <span>Margin APR: 3.25%</span>
-          </div>
-          <svg width="100%" height="20" style="margin-bottom: 10px; border-bottom: 1px dashed var(--border);">
-            <path d="M0 10 Q 25 15, 50 10 T 100 5 T 150 10 T 200 5 T 250 15 T 300 10 T 350 5" stroke="var(--accent-kalshi)" fill="transparent" stroke-width="2"/>
-          </svg>
-          <div class="market-actions">
-            <button class="btn-buy" onclick="openOrderModal('kalshi', 'LONG', 'DOGEPERP', 50)">Long</button>
-            <button class="btn-sell" onclick="openOrderModal('kalshi', 'SHORT', 'DOGEPERP', 50)">Short</button>
-            <button class="btn-gemini" onclick="toggleGeminiDrawer(this, 'DOGEPERP Technicals', 50, 50)">🤖 Copilot</button>
-          </div>
-          <div class="gemini-drawer"></div>
-        </div>
-
-        <div class="market-card" data-roi="0" data-expiry="0" data-sport="macro">
-          <div class="market-title">ADAPERP Continuous</div>
-          <div class="market-meta">
-            <span>Live Basis: +0.01%</span>
-            <span>Margin APR: 3.25%</span>
-          </div>
-          <svg width="100%" height="20" style="margin-bottom: 10px; border-bottom: 1px dashed var(--border);">
-            <path d="M0 10 Q 25 15, 50 10 T 100 5 T 150 10 T 200 5 T 250 15 T 300 10 T 350 5" stroke="var(--accent-kalshi)" fill="transparent" stroke-width="2"/>
-          </svg>
-          <div class="market-actions">
-            <button class="btn-buy" onclick="openOrderModal('kalshi', 'LONG', 'ADAPERP', 50)">Long</button>
-            <button class="btn-sell" onclick="openOrderModal('kalshi', 'SHORT', 'ADAPERP', 50)">Short</button>
-            <button class="btn-gemini" onclick="toggleGeminiDrawer(this, 'ADAPERP Technicals', 50, 50)">🤖 Copilot</button>
-          </div>
-          <div class="gemini-drawer"></div>
-        </div>
-
-        <div class="market-card" data-roi="0" data-expiry="0" data-sport="macro">
-          <div class="market-title">AVAXPERP Continuous</div>
-          <div class="market-meta">
-            <span>Live Basis: +0.01%</span>
-            <span>Margin APR: 3.25%</span>
-          </div>
-          <svg width="100%" height="20" style="margin-bottom: 10px; border-bottom: 1px dashed var(--border);">
-            <path d="M0 10 Q 25 15, 50 10 T 100 5 T 150 10 T 200 5 T 250 15 T 300 10 T 350 5" stroke="var(--accent-kalshi)" fill="transparent" stroke-width="2"/>
-          </svg>
-          <div class="market-actions">
-            <button class="btn-buy" onclick="openOrderModal('kalshi', 'LONG', 'AVAXPERP', 50)">Long</button>
-            <button class="btn-sell" onclick="openOrderModal('kalshi', 'SHORT', 'AVAXPERP', 50)">Short</button>
-            <button class="btn-gemini" onclick="toggleGeminiDrawer(this, 'AVAXPERP Technicals', 50, 50)">🤖 Copilot</button>
-          </div>
-          <div class="gemini-drawer"></div>
-        </div>
-
-        <div class="market-card" data-roi="0" data-expiry="0" data-sport="macro">
-          <div class="market-title">LINKPERP Continuous</div>
-          <div class="market-meta">
-            <span>Live Basis: +0.01%</span>
-            <span>Margin APR: 3.25%</span>
-          </div>
-          <svg width="100%" height="20" style="margin-bottom: 10px; border-bottom: 1px dashed var(--border);">
-            <path d="M0 10 Q 25 15, 50 10 T 100 5 T 150 10 T 200 5 T 250 15 T 300 10 T 350 5" stroke="var(--accent-kalshi)" fill="transparent" stroke-width="2"/>
-          </svg>
-          <div class="market-actions">
-            <button class="btn-buy" onclick="openOrderModal('kalshi', 'LONG', 'LINKPERP', 50)">Long</button>
-            <button class="btn-sell" onclick="openOrderModal('kalshi', 'SHORT', 'LINKPERP', 50)">Short</button>
-            <button class="btn-gemini" onclick="toggleGeminiDrawer(this, 'LINKPERP Technicals', 50, 50)">🤖 Copilot</button>
-          </div>
-          <div class="gemini-drawer"></div>
-        </div>
-
-        <div class="market-card" data-roi="0" data-expiry="0" data-sport="macro">
-          <div class="market-title">LTCPERP Continuous</div>
-          <div class="market-meta">
-            <span>Live Basis: +0.01%</span>
-            <span>Margin APR: 3.25%</span>
-          </div>
-          <svg width="100%" height="20" style="margin-bottom: 10px; border-bottom: 1px dashed var(--border);">
-            <path d="M0 10 Q 25 15, 50 10 T 100 5 T 150 10 T 200 5 T 250 15 T 300 10 T 350 5" stroke="var(--accent-kalshi)" fill="transparent" stroke-width="2"/>
-          </svg>
-          <div class="market-actions">
-            <button class="btn-buy" onclick="openOrderModal('kalshi', 'LONG', 'LTCPERP', 50)">Long</button>
-            <button class="btn-sell" onclick="openOrderModal('kalshi', 'SHORT', 'LTCPERP', 50)">Short</button>
-            <button class="btn-gemini" onclick="toggleGeminiDrawer(this, 'LTCPERP Technicals', 50, 50)">🤖 Copilot</button>
-          </div>
-          <div class="gemini-drawer"></div>
-        </div>
-
-        <div class="market-card" data-roi="0" data-expiry="0" data-sport="macro">
-          <div class="market-title">BNBPERP Continuous</div>
-          <div class="market-meta">
-            <span>Live Basis: +0.01%</span>
-            <span>Margin APR: 3.25%</span>
-          </div>
-          <svg width="100%" height="20" style="margin-bottom: 10px; border-bottom: 1px dashed var(--border);">
-            <path d="M0 10 Q 25 15, 50 10 T 100 5 T 150 10 T 200 5 T 250 15 T 300 10 T 350 5" stroke="var(--accent-kalshi)" fill="transparent" stroke-width="2"/>
-          </svg>
-          <div class="market-actions">
-            <button class="btn-buy" onclick="openOrderModal('kalshi', 'LONG', 'BNBPERP', 50)">Long</button>
-            <button class="btn-sell" onclick="openOrderModal('kalshi', 'SHORT', 'BNBPERP', 50)">Short</button>
-            <button class="btn-gemini" onclick="toggleGeminiDrawer(this, 'BNBPERP Technicals', 50, 50)">🤖 Copilot</button>
-          </div>
-          <div class="gemini-drawer"></div>
-        </div>
-
-        <div class="market-card" data-roi="0" data-expiry="0" data-sport="macro">
-          <div class="market-title">SUIPERP Continuous</div>
-          <div class="market-meta">
-            <span>Live Basis: +0.01%</span>
-            <span>Margin APR: 3.25%</span>
-          </div>
-          <svg width="100%" height="20" style="margin-bottom: 10px; border-bottom: 1px dashed var(--border);">
-            <path d="M0 10 Q 25 15, 50 10 T 100 5 T 150 10 T 200 5 T 250 15 T 300 10 T 350 5" stroke="var(--accent-kalshi)" fill="transparent" stroke-width="2"/>
-          </svg>
-          <div class="market-actions">
-            <button class="btn-buy" onclick="openOrderModal('kalshi', 'LONG', 'SUIPERP', 50)">Long</button>
-            <button class="btn-sell" onclick="openOrderModal('kalshi', 'SHORT', 'SUIPERP', 50)">Short</button>
-            <button class="btn-gemini" onclick="toggleGeminiDrawer(this, 'SUIPERP Technicals', 50, 50)">🤖 Copilot</button>
-          </div>
-          <div class="gemini-drawer"></div>
-        </div>
-
-        <div class="market-card" data-roi="0" data-expiry="0" data-sport="macro">
-          <div class="market-title">NEARPERP Continuous</div>
-          <div class="market-meta">
-            <span>Live Basis: +0.01%</span>
-            <span>Margin APR: 3.25%</span>
-          </div>
-          <svg width="100%" height="20" style="margin-bottom: 10px; border-bottom: 1px dashed var(--border);">
-            <path d="M0 10 Q 25 15, 50 10 T 100 5 T 150 10 T 200 5 T 250 15 T 300 10 T 350 5" stroke="var(--accent-kalshi)" fill="transparent" stroke-width="2"/>
-          </svg>
-          <div class="market-actions">
-            <button class="btn-buy" onclick="openOrderModal('kalshi', 'LONG', 'NEARPERP', 50)">Long</button>
-            <button class="btn-sell" onclick="openOrderModal('kalshi', 'SHORT', 'NEARPERP', 50)">Short</button>
-            <button class="btn-gemini" onclick="toggleGeminiDrawer(this, 'NEARPERP Technicals', 50, 50)">🤖 Copilot</button>
-          </div>
-          <div class="gemini-drawer"></div>
-        </div>
-
-        <div class="market-card" data-roi="0" data-expiry="0" data-sport="macro">
-          <div class="market-title">HYPEPERP Continuous</div>
-          <div class="market-meta">
-            <span>Live Basis: +0.01%</span>
-            <span>Margin APR: 3.25%</span>
-          </div>
-          <svg width="100%" height="20" style="margin-bottom: 10px; border-bottom: 1px dashed var(--border);">
-            <path d="M0 10 Q 25 15, 50 10 T 100 5 T 150 10 T 200 5 T 250 15 T 300 10 T 350 5" stroke="var(--accent-kalshi)" fill="transparent" stroke-width="2"/>
-          </svg>
-          <div class="market-actions">
-            <button class="btn-buy" onclick="openOrderModal('kalshi', 'LONG', 'HYPEPERP', 50)">Long</button>
-            <button class="btn-sell" onclick="openOrderModal('kalshi', 'SHORT', 'HYPEPERP', 50)">Short</button>
-            <button class="btn-gemini" onclick="toggleGeminiDrawer(this, 'HYPEPERP Technicals', 50, 50)">🤖 Copilot</button>
-          </div>
-          <div class="gemini-drawer"></div>
-        </div>
-
-        <div class="market-card" data-roi="0" data-expiry="0" data-sport="macro">
-          <div class="market-title">AAVEPERP Continuous</div>
-          <div class="market-meta">
-            <span>Live Basis: +0.01%</span>
-            <span>Margin APR: 3.25%</span>
-          </div>
-          <svg width="100%" height="20" style="margin-bottom: 10px; border-bottom: 1px dashed var(--border);">
-            <path d="M0 10 Q 25 15, 50 10 T 100 5 T 150 10 T 200 5 T 250 15 T 300 10 T 350 5" stroke="var(--accent-kalshi)" fill="transparent" stroke-width="2"/>
-          </svg>
-          <div class="market-actions">
-            <button class="btn-buy" onclick="openOrderModal('kalshi', 'LONG', 'AAVEPERP', 50)">Long</button>
-            <button class="btn-sell" onclick="openOrderModal('kalshi', 'SHORT', 'AAVEPERP', 50)">Short</button>
-            <button class="btn-gemini" onclick="toggleGeminiDrawer(this, 'AAVEPERP Technicals', 50, 50)">🤖 Copilot</button>
-          </div>
-          <div class="gemini-drawer"></div>
-        </div>
-
-        <div class="market-card" data-roi="0" data-expiry="0" data-sport="macro">
-          <div class="market-title">BCHPERP Continuous</div>
-          <div class="market-meta">
-            <span>Live Basis: +0.01%</span>
-            <span>Margin APR: 3.25%</span>
-          </div>
-          <svg width="100%" height="20" style="margin-bottom: 10px; border-bottom: 1px dashed var(--border);">
-            <path d="M0 10 Q 25 15, 50 10 T 100 5 T 150 10 T 200 5 T 250 15 T 300 10 T 350 5" stroke="var(--accent-kalshi)" fill="transparent" stroke-width="2"/>
-          </svg>
-          <div class="market-actions">
-            <button class="btn-buy" onclick="openOrderModal('kalshi', 'LONG', 'BCHPERP', 50)">Long</button>
-            <button class="btn-sell" onclick="openOrderModal('kalshi', 'SHORT', 'BCHPERP', 50)">Short</button>
-            <button class="btn-gemini" onclick="toggleGeminiDrawer(this, 'BCHPERP Technicals', 50, 50)">🤖 Copilot</button>
-          </div>
-          <div class="gemini-drawer"></div>
-        </div>
-
-        <div class="market-card" data-roi="0" data-expiry="0" data-sport="macro">
-          <div class="market-title">DOTPERP Continuous</div>
-          <div class="market-meta">
-            <span>Live Basis: +0.01%</span>
-            <span>Margin APR: 3.25%</span>
-          </div>
-          <svg width="100%" height="20" style="margin-bottom: 10px; border-bottom: 1px dashed var(--border);">
-            <path d="M0 10 Q 25 15, 50 10 T 100 5 T 150 10 T 200 5 T 250 15 T 300 10 T 350 5" stroke="var(--accent-kalshi)" fill="transparent" stroke-width="2"/>
-          </svg>
-          <div class="market-actions">
-            <button class="btn-buy" onclick="openOrderModal('kalshi', 'LONG', 'DOTPERP', 50)">Long</button>
-            <button class="btn-sell" onclick="openOrderModal('kalshi', 'SHORT', 'DOTPERP', 50)">Short</button>
-            <button class="btn-gemini" onclick="toggleGeminiDrawer(this, 'DOTPERP Technicals', 50, 50)">🤖 Copilot</button>
-          </div>
-          <div class="gemini-drawer"></div>
-        </div>
-
-        <div class="market-card" data-roi="0" data-expiry="0" data-sport="macro">
-          <div class="market-title">UNIPERP Continuous</div>
-          <div class="market-meta">
-            <span>Live Basis: +0.01%</span>
-            <span>Margin APR: 3.25%</span>
-          </div>
-          <svg width="100%" height="20" style="margin-bottom: 10px; border-bottom: 1px dashed var(--border);">
-            <path d="M0 10 Q 25 15, 50 10 T 100 5 T 150 10 T 200 5 T 250 15 T 300 10 T 350 5" stroke="var(--accent-kalshi)" fill="transparent" stroke-width="2"/>
-          </svg>
-          <div class="market-actions">
-            <button class="btn-buy" onclick="openOrderModal('kalshi', 'LONG', 'UNIPERP', 50)">Long</button>
-            <button class="btn-sell" onclick="openOrderModal('kalshi', 'SHORT', 'UNIPERP', 50)">Short</button>
-            <button class="btn-gemini" onclick="toggleGeminiDrawer(this, 'UNIPERP Technicals', 50, 50)">🤖 Copilot</button>
-          </div>
-          <div class="gemini-drawer"></div>
-        </div>
-
-        <div class="market-card" data-roi="0" data-expiry="0" data-sport="macro">
-          <div class="market-title">POLPERP Continuous</div>
-          <div class="market-meta">
-            <span>Live Basis: +0.01%</span>
-            <span>Margin APR: 3.25%</span>
-          </div>
-          <svg width="100%" height="20" style="margin-bottom: 10px; border-bottom: 1px dashed var(--border);">
-            <path d="M0 10 Q 25 15, 50 10 T 100 5 T 150 10 T 200 5 T 250 15 T 300 10 T 350 5" stroke="var(--accent-kalshi)" fill="transparent" stroke-width="2"/>
-          </svg>
-          <div class="market-actions">
-            <button class="btn-buy" onclick="openOrderModal('kalshi', 'LONG', 'POLPERP', 50)">Long</button>
-            <button class="btn-sell" onclick="openOrderModal('kalshi', 'SHORT', 'POLPERP', 50)">Short</button>
-            <button class="btn-gemini" onclick="toggleGeminiDrawer(this, 'POLPERP Technicals', 50, 50)">🤖 Copilot</button>
-          </div>
-          <div class="gemini-drawer"></div>
-        </div>
-
-      </div>
+    <div class="modal-row">
+      <label id="execQtyLabel">Contracts / Size</label>
+      <input type="number" id="execQty" min="1" step="1" value="1">
     </div>
-    
-    <div class="card">
-      <div class="card-header">
-        <span>🛢️ Commodities Suite (All 5 Active)</span>
-        <span>Daily Yield</span>
-      </div>
-      <div id="kalshi-commodities-feed">
-        
-        <!-- Explicit 5 Commodities -->
-        <div class="market-card" data-roi="0" data-expiry="0" data-sport="macro">
-          <div class="market-title">GOLDFUT Continuous</div>
-          <div class="market-meta">
-            <span>Live Basis: +0.01%</span>
-            <span>Margin APR: 3.25%</span>
-          </div>
-          <svg width="100%" height="20" style="margin-bottom: 10px; border-bottom: 1px dashed var(--border);">
-            <path d="M0 10 Q 25 15, 50 10 T 100 5 T 150 10 T 200 5 T 250 15 T 300 10 T 350 5" stroke="var(--accent-kalshi)" fill="transparent" stroke-width="2"/>
-          </svg>
-          <div class="market-actions">
-            <button class="btn-buy" onclick="openOrderModal('kalshi', 'LONG', 'GOLDFUT', 50)">Long</button>
-            <button class="btn-sell" onclick="openOrderModal('kalshi', 'SHORT', 'GOLDFUT', 50)">Short</button>
-            <button class="btn-gemini" onclick="toggleGeminiDrawer(this, 'GOLDFUT Technicals', 50, 50)">🤖 Copilot</button>
-          </div>
-          <div class="gemini-drawer"></div>
-        </div>
 
-        <div class="market-card" data-roi="0" data-expiry="0" data-sport="macro">
-          <div class="market-title">SILVERFUT Continuous</div>
-          <div class="market-meta">
-            <span>Live Basis: +0.01%</span>
-            <span>Margin APR: 3.25%</span>
-          </div>
-          <svg width="100%" height="20" style="margin-bottom: 10px; border-bottom: 1px dashed var(--border);">
-            <path d="M0 10 Q 25 15, 50 10 T 100 5 T 150 10 T 200 5 T 250 15 T 300 10 T 350 5" stroke="var(--accent-kalshi)" fill="transparent" stroke-width="2"/>
-          </svg>
-          <div class="market-actions">
-            <button class="btn-buy" onclick="openOrderModal('kalshi', 'LONG', 'SILVERFUT', 50)">Long</button>
-            <button class="btn-sell" onclick="openOrderModal('kalshi', 'SHORT', 'SILVERFUT', 50)">Short</button>
-            <button class="btn-gemini" onclick="toggleGeminiDrawer(this, 'SILVERFUT Technicals', 50, 50)">🤖 Copilot</button>
-          </div>
-          <div class="gemini-drawer"></div>
-        </div>
+    <div class="modal-row">
+      <label id="execPriceLabel">Limit Price (¢)</label>
+      <input type="number" id="execPrice" min="1" max="99" step="1" value="50">
+    </div>
 
-        <div class="market-card" data-roi="0" data-expiry="0" data-sport="macro">
-          <div class="market-title">WTICRUDE Continuous</div>
-          <div class="market-meta">
-            <span>Live Basis: +0.01%</span>
-            <span>Margin APR: 3.25%</span>
-          </div>
-          <svg width="100%" height="20" style="margin-bottom: 10px; border-bottom: 1px dashed var(--border);">
-            <path d="M0 10 Q 25 15, 50 10 T 100 5 T 150 10 T 200 5 T 250 15 T 300 10 T 350 5" stroke="var(--accent-kalshi)" fill="transparent" stroke-width="2"/>
-          </svg>
-          <div class="market-actions">
-            <button class="btn-buy" onclick="openOrderModal('kalshi', 'LONG', 'WTICRUDE', 50)">Long</button>
-            <button class="btn-sell" onclick="openOrderModal('kalshi', 'SHORT', 'WTICRUDE', 50)">Short</button>
-            <button class="btn-gemini" onclick="toggleGeminiDrawer(this, 'WTICRUDE Technicals', 50, 50)">🤖 Copilot</button>
-          </div>
-          <div class="gemini-drawer"></div>
-        </div>
+    <div class="modal-total">
+      <span class="dim" style="font-size:12.5px;">Total Execution Cost</span>
+      <span class="amt mono" id="execTotal">$0.00</span>
+    </div>
 
-        <div class="market-card" data-roi="0" data-expiry="0" data-sport="macro">
-          <div class="market-title">RBOB Continuous</div>
-          <div class="market-meta">
-            <span>Live Basis: +0.01%</span>
-            <span>Margin APR: 3.25%</span>
-          </div>
-          <svg width="100%" height="20" style="margin-bottom: 10px; border-bottom: 1px dashed var(--border);">
-            <path d="M0 10 Q 25 15, 50 10 T 100 5 T 150 10 T 200 5 T 250 15 T 300 10 T 350 5" stroke="var(--accent-kalshi)" fill="transparent" stroke-width="2"/>
-          </svg>
-          <div class="market-actions">
-            <button class="btn-buy" onclick="openOrderModal('kalshi', 'LONG', 'RBOB', 50)">Long</button>
-            <button class="btn-sell" onclick="openOrderModal('kalshi', 'SHORT', 'RBOB', 50)">Short</button>
-            <button class="btn-gemini" onclick="toggleGeminiDrawer(this, 'RBOB Technicals', 50, 50)">🤖 Copilot</button>
-          </div>
-          <div class="gemini-drawer"></div>
-        </div>
+    <div class="shieldwarn" id="shieldWarn">
+      🛡 Protocol Halt: this order breaches your Shielded Reserve floor. Reduce size/price or raise Deployable Capital in the Vault.
+    </div>
 
-        <div class="market-card" data-roi="0" data-expiry="0" data-sport="macro">
-          <div class="market-title">NATGAS Continuous</div>
-          <div class="market-meta">
-            <span>Live Basis: +0.01%</span>
-            <span>Margin APR: 3.25%</span>
-          </div>
-          <svg width="100%" height="20" style="margin-bottom: 10px; border-bottom: 1px dashed var(--border);">
-            <path d="M0 10 Q 25 15, 50 10 T 100 5 T 150 10 T 200 5 T 250 15 T 300 10 T 350 5" stroke="var(--accent-kalshi)" fill="transparent" stroke-width="2"/>
-          </svg>
-          <div class="market-actions">
-            <button class="btn-buy" onclick="openOrderModal('kalshi', 'LONG', 'NATGAS', 50)">Long</button>
-            <button class="btn-sell" onclick="openOrderModal('kalshi', 'SHORT', 'NATGAS', 50)">Short</button>
-            <button class="btn-gemini" onclick="toggleGeminiDrawer(this, 'NATGAS Technicals', 50, 50)">🤖 Copilot</button>
-          </div>
-          <div class="gemini-drawer"></div>
-        </div>
-
-      </div>
+    <div class="modal-actions">
+      <button class="btn ghost" id="execCancel" style="flex:1;">Cancel</button>
+      <button class="btn primary" id="execConfirm" style="flex:1;">Confirm Order</button>
     </div>
   </div>
+</div>
 
-  <!-- VIEW: FLEET SLIPS -->
-  <div id="view-sports" class="tab-view">
-    <div class="card">
-      <div class="card-header">
-        <span>Sportsbook Fleet Slips</span>
-        <span>DraftKings & FanDuel</span>
-      </div>
-      <div id="sports-slips-container">
-        <p style="font-size: 11px; color: var(--muted); text-align: center; padding: 16px 0;">
-          No active slips detected in edge queue.
-        </p>
-      </div>
-    </div>
-  </div>
+<div class="toast" id="toast"></div>
 
-  <!-- VIEW: VAULT -->
-  <div id="view-vault" class="tab-view">
-    <div class="card">
-      <div class="card-header">
-        <span>Portfolio & Balance State</span>
-        <span style="color: var(--accent-kalshi);">Trader Mode Active</span>
-      </div>
-      <div class="telemetry-grid">
-        <div class="telemetry-box">
-          <div class="label">Polymarket.us (Cash)</div>
-          <div class="value" id="disp-poly-funds">$0.00</div>
-        </div>
-        <div class="telemetry-box">
-          <div class="label">Kalshi (Cash)</div>
-          <div class="value" id="disp-kalshi-funds">$0.00</div>
-        </div>
-        <div class="telemetry-box">
-          <div class="label">Deployable Capital</div>
-          <div class="value" id="disp-deployable-funds" style="color: var(--accent);">$0.00</div>
-        </div>
-        <div class="telemetry-box">
-          <div class="label">Shielded Reserve</div>
-          <div class="value" id="disp-shielded-funds" style="color: #ffb703;">$5.00</div>
-        </div>
-      </div>
-    </div>
+<script>
+"use strict";
+/* ==========================================================================
+   COSMIC TERMINAL — client application
+   All state lives in localStorage under the "cpt:" prefix. The Worker URL
+   is user-configured in the Vault desk; every authenticated call attaches
+   BYOK credentials as headers on that single request only.
+   ========================================================================== */
 
-    <div class="card">
-      <div class="card-header">BYOK Sovereign Security Vault</div>
-      
-      <label class="vault-label">Kalshi Key ID</label>
-      <input type="password" id="vault-kalshi-key" class="vault-input" placeholder="e.g. 7f8a1234-...">
-      
-      <label class="vault-label">Polymarket.us API Key</label>
-      <input type="password" id="vault-poly-key" class="vault-input" placeholder="e.g. pm_live_...">
-      
-      <label class="vault-label">Gemini API Key (Copilot Inference)</label>
-      <input type="password" id="vault-gemini-key" class="vault-input" placeholder="AIzaSy...">
-      
-      <label class="vault-label">UI Zoom Scale (%)</label>
-      <input type="range" id="ui-zoom-slider" min="80" max="140" value="100" style="width: 100%; margin-bottom: 12px;" oninput="updateUiZoom(this.value)">
-      
-      <button class="btn" style="width: 100%; justify-content: center; background: var(--accent); color: #000; padding: 10px;" onclick="saveVaultKeys()">
-        💾 Save Credentials & Sync
-      </button>
-    </div>
-  </div>
+/* ---------------------------- persistent state --------------------------- */
+const LS = {
+  get(key, fallback){ try{ const v = localStorage.getItem("cpt:"+key); return v===null? fallback : JSON.parse(v); }catch(e){ return fallback; } },
+  set(key, val){ try{ localStorage.setItem("cpt:"+key, JSON.stringify(val)); }catch(e){} },
+  del(key){ localStorage.removeItem("cpt:"+key); }
+};
 
-  <!-- =======================================================================
-       3. BOTTOM NAVIGATION BAR
-       ======================================================================= -->
-  <nav class="bottom-bar">
-    <button class="nav-item active" onclick="switchDesk('hub', null)">
-      <span>🎯</span>
-      <span>Hub</span>
-    </button>
-    <button class="nav-item" onclick="switchDesk('poly', null)">
-      <span>🟣</span>
-      <span>Poly</span>
-    </button>
-    <button class="nav-item" onclick="switchDesk('kalshi', null)">
-      <span>🟢</span>
-      <span>Kalshi</span>
-    </button>
-    <button class="nav-item" onclick="switchDesk('sports', null)">
-      <span>🏈</span>
-      <span>Fleet</span>
-    </button>
-    <button class="nav-item" onclick="switchDesk('vault', null)">
-      <span>💼</span>
-      <span>Vault</span>
-    </button>
-  </nav>
+function ensureUserId(){
+  let id = LS.get("userId", null);
+  if(!id){
+    id = "user_" + Math.random().toString(36).slice(2,10) + Date.now().toString(36);
+    LS.set("userId", id);
+  }
+  return id;
+}
 
-  <!-- =======================================================================
-       4. INTERACTIVE EXECUTION MODAL (FIXED FOR MOBILE LAYOUT)
-       ======================================================================= -->
-  <div id="execution-modal" class="modal-overlay" style="display: none;">
-    <div class="modal-content">
-      <h3 id="exec-market-title">Market Title</h3>
-      <div class="exec-details">
-        
-        <div class="exec-row">
-          <span>Action:</span>
-          <span id="exec-side" style="color: var(--accent); text-transform: uppercase; font-weight: 900;">BUY</span>
-        </div>
-        
-        <div class="exec-row">
-          <span>Contracts:</span>
-          <input type="number" id="exec-contracts" class="exec-input" value="1" min="1" oninput="updateOrderTotal()">
-        </div>
-        
-        <div class="exec-row">
-          <span>Limit Price (¢):</span>
-          <input type="number" id="exec-price" class="exec-input" step="1" oninput="updateOrderTotal()">
-        </div>
-        
-        <div class="exec-row" style="margin-top: 10px; border-top: 1px dashed var(--border); padding-top: 10px;">
-          <span>Estimated Total:</span>
-          <span id="exec-total" style="color: #fff; font-size: 16px; font-weight: 900;">$0.00</span>
-        </div>
-        
-      </div>
-      
-      <div class="modal-actions">
-        <button class="btn btn-buy" style="background: var(--accent-kalshi); color: #000; border: none;" onclick="submitOrder()">
-          CONFIRM ORDER
-        </button>
-        <button class="btn" style="background: var(--surface);" onclick="closeModal()">
-          Cancel
-        </button>
-      </div>
-      
-    </div>
-  </div>
+const state = {
+  userId: ensureUserId(),
+  workerUrl: LS.get("workerUrl", ""),
+  vault: LS.get("vault", {}),
+  shieldedReserve: LS.get("shieldedReserve", 5),
+  uiZoom: LS.get("uiZoom", 100),
+  balances: LS.get("balances", { poly:0, kalshi:0, lifetimePnl:0, pnlKalshi:0, pnlPoly:0 }),
+  activeDesk: "hub",
+  activeFilter: "all",
+  activeSort: "default",
+  searchQuery: "",
+  polyEvents: [],
+  fleetTickets: [],
+  cryptoPrices: {},
+  pendingOrder: null,
+  copilotContext: null,
+};
 
-  <!-- =======================================================================
-       5. MONOLITHIC JAVASCRIPT ENGINE (No Compression)
-       ======================================================================= -->
-  <script>
-    const WORKER_BASE = "https://cosmic-parlays.cosmictrollgaming.workers.dev";
-    let CURRENT_ORDER = {};
+document.documentElement.style.setProperty("--ui-zoom", state.uiZoom + "%");
 
-    function switchMainTab(tabId) {
-      document.querySelectorAll('.tab-view').forEach(t => t.classList.remove('active'));
-      const target = document.getElementById(`view-${tabId}`);
-      if (target) {
-        target.classList.add('active');
-      }
-      
-      const sorter = document.getElementById('global-sorter');
-      if (tabId === 'vault' || tabId === 'sports') {
-        sorter.style.display = 'none';
-      } else {
-        sorter.style.display = 'flex';
-      }
-    }
+/* ------------------------------- utilities -------------------------------- */
+function fmtUsd(n){
+  if(n===null||n===undefined||isNaN(n)) return "$0.00";
+  return "$" + Number(n).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+}
+function fmtPct(n){ if(n===null||n===undefined||isNaN(n)) return "—"; return (n>=0?"+":"") + n.toFixed(2) + "%"; }
+function toast(msg){
+  const t = document.getElementById("toast");
+  t.textContent = msg; t.classList.add("show");
+  clearTimeout(toast._t); toast._t = setTimeout(()=>t.classList.remove("show"), 2600);
+}
+function escapeHtml(s){ return String(s).replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
 
-    function switchDesk(deskId, el) {
-      if(el) {
-        document.querySelectorAll('.desk-btn').forEach(b => b.classList.remove('active'));
-        el.classList.add('active');
-      } else {
-        const topBtns = document.querySelectorAll('.desk-btn');
-        const map = { hub: 0, poly: 1, kalshi: 2, sports: 3, vault: 4 };
-        if(topBtns[map[deskId]]) {
-            topBtns.forEach(b => b.classList.remove('active'));
-            topBtns[map[deskId]].classList.add('active');
-        }
-      }
-      
-      switchMainTab(deskId);
-      
-      const bottomNavMap = { hub: 0, poly: 1, kalshi: 2, sports: 3, vault: 4 };
-      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-      const navItems = document.querySelectorAll('.nav-item');
-      if (navItems[bottomNavMap[deskId]]) {
-        navItems[bottomNavMap[deskId]].classList.add('active');
-      }
-    }
+async function api(path, opts={}){
+  if(!state.workerUrl){ throw new Error("Set your Worker URL in the Vault desk first."); }
+  const url = state.workerUrl.replace(/\/$/,"") + path;
+  const resp = await fetch(url, opts);
+  const text = await resp.text();
+  let data; try{ data = JSON.parse(text); }catch(e){ data = { ok:false, error:"Non-JSON response: " + text.slice(0,120) }; }
+  if(!resp.ok && data && data.ok===undefined) data.ok = false;
+  return data;
+}
 
-    function switchSortOrder(order, btn) {
-      document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
-      if (btn) {
-        btn.classList.add('active');
-      }
+/* ------------------------------ data catalogs ------------------------------ */
+const CRYPTO_PERPS = [
+  { sym:"BTC",  name:"Bitcoin",       cg:"bitcoin" },
+  { sym:"ETH",  name:"Ethereum",      cg:"ethereum" },
+  { sym:"SOL",  name:"Solana",        cg:"solana" },
+  { sym:"XRP",  name:"XRP",           cg:"ripple" },
+  { sym:"DOGE", name:"Dogecoin",      cg:"dogecoin" },
+  { sym:"ADA",  name:"Cardano",       cg:"cardano" },
+  { sym:"AVAX", name:"Avalanche",     cg:"avalanche-2" },
+  { sym:"LINK", name:"Chainlink",     cg:"chainlink" },
+  { sym:"LTC",  name:"Litecoin",      cg:"litecoin" },
+  { sym:"BNB",  name:"BNB",           cg:"binancecoin" },
+  { sym:"SUI",  name:"Sui",           cg:"sui" },
+  { sym:"NEAR", name:"NEAR Protocol", cg:"near" },
+  { sym:"HYPE", name:"Hyperliquid",   cg:"hyperliquid" },
+  { sym:"AAVE", name:"Aave",          cg:"aave" },
+  { sym:"BCH",  name:"Bitcoin Cash",  cg:"bitcoin-cash" },
+  { sym:"DOT",  name:"Polkadot",      cg:"polkadot" },
+  { sym:"UNI",  name:"Uniswap",       cg:"uniswap" },
+  { sym:"POL",  name:"Polygon",       cg:"matic-network" },
+];
+const MARGIN_APR = 3.25;
 
-      const activeTab = document.querySelector('.tab-view.active');
-      if (!activeTab) return;
+const COMMODITIES = [
+  { sym:"XAUUSD", name:"Gold",            unit:"oz",    glyph:"🥇" },
+  { sym:"XAGUSD", name:"Silver",          unit:"oz",    glyph:"🥈" },
+  { sym:"WTIUSD", name:"WTI Crude",       unit:"bbl",   glyph:"🛢️" },
+  { sym:"RBUSD",  name:"RBOB Gasoline",   unit:"gal",   glyph:"⛽" },
+  { sym:"NGUSD",  name:"Natural Gas",     unit:"MMBtu", glyph:"🔥" },
+];
 
-      const containers = activeTab.querySelectorAll('#hub-sports-container, #hub-esports-container, #poly-live-feed, #kalshi-15m-feed, #kalshi-perps-feed, #kalshi-commodities-feed');
-      
-      containers.forEach(container => {
-        const cards = Array.from(container.querySelectorAll('.market-card'));
-        if (cards.length <= 1) return;
+const KALSHI_15MIN = [
+  { series:"KXGOLD15M", label:"Gold 15-Min",     glyph:"🥇", cat:"macro" },
+  { series:"KXSLV15M",  label:"Silver 15-Min",   glyph:"🥈", cat:"macro" },
+  { series:"KXWTI15M",  label:"WTI Crude 15-Min",glyph:"🛢️", cat:"macro" },
+  { series:"KXBTC15M",  label:"Bitcoin 15-Min",  glyph:"₿",  cat:"macro" },
+  { series:"KXETH15M",  label:"Ethereum 15-Min", glyph:"Ξ",  cat:"macro" },
+  { series:"KXSOL15M",  label:"Solana 15-Min",   glyph:"◎",  cat:"macro" },
+  { series:"KXXRP15M",  label:"XRP 15-Min",      glyph:"✕",  cat:"macro" },
+  { series:"KXDOGE15M", label:"Dogecoin 15-Min", glyph:"Ð",  cat:"macro" },
+];
 
-        cards.sort((a, b) => {
-          const roiA = parseFloat(a.dataset.roi) || 0;
-          const roiB = parseFloat(b.dataset.roi) || 0;
-          const expA = parseInt(a.dataset.expiry, 10) || Date.now();
-          const expB = parseInt(b.dataset.expiry, 10) || Date.now();
+/* Hub "Top Sports Picks" and "Esports Desk" are sourced live from the same
+   two venues already wired into the Worker (Kalshi + Polymarket), grouped
+   by category — Cosmic Terminal deliberately does not scrape or mirror
+   DraftKings/FanDuel odds (guardrail: those books are monitor-only). The
+   category chips below map to Polymarket's own event tags. */
+const HUB_SPORTS_TAGS = [
+  { tag:"mlb",     label:"MLB",     glyph:"⚾" },
+  { tag:"nfl",     label:"NFL",     glyph:"🏈" },
+  { tag:"tennis",  label:"Tennis",  glyph:"🎾" },
+  { tag:"nba",     label:"NBA",     glyph:"🏀" },
+  { tag:"nhl",     label:"NHL",     glyph:"🏒" },
+  { tag:"soccer",  label:"Soccer",  glyph:"⚽" },
+  { tag:"golf",    label:"Golf",    glyph:"⛳" },
+];
+const HUB_ESPORTS_TAGS = [
+  { tag:"cs2",      label:"CS2",      glyph:"🔫" },
+  { tag:"dota2",    label:"Dota 2",   glyph:"🐉" },
+  { tag:"lol",      label:"LoL",      glyph:"🧙" },
+  { tag:"valorant", label:"Valorant", glyph:"🎯" },
+];
 
-          if (order === 'roi-high') return roiB - roiA;
-          if (order === 'roi-low') return roiA - roiB;
-          if (order === 'ending') return expA - expB;
-          return 0;
-        });
+/* ------------------------------ sparkline svg ------------------------------ */
+function sparklineSvg(points, colorVar){
+  if(!points || points.length<2){
+    return '<svg class="spark" viewBox="0 0 100 34" preserveAspectRatio="none"><line x1="0" y1="17" x2="100" y2="17" stroke="var(--line)" stroke-width="1"/></svg>';
+  }
+  const min = Math.min(...points), max = Math.max(...points);
+  const range = (max-min) || 1;
+  const step = 100/(points.length-1);
+  const path = points.map((p,i)=>{
+    const x = (i*step).toFixed(2);
+    const y = (32 - ((p-min)/range)*30).toFixed(2);
+    return (i===0? "M":"L") + x + "," + y;
+  }).join(" ");
+  const up = points[points.length-1] >= points[0];
+  const stroke = colorVar || (up ? "var(--green)" : "var(--red)");
+  return '<svg class="spark" viewBox="0 0 100 34" preserveAspectRatio="none">'
+    + '<path d="'+path+'" fill="none" stroke="'+stroke+'" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>'
+    + '</svg>';
+}
+function synthSeriesFrom(seed, base){
+  // Deterministic pseudo-series purely for sparkline shape until enough
+  // live samples accumulate client-side; replaced point-by-point as real
+  // prices arrive (see pollCryptoPrices).
+  let x = seed;
+  const pts = [];
+  for(let i=0;i<24;i++){
+    x = (x*1103515245 + 12345) & 0x7fffffff;
+    const jitter = ((x % 2000) - 1000) / 100000; // +/-1%
+    pts.push(base * (1 + jitter * (i+1)/24));
+  }
+  return pts;
+}
+function seedFromString(s){ let h=0; for(let i=0;i<s.length;i++){ h = (h*31 + s.charCodeAt(i)) & 0x7fffffff; } return h || 1; }
 
-        container.innerHTML = '';
-        cards.forEach(c => container.appendChild(c));
-      });
-    }
-
-    function filterBySport(sport, btn) {
-      document.querySelectorAll('.pill-btn').forEach(b => b.classList.remove('active'));
-      if(btn) {
-        btn.classList.add('active');
-      }
-
-      document.querySelectorAll('.market-card').forEach(card => {
-        if (sport === 'all') {
-          card.style.display = 'block';
-        } else {
-          card.style.display = card.dataset.sport === sport ? 'block' : 'none';
-        }
-      });
-    }
-
-    function handleSearch(q) {
-      const term = q.toLowerCase();
-      document.querySelectorAll('.market-card').forEach(card => {
-        const title = card.querySelector('.market-title').textContent.toLowerCase();
-        card.style.display = title.includes(term) ? 'block' : 'none';
-      });
-    }
-
-    async function toggleGeminiDrawer(btn, marketText, yesPrice, noPrice) {
-      const drawer = btn.closest('.market-card').querySelector('.gemini-drawer');
-      const isActive = drawer.classList.contains('active');
-      
-      document.querySelectorAll('.gemini-drawer').forEach(d => {
-        d.classList.remove('active');
-        d.style.display = 'none';
-      });
-
-      if (!isActive) {
-        drawer.style.display = 'block';
-        drawer.classList.add('active');
-        drawer.innerHTML = `<span style="color: var(--accent);">⚡ Querying Gemini Live Inference on:<br><em>"${marketText}"</em>...</span>`;
-        
-        const geminiKey = localStorage.getItem('gemini_api_key') || '';
-
-        try {
-          const res = await fetch(`${WORKER_BASE}/api/agent/gemini`, {
-            method: 'POST',
-            headers: { 
-              'Content-Type': 'application/json', 
-              'X-Gemini-Key': geminiKey 
-            },
-            body: JSON.stringify({ 
-              ticker: "DESK_PICK", 
-              title: marketText, 
-              targetPrice: "Market Implied", 
-              currentPrice: "Live CLOB", 
-              minutesLeft: 15, 
-              yesOdds: yesPrice, 
-              noOdds: noPrice 
-            })
-          });
-
-          const data = await res.json();
-          if (data.error) {
-            drawer.innerHTML = `<span style="color: var(--danger);">⚠️ Relay Error: ${data.error}</span>`;
-          } else {
-            drawer.innerHTML = `
-              <strong style="color: var(--accent-kalshi);">RECOMMENDATION: VALIDATED EDGE</strong><br>
-              ${data.analysis.replace(/\n/g, '<br>')}
-            `;
-          }
-        } catch (err) {
-          drawer.innerHTML = `<span style="color: var(--danger);">Inference failed: Ensure valid API key in Vault.</span>`;
-        }
-      }
-    }
-
-    function start15mTimer() {
-      setInterval(() => {
-        const now = new Date();
-        const minutes = now.getMinutes();
-        const seconds = now.getSeconds();
-        const totalSeconds = (minutes * 60) + seconds;
-        const targetSeconds = Math.ceil(totalSeconds / 900) * 900;
-        const remaining = targetSeconds - totalSeconds;
-        
-        const rMin = Math.floor(remaining / 60).toString().padStart(2, '0');
-        const rSec = (remaining % 60).toString().padStart(2, '0');
-        
-        const timerEl = document.getElementById('global-15m-timer');
-        if (timerEl) {
-          timerEl.textContent = `● ${rMin}:${rSec}`;
-        }
-        
-        const pct = ((900 - remaining) / 900) * 100;
-        document.querySelectorAll('.progress-fill').forEach(bar => {
-          bar.style.width = `${pct}%`;
-        });
-      }, 1000);
-    }
-
-    function openOrderModal(desk, side, market, price) {
-      CURRENT_ORDER = { desk, side, market, price };
-      
-      document.getElementById('exec-market-title').textContent = market;
-      document.getElementById('exec-side').textContent = side;
-      document.getElementById('exec-price').value = price;
-      document.getElementById('exec-contracts').value = 1;
-      
-      updateOrderTotal();
-      document.getElementById('execution-modal').style.display = 'flex';
-    }
-
-    function closeModal() {
-      document.getElementById('execution-modal').style.display = 'none';
-    }
-
-    function updateOrderTotal() {
-      const price = parseFloat(document.getElementById('exec-price').value) || 0;
-      const contracts = parseInt(document.getElementById('exec-contracts').value) || 0;
-      const total = (price * contracts) / 100;
-      document.getElementById('exec-total').textContent = `$${total.toFixed(2)}`;
-    }
-
-    function submitOrder() {
-      const price = parseFloat(document.getElementById('exec-price').value) || 0;
-      const contracts = parseInt(document.getElementById('exec-contracts').value) || 0;
-      const executionCost = (price * contracts) / 100;
-      
-      const shield = parseFloat(localStorage.getItem('cosmic_shielded_funds') || '5.00');
-      const total = parseFloat(localStorage.getItem('cosmic_total_funds') || '0.00');
-      const deployable = Math.max(0, total - shield);
-
-      if (executionCost > deployable && deployable > 0) {
-        alert(`Protocol Halt: Execution cost ($${executionCost.toFixed(2)}) breaches Shielded Reserve floor. Available deployable capital: $${deployable.toFixed(2)}`);
-        return;
-      }
-      
-      alert(`[${CURRENT_ORDER.desk.toUpperCase()}] CONFIRMED: ${CURRENT_ORDER.side} on ${CURRENT_ORDER.market} \nQuantity: ${contracts} @ ${price}¢ \nTotal Value: $${executionCost.toFixed(2)}`);
-      closeModal();
-    }
-
-    function saveVaultKeys() {
-      localStorage.setItem('kalshi_key_id', document.getElementById('vault-kalshi-key').value);
-      localStorage.setItem('poly_key_id', document.getElementById('vault-poly-key').value);
-      localStorage.setItem('gemini_api_key', document.getElementById('vault-gemini-key').value);
-      alert('Vault credentials saved securely to browser localStorage. Balances will sync on next poll.');
-      fetchLiveExchangeBalances();
-    }
-
-    function refreshVaultUI() {
-      document.getElementById('vault-kalshi-key').value = localStorage.getItem('kalshi_key_id') || '';
-      document.getElementById('vault-poly-key').value = localStorage.getItem('poly_key_id') || '';
-      document.getElementById('vault-gemini-key').value = localStorage.getItem('gemini_api_key') || '';
-      
-      const savedZoom = localStorage.getItem('cosmic_ui_zoom');
-      if(savedZoom) {
-        document.getElementById('ui-zoom-slider').value = savedZoom;
-        updateUiZoom(savedZoom);
-      }
-    }
-
-    async function fetchLiveExchangeBalances() {
-      const kKey = localStorage.getItem('kalshi_key_id');
-      const pKey = localStorage.getItem('poly_key_id');
-
-      let kalshiCash = 0.00;
-      let polyCash = 0.00;
-
-      if (kKey) {
-        try {
-          const res = await fetch(`${WORKER_BASE}/api/kalshi/trade/portfolio/balance`, { 
-            headers: { "KALSHI-ACCESS-KEY": kKey } 
-          });
-          if (res.ok) {
-            const data = await res.json();
-            kalshiCash = (data.balance || 0) / 100;
-          }
-        } catch (e) {
-          console.warn("Kalshi balance fetch failed", e);
-        }
-      }
-
-      if (pKey) {
-        try {
-          const res = await fetch(`${WORKER_BASE}/api/poly/balance`, { 
-            headers: { "X-PM-Access-Key": pKey } 
-          });
-          if (res.ok) {
-            const data = await res.json();
-            polyCash = parseFloat(data.balance || 0);
-          }
-        } catch (e) {
-          console.warn("Polymarket balance fetch failed", e);
-        }
-      }
-
-      const totalLiquid = kalshiCash + polyCash;
-      const shieldVal = parseFloat(localStorage.getItem('cosmic_shielded_funds') || '5.00');
-      const deployable = Math.max(0, totalLiquid - shieldVal);
-
-      document.getElementById('disp-kalshi-funds').textContent = `$${kalshiCash.toFixed(2)}`;
-      document.getElementById('disp-poly-funds').textContent = `$${polyCash.toFixed(2)}`;
-      document.getElementById('disp-deployable-funds').textContent = `$${deployable.toFixed(2)}`;
-      document.getElementById('disp-shielded-funds').textContent = `$${shieldVal.toFixed(2)}`;
-
-      localStorage.setItem('cosmic_total_funds', totalLiquid.toFixed(2));
-    }
-
-    function updateUiZoom(val) {
-      document.documentElement.style.setProperty('--ui-zoom', `${val}%`);
-      localStorage.setItem('cosmic_ui_zoom', val);
-    }
-
-    // --- INITIALIZATION ---
-    window.addEventListener('DOMContentLoaded', () => {
-      if(!localStorage.getItem('cosmic_shielded_funds')) {
-        localStorage.setItem('cosmic_shielded_funds', '5.00');
-        localStorage.setItem('cosmic_total_funds', '0.00');
-      }
-      
-      start15mTimer();
-      refreshVaultUI();
-      fetchLiveExchangeBalances();
-      
-      // Secondary fallback polling mechanism for real-time edge telemetry
-      setInterval(fetchLiveExchangeBalances, 30000);
+/* ------------------------------ live price feed ----------------------------- */
+async function pollCryptoPrices(){
+  const ids = CRYPTO_PERPS.map(c=>c.cg).join(",");
+  try{
+    const resp = await fetch("https://api.coingecko.com/api/v3/simple/price?ids="+encodeURIComponent(ids)+"&vs_currencies=usd&include_24hr_change=true");
+    if(!resp.ok) throw new Error("coingecko "+resp.status);
+    const data = await resp.json();
+    CRYPTO_PERPS.forEach(c=>{
+      const d = data[c.cg];
+      if(!d) return;
+      const prev = state.cryptoPrices[c.sym];
+      const series = (prev && prev.series) ? prev.series.slice(-23).concat([d.usd]) : synthSeriesFrom(seedFromString(c.sym), d.usd).slice(0,-1).concat([d.usd]);
+      state.cryptoPrices[c.sym] = { price:d.usd, chg24h:d.usd_24h_change, series };
     });
-  </script>
+  }catch(e){
+    // Offline-friendly fallback: keep whatever synthetic/previous series exists.
+    CRYPTO_PERPS.forEach(c=>{
+      if(!state.cryptoPrices[c.sym]){
+        const base = 100; // placeholder magnitude, replaced once network succeeds
+        state.cryptoPrices[c.sym] = { price:null, chg24h:null, series: synthSeriesFrom(seedFromString(c.sym), base) };
+      }
+    });
+  }
+  renderKalshiDesk();
+}
+
+/* ------------------------------ desk switching ------------------------------ */
+function setActiveDesk(desk){
+  state.activeDesk = desk;
+  document.querySelectorAll(".desk").forEach(el=> el.classList.toggle("active", el.id === "desk-"+desk));
+  document.querySelectorAll(".desktab").forEach(el=> el.classList.toggle("active", el.dataset.desk===desk));
+  document.querySelectorAll(".tabbtn").forEach(el=> el.classList.toggle("active", el.dataset.desk===desk));
+  const toolbar = document.querySelector(".toolbar");
+  toolbar.style.display = (desk==="vault") ? "none" : "flex";
+  location.hash = desk;
+}
+document.getElementById("deskNav").addEventListener("click", e=>{
+  const btn = e.target.closest(".desktab"); if(!btn) return;
+  setActiveDesk(btn.dataset.desk);
+});
+document.querySelector(".tabbar").addEventListener("click", e=>{
+  const btn = e.target.closest(".tabbtn"); if(!btn) return;
+  setActiveDesk(btn.dataset.desk);
+});
+
+/* ------------------------------ filter/sort/search --------------------------- */
+document.getElementById("filterPills").addEventListener("click", e=>{
+  const btn = e.target.closest(".fpill"); if(!btn) return;
+  state.activeFilter = btn.dataset.filter;
+  document.querySelectorAll(".fpill").forEach(p=>p.classList.toggle("active", p===btn));
+  renderAll();
+});
+document.getElementById("sortBtns").addEventListener("click", e=>{
+  const btn = e.target.closest(".sortbtn"); if(!btn) return;
+  state.activeSort = btn.dataset.sort;
+  document.querySelectorAll(".sortbtn").forEach(p=>p.classList.toggle("active", p===btn));
+  renderAll();
+});
+let searchDebounce;
+document.getElementById("searchInput").addEventListener("input", e=>{
+  clearTimeout(searchDebounce);
+  searchDebounce = setTimeout(()=>{
+    state.searchQuery = e.target.value.trim().toLowerCase();
+    renderAll();
+  }, 120);
+});
+
+function matchesSearch(text){
+  if(!state.searchQuery) return true;
+  return String(text).toLowerCase().includes(state.searchQuery);
+}
+function matchesFilter(itemTags){
+  if(state.activeFilter==="all") return true;
+  return itemTags.includes(state.activeFilter);
+}
+function applySort(items, roiFn, endFn){
+  const copy = items.slice();
+  if(state.activeSort==="roiHigh") copy.sort((a,b)=> roiFn(b)-roiFn(a));
+  else if(state.activeSort==="roiLow") copy.sort((a,b)=> roiFn(a)-roiFn(b));
+  else if(state.activeSort==="ending") copy.sort((a,b)=> endFn(a)-endFn(b));
+  return copy;
+}
+
+function renderAll(){
+  renderHub();
+  renderPoly();
+  renderKalshiDesk();
+  renderFleet();
+}
+
+/* =========================================================================
+   DESK 1 — HUB
+   ========================================================================= */
+function renderHub(){
+  const sportsWrap = document.getElementById("hubSportsCarousel");
+  const esportsWrap = document.getElementById("hubEsportsCarousel");
+  const macroGrid = document.getElementById("hubMacroGrid");
+
+  // Sports: pull matching Polymarket events for each sport tag.
+  let sportsCards = [];
+  HUB_SPORTS_TAGS.forEach(t=>{
+    if(state.activeFilter!=="all" && state.activeFilter!==t.tag) return;
+    const evs = state.polyEvents.filter(ev => (ev._tagSet||[]).includes(t.tag));
+    evs.slice(0,6).forEach(ev=> sportsCards.push(renderPolyCardHtml(ev, t.glyph)));
+  });
+  document.getElementById("hubSportsCount").textContent = sportsCards.length + " live";
+  sportsWrap.innerHTML = sportsCards.length ? sportsCards.join("") : emptyCardHtml("🎯","No sports slate matches this filter yet — try All, or check back once Polymarket lists more sports events.");
+
+  let esportsCards = [];
+  HUB_ESPORTS_TAGS.forEach(t=>{
+    if(state.activeFilter!=="all" && state.activeFilter!=="esports" && state.activeFilter!==t.tag) return;
+    const evs = state.polyEvents.filter(ev => (ev._tagSet||[]).includes(t.tag));
+    evs.slice(0,6).forEach(ev=> esportsCards.push(renderPolyCardHtml(ev, t.glyph)));
+  });
+  document.getElementById("hubEsportsCount").textContent = esportsCards.length + " live";
+  esportsWrap.innerHTML = esportsCards.length ? esportsCards.join("") : emptyCardHtml("🎮","No esports events matched — CS2 / Dota 2 / LoL / Valorant slates populate here when Polymarket lists them.");
+
+  if(state.activeFilter==="all" || state.activeFilter==="macro"){
+    macroGrid.innerHTML = KALSHI_15MIN.map(renderKalshi15CardHtml).join("");
+    startCountdownTimers();
+  } else {
+    macroGrid.innerHTML = "";
+  }
+}
+function emptyCardHtml(glyph, msg){
+  return '<div class="emptystate" style="flex:0 0 100%;"><div class="big">'+glyph+'</div>'+escapeHtml(msg)+'</div>';
+}
+
+/* =========================================================================
+   DESK 2 — POLYMARKET
+   ========================================================================= */
+function extractTags(ev){
+  const raw = (ev.tags||[]).map(t=> (t.slug||t.label||"").toLowerCase());
+  const title = (ev.title||"").toLowerCase();
+  const set = new Set(raw);
+  const guesses = [
+    ["mlb", /mlb|baseball/], ["nfl", /nfl|football/], ["nba", /nba|basketball/],
+    ["nhl", /nhl|hockey/], ["tennis", /tennis|atp|wta/], ["soccer", /soccer|premier league|la liga|uefa|world cup/],
+    ["golf", /golf|pga/], ["cs2", /counter-strike|cs2/], ["dota2", /dota/], ["lol", /league of legends|\blol\b/],
+    ["valorant", /valorant/],
+  ];
+  guesses.forEach(([tag, re])=>{ if(re.test(title)) set.add(tag); });
+  return [...set];
+}
+function impliedProb(price){ return price!=null ? (price*100).toFixed(1)+"%" : "—"; }
+function polyRoi(ev){
+  const m = (ev.markets||[])[0]; if(!m) return 0;
+  const yes = parseFloat(m.outcomePrices ? JSON.parse(m.outcomePrices)[0] : m.bestAsk || 0.5);
+  if(!yes) return 0;
+  return ((1-yes)/yes) * 100;
+}
+function polyEndTs(ev){ return ev.endDate ? new Date(ev.endDate).getTime() : Infinity; }
+
+function renderPolyCardHtml(ev, glyphOverride){
+  const m = (ev.markets||[])[0] || {};
+  let yesPrice = 0.5, noPrice = 0.5;
+  try{
+    const prices = m.outcomePrices ? JSON.parse(m.outcomePrices) : null;
+    if(prices && prices.length>=2){ yesPrice = parseFloat(prices[0]); noPrice = parseFloat(prices[1]); }
+  }catch(e){}
+  const vol = ev.volume24hr ? Number(ev.volume24hr) : (ev.volume ? Number(ev.volume) : 0);
+  const glyph = glyphOverride || "🟣";
+  const endsIn = ev.endDate ? timeUntilLabel(new Date(ev.endDate).getTime()) : "—";
+  const ctxId = "poly_" + (ev.id || Math.random().toString(36).slice(2));
+  return '<div class="card" data-ctx-id="'+ctxId+'">'
+    + '<div class="crow"><div class="ctitle"><span class="glyph">'+glyph+'</span><span class="name" title="'+escapeHtml(ev.title||"")+'">'+escapeHtml(ev.title||"Untitled market")+'</span></div><span class="tag">POLY</span></div>'
+    + '<div class="cmeta"><span>Vol 24h <b class="mono">'+fmtUsd(vol)+'</b></span><span>Ends <b>'+endsIn+'</b></span></div>'
+    + '<div class="crow"><span class="dim" style="font-size:11.5px;">Yes '+impliedProb(yesPrice)+' · No '+impliedProb(noPrice)+'</span></div>'
+    + '<div class="cbtnrow">'
+    +   '<button class="btn yes" onclick="openExecModal(\'poly\', '+JSON.stringify(JSON.stringify({title:ev.title, side:"YES", price:Math.round(yesPrice*100), conditionId:m.conditionId||null})).replace(/"/g,"&quot;")+')">YES '+Math.round(yesPrice*100)+'¢</button>'
+    +   '<button class="btn no" onclick="openExecModal(\'poly\', '+JSON.stringify(JSON.stringify({title:ev.title, side:"NO", price:Math.round(noPrice*100), conditionId:m.conditionId||null})).replace(/"/g,"&quot;")+')">NO '+Math.round(noPrice*100)+'¢</button>'
+    +   '<button class="btn ghost" style="flex:0 0 40px;" title="Ask Copilot" onclick="askCopilotAbout({venue:\'Polymarket\', title:'+JSON.stringify(ev.title||"")+', yes:'+yesPrice+', no:'+noPrice+', volume24h:'+vol+'})">🧠</button>'
+    + '</div>'
+    + '</div>';
+}
+function timeUntilLabel(ts){
+  const diff = ts - Date.now();
+  if(diff<=0) return "closed";
+  const h = Math.floor(diff/3600000), m = Math.floor((diff%3600000)/60000);
+  if(h>48) return Math.floor(h/24)+"d";
+  if(h>0) return h+"h "+m+"m";
+  return m+"m";
+}
+
+async function loadPolymarket(){
+  const grid = document.getElementById("polyGrid");
+  try{
+    const data = await api("/api/polymarket/markets?limit=60&order=volume24hr");
+    if(!data.ok && !Array.isArray(data)){ throw new Error(data.error || "failed to load"); }
+    const events = Array.isArray(data) ? data : (data.events || data.data || []);
+    state.polyEvents = events.map(ev=>{ ev._tagSet = extractTags(ev); return ev; });
+    renderPoly();
+    renderHub();
+  }catch(e){
+    grid.innerHTML = emptyCardHtml("⚠️", "Couldn't load Polymarket events: " + e.message + ". Set your Worker URL in the Vault desk if you haven't yet.");
+  }
+}
+function renderPoly(){
+  const grid = document.getElementById("polyGrid");
+  let evs = state.polyEvents.filter(ev=> matchesFilter(ev._tagSet||[]) && matchesSearch(ev.title||""));
+  evs = applySort(evs, polyRoi, polyEndTs);
+  document.getElementById("polyCount").textContent = evs.length + " markets";
+  grid.innerHTML = evs.length ? evs.map(ev=>renderPolyCardHtml(ev)).join("") : emptyCardHtml("🟣","No Polymarket events match the current filter/search.");
+}
+
+/* =========================================================================
+   DESK 3 — KALSHI (15-min, crypto perps, commodities)
+   ========================================================================= */
+let kalshi15Data = {};
+async function loadKalshi15(){
+  try{
+    const data = await api("/api/kalshi/15min/live");
+    if(data.ok) kalshi15Data = data.series || {};
+    renderKalshiDesk();
+    renderHub();
+  }catch(e){
+    // silent — cards render with placeholders and a retry happens on next poll
+  }
+}
+
+function nextQuarterHourCloseMs(){
+  const now = new Date();
+  const ms = now.getTime();
+  const quarterMs = 15*60*1000;
+  return Math.ceil(ms/quarterMs)*quarterMs;
+}
+function renderKalshi15CardHtml(k){
+  const d = kalshi15Data[k.series] || {};
+  const yesBid = d.yes_bid ?? "—", yesAsk = d.yes_ask ?? "—";
+  const title = d.title || k.label;
+  const closeMs = d.close_time ? new Date(d.close_time).getTime() : nextQuarterHourCloseMs();
+  return '<div class="card" data-close="'+closeMs+'">'
+    + '<div class="crow"><div class="ctitle"><span class="glyph">'+k.glyph+'</span><span class="name">'+escapeHtml(title)+'</span></div><span class="tag">'+k.series+'</span></div>'
+    + '<div class="crow"><span class="countdown live" data-countdown>--:--</span><span class="dim" style="font-size:11px;">to candle close</span></div>'
+    + '<div class="progress"><i data-progress style="width:0%"></i></div>'
+    + '<div class="cmeta"><span>Yes bid/ask <b class="mono">'+yesBid+'¢ / '+yesAsk+'¢</b></span><span>Vol <b class="mono">'+(d.volume ?? "—")+'</b></span></div>'
+    + '<div class="cbtnrow">'
+    +   '<button class="btn yes" onclick="openExecModal(\'kalshi\', '+JSON.stringify(JSON.stringify({ticker:d.ticker||k.series, title:title, side:"YES", price: (d.yes_ask||50)})).replace(/"/g,"&quot;")+')">YES '+yesAsk+'¢</button>'
+    +   '<button class="btn no" onclick="openExecModal(\'kalshi\', '+JSON.stringify(JSON.stringify({ticker:d.ticker||k.series, title:title, side:"NO", price: (d.no_ask||50)})).replace(/"/g,"&quot;")+')">NO '+(d.no_ask ?? "—")+'¢</button>'
+    +   '<button class="btn ghost" style="flex:0 0 40px;" onclick="askCopilotAbout({venue:\'Kalshi 15-Min\', title:'+JSON.stringify(title)+', yesBid:'+JSON.stringify(yesBid)+', yesAsk:'+JSON.stringify(yesAsk)+', volume:'+JSON.stringify(d.volume ?? 0)+'})">🧠</button>'
+    + '</div>'
+    + '</div>';
+}
+function startCountdownTimers(){
+  document.querySelectorAll('[data-close]').forEach(card=>{
+    const closeMs = parseInt(card.dataset.close, 10);
+    const cd = card.querySelector('[data-countdown]');
+    const bar = card.querySelector('[data-progress]');
+    if(!cd) return;
+    const windowMs = 15*60*1000;
+    const tick = ()=>{
+      const remain = closeMs - Date.now();
+      if(remain<=0){ cd.textContent = "00:00"; if(bar) bar.style.width="100%"; return; }
+      const mm = String(Math.floor(remain/60000)).padStart(2,"0");
+      const ss = String(Math.floor((remain%60000)/1000)).padStart(2,"0");
+      cd.textContent = mm+":"+ss;
+      if(bar){ const pct = Math.max(0, Math.min(100, 100 - (remain/windowMs)*100)); bar.style.width = pct.toFixed(1)+"%"; }
+    };
+    tick();
+  });
+}
+setInterval(()=>{ if(state.activeDesk==="kalshi" || state.activeDesk==="hub") startCountdownTimers(); }, 1000);
+
+function renderCryptoCardHtml(c){
+  const d = state.cryptoPrices[c.sym] || {};
+  const price = d.price!=null ? "$"+Number(d.price).toLocaleString(undefined,{maximumFractionDigits: d.price<10?4:2}) : "—";
+  const chg = d.chg24h;
+  const chgClass = chg>=0 ? "up" : "down";
+  const basisBp = d.price!=null ? (((d.price*1.0002) - d.price)/d.price*10000).toFixed(1) : "—"; // illustrative basis vs. spot
+  return '<div class="card">'
+    + '<div class="crow"><div class="ctitle"><span class="glyph mono">'+c.sym+'</span><span class="name">'+c.name+'</span></div><span class="tag">PERP</span></div>'
+    + sparklineSvg(d.series, chg>=0 ? "var(--green)" : "var(--red)")
+    + '<div class="crow"><span class="cbig mono">'+price+'</span><span class="mono '+chgClass+'">'+fmtPct(chg)+'</span></div>'
+    + '<div class="cmeta"><span>Basis <b class="mono">'+basisBp+'bp</b></span><span>Margin APR <b class="mono">'+MARGIN_APR+'%</b></span></div>'
+    + '<div class="cbtnrow">'
+    +   '<button class="btn long" onclick="openExecModal(\'perp\', '+JSON.stringify(JSON.stringify({sym:c.sym, title:c.name+" Perp", side:"LONG", price:d.price||0})).replace(/"/g,"&quot;")+')">Long</button>'
+    +   '<button class="btn short" onclick="openExecModal(\'perp\', '+JSON.stringify(JSON.stringify({sym:c.sym, title:c.name+" Perp", side:"SHORT", price:d.price||0})).replace(/"/g,"&quot;")+')">Short</button>'
+    +   '<button class="btn ghost" style="flex:0 0 40px;" onclick="askCopilotAbout({venue:\'Perp\', sym:\''+c.sym+'\', price:'+JSON.stringify(d.price||0)+', chg24h:'+JSON.stringify(chg||0)+', marginApr:'+MARGIN_APR+'})">🧠</button>'
+    + '</div>'
+    + '</div>';
+}
+function renderCommodityCardHtml(c){
+  const seed = seedFromString(c.sym);
+  const base = { XAUUSD:2650, XAGUSD:31, WTIUSD:71, RBUSD:2.1, NGUSD:2.8 }[c.sym] || 100;
+  const series = synthSeriesFrom(seed, base);
+  const last = series[series.length-1];
+  const chg = ((last-series[0])/series[0])*100;
+  return '<div class="card">'
+    + '<div class="crow"><div class="ctitle"><span class="glyph">'+c.glyph+'</span><span class="name">'+c.name+'</span></div><span class="tag">'+c.unit+'</span></div>'
+    + sparklineSvg(series)
+    + '<div class="crow"><span class="cbig mono">$'+last.toFixed(2)+'</span><span class="mono '+(chg>=0?"up":"down")+'">'+fmtPct(chg)+'</span></div>'
+    + '<div class="cbtnrow">'
+    +   '<button class="btn long" onclick="openExecModal(\'commodity\', '+JSON.stringify(JSON.stringify({sym:c.sym, title:c.name, side:"LONG", price:last})).replace(/"/g,"&quot;")+')">Long</button>'
+    +   '<button class="btn short" onclick="openExecModal(\'commodity\', '+JSON.stringify(JSON.stringify({sym:c.sym, title:c.name, side:"SHORT", price:last})).replace(/"/g,"&quot;")+')">Short</button>'
+    + '</div>'
+    + '<p class="hint" style="margin:0;">Illustrative price path pending a live commodities feed — wire a data vendor of your choice into the Worker&#39;s /api once you have one.</p>'
+    + '</div>';
+}
+
+function renderKalshiDesk(){
+  document.getElementById("kalshi15Grid").innerHTML = KALSHI_15MIN.filter(k=> matchesSearch(k.label)).map(renderKalshi15CardHtml).join("");
+  document.getElementById("cryptoPerpGrid").innerHTML = CRYPTO_PERPS.filter(c=> matchesSearch(c.sym+" "+c.name)).map(renderCryptoCardHtml).join("");
+  document.getElementById("commodityGrid").innerHTML = COMMODITIES.filter(c=> matchesSearch(c.name)).map(renderCommodityCardHtml).join("");
+  startCountdownTimers();
+}
+
+/* =========================================================================
+   DESK 4 — FLEET
+   ========================================================================= */
+async function ingestSlip(){
+  const raw = document.getElementById("ingestText").value.trim();
+  const url = document.getElementById("ingestUrl").value.trim();
+  if(!raw && !url){ toast("Paste slip text or a link first."); return; }
+  try{
+    const data = await api("/api/fleet/ingest", {
+      method:"POST",
+      headers:{ "Content-Type":"application/json", "X-COSMIC-USER": state.userId },
+      body: JSON.stringify({ raw, url, webhook: state.vault.fleetWebhook || undefined })
+    });
+    if(!data.ok) throw new Error(data.error||"ingest failed");
+    toast("Slip ingested — sentinel is now watching it.");
+    document.getElementById("ingestText").value = "";
+    document.getElementById("ingestUrl").value = "";
+    await loadFleet();
+  }catch(e){ toast("Ingest failed: "+e.message); }
+}
+document.getElementById("ingestBtn").addEventListener("click", ingestSlip);
+
+async function loadFleet(){
+  try{
+    const data = await api("/api/fleet/pull", { headers:{ "X-COSMIC-USER": state.userId } });
+    if(!data.ok) throw new Error(data.error||"failed");
+    state.fleetTickets = data.tickets || [];
+    if(data.alerts && data.alerts.length){
+      data.alerts.forEach(a=> toast("⚠️ Zero-Path elimination on a "+a.book+" slip"));
+    }
+    renderFleet();
+  }catch(e){ /* silent — no worker configured yet, or empty */ }
+}
+async function settleSlip(ticketId){
+  try{
+    await api("/api/fleet/settle", { method:"POST", headers:{ "Content-Type":"application/json", "X-COSMIC-USER": state.userId }, body: JSON.stringify({ticketId}) });
+    toast("Slip cleared.");
+    loadFleet();
+  }catch(e){ toast("Couldn't clear slip."); }
+}
+function renderFleetCardHtml(t){
+  const dangerClass = t.zeroPath ? "danger" : "";
+  const legsHtml = (t.legs||[]).map(leg=>{
+    const isDead = (t.deadLegs||[]).some(d=>d.leg===leg);
+    return '<li class="'+(isDead?"dead":"")+'">'+escapeHtml(leg)+'</li>';
+  }).join("");
+  return '<div class="card '+dangerClass+'">'
+    + '<div class="crow"><div class="ctitle"><span class="glyph">🎫</span><span class="name">'+ (t.book||"unknown").toUpperCase() +' Slip</span></div><span class="tag">'+ (t.status||"active") +'</span></div>'
+    + '<div class="cmeta"><span>Odds <b class="mono">'+(t.odds!=null? (t.odds>0?"+":"")+t.odds : "—")+'</b></span><span>Stake <b class="mono">'+(t.stake!=null? fmtUsd(t.stake):"—")+'</b></span><span>To Win <b class="mono">'+(t.payout!=null? fmtUsd(t.payout):"—")+'</b></span></div>'
+    + '<ul class="leglist">'+ (legsHtml || '<li>No legs parsed — check the raw text.</li>') +'</ul>'
+    + (t.zeroPath ? '<div class="warn" style="font-size:12px;">🛑 Zero-Path Prover: one or more legs are mathematically dead.</div>' : '')
+    + '<div class="cbtnrow"><button class="btn ghost" onclick="settleSlip(\''+t.id+'\')">Clear Slip</button></div>'
+    + '</div>';
+}
+function renderFleet(){
+  const grid = document.getElementById("fleetGrid");
+  const tickets = state.fleetTickets.filter(t=> matchesSearch((t.legs||[]).join(" ")+" "+(t.book||"")));
+  document.getElementById("fleetCount").textContent = tickets.length + " slips";
+  grid.innerHTML = tickets.length ? tickets.map(renderFleetCardHtml).join("") : '<div class="emptystate"><div class="big">🏈</div>No slips yet — paste one above, or share a bet slip into this app from your phone\'s share sheet.</div>';
+}
+
+/* ------------------------------ share-target ingestion ----------------------------- */
+(function handleShareTarget(){
+  const params = new URLSearchParams(location.search);
+  const text = params.get("text"), url = params.get("url"), title = params.get("title");
+  if(text || url){
+    document.getElementById("ingestText").value = [title, text].filter(Boolean).join("\n");
+    document.getElementById("ingestUrl").value = url || "";
+    setActiveDesk("fleet");
+    toast("Shared slip loaded — review and tap Ingest Slip.");
+  }
+})();
+
+/* =========================================================================
+   DESK 5 — VAULT
+   ========================================================================= */
+function renderVaultFromState(){
+  document.getElementById("balPoly").textContent = fmtUsd(state.balances.poly);
+  document.getElementById("balKalshi").textContent = fmtUsd(state.balances.kalshi);
+  const total = (state.balances.poly||0) + (state.balances.kalshi||0);
+  const deployable = Math.max(0, total - state.shieldedReserve);
+  document.getElementById("balDeployable").textContent = fmtUsd(deployable);
+  document.getElementById("balShield").textContent = fmtUsd(state.shieldedReserve);
+  document.getElementById("shieldedReserveInput").value = state.shieldedReserve;
+  document.getElementById("workerUrlInput").value = state.workerUrl;
+  document.getElementById("kalshiKeyId").value = state.vault.kalshiKeyId || "";
+  document.getElementById("kalshiPem").value = state.vault.kalshiPem || "";
+  document.getElementById("polyKey").value = state.vault.polyKey || "";
+  document.getElementById("polySecret").value = state.vault.polySecret || "";
+  document.getElementById("polyPassphrase").value = state.vault.polyPassphrase || "";
+  document.getElementById("polyAddress").value = state.vault.polyAddress || "";
+  document.getElementById("geminiKey").value = state.vault.geminiKey || "";
+  document.getElementById("fleetWebhook").value = state.vault.fleetWebhook || "";
+  document.getElementById("lifetimePnl").textContent = fmtUsd(state.balances.lifetimePnl);
+  const pnlTotal = Math.abs(state.balances.pnlKalshi||0) + Math.abs(state.balances.pnlPoly||0);
+  document.getElementById("pnlKalshiShare").textContent = pnlTotal ? Math.round(Math.abs(state.balances.pnlKalshi||0)/pnlTotal*100)+"%" : "—";
+  document.getElementById("pnlPolyShare").textContent = pnlTotal ? Math.round(Math.abs(state.balances.pnlPoly||0)/pnlTotal*100)+"%" : "—";
+  document.getElementById("zoomSlider").value = state.uiZoom;
+  document.getElementById("zoomValue").textContent = state.uiZoom + "%";
+}
+document.getElementById("saveShieldBtn").addEventListener("click", ()=>{
+  const v = parseFloat(document.getElementById("shieldedReserveInput").value) || 0;
+  state.shieldedReserve = Math.max(0, Math.floor(v));
+  LS.set("shieldedReserve", state.shieldedReserve);
+  renderVaultFromState();
+  toast("Shielded Reserve saved: "+fmtUsd(state.shieldedReserve));
+});
+document.getElementById("saveWorkerBtn").addEventListener("click", ()=>{
+  state.workerUrl = document.getElementById("workerUrlInput").value.trim();
+  LS.set("workerUrl", state.workerUrl);
+  toast("Worker endpoint saved.");
+  refreshEverything();
+});
+document.getElementById("saveVaultBtn").addEventListener("click", ()=>{
+  state.vault = {
+    kalshiKeyId: document.getElementById("kalshiKeyId").value.trim(),
+    kalshiPem: document.getElementById("kalshiPem").value.trim(),
+    polyKey: document.getElementById("polyKey").value.trim(),
+    polySecret: document.getElementById("polySecret").value.trim(),
+    polyPassphrase: document.getElementById("polyPassphrase").value.trim(),
+    polyAddress: document.getElementById("polyAddress").value.trim(),
+    geminiKey: document.getElementById("geminiKey").value.trim(),
+    fleetWebhook: document.getElementById("fleetWebhook").value.trim(),
+  };
+  LS.set("vault", state.vault);
+  toast("Credentials saved to this browser only.");
+  loadBalances();
+});
+document.getElementById("zoomSlider").addEventListener("input", e=>{
+  state.uiZoom = parseInt(e.target.value,10);
+  document.documentElement.style.setProperty("--ui-zoom", state.uiZoom+"%");
+  document.getElementById("zoomValue").textContent = state.uiZoom+"%";
+  LS.set("uiZoom", state.uiZoom);
+});
+document.getElementById("purgeBtn").addEventListener("click", ()=>{
+  if(!confirm("This permanently deletes every saved key, balance, and preference from this browser. Continue?")) return;
+  Object.keys(localStorage).filter(k=>k.startsWith("cpt:")).forEach(k=>localStorage.removeItem(k));
+  toast("Local vault purged. Reloading…");
+  setTimeout(()=>location.reload(), 900);
+});
+
+async function loadBalances(){
+  if(!state.workerUrl) return;
+  if(state.vault.polyKey && state.vault.polyAddress){
+    try{
+      const data = await api("/api/poly/balance", { headers:{
+        "X-POLY-KEY": state.vault.polyKey, "X-POLY-SECRET": state.vault.polySecret,
+        "X-POLY-PASSPHRASE": state.vault.polyPassphrase, "X-POLY-ADDRESS": state.vault.polyAddress
+      }});
+      if(data && data.balance!=null) state.balances.poly = parseFloat(data.balance)/1e6; // USDC 6-decimals convention
+    }catch(e){ /* leave last-known balance */ }
+  }
+  // Kalshi balance intentionally left to a GET /portfolio/balance call through
+  // the signed trade relay once the user has saved Kalshi credentials —
+  // wired the same way as order placement in submitOrder() below.
+  if(state.vault.kalshiKeyId && state.vault.kalshiPem){
+    try{
+      const data = await api("/api/kalshi/trade/portfolio/balance", { headers:{
+        "KALSHI-ACCESS-KEY-ID": state.vault.kalshiKeyId, "X-KALSHI-PEM": state.vault.kalshiPem
+      }});
+      if(data && data.balance!=null) state.balances.kalshi = data.balance/100; // cents -> dollars
+    }catch(e){ /* leave last-known balance */ }
+  }
+  LS.set("balances", state.balances);
+  renderVaultFromState();
+}
+
+/* =========================================================================
+   EXECUTION MODAL + 75/25 CAPITAL SHIELD
+   ========================================================================= */
+let execCtx = null;
+window.openExecModal = function(kind, payloadJson){
+  let payload; try{ payload = JSON.parse(payloadJson); }catch(e){ payload = {}; }
+  execCtx = { kind, payload, side: payload.side==="NO"||payload.side==="SHORT" ? "NO" : "YES" };
+  document.getElementById("execTitle").textContent = payload.title || "Place Order";
+  document.getElementById("execSubtitle").textContent = kind.toUpperCase() + (payload.ticker? " · "+payload.ticker : payload.sym? " · "+payload.sym : "");
+  const isBinary = kind==="kalshi" || kind==="poly";
+  document.getElementById("execQtyLabel").textContent = isBinary ? "Contracts" : "Position Size (units)";
+  document.getElementById("execPriceLabel").textContent = isBinary ? "Limit Price (¢)" : "Entry Price ($)";
+  document.getElementById("execQty").value = 1;
+  document.getElementById("execPrice").value = isBinary ? (payload.price || 50) : (payload.price || 0);
+  updateSideButtons();
+  updateExecTotal();
+  document.getElementById("execOverlay").classList.add("open");
+};
+function updateSideButtons(){
+  const yesBtn = document.getElementById("execSideYes"), noBtn = document.getElementById("execSideNo");
+  const isYes = execCtx.side === "YES";
+  yesBtn.style.opacity = isYes ? "1" : "0.45";
+  noBtn.style.opacity = !isYes ? "1" : "0.45";
+  const isBinary = execCtx.kind==="kalshi" || execCtx.kind==="poly";
+  yesBtn.textContent = isBinary ? "YES / LONG" : "LONG";
+  noBtn.textContent = isBinary ? "NO / SHORT" : "SHORT";
+}
+document.getElementById("execSideYes").addEventListener("click", ()=>{ execCtx.side="YES"; updateSideButtons(); updateExecTotal(); });
+document.getElementById("execSideNo").addEventListener("click", ()=>{ execCtx.side="NO"; updateSideButtons(); updateExecTotal(); });
+document.getElementById("execQty").addEventListener("input", updateExecTotal);
+document.getElementById("execPrice").addEventListener("input", updateExecTotal);
+
+function deployableCapital(){
+  const total = (state.balances.poly||0) + (state.balances.kalshi||0);
+  return Math.max(0, total - state.shieldedReserve);
+}
+function updateExecTotal(){
+  const qty = parseFloat(document.getElementById("execQty").value)||0;
+  const price = parseFloat(document.getElementById("execPrice").value)||0;
+  const isBinary = execCtx.kind==="kalshi" || execCtx.kind==="poly";
+  const total = isBinary ? (qty * price / 100) : (qty * price);
+  document.getElementById("execTotal").textContent = fmtUsd(total);
+  const breach = total > deployableCapital();
+  document.getElementById("shieldWarn").classList.toggle("show", breach);
+  document.getElementById("execConfirm").disabled = breach;
+  return total;
+}
+function closeExecModal(){ document.getElementById("execOverlay").classList.remove("open"); execCtx = null; }
+document.getElementById("execClose").addEventListener("click", closeExecModal);
+document.getElementById("execCancel").addEventListener("click", closeExecModal);
+document.getElementById("execOverlay").addEventListener("click", e=>{ if(e.target.id==="execOverlay") closeExecModal(); });
+
+document.getElementById("execConfirm").addEventListener("click", async ()=>{
+  if(!execCtx) return;
+  const total = updateExecTotal();
+  if(total > deployableCapital()){
+    toast("🛡 Protocol Halt: order breaches Shielded Reserve.");
+    return;
+  }
+  const qty = parseFloat(document.getElementById("execQty").value)||0;
+  const price = parseFloat(document.getElementById("execPrice").value)||0;
+
+  if(execCtx.kind === "kalshi"){
+    if(!state.vault.kalshiKeyId || !state.vault.kalshiPem){ toast("Add Kalshi BYOK credentials in the Vault first."); return; }
+    try{
+      const body = { ticker: execCtx.payload.ticker, side: execCtx.side.toLowerCase(), action:"buy", count: qty, type:"limit", yes_price: execCtx.side==="YES"? price : undefined, no_price: execCtx.side==="NO"? price : undefined };
+      const data = await api("/api/kalshi/trade/portfolio/orders", {
+        method:"POST",
+        headers:{ "Content-Type":"application/json", "KALSHI-ACCESS-KEY-ID": state.vault.kalshiKeyId, "X-KALSHI-PEM": state.vault.kalshiPem },
+        body: JSON.stringify(body)
+      });
+      if(data.ok===false) throw new Error(data.error || "order rejected");
+      toast("Kalshi order routed.");
+    }catch(e){ toast("Order failed: "+e.message); }
+  } else if(execCtx.kind === "poly"){
+    toast("Polymarket order signing happens client-side with your wallet — wire your preferred signer (e.g. WalletConnect) into submitPolyOrder() before going live.");
+  } else {
+    toast(execCtx.payload.title+" "+execCtx.side+" order staged (perp/commodity execution depends on your chosen venue's API).");
+  }
+  closeExecModal();
+});
+
+/* =========================================================================
+   QUANT COPILOT (Gemini relay) — spread/fee analysis only
+   ========================================================================= */
+document.getElementById("copilotToggle").addEventListener("click", ()=>{
+  document.getElementById("copilotPanel").classList.toggle("open");
+  pauseCarousels(document.getElementById("copilotPanel").classList.contains("open"));
+});
+function pauseCarousels(pause){
+  document.querySelectorAll(".carousel").forEach(c=>{ c.style.overflowX = pause ? "hidden" : "auto"; });
+}
+window.askCopilotAbout = async function(context){
+  state.copilotContext = context;
+  document.getElementById("copilotPanel").classList.add("open");
+  const body = document.getElementById("copilotBody");
+  if(!state.vault.geminiKey){ body.textContent = "Add a Gemini API key in the Vault to enable live spread analysis. Context captured: " + JSON.stringify(context); return; }
+  body.textContent = "Analyzing spread…";
+  try{
+    const data = await api("/api/agent/gemini", {
+      method:"POST",
+      headers:{ "Content-Type":"application/json", "X-GEMINI-KEY": state.vault.geminiKey },
+      body: JSON.stringify({ marketContext: context, question:"Analyze the current spread, fee drag, and suggest a resting limit price." })
+    });
+    body.textContent = data.ok ? data.analysis : ("Copilot error: "+data.error);
+  }catch(e){ body.textContent = "Copilot unreachable: "+e.message; }
+};
+document.getElementById("copilotAskBtn").addEventListener("click", async ()=>{
+  const q = document.getElementById("copilotAsk").value.trim();
+  if(!q) return;
+  if(!state.vault.geminiKey){ toast("Add a Gemini key in the Vault first."); return; }
+  const body = document.getElementById("copilotBody");
+  body.textContent = "Thinking…";
+  try{
+    const data = await api("/api/agent/gemini", {
+      method:"POST",
+      headers:{ "Content-Type":"application/json", "X-GEMINI-KEY": state.vault.geminiKey },
+      body: JSON.stringify({ marketContext: state.copilotContext || {}, question: q })
+    });
+    body.textContent = data.ok ? data.analysis : ("Copilot error: "+data.error);
+  }catch(e){ body.textContent = "Copilot unreachable: "+e.message; }
+  document.getElementById("copilotAsk").value = "";
+});
+
+/* =========================================================================
+   REFRESH / POLLING / BOOT
+   ========================================================================= */
+async function refreshEverything(){
+  const btn = document.getElementById("refreshBtn");
+  btn.classList.add("spinning");
+  await Promise.allSettled([loadPolymarket(), loadKalshi15(), loadFleet(), loadBalances(), pollCryptoPrices()]);
+  btn.classList.remove("spinning");
+  toast("Desks refreshed.");
+}
+document.getElementById("refreshBtn").addEventListener("click", refreshEverything);
+
+function boot(){
+  renderVaultFromState();
+  renderAll();
+  const hash = location.hash.replace("#","");
+  if(["hub","poly","kalshi","fleet","vault"].includes(hash)) setActiveDesk(hash);
+  pollCryptoPrices();
+  loadKalshi15();
+  loadPolymarket();
+  loadFleet();
+  loadBalances();
+
+  setInterval(pollCryptoPrices, 30000);
+  setInterval(loadKalshi15, 20000);
+  setInterval(loadFleet, 45000);
+  setInterval(loadBalances, 60000);
+
+  if("serviceWorker" in navigator){
+    const swCode = "self.addEventListener('fetch',()=>{});"; // pass-through: no offline caching promised, PWA installability only
+    try{
+      const blob = new Blob([swCode], { type:"application/javascript" });
+      navigator.serviceWorker.register(URL.createObjectURL(blob));
+    }catch(e){}
+  }
+}
+boot();
+</script>
 </body>
 </html>
