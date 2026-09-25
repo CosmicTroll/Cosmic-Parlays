@@ -225,6 +225,22 @@ main{ padding:4px 16px 90px; max-width:1180px; margin:0 auto; }
 }
 .field textarea{ min-height:70px; resize:vertical; }
 .field .hint{ font-size:11px; color:var(--ink-faint); margin-top:4px; }
+/* Sensitive credential fields default to masked so a PEM/secret doesn't
+   sit in plaintext on screen after it's been saved. -webkit-text-security
+   covers iOS/Android/desktop WebKit &amp; Chromium; unsupported engines just
+   show plaintext, so treat the toggle button as the real control, not the CSS. */
+.maskwrap{ position:relative; }
+.maskwrap input, .maskwrap textarea{ padding-right:40px; }
+.maskwrap textarea.masked, .maskwrap input.masked{
+  -webkit-text-security: disc;
+  text-security: disc;
+}
+.maskbtn{
+  position:absolute; top:7px; right:7px; width:28px; height:28px; border-radius:6px;
+  border:1px solid var(--line); background:var(--card); color:var(--ink-dim); cursor:pointer; font-size:13px;
+  display:flex; align-items:center; justify-content:center;
+}
+.maskbtn:hover{ color:var(--cyan); border-color:var(--cyan); }
 .section-card{ background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); padding:16px; margin-bottom:14px; }
 .section-card h3{ margin:0 0 12px; font-size:13.5px; }
 .zoomrow{ display:flex; align-items:center; gap:12px; }
@@ -320,7 +336,7 @@ input[type=range]{ flex:1; accent-color:var(--cyan); }
     </div>
   </div>
   <div class="spacer"></div>
-  <a class="kofi" href="https://ko-fi.com/cosmicdad" target="_blank" rel="noopener">☕ Support</a>
+  <a class="kofi" href="https://ko-fi.com/cosmictroll" target="_blank" rel="noopener">☕ Support</a>
   <span class="pill edge" id="edgePill"><span class="dot"></span>Edge Active</span>
   <button class="iconbtn" id="refreshBtn" title="Refresh all desks" aria-label="Refresh">
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M21 12a9 9 0 1 1-2.6-6.36"/><path d="M21 3v6h-6"/></svg>
@@ -446,18 +462,30 @@ input[type=range]{ flex:1; accent-color:var(--cyan); }
       </div>
       <div class="field">
         <label>Kalshi Private Key (PEM)</label>
-        <textarea id="kalshiPem" placeholder="-----BEGIN PRIVATE KEY-----&#10;...&#10;-----END PRIVATE KEY-----"></textarea>
+        <div class="maskwrap">
+          <textarea id="kalshiPem" class="masked" placeholder="-----BEGIN PRIVATE KEY-----&#10;...&#10;-----END PRIVATE KEY-----"></textarea>
+          <button type="button" class="maskbtn" data-target="kalshiPem" aria-label="Show or hide">👁</button>
+        </div>
       </div>
       <div class="field">
-        <label>Polymarket API Key / Secret / Passphrase / Wallet Address</label>
+        <label>Polymarket API Key / Secret / Passphrase</label>
+        <p class="hint" style="margin:0 0 6px;">Polymarket.US authenticates like a regulated exchange account — no on-chain wallet address needed.</p>
         <input type="text" id="polyKey" placeholder="API Key" style="margin-bottom:6px;">
-        <input type="text" id="polySecret" placeholder="API Secret" style="margin-bottom:6px;">
-        <input type="text" id="polyPassphrase" placeholder="API Passphrase" style="margin-bottom:6px;">
-        <input type="text" id="polyAddress" placeholder="Wallet Address (0x…)">
+        <div class="maskwrap" style="margin-bottom:6px;">
+          <input type="password" id="polySecret" class="masked" placeholder="API Secret">
+          <button type="button" class="maskbtn" data-target="polySecret" aria-label="Show or hide">👁</button>
+        </div>
+        <div class="maskwrap">
+          <input type="password" id="polyPassphrase" class="masked" placeholder="API Passphrase">
+          <button type="button" class="maskbtn" data-target="polyPassphrase" aria-label="Show or hide">👁</button>
+        </div>
       </div>
       <div class="field">
         <label>Gemini API Key (Quant Copilot)</label>
-        <input type="text" id="geminiKey" placeholder="AIza…">
+        <div class="maskwrap">
+          <input type="password" id="geminiKey" class="masked" placeholder="AIza…">
+          <button type="button" class="maskbtn" data-target="geminiKey" aria-label="Show or hide">👁</button>
+        </div>
       </div>
       <div class="field">
         <label>Sentinel Alert Webhook (optional)</label>
@@ -1122,7 +1150,6 @@ function renderVaultFromState(){
   document.getElementById("polyKey").value = state.vault.polyKey || "";
   document.getElementById("polySecret").value = state.vault.polySecret || "";
   document.getElementById("polyPassphrase").value = state.vault.polyPassphrase || "";
-  document.getElementById("polyAddress").value = state.vault.polyAddress || "";
   document.getElementById("geminiKey").value = state.vault.geminiKey || "";
   document.getElementById("fleetWebhook").value = state.vault.fleetWebhook || "";
   document.getElementById("lifetimePnl").textContent = fmtUsd(state.balances.lifetimePnl);
@@ -1145,6 +1172,21 @@ document.getElementById("saveWorkerBtn").addEventListener("click", ()=>{
   toast("Worker endpoint saved.");
   refreshEverything();
 });
+/* Sensitive fields (PEM, secrets, passphrase, Gemini key) start masked and
+   stay masked across re-renders; only an explicit tap reveals them, and
+   only for this tab session — reloading the page re-masks everything. */
+const revealedFields = new Set();
+document.querySelectorAll(".maskbtn").forEach(btn=>{
+  btn.addEventListener("click", ()=>{
+    const id = btn.dataset.target;
+    const el = document.getElementById(id);
+    const willReveal = !revealedFields.has(id);
+    if(willReveal){ revealedFields.add(id); } else { revealedFields.delete(id); }
+    el.classList.toggle("masked", !willReveal);
+    if(el.tagName==="INPUT"){ el.type = willReveal ? "text" : "password"; }
+    btn.textContent = willReveal ? "🙈" : "👁";
+  });
+});
 document.getElementById("saveVaultBtn").addEventListener("click", ()=>{
   state.vault = {
     kalshiKeyId: document.getElementById("kalshiKeyId").value.trim(),
@@ -1152,7 +1194,6 @@ document.getElementById("saveVaultBtn").addEventListener("click", ()=>{
     polyKey: document.getElementById("polyKey").value.trim(),
     polySecret: document.getElementById("polySecret").value.trim(),
     polyPassphrase: document.getElementById("polyPassphrase").value.trim(),
-    polyAddress: document.getElementById("polyAddress").value.trim(),
     geminiKey: document.getElementById("geminiKey").value.trim(),
     fleetWebhook: document.getElementById("fleetWebhook").value.trim(),
   };
@@ -1175,11 +1216,11 @@ document.getElementById("purgeBtn").addEventListener("click", ()=>{
 
 async function loadBalances(){
   if(!state.workerUrl) return;
-  if(state.vault.polyKey && state.vault.polyAddress){
+  if(state.vault.polyKey && state.vault.polySecret && state.vault.polyPassphrase){
     try{
       const data = await api("/api/poly/balance", { headers:{
         "X-POLY-KEY": state.vault.polyKey, "X-POLY-SECRET": state.vault.polySecret,
-        "X-POLY-PASSPHRASE": state.vault.polyPassphrase, "X-POLY-ADDRESS": state.vault.polyAddress
+        "X-POLY-PASSPHRASE": state.vault.polyPassphrase
       }});
       if(data && data.balance!=null) state.balances.poly = parseFloat(data.balance)/1e6; // USDC 6-decimals convention
     }catch(e){ /* leave last-known balance */ }
