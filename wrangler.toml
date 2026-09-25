@@ -1,42 +1,56 @@
-# ============================================================================
-# COSMIC TERMINAL / PARLAYS - MASTER WRANGLER CONFIGURATION
-# Production Edge Runtime, 60s Autonomous GET Sentinel & Telemetry Bindings
-# ============================================================================
-
-name = "cosmic-parlays"
+name = "cosmic-terminal"
 main = "worker.js"
-compatibility_date = "2024-09-01"
+compatibility_date = "2024-09-23"
 compatibility_flags = ["nodejs_compat"]
 
-workers_dev = true
+# ------------------------------------------------------------------
+# Cosmic Terminal (CPT) — Cloudflare Worker manifest
+#
+# The Worker is a stateless CORS proxy + autonomous sentinel. It never
+# stores user private keys. BYOK credentials (Kalshi Key ID / PEM,
+# Polymarket key, Gemini key) travel from the browser to this Worker
+# on a per-request basis in headers/body and are forwarded upstream —
+# they are never written to FLEET_KV or logged.
+#
+# FLEET_KV only ever holds:
+#   - fleet ticket objects (sportsbook slips a user pasted/shared in)
+#   - a deterministic index of "active" users so the 60s cron never
+#     has to call .list() (KV free tier = 1,000 list()/day, so list()
+#     is banned from the scheduled handler entirely)
+# ------------------------------------------------------------------
 
-# ----------------------------------------------------------------------------
-# 1. Autonomous Sentinel Cron Trigger
-# Runs every minute using deterministic GET calls (Zero List Operations)
-# ----------------------------------------------------------------------------
 [triggers]
 crons = ["* * * * *"]
 
-# ----------------------------------------------------------------------------
-# 2. KV Namespace Bindings
-# ----------------------------------------------------------------------------
 [[kv_namespaces]]
 binding = "FLEET_KV"
 id = "69ed72deb8474645b5c82cb177891d36"
+preview_id = "f8265dbdb8eb4064a87b38202a435d92"
 
-# ----------------------------------------------------------------------------
-# 3. Environment Variables
-# ----------------------------------------------------------------------------
+# Public, non-secret configuration. Nothing sensitive belongs here —
+# actual API keys are BYOK and live only in the client's browser.
 [vars]
 ENVIRONMENT = "production"
-BUILD_VERSION = "4.1.0-monolithic-master"
-CORS_ALLOW_ORIGIN = "*"
-DEFAULT_SLIP_TTL = "1800"
+APP_NAME = "Cosmic Terminal"
+KALSHI_API_BASE = "https://api.elections.kalshi.com/trade-api/v2"
+POLYMARKET_GAMMA_BASE = "https://gamma-api.polymarket.com"
+POLYMARKET_CLOB_BASE = "https://clob.polymarket.com"
+MLB_STATS_BASE = "https://statsapi.mlb.com/api/v1.1"
+ESPN_NFL_SCOREBOARD = "https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard"
+GEMINI_MODEL = "gemini-2.5-flash"
+FLEET_TICKET_TTL_SECONDS = "259200"
+KALSHI_MIN_CENTS = "5"
+KALSHI_MAX_CENTS = "95"
+ACTIVE_FLEET_INDEX_KEY = "sys:active_fleet_users:v1"
+MAX_ACTIVE_FLEET_USERS = "64"
 
-[build]
-command = ""
-watch_dir = "."
-
-[observability]
-enabled = true
-head_sampling_rate = 1
+# To deploy:
+#   1. wrangler kv:namespace create FLEET_KV
+#   2. wrangler kv:namespace create FLEET_KV --preview
+#   3. paste the two returned ids into [[kv_namespaces]] above
+#   4. wrangler deploy
+#
+# No secrets are set with `wrangler secret put` — this Worker is
+# intentionally credential-less. Every upstream call is authenticated
+# using headers the *browser* attaches to its request to this Worker,
+# which the Worker relays verbatim and then discards.
