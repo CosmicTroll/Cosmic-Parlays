@@ -1,29 +1,56 @@
 {
-  "name": "Cosmic Terminal",
-  "short_name": "Cosmic",
-  "start_url": "/index.html",
+  "id": "/cosmic-terminal/",
+  "name": "Cosmic Terminal — Sovereign Prediction & Perp Desk",
+  "short_name": "Cosmic Terminal",
+  "description": "Unified sovereign terminal for Kalshi, Polymarket US, crypto/commodity perpetuals, and read-only sportsbook fleet monitoring.",
+  "start_url": "/cosmic-terminal/index.html?source=pwa",
+  "scope": "/cosmic-terminal/",
   "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone", "minimal-ui"],
+  "orientation": "portrait-primary",
   "background_color": "#060712",
   "theme_color": "#060712",
+  "lang": "en-US",
+  "dir": "ltr",
+  "categories": ["finance", "utilities", "sports"],
   "icons": [
     {
-      "src": "/icon-192.png",
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect width='192' height='192' rx='36' fill='%23060712'/%3E%3Ccircle cx='96' cy='96' r='58' fill='none' stroke='%2300f2fe' stroke-width='8'/%3E%3Ccircle cx='96' cy='96' r='14' fill='%2300e676'/%3E%3C/svg%3E",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/svg+xml",
+      "purpose": "any"
     },
     {
-      "src": "/icon-512.png",
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='96' fill='%23060712'/%3E%3Ccircle cx='256' cy='256' r='154' fill='none' stroke='%2300f2fe' stroke-width='20'/%3E%3Ccircle cx='256' cy='256' r='38' fill='%2300e676'/%3E%3C/svg%3E",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
     }
   ],
   "share_target": {
-    "action": "/index.html",
+    "action": "/cosmic-terminal/index.html",
     "method": "GET",
+    "enctype": "application/x-www-form-urlencoded",
     "params": {
-      "title": "share_title",
-      "text": "share_text",
-      "url": "share_url"
+      "title": "title",
+      "text": "text",
+      "url": "url"
     }
-  }
+  },
+  "shortcuts": [
+    {
+      "name": "Fleet Slips",
+      "short_name": "Fleet",
+      "description": "Jump straight to imported sportsbook tickets",
+      "url": "/cosmic-terminal/index.html#fleet",
+      "icons": [{ "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'%3E%3Crect width='96' height='96' rx='18' fill='%2314182e'/%3E%3Ctext x='48' y='62' font-size='44' text-anchor='middle'%3E%F0%9F%8F%88%3C/text%3E%3C/svg%3E", "sizes": "96x96" }]
+    },
+    {
+      "name": "BYOK Vault",
+      "short_name": "Vault",
+      "description": "Manage keys, balances, and the Shielded Reserve",
+      "url": "/cosmic-terminal/index.html#vault",
+      "icons": [{ "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'%3E%3Crect width='96' height='96' rx='18' fill='%2314182e'/%3E%3Ctext x='48' y='62' font-size='44' text-anchor='middle'%3E%F0%9F%92%BC%3C/text%3E%3C/svg%3E", "sizes": "96x96" }]
+    }
+  ]
 }
