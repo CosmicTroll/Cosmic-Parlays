@@ -110,9 +110,9 @@
 
     .sorting-tray {
       display: flex;
-      justify-content: space-between;
       align-items: center;
       padding: 6px 16px 12px;
+      gap: 12px;
     }
     .sort-group { display: flex; gap: 6px; }
     .sort-btn {
@@ -267,9 +267,9 @@
   </div>
 
   <div class="filters-tray">
-    <button class="filter-pill active" onclick="filterCategory('all', this)">All</button>
+    <button class="filter-pill" onclick="filterCategory('all', this)">All</button>
     <button class="filter-pill" onclick="filterCategory('mlb', this)">⚾ MLB</button>
-    <button class="filter-pill" onclick="filterCategory('nfl', this)">🏈 NFL</button>
+    <button class="filter-pill active" onclick="filterCategory('nfl', this)">🏈 NFL</button>
     <button class="filter-pill" onclick="filterCategory('tennis', this)">🎾 Tennis</button>
     <button class="filter-pill" onclick="filterCategory('esports', this)">🎮 Esports</button>
   </div>
@@ -312,7 +312,7 @@
         </div>
         <div class="telemetry-box">
           <div class="label">Shielded Reserve</div>
-          <div class="value" id="shielded-reserve-disp" style="color: #ffb703;">$0.00</div>
+          <div class="value" id="shielded-reserve-disp" style="color: #ffb703;">$5.00</div>
         </div>
       </div>
     </div>
@@ -392,20 +392,6 @@
           </div>
           <div class="gemini-drawer"></div>
         </div>
-
-        <div class="market-card" data-roi="28.2" data-expiry="1727500000000" data-cat="nfl">
-          <div class="market-title">NFL: Kansas City Chiefs to win AFC West Division</div>
-          <div class="market-meta">
-            <span>Volume: $3,180,940</span>
-            <span>Implied: 72¢ | Target ROI: +28.2%</span>
-          </div>
-          <div class="market-actions">
-            <button class="btn-buy" onclick="executeQuickOrder('poly', 'BUY', 'Chiefs AFC West', 0.72)">Buy Yes 72¢</button>
-            <button class="btn-sell" onclick="executeQuickOrder('poly', 'SELL', 'Chiefs AFC West', 0.28)">Buy No 28¢</button>
-            <button class="btn-gemini" onclick="toggleGeminiDrawer(this, 'POLY_CHIEFS', 'Chiefs AFC West', '72¢', '72¢', '28.2%')">🤖 Copilot</button>
-          </div>
-          <div class="gemini-drawer"></div>
-        </div>
       </div>
     </div>
   </div>
@@ -428,20 +414,6 @@
             <button class="btn-buy" onclick="executeQuickOrder('kalshi', 'BUY', 'KXGOLD15M', 0.52)">Bid Yes 52¢</button>
             <button class="btn-sell" onclick="executeQuickOrder('kalshi', 'SELL', 'KXGOLD15M', 0.48)">Bid No 48¢</button>
             <button class="btn-gemini" onclick="toggleGeminiDrawer(this, 'KXGOLD15M', 'Gold 15M Strike', '2660.00', '2661.20', '9.2%')">🤖 Copilot</button>
-          </div>
-          <div class="gemini-drawer"></div>
-        </div>
-
-        <div class="market-card" data-roi="18.5" data-expiry="1727390000000" data-cat="crypto">
-          <div class="market-title">KXBTC15M: Bitcoin Above $64,500 at Candle Close</div>
-          <div class="market-meta">
-            <span>Order Book: 47¢ / 49¢</span>
-            <span>Target ROI: +18.5%</span>
-          </div>
-          <div class="market-actions">
-            <button class="btn-buy" onclick="executeQuickOrder('kalshi', 'BUY', 'KXBTC15M', 0.48)">Bid Yes 48¢</button>
-            <button class="btn-sell" onclick="executeQuickOrder('kalshi', 'SELL', 'KXBTC15M', 0.52)">Bid No 52¢</button>
-            <button class="btn-gemini" onclick="toggleGeminiDrawer(this, 'KXBTC15M', 'Bitcoin 15M Strike', '64500.00', '64580.00', '18.5%')">🤖 Copilot</button>
           </div>
           <div class="gemini-drawer"></div>
         </div>
@@ -476,7 +448,7 @@
       <input type="password" id="vault-gemini-key" class="vault-input" placeholder="AIzaSy...">
 
       <label style="font-size: 10px; font-weight: 800; color: var(--muted); text-transform: uppercase;">Capital Shield Floor ($)</label>
-      <input type="number" id="vault-shield-val" class="vault-input" value="0.00" step="0.50">
+      <input type="number" id="vault-shield-val" class="vault-input" value="5.00" step="0.50">
 
       <button class="btn" style="width: 100%; justify-content: center; margin-bottom: 12px; background: var(--accent); color: #000;" onclick="saveVaultKeys()">
         💾 Save Credentials & Re-Sync
@@ -510,15 +482,13 @@
   <script>
     const WORKER_BASE = "https://cosmic-parlays.cosmictrollgaming.workers.dev";
 
-    // 1. Initial State Sanitization (Aggressively purge legacy manual $7.00/$2.50 cache)
-    (function sanitizeInitialCache() {
+    function sanitizeInitialCache() {
       const totalFunds = localStorage.getItem('cosmic_total_funds');
       const shieldedFunds = localStorage.getItem('cosmic_shielded_funds');
-      if (totalFunds === '7.00' || totalFunds === '7') localStorage.setItem('cosmic_total_funds', '0.00');
-      if (shieldedFunds === '2.50' || shieldedFunds === '2.5') localStorage.setItem('cosmic_shielded_funds', '0.00');
-    })();
+      if (!shieldedFunds) localStorage.setItem('cosmic_shielded_funds', '5.00'); 
+    }
+    sanitizeInitialCache();
 
-    // 2. Navigation Tabs
     function switchMainTab(tabId, el) {
       document.querySelectorAll('.tab-view').forEach(t => t.classList.remove('active'));
       document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
@@ -539,7 +509,6 @@
       if (navItems[bottomNavMap[deskId]]) navItems[bottomNavMap[deskId]].classList.add('active');
     }
 
-    // 3. Sorting Engine with Active DOM Refresh
     function switchSortOrder(order, btn) {
       document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
       if (btn) btn.classList.add('active');
@@ -569,7 +538,6 @@
       });
     }
 
-    // 4. Live Dual Exchange Balances
     async function fetchLiveExchangeBalances() {
       const kKey = localStorage.getItem('kalshi_key_id');
       const pKey = localStorage.getItem('poly_key_id');
@@ -602,7 +570,7 @@
       }
 
       const totalLiquid = kalshiCash + polyCash;
-      const shieldVal = parseFloat(localStorage.getItem('cosmic_shielded_funds') || '0.00');
+      const shieldVal = parseFloat(localStorage.getItem('cosmic_shielded_funds') || '5.00');
       const deployable = Math.max(0, totalLiquid - shieldVal);
 
       document.getElementById('kalshi-balance-disp').textContent = `$${kalshiCash.toFixed(2)}`;
@@ -613,66 +581,6 @@
       localStorage.setItem('cosmic_total_funds', totalLiquid.toFixed(2));
     }
 
-    // 5. Quant-Restricted Gemini Analyst
-    async function toggleGeminiDrawer(btn, ticker, title, target, spot, yesOdds) {
-      const card = btn.closest('.market-card');
-      const drawer = card.querySelector('.gemini-drawer');
-      const isVisible = drawer.style.display === 'block';
-
-      if (isVisible) {
-        drawer.style.display = 'none';
-        return;
-      }
-
-      drawer.style.display = 'block';
-      drawer.innerHTML = `<span style="color: var(--accent);">⚡ Querying Gemini 2.5 Flash quant relay...</span>`;
-
-      const geminiKey = localStorage.getItem('gemini_api_key');
-
-      try {
-        const res = await fetch(`${WORKER_BASE}/api/agent/gemini`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            ...(geminiKey ? { 'X-Gemini-Key': geminiKey } : {})
-          },
-          body: JSON.stringify({
-            ticker: ticker,
-            title: title,
-            targetPrice: target,
-            currentPrice: spot,
-            minutesLeft: 15,
-            yesOdds: yesOdds,
-            noOdds: '50%'
-          })
-        });
-
-        const data = await res.json();
-        if (data.analysis) {
-          drawer.innerHTML = `<strong style="color: var(--accent);">Quant Analysis:</strong><br>${data.analysis.replace(/\n/g, '<br>')}`;
-        } else {
-          drawer.innerHTML = `<span style="color: var(--danger);">Relay Error: ${data.error || 'No inference returned.'}</span>`;
-        }
-      } catch (err) {
-        drawer.innerHTML = `<span style="color: var(--danger);">Network Exception: ${err.message}</span>`;
-      }
-    }
-
-    // 6. Quick Execution Handlers
-    function executeQuickOrder(desk, side, market, price) {
-      const shield = parseFloat(localStorage.getItem('cosmic_shielded_funds') || '0.00');
-      const total = parseFloat(localStorage.getItem('cosmic_total_funds') || '0.00');
-      const deployable = total - shield;
-
-      if (price > deployable) {
-        alert(`Protocol Halt: Execution cost ($${price.toFixed(2)}) breaches Shielded Reserve floor. Available deployable capital: $${deployable.toFixed(2)}`);
-        return;
-      }
-
-      alert(`Order Stage: [${side}] on ${market} @ $${price.toFixed(2)} dispatched to ${desk.toUpperCase()} relay.`);
-    }
-
-    // 7. Filtering & Search
     function handleSearch(q) {
       const term = q.toLowerCase();
       document.querySelectorAll('.market-card').forEach(card => {
@@ -694,7 +602,6 @@
       });
     }
 
-    // 8. Vault Management
     function saveVaultKeys() {
       const kKey = document.getElementById('vault-kalshi-key').value.trim();
       const pKey = document.getElementById('vault-poly-key').value.trim();
@@ -714,7 +621,7 @@
       if (confirm('Wipe local key cache, shielded floor settings, and purge test values?')) {
         localStorage.clear();
         localStorage.setItem('cosmic_total_funds', '0.00');
-        localStorage.setItem('cosmic_shielded_funds', '0.00');
+        localStorage.setItem('cosmic_shielded_funds', '5.00');
         location.reload();
       }
     }
@@ -723,12 +630,11 @@
       fetchLiveExchangeBalances();
     }
 
-    // Initialization Loop
     window.addEventListener('DOMContentLoaded', () => {
       document.getElementById('vault-kalshi-key').value = localStorage.getItem('kalshi_key_id') || '';
       document.getElementById('vault-poly-key').value = localStorage.getItem('poly_key_id') || '';
       document.getElementById('vault-gemini-key').value = localStorage.getItem('gemini_api_key') || '';
-      document.getElementById('vault-shield-val').value = localStorage.getItem('cosmic_shielded_funds') || '0.00';
+      document.getElementById('vault-shield-val').value = localStorage.getItem('cosmic_shielded_funds') || '5.00';
 
       fetchLiveExchangeBalances();
       setInterval(fetchLiveExchangeBalances, 15000);
