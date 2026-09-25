@@ -1,8 +1,7 @@
 # ============================================================================
-# COSMIC TERMINAL / PARLAYS - PRODUCTION WRANGLER CONFIGURATION
-# Production Edge Runtime, 60s Autonomous GET Sentinel & Telemetry Bindings
+# COSMIC TERMINAL - MASTER WRANGLER CONFIGURATION
+# Production Edge Runtime, 60s Autonomous Cron Sentinel & Telemetry Bindings
 # ============================================================================
-
 name = "cosmic-parlays"
 main = "worker.js"
 compatibility_date = "2024-09-01"
@@ -16,11 +15,10 @@ crons = ["* * * * *"]
 [[kv_namespaces]]
 binding = "FLEET_KV"
 id = "c7d7ba4e59074d2b9634e7da471168ef"
-preview_id = "preview_c7d7ba4e59074d2b9634e7da471168ef"
 
 [vars]
 ENVIRONMENT = "production"
-BUILD_VERSION = "3.4.1-production-master"
+BUILD_VERSION = "4.0.0-modular-master"
 CORS_ALLOW_ORIGIN = "*"
 DEFAULT_SLIP_TTL = "1800"
 
