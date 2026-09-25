@@ -28,7 +28,7 @@ const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "GET,POST,PUT,DELETE,OPTIONS",
   "Access-Control-Allow-Headers":
-    "Content-Type, Authorization, KALSHI-ACCESS-KEY, KALSHI-ACCESS-SIGNATURE, KALSHI-ACCESS-TIMESTAMP, X-POLY-KEY, X-POLY-SECRET, X-POLY-PASSPHRASE, X-GEMINI-KEY, X-COSMIC-USER",
+    "Content-Type, Authorization, KALSHI-ACCESS-KEY, KALSHI-ACCESS-KEY-ID, KALSHI-ACCESS-SIGNATURE, KALSHI-ACCESS-TIMESTAMP, X-KALSHI-PEM, X-POLY-KEY, X-POLY-SECRET, X-POLY-PASSPHRASE, X-GEMINI-KEY, X-COSMIC-USER",
   "Access-Control-Max-Age": "86400",
 };
 
@@ -262,29 +262,32 @@ async function handleKalshiTrade(request, env, url) {
 
 // ----------------------------------------------------------------------------
 // ROUTE: /api/poly/balance
-// Authenticated proxy for Polymarket US account balances (CLOB API).
+// Authenticated proxy for Polymarket US account balances.
+//
+// Polymarket.US is the CFTC-regulated domestic product: accounts are
+// custodial and authenticate like a conventional exchange (API key +
+// secret + passphrase), not via an on-chain wallet signature the way the
+// offshore Polymarket CLOB does. No wallet address is collected or sent.
 // ----------------------------------------------------------------------------
 
 async function handlePolyBalance(request, env) {
   const apiKey = request.headers.get("X-POLY-KEY");
   const apiSecret = request.headers.get("X-POLY-SECRET");
   const passphrase = request.headers.get("X-POLY-PASSPHRASE");
-  const address = request.headers.get("X-POLY-ADDRESS");
-  if (!apiKey || !apiSecret || !passphrase || !address) {
+  if (!apiKey || !apiSecret || !passphrase) {
     return badRequest(
-      "Missing BYOK Polymarket credentials (X-POLY-KEY / X-POLY-SECRET / X-POLY-PASSPHRASE / X-POLY-ADDRESS)."
+      "Missing BYOK Polymarket credentials (X-POLY-KEY / X-POLY-SECRET / X-POLY-PASSPHRASE)."
     );
   }
   try {
     const upstreamResp = await fetch(
-      `${env.POLYMARKET_CLOB_BASE}/balance-allowance?asset_type=COLLATERAL&signature_type=0`,
+      `${env.POLYMARKET_CLOB_BASE}/balance-allowance?asset_type=COLLATERAL`,
       {
         headers: {
           Accept: "application/json",
           "POLY-API-KEY": apiKey,
           "POLY-API-SECRET": apiSecret,
           "POLY-PASSPHRASE": passphrase,
-          "POLY-ADDRESS": address,
         },
       }
     );
