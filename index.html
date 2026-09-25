@@ -9,7 +9,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <style>
     /* ============================================================================
-       COSMIC TERMINAL - CORE STYLESHEET (Uncompressed)
+       COSMIC TERMINAL - CORE STYLESHEET (Uncompressed & Expanded)
        ============================================================================ */
     :root {
       --bg: #060712;
@@ -145,23 +145,48 @@
       align-items: center; 
       padding: 0 16px 12px; 
       gap: 12px; 
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+
+    .sorting-tray::-webkit-scrollbar {
+      display: none;
     }
     
     .sort-btn { 
       background: var(--surface); 
       border: 1px solid var(--border); 
       color: var(--muted); 
-      padding: 4px 8px; 
+      padding: 6px 12px; 
       border-radius: 6px; 
       font-size: 10px; 
       font-weight: 700; 
       cursor: pointer; 
+      white-space: nowrap;
     }
     
     .sort-btn.active { 
       background: var(--card); 
       color: #fff; 
       border-color: var(--accent); 
+    }
+
+    .pill-btn {
+      background: #0f1526;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 700;
+      white-space: nowrap;
+      cursor: pointer;
+    }
+
+    .pill-btn.active {
+      background: var(--card);
+      color: #fff;
+      border-color: var(--accent);
     }
 
     /* --- CARDS & MARKETS --- */
@@ -375,48 +400,54 @@
       transition: width 1s linear; 
     }
 
-    /* --- EXECUTION MODAL --- */
+    /* --- EXECUTION MODAL (FIXED) --- */
     .modal-overlay { 
       position: fixed; 
       top: 0; 
       left: 0; 
       right: 0; 
       bottom: 0; 
-      background: rgba(0,0,0,0.8); 
+      background: rgba(0, 0, 0, 0.85); 
       display: flex; 
       justify-content: center; 
       align-items: center; 
-      z-index: 1000; 
+      z-index: 9999; 
     }
     
     .modal-content { 
       background: var(--surface); 
       border: 1px solid var(--accent); 
       border-radius: 12px; 
-      width: 90%; 
+      width: 90vw; 
       max-width: 400px; 
-      padding: 20px; 
+      min-width: 320px; 
+      padding: 24px; 
+      box-sizing: border-box; 
+      display: flex; 
+      flex-direction: column; 
+      gap: 16px; 
     }
     
     .modal-content h3 { 
       font-size: 14px; 
-      margin-bottom: 16px; 
+      margin-bottom: 8px; 
       line-height: 1.4; 
       color: #fff; 
+      text-align: center;
     }
     
     .exec-details { 
       display: flex; 
       flex-direction: column; 
-      gap: 10px; 
-      margin-bottom: 20px; 
+      gap: 12px; 
+      margin-bottom: 10px; 
     }
     
     .exec-row { 
       display: flex; 
       justify-content: space-between; 
       align-items: center; 
-      font-size: 12px; 
+      font-size: 13px; 
       font-weight: 700; 
       color: var(--muted); 
     }
@@ -425,23 +456,25 @@
       background: var(--card); 
       border: 1px solid var(--border); 
       color: #fff; 
-      padding: 8px; 
+      padding: 10px; 
       border-radius: 6px; 
-      width: 80px; 
-      text-align: center; 
+      width: 100px; 
+      text-align: right; 
       font-size: 14px; 
     }
     
     .modal-actions { 
       display: flex; 
-      gap: 10px; 
+      gap: 12px; 
+      margin-top: 10px;
     }
     
     .modal-actions button { 
       flex: 1; 
-      padding: 10px; 
+      padding: 14px; 
       font-size: 13px; 
       border-radius: 8px; 
+      font-weight: 900;
     }
   </style>
 </head>
@@ -451,10 +484,16 @@
        1. UNIFIED HEADER & TOP NAVIGATION
        ======================================================================= -->
   <header>
-    <div class="brand"><span>🌌</span> Cosmic Terminal</div>
+    <div class="brand">
+      <span>🌌</span> Cosmic Terminal
+    </div>
     <div class="header-actions">
-      <button class="btn" onclick="fetchLiveExchangeBalances()">🔄 Refresh</button>
-      <span class="badge-active">Edge Active</span>
+      <button class="btn" onclick="fetchLiveExchangeBalances()">
+        🔄 Refresh
+      </button>
+      <span class="badge-active">
+        Edge Active
+      </span>
     </div>
   </header>
 
@@ -470,7 +509,16 @@
     <button class="desk-btn" onclick="switchDesk('vault', this)">💼 Vault & PnL</button>
   </div>
 
+  <!-- Universal Filtering & Sorting Tray -->
   <div class="sorting-tray" id="global-sorter">
+    <span style="font-size: 11px; font-weight: 700; color: var(--muted);">Filter:</span>
+    <button class="pill-btn active" onclick="filterBySport('all', this)">All</button>
+    <button class="pill-btn" onclick="filterBySport('mlb', this)">⚾ MLB</button>
+    <button class="pill-btn" onclick="filterBySport('nfl', this)">🏈 NFL</button>
+    <button class="pill-btn" onclick="filterBySport('tennis', this)">🎾 Tennis</button>
+    <button class="pill-btn" onclick="filterBySport('esports', this)">🎮 Esports</button>
+    <button class="pill-btn" onclick="filterBySport('macro', this)">🏛️ Macro</button>
+    <div style="width: 1px; height: 16px; background: var(--border); margin: 0 4px;"></div>
     <span style="font-size: 11px; font-weight: 700; color: var(--muted);">Sort:</span>
     <button class="sort-btn active" onclick="switchSortOrder('roi-high', this)">ROI High</button>
     <button class="sort-btn" onclick="switchSortOrder('roi-low', this)">ROI Low</button>
@@ -478,18 +526,26 @@
   </div>
 
   <!-- =======================================================================
-       2. TAB VIEWS & DYNAMIC CONTAINERS (Explicitly Written DOM)
+       2. TAB VIEWS & DYNAMIC CONTAINERS (Fully Expanded)
        ======================================================================= -->
   
   <!-- VIEW: HUB (Sports & Esports) -->
   <div id="view-hub" class="tab-view active">
+    
+    <!-- SPORTS CARD -->
     <div class="card">
-      <div class="card-header"><span>🏈 Top Sports Picks (Live Slate)</span><span style="color: var(--accent);">Auto-Rotating</span></div>
+      <div class="card-header">
+        <span>🏈 Top Sports Picks (Live Slate)</span>
+        <span style="color: var(--accent);">Auto-Rotating</span>
+      </div>
       <div id="hub-sports-container">
         
-        <div class="market-card" data-roi="12.4" data-expiry="1727400000000">
+        <div class="market-card" data-roi="12.4" data-expiry="1727400000000" data-sport="nfl">
           <div class="market-title">NFL: Chiefs @ Bills - Under 48.5 Total Points</div>
-          <div class="market-meta"><span>Vol: $1.2M</span><span>Target ROI: +12.4%</span></div>
+          <div class="market-meta">
+            <span>Vol: $1.2M</span>
+            <span>Target ROI: +12.4%</span>
+          </div>
           <div class="market-actions">
             <button class="btn-buy" onclick="openOrderModal('hub', 'YES', 'NFL: Chiefs @ Bills', 52)">Buy Yes 52¢</button>
             <button class="btn-sell" onclick="openOrderModal('hub', 'NO', 'NFL: Chiefs @ Bills', 48)">Buy No 48¢</button>
@@ -498,9 +554,12 @@
           <div class="gemini-drawer"></div>
         </div>
 
-        <div class="market-card" data-roi="8.5" data-expiry="1727500000000">
+        <div class="market-card" data-roi="8.5" data-expiry="1727500000000" data-sport="mlb">
           <div class="market-title">MLB: Yankees +1.5 Runline vs Rays</div>
-          <div class="market-meta"><span>Vol: $850K</span><span>Target ROI: +8.5%</span></div>
+          <div class="market-meta">
+            <span>Vol: $850K</span>
+            <span>Target ROI: +8.5%</span>
+          </div>
           <div class="market-actions">
             <button class="btn-buy" onclick="openOrderModal('hub', 'YES', 'MLB: Yankees +1.5', 65)">Buy Yes 65¢</button>
             <button class="btn-sell" onclick="openOrderModal('hub', 'NO', 'MLB: Yankees +1.5', 35)">Buy No 35¢</button>
@@ -509,9 +568,12 @@
           <div class="gemini-drawer"></div>
         </div>
 
-        <div class="market-card" data-roi="18.2" data-expiry="1727600000000">
+        <div class="market-card" data-roi="18.2" data-expiry="1727600000000" data-sport="tennis">
           <div class="market-title">Tennis: Alcaraz to win Wimbledon</div>
-          <div class="market-meta"><span>Vol: $2.1M</span><span>Target ROI: +18.2%</span></div>
+          <div class="market-meta">
+            <span>Vol: $2.1M</span>
+            <span>Target ROI: +18.2%</span>
+          </div>
           <div class="market-actions">
             <button class="btn-buy" onclick="openOrderModal('hub', 'YES', 'Tennis: Alcaraz', 45)">Buy Yes 45¢</button>
             <button class="btn-sell" onclick="openOrderModal('hub', 'NO', 'Tennis: Alcaraz', 55)">Buy No 55¢</button>
@@ -520,9 +582,12 @@
           <div class="gemini-drawer"></div>
         </div>
 
-        <div class="market-card" data-roi="9.1" data-expiry="1727650000000">
+        <div class="market-card" data-roi="9.1" data-expiry="1727650000000" data-sport="nba">
           <div class="market-title">NBA: Celtics ML @ Knicks</div>
-          <div class="market-meta"><span>Vol: $900K</span><span>Target ROI: +9.1%</span></div>
+          <div class="market-meta">
+            <span>Vol: $900K</span>
+            <span>Target ROI: +9.1%</span>
+          </div>
           <div class="market-actions">
             <button class="btn-buy" onclick="openOrderModal('hub', 'YES', 'NBA: Celtics ML', 55)">Buy Yes 55¢</button>
             <button class="btn-sell" onclick="openOrderModal('hub', 'NO', 'NBA: Celtics ML', 45)">Buy No 45¢</button>
@@ -531,15 +596,65 @@
           <div class="gemini-drawer"></div>
         </div>
 
+        <div class="market-card" data-roi="11.4" data-expiry="1727700000000" data-sport="nhl">
+          <div class="market-title">NHL: Panthers Moneyline vs Oilers</div>
+          <div class="market-meta">
+            <span>Vol: $650K</span>
+            <span>Target ROI: +11.4%</span>
+          </div>
+          <div class="market-actions">
+            <button class="btn-buy" onclick="openOrderModal('hub', 'YES', 'NHL: Panthers ML', 52)">Buy Yes 52¢</button>
+            <button class="btn-sell" onclick="openOrderModal('hub', 'NO', 'NHL: Panthers ML', 48)">Buy No 48¢</button>
+            <button class="btn-gemini" onclick="toggleGeminiDrawer(this, 'NHL: Panthers Moneyline vs Oilers', 52, 48)">🤖 Copilot</button>
+          </div>
+          <div class="gemini-drawer"></div>
+        </div>
+
+        <div class="market-card" data-roi="15.2" data-expiry="1727800000000" data-sport="soccer">
+          <div class="market-title">Soccer: Real Madrid to win Champions League</div>
+          <div class="market-meta">
+            <span>Vol: $3.4M</span>
+            <span>Target ROI: +15.2%</span>
+          </div>
+          <div class="market-actions">
+            <button class="btn-buy" onclick="openOrderModal('hub', 'YES', 'Soccer: Real Madrid', 38)">Buy Yes 38¢</button>
+            <button class="btn-sell" onclick="openOrderModal('hub', 'NO', 'Soccer: Real Madrid', 62)">Buy No 62¢</button>
+            <button class="btn-gemini" onclick="toggleGeminiDrawer(this, 'Soccer: Real Madrid to win Champions League', 38, 62)">🤖 Copilot</button>
+          </div>
+          <div class="gemini-drawer"></div>
+        </div>
+
+        <div class="market-card" data-roi="28.5" data-expiry="1727900000000" data-sport="golf">
+          <div class="market-title">Golf: Scottie Scheffler to win Masters</div>
+          <div class="market-meta">
+            <span>Vol: $1.1M</span>
+            <span>Target ROI: +28.5%</span>
+          </div>
+          <div class="market-actions">
+            <button class="btn-buy" onclick="openOrderModal('hub', 'YES', 'Golf: Scheffler', 22)">Buy Yes 22¢</button>
+            <button class="btn-sell" onclick="openOrderModal('hub', 'NO', 'Golf: Scheffler', 78)">Buy No 78¢</button>
+            <button class="btn-gemini" onclick="toggleGeminiDrawer(this, 'Golf: Scottie Scheffler to win Masters', 22, 78)">🤖 Copilot</button>
+          </div>
+          <div class="gemini-drawer"></div>
+        </div>
+
       </div>
     </div>
+
+    <!-- ESPORTS CARD -->
     <div class="card">
-      <div class="card-header"><span>🎮 Esports Desk (Live Queue)</span><span style="color: var(--accent-poly);">Auto-Rotating</span></div>
+      <div class="card-header">
+        <span>🎮 Esports Desk (Live Queue)</span>
+        <span style="color: var(--accent-poly);">Auto-Rotating</span>
+      </div>
       <div id="hub-esports-container">
 
-        <div class="market-card" data-roi="22.1" data-expiry="1727700000000">
+        <div class="market-card" data-roi="22.1" data-expiry="1727700000000" data-sport="esports">
           <div class="market-title">CS2: G2 Esports to win Major</div>
-          <div class="market-meta"><span>Vol: $450K</span><span>Target ROI: +22.1%</span></div>
+          <div class="market-meta">
+            <span>Vol: $450K</span>
+            <span>Target ROI: +22.1%</span>
+          </div>
           <div class="market-actions">
             <button class="btn-buy" onclick="openOrderModal('hub', 'YES', 'CS2: G2 Esports', 38)">Buy Yes 38¢</button>
             <button class="btn-sell" onclick="openOrderModal('hub', 'NO', 'CS2: G2 Esports', 62)">Buy No 62¢</button>
@@ -548,9 +663,12 @@
           <div class="gemini-drawer"></div>
         </div>
 
-        <div class="market-card" data-roi="14.5" data-expiry="1727800000000">
+        <div class="market-card" data-roi="14.5" data-expiry="1727800000000" data-sport="esports">
           <div class="market-title">Dota 2: Team Liquid ML vs Gladiators</div>
-          <div class="market-meta"><span>Vol: $320K</span><span>Target ROI: +14.5%</span></div>
+          <div class="market-meta">
+            <span>Vol: $320K</span>
+            <span>Target ROI: +14.5%</span>
+          </div>
           <div class="market-actions">
             <button class="btn-buy" onclick="openOrderModal('hub', 'YES', 'Dota 2: Team Liquid', 58)">Buy Yes 58¢</button>
             <button class="btn-sell" onclick="openOrderModal('hub', 'NO', 'Dota 2: Team Liquid', 42)">Buy No 42¢</button>
@@ -559,13 +677,44 @@
           <div class="gemini-drawer"></div>
         </div>
 
-        <div class="market-card" data-roi="11.2" data-expiry="1727900000000">
+        <div class="market-card" data-roi="11.2" data-expiry="1727900000000" data-sport="esports">
           <div class="market-title">LoL: T1 to win Worlds</div>
-          <div class="market-meta"><span>Vol: $850K</span><span>Target ROI: +11.2%</span></div>
+          <div class="market-meta">
+            <span>Vol: $850K</span>
+            <span>Target ROI: +11.2%</span>
+          </div>
           <div class="market-actions">
             <button class="btn-buy" onclick="openOrderModal('hub', 'YES', 'LoL: T1 to win', 42)">Buy Yes 42¢</button>
             <button class="btn-sell" onclick="openOrderModal('hub', 'NO', 'LoL: T1 to win', 58)">Buy No 58¢</button>
             <button class="btn-gemini" onclick="toggleGeminiDrawer(this, 'LoL: T1 to win Worlds', 42, 58)">🤖 Copilot</button>
+          </div>
+          <div class="gemini-drawer"></div>
+        </div>
+        
+        <div class="market-card" data-roi="19.4" data-expiry="1728000000000" data-sport="esports">
+          <div class="market-title">Valorant: Sentinels to win VCT Champions</div>
+          <div class="market-meta">
+            <span>Vol: $610K</span>
+            <span>Target ROI: +19.4%</span>
+          </div>
+          <div class="market-actions">
+            <button class="btn-buy" onclick="openOrderModal('hub', 'YES', 'Valorant: Sentinels', 31)">Buy Yes 31¢</button>
+            <button class="btn-sell" onclick="openOrderModal('hub', 'NO', 'Valorant: Sentinels', 69)">Buy No 69¢</button>
+            <button class="btn-gemini" onclick="toggleGeminiDrawer(this, 'Valorant: Sentinels to win VCT Champions', 31, 69)">🤖 Copilot</button>
+          </div>
+          <div class="gemini-drawer"></div>
+        </div>
+
+        <div class="market-card" data-roi="12.8" data-expiry="1728100000000" data-sport="esports">
+          <div class="market-title">CS2: NaVi vs Vitality - Over 2.5 Maps</div>
+          <div class="market-meta">
+            <span>Vol: $290K</span>
+            <span>Target ROI: +12.8%</span>
+          </div>
+          <div class="market-actions">
+            <button class="btn-buy" onclick="openOrderModal('hub', 'YES', 'CS2: Over 2.5 Maps', 55)">Buy Yes 55¢</button>
+            <button class="btn-sell" onclick="openOrderModal('hub', 'NO', 'CS2: Over 2.5 Maps', 45)">Buy No 45¢</button>
+            <button class="btn-gemini" onclick="toggleGeminiDrawer(this, 'CS2: NaVi vs Vitality - Over 2.5 Maps', 55, 45)">🤖 Copilot</button>
           </div>
           <div class="gemini-drawer"></div>
         </div>
@@ -577,12 +726,18 @@
   <!-- VIEW: POLYMARKET -->
   <div id="view-poly" class="tab-view">
     <div class="card">
-      <div class="card-header"><span>Polymarket Live Feed</span><span>Gamma API</span></div>
+      <div class="card-header">
+        <span>Polymarket Live Feed</span>
+        <span>Gamma API</span>
+      </div>
       <div id="poly-live-feed">
         
-        <div class="market-card" data-roi="6.2" data-expiry="1728000000000">
+        <div class="market-card" data-roi="6.2" data-expiry="1728000000000" data-sport="macro">
           <div class="market-title">Fed Funds Rate Cut ≥ 25bps Next Meeting</div>
-          <div class="market-meta"><span>Vol: $5.4M</span><span>Target ROI: +6.2%</span></div>
+          <div class="market-meta">
+            <span>Vol: $5.4M</span>
+            <span>Target ROI: +6.2%</span>
+          </div>
           <div class="market-actions">
             <button class="btn-buy" onclick="openOrderModal('poly', 'YES', 'Fed Funds Rate Cut', 82)">Buy Yes 82¢</button>
             <button class="btn-sell" onclick="openOrderModal('poly', 'NO', 'Fed Funds Rate Cut', 18)">Buy No 18¢</button>
@@ -591,9 +746,12 @@
           <div class="gemini-drawer"></div>
         </div>
 
-        <div class="market-card" data-roi="15.4" data-expiry="1728100000000">
+        <div class="market-card" data-roi="15.4" data-expiry="1728100000000" data-sport="macro">
           <div class="market-title">US Core CPI YoY Under 2.8%</div>
-          <div class="market-meta"><span>Vol: $1.8M</span><span>Target ROI: +15.4%</span></div>
+          <div class="market-meta">
+            <span>Vol: $1.8M</span>
+            <span>Target ROI: +15.4%</span>
+          </div>
           <div class="market-actions">
             <button class="btn-buy" onclick="openOrderModal('poly', 'YES', 'US Core CPI Under 2.8%', 41)">Buy Yes 41¢</button>
             <button class="btn-sell" onclick="openOrderModal('poly', 'NO', 'US Core CPI Under 2.8%', 59)">Buy No 59¢</button>
@@ -602,13 +760,44 @@
           <div class="gemini-drawer"></div>
         </div>
 
-        <div class="market-card" data-roi="21.0" data-expiry="1728200000000">
+        <div class="market-card" data-roi="21.0" data-expiry="1728200000000" data-sport="macro">
           <div class="market-title">Bitcoin to hit $100k in 2026</div>
-          <div class="market-meta"><span>Vol: $8.9M</span><span>Target ROI: +21.0%</span></div>
+          <div class="market-meta">
+            <span>Vol: $8.9M</span>
+            <span>Target ROI: +21.0%</span>
+          </div>
           <div class="market-actions">
             <button class="btn-buy" onclick="openOrderModal('poly', 'YES', 'BTC $100k', 33)">Buy Yes 33¢</button>
             <button class="btn-sell" onclick="openOrderModal('poly', 'NO', 'BTC $100k', 67)">Buy No 67¢</button>
             <button class="btn-gemini" onclick="toggleGeminiDrawer(this, 'Bitcoin to hit $100k in 2026', 33, 67)">🤖 Copilot</button>
+          </div>
+          <div class="gemini-drawer"></div>
+        </div>
+
+        <div class="market-card" data-roi="8.2" data-expiry="1728300000000" data-sport="macro">
+          <div class="market-title">Ethereum ETF Net Inflows > $500M this week</div>
+          <div class="market-meta">
+            <span>Vol: $2.1M</span>
+            <span>Target ROI: +8.2%</span>
+          </div>
+          <div class="market-actions">
+            <button class="btn-buy" onclick="openOrderModal('poly', 'YES', 'ETH ETF Inflows', 62)">Buy Yes 62¢</button>
+            <button class="btn-sell" onclick="openOrderModal('poly', 'NO', 'ETH ETF Inflows', 38)">Buy No 38¢</button>
+            <button class="btn-gemini" onclick="toggleGeminiDrawer(this, 'Ethereum ETF Net Inflows > $500M this week', 62, 38)">🤖 Copilot</button>
+          </div>
+          <div class="gemini-drawer"></div>
+        </div>
+
+        <div class="market-card" data-roi="12.0" data-expiry="1728400000000" data-sport="macro">
+          <div class="market-title">US Unemployment Rate > 4.1% Next Report</div>
+          <div class="market-meta">
+            <span>Vol: $3.5M</span>
+            <span>Target ROI: +12.0%</span>
+          </div>
+          <div class="market-actions">
+            <button class="btn-buy" onclick="openOrderModal('poly', 'YES', 'US Unemployment > 4.1%', 48)">Buy Yes 48¢</button>
+            <button class="btn-sell" onclick="openOrderModal('poly', 'NO', 'US Unemployment > 4.1%', 52)">Buy No 52¢</button>
+            <button class="btn-gemini" onclick="toggleGeminiDrawer(this, 'US Unemployment Rate > 4.1% Next Report', 48, 52)">🤖 Copilot</button>
           </div>
           <div class="gemini-drawer"></div>
         </div>
@@ -619,16 +808,21 @@
 
   <!-- VIEW: KALSHI -->
   <div id="view-kalshi" class="tab-view">
+    
     <div class="card">
       <div class="card-header">
         <span>⏱️ 15-Minute Fast Markets (All 8 Active)</span>
         <span id="global-15m-timer" style="color: var(--danger); font-weight: 800; font-variant-numeric: tabular-nums;">00:00</span>
       </div>
       <div id="kalshi-15m-feed">
+        
         <!-- Explicit 8 Fast Markets -->
-        <div class="market-card" data-roi="8.5" data-expiry="1728000000000">
+        <div class="market-card" data-roi="8.5" data-expiry="1728000000000" data-sport="macro">
           <div class="market-title">KXGOLD15M: Gold Price > 2660.00</div>
-          <div class="market-meta"><span>Vol: 15m Series</span><span>Target ROI: +8.5%</span></div>
+          <div class="market-meta">
+            <span>Vol: 15m Series</span>
+            <span>Target ROI: +8.5%</span>
+          </div>
           <div class="market-actions">
             <button class="btn-buy" onclick="openOrderModal('kalshi', 'ABOVE', 'KXGOLD15M', 51)">Above 51¢</button>
             <button class="btn-sell" onclick="openOrderModal('kalshi', 'BELOW', 'KXGOLD15M', 49)">Below 49¢</button>
@@ -638,9 +832,12 @@
           <div class="progress-bar"><div class="progress-fill"></div></div>
         </div>
 
-        <div class="market-card" data-roi="8.5" data-expiry="1728000000000">
+        <div class="market-card" data-roi="8.5" data-expiry="1728000000000" data-sport="macro">
           <div class="market-title">KXSLV15M: Silver Price > 31.50</div>
-          <div class="market-meta"><span>Vol: 15m Series</span><span>Target ROI: +8.5%</span></div>
+          <div class="market-meta">
+            <span>Vol: 15m Series</span>
+            <span>Target ROI: +8.5%</span>
+          </div>
           <div class="market-actions">
             <button class="btn-buy" onclick="openOrderModal('kalshi', 'ABOVE', 'KXSLV15M', 51)">Above 51¢</button>
             <button class="btn-sell" onclick="openOrderModal('kalshi', 'BELOW', 'KXSLV15M', 49)">Below 49¢</button>
@@ -650,9 +847,12 @@
           <div class="progress-bar"><div class="progress-fill"></div></div>
         </div>
 
-        <div class="market-card" data-roi="8.5" data-expiry="1728000000000">
+        <div class="market-card" data-roi="8.5" data-expiry="1728000000000" data-sport="macro">
           <div class="market-title">KXWTI15M: WTI Crude > 75.20</div>
-          <div class="market-meta"><span>Vol: 15m Series</span><span>Target ROI: +8.5%</span></div>
+          <div class="market-meta">
+            <span>Vol: 15m Series</span>
+            <span>Target ROI: +8.5%</span>
+          </div>
           <div class="market-actions">
             <button class="btn-buy" onclick="openOrderModal('kalshi', 'ABOVE', 'KXWTI15M', 51)">Above 51¢</button>
             <button class="btn-sell" onclick="openOrderModal('kalshi', 'BELOW', 'KXWTI15M', 49)">Below 49¢</button>
@@ -662,9 +862,12 @@
           <div class="progress-bar"><div class="progress-fill"></div></div>
         </div>
 
-        <div class="market-card" data-roi="8.5" data-expiry="1728000000000">
+        <div class="market-card" data-roi="8.5" data-expiry="1728000000000" data-sport="macro">
           <div class="market-title">KXBTC15M: Bitcoin > 64500</div>
-          <div class="market-meta"><span>Vol: 15m Series</span><span>Target ROI: +8.5%</span></div>
+          <div class="market-meta">
+            <span>Vol: 15m Series</span>
+            <span>Target ROI: +8.5%</span>
+          </div>
           <div class="market-actions">
             <button class="btn-buy" onclick="openOrderModal('kalshi', 'ABOVE', 'KXBTC15M', 51)">Above 51¢</button>
             <button class="btn-sell" onclick="openOrderModal('kalshi', 'BELOW', 'KXBTC15M', 49)">Below 49¢</button>
@@ -674,9 +877,12 @@
           <div class="progress-bar"><div class="progress-fill"></div></div>
         </div>
 
-        <div class="market-card" data-roi="8.5" data-expiry="1728000000000">
+        <div class="market-card" data-roi="8.5" data-expiry="1728000000000" data-sport="macro">
           <div class="market-title">KXETH15M: Ethereum > 3450</div>
-          <div class="market-meta"><span>Vol: 15m Series</span><span>Target ROI: +8.5%</span></div>
+          <div class="market-meta">
+            <span>Vol: 15m Series</span>
+            <span>Target ROI: +8.5%</span>
+          </div>
           <div class="market-actions">
             <button class="btn-buy" onclick="openOrderModal('kalshi', 'ABOVE', 'KXETH15M', 51)">Above 51¢</button>
             <button class="btn-sell" onclick="openOrderModal('kalshi', 'BELOW', 'KXETH15M', 49)">Below 49¢</button>
@@ -686,9 +892,12 @@
           <div class="progress-bar"><div class="progress-fill"></div></div>
         </div>
 
-        <div class="market-card" data-roi="8.5" data-expiry="1728000000000">
+        <div class="market-card" data-roi="8.5" data-expiry="1728000000000" data-sport="macro">
           <div class="market-title">KXSOL15M: Solana > 145.20</div>
-          <div class="market-meta"><span>Vol: 15m Series</span><span>Target ROI: +8.5%</span></div>
+          <div class="market-meta">
+            <span>Vol: 15m Series</span>
+            <span>Target ROI: +8.5%</span>
+          </div>
           <div class="market-actions">
             <button class="btn-buy" onclick="openOrderModal('kalshi', 'ABOVE', 'KXSOL15M', 51)">Above 51¢</button>
             <button class="btn-sell" onclick="openOrderModal('kalshi', 'BELOW', 'KXSOL15M', 49)">Below 49¢</button>
@@ -698,9 +907,12 @@
           <div class="progress-bar"><div class="progress-fill"></div></div>
         </div>
 
-        <div class="market-card" data-roi="8.5" data-expiry="1728000000000">
+        <div class="market-card" data-roi="8.5" data-expiry="1728000000000" data-sport="macro">
           <div class="market-title">KXXRP15M: XRP > 0.58</div>
-          <div class="market-meta"><span>Vol: 15m Series</span><span>Target ROI: +8.5%</span></div>
+          <div class="market-meta">
+            <span>Vol: 15m Series</span>
+            <span>Target ROI: +8.5%</span>
+          </div>
           <div class="market-actions">
             <button class="btn-buy" onclick="openOrderModal('kalshi', 'ABOVE', 'KXXRP15M', 51)">Above 51¢</button>
             <button class="btn-sell" onclick="openOrderModal('kalshi', 'BELOW', 'KXXRP15M', 49)">Below 49¢</button>
@@ -710,9 +922,12 @@
           <div class="progress-bar"><div class="progress-fill"></div></div>
         </div>
 
-        <div class="market-card" data-roi="8.5" data-expiry="1728000000000">
+        <div class="market-card" data-roi="8.5" data-expiry="1728000000000" data-sport="macro">
           <div class="market-title">KXDOGE15M: Dogecoin > 0.12</div>
-          <div class="market-meta"><span>Vol: 15m Series</span><span>Target ROI: +8.5%</span></div>
+          <div class="market-meta">
+            <span>Vol: 15m Series</span>
+            <span>Target ROI: +8.5%</span>
+          </div>
           <div class="market-actions">
             <button class="btn-buy" onclick="openOrderModal('kalshi', 'ABOVE', 'KXDOGE15M', 51)">Above 51¢</button>
             <button class="btn-sell" onclick="openOrderModal('kalshi', 'BELOW', 'KXDOGE15M', 49)">Below 49¢</button>
@@ -726,13 +941,22 @@
     </div>
     
     <div class="card">
-      <div class="card-header"><span>⚡ Crypto Perpetuals (All 18 Active)</span><span>3.25% APR</span></div>
+      <div class="card-header">
+        <span>⚡ Crypto Perpetuals (All 18 Active)</span>
+        <span>3.25% APR</span>
+      </div>
       <div id="kalshi-perps-feed">
+        
         <!-- Explicit 18 Crypto Perps -->
-        <div class="market-card" data-roi="0" data-expiry="0">
+        <div class="market-card" data-roi="0" data-expiry="0" data-sport="macro">
           <div class="market-title">BTCPERP Continuous</div>
-          <div class="market-meta"><span>Live Basis: +0.01%</span><span>Margin APR: 3.25%</span></div>
-          <svg width="100%" height="20" style="margin-bottom: 10px; border-bottom: 1px dashed var(--border);"><path d="M0 10 Q 25 15, 50 10 T 100 5 T 150 10 T 200 5 T 250 15 T 300 10 T 350 5" stroke="var(--accent-kalshi)" fill="transparent" stroke-width="2"/></svg>
+          <div class="market-meta">
+            <span>Live Basis: +0.01%</span>
+            <span>Margin APR: 3.25%</span>
+          </div>
+          <svg width="100%" height="20" style="margin-bottom: 10px; border-bottom: 1px dashed var(--border);">
+            <path d="M0 10 Q 25 15, 50 10 T 100 5 T 150 10 T 200 5 T 250 15 T 300 10 T 350 5" stroke="var(--accent-kalshi)" fill="transparent" stroke-width="2"/>
+          </svg>
           <div class="market-actions">
             <button class="btn-buy" onclick="openOrderModal('kalshi', 'LONG', 'BTCPERP', 50)">Long</button>
             <button class="btn-sell" onclick="openOrderModal('kalshi', 'SHORT', 'BTCPERP', 50)">Short</button>
@@ -741,10 +965,15 @@
           <div class="gemini-drawer"></div>
         </div>
 
-        <div class="market-card" data-roi="0" data-expiry="0">
+        <div class="market-card" data-roi="0" data-expiry="0" data-sport="macro">
           <div class="market-title">ETHPERP Continuous</div>
-          <div class="market-meta"><span>Live Basis: +0.01%</span><span>Margin APR: 3.25%</span></div>
-          <svg width="100%" height="20" style="margin-bottom: 10px; border-bottom: 1px dashed var(--border);"><path d="M0 10 Q 25 15, 50 10 T 100 5 T 150 10 T 200 5 T 250 15 T 300 10 T 350 5" stroke="var(--accent-kalshi)" fill="transparent" stroke-width="2"/></svg>
+          <div class="market-meta">
+            <span>Live Basis: +0.01%</span>
+            <span>Margin APR: 3.25%</span>
+          </div>
+          <svg width="100%" height="20" style="margin-bottom: 10px; border-bottom: 1px dashed var(--border);">
+            <path d="M0 10 Q 25 15, 50 10 T 100 5 T 150 10 T 200 5 T 250 15 T 300 10 T 350 5" stroke="var(--accent-kalshi)" fill="transparent" stroke-width="2"/>
+          </svg>
           <div class="market-actions">
             <button class="btn-buy" onclick="openOrderModal('kalshi', 'LONG', 'ETHPERP', 50)">Long</button>
             <button class="btn-sell" onclick="openOrderModal('kalshi', 'SHORT', 'ETHPERP', 50)">Short</button>
@@ -753,10 +982,15 @@
           <div class="gemini-drawer"></div>
         </div>
 
-        <div class="market-card" data-roi="0" data-expiry="0">
+        <div class="market-card" data-roi="0" data-expiry="0" data-sport="macro">
           <div class="market-title">SOLPERP Continuous</div>
-          <div class="market-meta"><span>Live Basis: +0.01%</span><span>Margin APR: 3.25%</span></div>
-          <svg width="100%" height="20" style="margin-bottom: 10px; border-bottom: 1px dashed var(--border);"><path d="M0 10 Q 25 15, 50 10 T 100 5 T 150 10 T 200 5 T 250 15 T 300 10 T 350 5" stroke="var(--accent-kalshi)" fill="transparent" stroke-width="2"/></svg>
+          <div class="market-meta">
+            <span>Live Basis: +0.01%</span>
+            <span>Margin APR: 3.25%</span>
+          </div>
+          <svg width="100%" height="20" style="margin-bottom: 10px; border-bottom: 1px dashed var(--border);">
+            <path d="M0 10 Q 25 15, 50 10 T 100 5 T 150 10 T 200 5 T 250 15 T 300 10 T 350 5" stroke="var(--accent-kalshi)" fill="transparent" stroke-width="2"/>
+          </svg>
           <div class="market-actions">
             <button class="btn-buy" onclick="openOrderModal('kalshi', 'LONG', 'SOLPERP', 50)">Long</button>
             <button class="btn-sell" onclick="openOrderModal('kalshi', 'SHORT', 'SOLPERP', 50)">Short</button>
@@ -765,10 +999,15 @@
           <div class="gemini-drawer"></div>
         </div>
 
-        <div class="market-card" data-roi="0" data-expiry="0">
+        <div class="market-card" data-roi="0" data-expiry="0" data-sport="macro">
           <div class="market-title">XRPPERP Continuous</div>
-          <div class="market-meta"><span>Live Basis: +0.01%</span><span>Margin APR: 3.25%</span></div>
-          <svg width="100%" height="20" style="margin-bottom: 10px; border-bottom: 1px dashed var(--border);"><path d="M0 10 Q 25 15, 50 10 T 100 5 T 150 10 T 200 5 T 250 15 T 300 10 T 350 5" stroke="var(--accent-kalshi)" fill="transparent" stroke-width="2"/></svg>
+          <div class="market-meta">
+            <span>Live Basis: +0.01%</span>
+            <span>Margin APR: 3.25%</span>
+          </div>
+          <svg width="100%" height="20" style="margin-bottom: 10px; border-bottom: 1px dashed var(--border);">
+            <path d="M0 10 Q 25 15, 50 10 T 100 5 T 150 10 T 200 5 T 250 15 T 300 10 T 350 5" stroke="var(--accent-kalshi)" fill="transparent" stroke-width="2"/>
+          </svg>
           <div class="market-actions">
             <button class="btn-buy" onclick="openOrderModal('kalshi', 'LONG', 'XRPPERP', 50)">Long</button>
             <button class="btn-sell" onclick="openOrderModal('kalshi', 'SHORT', 'XRPPERP', 50)">Short</button>
@@ -777,10 +1016,15 @@
           <div class="gemini-drawer"></div>
         </div>
 
-        <div class="market-card" data-roi="0" data-expiry="0">
+        <div class="market-card" data-roi="0" data-expiry="0" data-sport="macro">
           <div class="market-title">DOGEPERP Continuous</div>
-          <div class="market-meta"><span>Live Basis: +0.01%</span><span>Margin APR: 3.25%</span></div>
-          <svg width="100%" height="20" style="margin-bottom: 10px; border-bottom: 1px dashed var(--border);"><path d="M0 10 Q 25 15, 50 10 T 100 5 T 150 10 T 200 5 T 250 15 T 300 10 T 350 5" stroke="var(--accent-kalshi)" fill="transparent" stroke-width="2"/></svg>
+          <div class="market-meta">
+            <span>Live Basis: +0.01%</span>
+            <span>Margin APR: 3.25%</span>
+          </div>
+          <svg width="100%" height="20" style="margin-bottom: 10px; border-bottom: 1px dashed var(--border);">
+            <path d="M0 10 Q 25 15, 50 10 T 100 5 T 150 10 T 200 5 T 250 15 T 300 10 T 350 5" stroke="var(--accent-kalshi)" fill="transparent" stroke-width="2"/>
+          </svg>
           <div class="market-actions">
             <button class="btn-buy" onclick="openOrderModal('kalshi', 'LONG', 'DOGEPERP', 50)">Long</button>
             <button class="btn-sell" onclick="openOrderModal('kalshi', 'SHORT', 'DOGEPERP', 50)">Short</button>
@@ -789,10 +1033,15 @@
           <div class="gemini-drawer"></div>
         </div>
 
-        <div class="market-card" data-roi="0" data-expiry="0">
+        <div class="market-card" data-roi="0" data-expiry="0" data-sport="macro">
           <div class="market-title">ADAPERP Continuous</div>
-          <div class="market-meta"><span>Live Basis: +0.01%</span><span>Margin APR: 3.25%</span></div>
-          <svg width="100%" height="20" style="margin-bottom: 10px; border-bottom: 1px dashed var(--border);"><path d="M0 10 Q 25 15, 50 10 T 100 5 T 150 10 T 200 5 T 250 15 T 300 10 T 350 5" stroke="var(--accent-kalshi)" fill="transparent" stroke-width="2"/></svg>
+          <div class="market-meta">
+            <span>Live Basis: +0.01%</span>
+            <span>Margin APR: 3.25%</span>
+          </div>
+          <svg width="100%" height="20" style="margin-bottom: 10px; border-bottom: 1px dashed var(--border);">
+            <path d="M0 10 Q 25 15, 50 10 T 100 5 T 150 10 T 200 5 T 250 15 T 300 10 T 350 5" stroke="var(--accent-kalshi)" fill="transparent" stroke-width="2"/>
+          </svg>
           <div class="market-actions">
             <button class="btn-buy" onclick="openOrderModal('kalshi', 'LONG', 'ADAPERP', 50)">Long</button>
             <button class="btn-sell" onclick="openOrderModal('kalshi', 'SHORT', 'ADAPERP', 50)">Short</button>
@@ -801,10 +1050,15 @@
           <div class="gemini-drawer"></div>
         </div>
 
-        <div class="market-card" data-roi="0" data-expiry="0">
+        <div class="market-card" data-roi="0" data-expiry="0" data-sport="macro">
           <div class="market-title">AVAXPERP Continuous</div>
-          <div class="market-meta"><span>Live Basis: +0.01%</span><span>Margin APR: 3.25%</span></div>
-          <svg width="100%" height="20" style="margin-bottom: 10px; border-bottom: 1px dashed var(--border);"><path d="M0 10 Q 25 15, 50 10 T 100 5 T 150 10 T 200 5 T 250 15 T 300 10 T 350 5" stroke="var(--accent-kalshi)" fill="transparent" stroke-width="2"/></svg>
+          <div class="market-meta">
+            <span>Live Basis: +0.01%</span>
+            <span>Margin APR: 3.25%</span>
+          </div>
+          <svg width="100%" height="20" style="margin-bottom: 10px; border-bottom: 1px dashed var(--border);">
+            <path d="M0 10 Q 25 15, 50 10 T 100 5 T 150 10 T 200 5 T 250 15 T 300 10 T 350 5" stroke="var(--accent-kalshi)" fill="transparent" stroke-width="2"/>
+          </svg>
           <div class="market-actions">
             <button class="btn-buy" onclick="openOrderModal('kalshi', 'LONG', 'AVAXPERP', 50)">Long</button>
             <button class="btn-sell" onclick="openOrderModal('kalshi', 'SHORT', 'AVAXPERP', 50)">Short</button>
@@ -813,10 +1067,15 @@
           <div class="gemini-drawer"></div>
         </div>
 
-        <div class="market-card" data-roi="0" data-expiry="0">
+        <div class="market-card" data-roi="0" data-expiry="0" data-sport="macro">
           <div class="market-title">LINKPERP Continuous</div>
-          <div class="market-meta"><span>Live Basis: +0.01%</span><span>Margin APR: 3.25%</span></div>
-          <svg width="100%" height="20" style="margin-bottom: 10px; border-bottom: 1px dashed var(--border);"><path d="M0 10 Q 25 15, 50 10 T 100 5 T 150 10 T 200 5 T 250 15 T 300 10 T 350 5" stroke="var(--accent-kalshi)" fill="transparent" stroke-width="2"/></svg>
+          <div class="market-meta">
+            <span>Live Basis: +0.01%</span>
+            <span>Margin APR: 3.25%</span>
+          </div>
+          <svg width="100%" height="20" style="margin-bottom: 10px; border-bottom: 1px dashed var(--border);">
+            <path d="M0 10 Q 25 15, 50 10 T 100 5 T 150 10 T 200 5 T 250 15 T 300 10 T 350 5" stroke="var(--accent-kalshi)" fill="transparent" stroke-width="2"/>
+          </svg>
           <div class="market-actions">
             <button class="btn-buy" onclick="openOrderModal('kalshi', 'LONG', 'LINKPERP', 50)">Long</button>
             <button class="btn-sell" onclick="openOrderModal('kalshi', 'SHORT', 'LINKPERP', 50)">Short</button>
@@ -825,10 +1084,15 @@
           <div class="gemini-drawer"></div>
         </div>
 
-        <div class="market-card" data-roi="0" data-expiry="0">
+        <div class="market-card" data-roi="0" data-expiry="0" data-sport="macro">
           <div class="market-title">LTCPERP Continuous</div>
-          <div class="market-meta"><span>Live Basis: +0.01%</span><span>Margin APR: 3.25%</span></div>
-          <svg width="100%" height="20" style="margin-bottom: 10px; border-bottom: 1px dashed var(--border);"><path d="M0 10 Q 25 15, 50 10 T 100 5 T 150 10 T 200 5 T 250 15 T 300 10 T 350 5" stroke="var(--accent-kalshi)" fill="transparent" stroke-width="2"/></svg>
+          <div class="market-meta">
+            <span>Live Basis: +0.01%</span>
+            <span>Margin APR: 3.25%</span>
+          </div>
+          <svg width="100%" height="20" style="margin-bottom: 10px; border-bottom: 1px dashed var(--border);">
+            <path d="M0 10 Q 25 15, 50 10 T 100 5 T 150 10 T 200 5 T 250 15 T 300 10 T 350 5" stroke="var(--accent-kalshi)" fill="transparent" stroke-width="2"/>
+          </svg>
           <div class="market-actions">
             <button class="btn-buy" onclick="openOrderModal('kalshi', 'LONG', 'LTCPERP', 50)">Long</button>
             <button class="btn-sell" onclick="openOrderModal('kalshi', 'SHORT', 'LTCPERP', 50)">Short</button>
@@ -837,10 +1101,15 @@
           <div class="gemini-drawer"></div>
         </div>
 
-        <div class="market-card" data-roi="0" data-expiry="0">
+        <div class="market-card" data-roi="0" data-expiry="0" data-sport="macro">
           <div class="market-title">BNBPERP Continuous</div>
-          <div class="market-meta"><span>Live Basis: +0.01%</span><span>Margin APR: 3.25%</span></div>
-          <svg width="100%" height="20" style="margin-bottom: 10px; border-bottom: 1px dashed var(--border);"><path d="M0 10 Q 25 15, 50 10 T 100 5 T 150 10 T 200 5 T 250 15 T 300 10 T 350 5" stroke="var(--accent-kalshi)" fill="transparent" stroke-width="2"/></svg>
+          <div class="market-meta">
+            <span>Live Basis: +0.01%</span>
+            <span>Margin APR: 3.25%</span>
+          </div>
+          <svg width="100%" height="20" style="margin-bottom: 10px; border-bottom: 1px dashed var(--border);">
+            <path d="M0 10 Q 25 15, 50 10 T 100 5 T 150 10 T 200 5 T 250 15 T 300 10 T 350 5" stroke="var(--accent-kalshi)" fill="transparent" stroke-width="2"/>
+          </svg>
           <div class="market-actions">
             <button class="btn-buy" onclick="openOrderModal('kalshi', 'LONG', 'BNBPERP', 50)">Long</button>
             <button class="btn-sell" onclick="openOrderModal('kalshi', 'SHORT', 'BNBPERP', 50)">Short</button>
@@ -849,10 +1118,15 @@
           <div class="gemini-drawer"></div>
         </div>
 
-        <div class="market-card" data-roi="0" data-expiry="0">
+        <div class="market-card" data-roi="0" data-expiry="0" data-sport="macro">
           <div class="market-title">SUIPERP Continuous</div>
-          <div class="market-meta"><span>Live Basis: +0.01%</span><span>Margin APR: 3.25%</span></div>
-          <svg width="100%" height="20" style="margin-bottom: 10px; border-bottom: 1px dashed var(--border);"><path d="M0 10 Q 25 15, 50 10 T 100 5 T 150 10 T 200 5 T 250 15 T 300 10 T 350 5" stroke="var(--accent-kalshi)" fill="transparent" stroke-width="2"/></svg>
+          <div class="market-meta">
+            <span>Live Basis: +0.01%</span>
+            <span>Margin APR: 3.25%</span>
+          </div>
+          <svg width="100%" height="20" style="margin-bottom: 10px; border-bottom: 1px dashed var(--border);">
+            <path d="M0 10 Q 25 15, 50 10 T 100 5 T 150 10 T 200 5 T 250 15 T 300 10 T 350 5" stroke="var(--accent-kalshi)" fill="transparent" stroke-width="2"/>
+          </svg>
           <div class="market-actions">
             <button class="btn-buy" onclick="openOrderModal('kalshi', 'LONG', 'SUIPERP', 50)">Long</button>
             <button class="btn-sell" onclick="openOrderModal('kalshi', 'SHORT', 'SUIPERP', 50)">Short</button>
@@ -861,10 +1135,15 @@
           <div class="gemini-drawer"></div>
         </div>
 
-        <div class="market-card" data-roi="0" data-expiry="0">
+        <div class="market-card" data-roi="0" data-expiry="0" data-sport="macro">
           <div class="market-title">NEARPERP Continuous</div>
-          <div class="market-meta"><span>Live Basis: +0.01%</span><span>Margin APR: 3.25%</span></div>
-          <svg width="100%" height="20" style="margin-bottom: 10px; border-bottom: 1px dashed var(--border);"><path d="M0 10 Q 25 15, 50 10 T 100 5 T 150 10 T 200 5 T 250 15 T 300 10 T 350 5" stroke="var(--accent-kalshi)" fill="transparent" stroke-width="2"/></svg>
+          <div class="market-meta">
+            <span>Live Basis: +0.01%</span>
+            <span>Margin APR: 3.25%</span>
+          </div>
+          <svg width="100%" height="20" style="margin-bottom: 10px; border-bottom: 1px dashed var(--border);">
+            <path d="M0 10 Q 25 15, 50 10 T 100 5 T 150 10 T 200 5 T 250 15 T 300 10 T 350 5" stroke="var(--accent-kalshi)" fill="transparent" stroke-width="2"/>
+          </svg>
           <div class="market-actions">
             <button class="btn-buy" onclick="openOrderModal('kalshi', 'LONG', 'NEARPERP', 50)">Long</button>
             <button class="btn-sell" onclick="openOrderModal('kalshi', 'SHORT', 'NEARPERP', 50)">Short</button>
@@ -873,10 +1152,15 @@
           <div class="gemini-drawer"></div>
         </div>
 
-        <div class="market-card" data-roi="0" data-expiry="0">
+        <div class="market-card" data-roi="0" data-expiry="0" data-sport="macro">
           <div class="market-title">HYPEPERP Continuous</div>
-          <div class="market-meta"><span>Live Basis: +0.01%</span><span>Margin APR: 3.25%</span></div>
-          <svg width="100%" height="20" style="margin-bottom: 10px; border-bottom: 1px dashed var(--border);"><path d="M0 10 Q 25 15, 50 10 T 100 5 T 150 10 T 200 5 T 250 15 T 300 10 T 350 5" stroke="var(--accent-kalshi)" fill="transparent" stroke-width="2"/></svg>
+          <div class="market-meta">
+            <span>Live Basis: +0.01%</span>
+            <span>Margin APR: 3.25%</span>
+          </div>
+          <svg width="100%" height="20" style="margin-bottom: 10px; border-bottom: 1px dashed var(--border);">
+            <path d="M0 10 Q 25 15, 50 10 T 100 5 T 150 10 T 200 5 T 250 15 T 300 10 T 350 5" stroke="var(--accent-kalshi)" fill="transparent" stroke-width="2"/>
+          </svg>
           <div class="market-actions">
             <button class="btn-buy" onclick="openOrderModal('kalshi', 'LONG', 'HYPEPERP', 50)">Long</button>
             <button class="btn-sell" onclick="openOrderModal('kalshi', 'SHORT', 'HYPEPERP', 50)">Short</button>
@@ -885,10 +1169,15 @@
           <div class="gemini-drawer"></div>
         </div>
 
-        <div class="market-card" data-roi="0" data-expiry="0">
+        <div class="market-card" data-roi="0" data-expiry="0" data-sport="macro">
           <div class="market-title">AAVEPERP Continuous</div>
-          <div class="market-meta"><span>Live Basis: +0.01%</span><span>Margin APR: 3.25%</span></div>
-          <svg width="100%" height="20" style="margin-bottom: 10px; border-bottom: 1px dashed var(--border);"><path d="M0 10 Q 25 15, 50 10 T 100 5 T 150 10 T 200 5 T 250 15 T 300 10 T 350 5" stroke="var(--accent-kalshi)" fill="transparent" stroke-width="2"/></svg>
+          <div class="market-meta">
+            <span>Live Basis: +0.01%</span>
+            <span>Margin APR: 3.25%</span>
+          </div>
+          <svg width="100%" height="20" style="margin-bottom: 10px; border-bottom: 1px dashed var(--border);">
+            <path d="M0 10 Q 25 15, 50 10 T 100 5 T 150 10 T 200 5 T 250 15 T 300 10 T 350 5" stroke="var(--accent-kalshi)" fill="transparent" stroke-width="2"/>
+          </svg>
           <div class="market-actions">
             <button class="btn-buy" onclick="openOrderModal('kalshi', 'LONG', 'AAVEPERP', 50)">Long</button>
             <button class="btn-sell" onclick="openOrderModal('kalshi', 'SHORT', 'AAVEPERP', 50)">Short</button>
@@ -897,10 +1186,15 @@
           <div class="gemini-drawer"></div>
         </div>
 
-        <div class="market-card" data-roi="0" data-expiry="0">
+        <div class="market-card" data-roi="0" data-expiry="0" data-sport="macro">
           <div class="market-title">BCHPERP Continuous</div>
-          <div class="market-meta"><span>Live Basis: +0.01%</span><span>Margin APR: 3.25%</span></div>
-          <svg width="100%" height="20" style="margin-bottom: 10px; border-bottom: 1px dashed var(--border);"><path d="M0 10 Q 25 15, 50 10 T 100 5 T 150 10 T 200 5 T 250 15 T 300 10 T 350 5" stroke="var(--accent-kalshi)" fill="transparent" stroke-width="2"/></svg>
+          <div class="market-meta">
+            <span>Live Basis: +0.01%</span>
+            <span>Margin APR: 3.25%</span>
+          </div>
+          <svg width="100%" height="20" style="margin-bottom: 10px; border-bottom: 1px dashed var(--border);">
+            <path d="M0 10 Q 25 15, 50 10 T 100 5 T 150 10 T 200 5 T 250 15 T 300 10 T 350 5" stroke="var(--accent-kalshi)" fill="transparent" stroke-width="2"/>
+          </svg>
           <div class="market-actions">
             <button class="btn-buy" onclick="openOrderModal('kalshi', 'LONG', 'BCHPERP', 50)">Long</button>
             <button class="btn-sell" onclick="openOrderModal('kalshi', 'SHORT', 'BCHPERP', 50)">Short</button>
@@ -909,10 +1203,15 @@
           <div class="gemini-drawer"></div>
         </div>
 
-        <div class="market-card" data-roi="0" data-expiry="0">
+        <div class="market-card" data-roi="0" data-expiry="0" data-sport="macro">
           <div class="market-title">DOTPERP Continuous</div>
-          <div class="market-meta"><span>Live Basis: +0.01%</span><span>Margin APR: 3.25%</span></div>
-          <svg width="100%" height="20" style="margin-bottom: 10px; border-bottom: 1px dashed var(--border);"><path d="M0 10 Q 25 15, 50 10 T 100 5 T 150 10 T 200 5 T 250 15 T 300 10 T 350 5" stroke="var(--accent-kalshi)" fill="transparent" stroke-width="2"/></svg>
+          <div class="market-meta">
+            <span>Live Basis: +0.01%</span>
+            <span>Margin APR: 3.25%</span>
+          </div>
+          <svg width="100%" height="20" style="margin-bottom: 10px; border-bottom: 1px dashed var(--border);">
+            <path d="M0 10 Q 25 15, 50 10 T 100 5 T 150 10 T 200 5 T 250 15 T 300 10 T 350 5" stroke="var(--accent-kalshi)" fill="transparent" stroke-width="2"/>
+          </svg>
           <div class="market-actions">
             <button class="btn-buy" onclick="openOrderModal('kalshi', 'LONG', 'DOTPERP', 50)">Long</button>
             <button class="btn-sell" onclick="openOrderModal('kalshi', 'SHORT', 'DOTPERP', 50)">Short</button>
@@ -921,10 +1220,15 @@
           <div class="gemini-drawer"></div>
         </div>
 
-        <div class="market-card" data-roi="0" data-expiry="0">
+        <div class="market-card" data-roi="0" data-expiry="0" data-sport="macro">
           <div class="market-title">UNIPERP Continuous</div>
-          <div class="market-meta"><span>Live Basis: +0.01%</span><span>Margin APR: 3.25%</span></div>
-          <svg width="100%" height="20" style="margin-bottom: 10px; border-bottom: 1px dashed var(--border);"><path d="M0 10 Q 25 15, 50 10 T 100 5 T 150 10 T 200 5 T 250 15 T 300 10 T 350 5" stroke="var(--accent-kalshi)" fill="transparent" stroke-width="2"/></svg>
+          <div class="market-meta">
+            <span>Live Basis: +0.01%</span>
+            <span>Margin APR: 3.25%</span>
+          </div>
+          <svg width="100%" height="20" style="margin-bottom: 10px; border-bottom: 1px dashed var(--border);">
+            <path d="M0 10 Q 25 15, 50 10 T 100 5 T 150 10 T 200 5 T 250 15 T 300 10 T 350 5" stroke="var(--accent-kalshi)" fill="transparent" stroke-width="2"/>
+          </svg>
           <div class="market-actions">
             <button class="btn-buy" onclick="openOrderModal('kalshi', 'LONG', 'UNIPERP', 50)">Long</button>
             <button class="btn-sell" onclick="openOrderModal('kalshi', 'SHORT', 'UNIPERP', 50)">Short</button>
@@ -933,10 +1237,15 @@
           <div class="gemini-drawer"></div>
         </div>
 
-        <div class="market-card" data-roi="0" data-expiry="0">
+        <div class="market-card" data-roi="0" data-expiry="0" data-sport="macro">
           <div class="market-title">POLPERP Continuous</div>
-          <div class="market-meta"><span>Live Basis: +0.01%</span><span>Margin APR: 3.25%</span></div>
-          <svg width="100%" height="20" style="margin-bottom: 10px; border-bottom: 1px dashed var(--border);"><path d="M0 10 Q 25 15, 50 10 T 100 5 T 150 10 T 200 5 T 250 15 T 300 10 T 350 5" stroke="var(--accent-kalshi)" fill="transparent" stroke-width="2"/></svg>
+          <div class="market-meta">
+            <span>Live Basis: +0.01%</span>
+            <span>Margin APR: 3.25%</span>
+          </div>
+          <svg width="100%" height="20" style="margin-bottom: 10px; border-bottom: 1px dashed var(--border);">
+            <path d="M0 10 Q 25 15, 50 10 T 100 5 T 150 10 T 200 5 T 250 15 T 300 10 T 350 5" stroke="var(--accent-kalshi)" fill="transparent" stroke-width="2"/>
+          </svg>
           <div class="market-actions">
             <button class="btn-buy" onclick="openOrderModal('kalshi', 'LONG', 'POLPERP', 50)">Long</button>
             <button class="btn-sell" onclick="openOrderModal('kalshi', 'SHORT', 'POLPERP', 50)">Short</button>
@@ -949,13 +1258,22 @@
     </div>
     
     <div class="card">
-      <div class="card-header"><span>🛢️ Commodities Suite (All 5 Active)</span><span>Daily Yield</span></div>
+      <div class="card-header">
+        <span>🛢️ Commodities Suite (All 5 Active)</span>
+        <span>Daily Yield</span>
+      </div>
       <div id="kalshi-commodities-feed">
+        
         <!-- Explicit 5 Commodities -->
-        <div class="market-card" data-roi="0" data-expiry="0">
+        <div class="market-card" data-roi="0" data-expiry="0" data-sport="macro">
           <div class="market-title">GOLDFUT Continuous</div>
-          <div class="market-meta"><span>Live Basis: +0.01%</span><span>Margin APR: 3.25%</span></div>
-          <svg width="100%" height="20" style="margin-bottom: 10px; border-bottom: 1px dashed var(--border);"><path d="M0 10 Q 25 15, 50 10 T 100 5 T 150 10 T 200 5 T 250 15 T 300 10 T 350 5" stroke="var(--accent-kalshi)" fill="transparent" stroke-width="2"/></svg>
+          <div class="market-meta">
+            <span>Live Basis: +0.01%</span>
+            <span>Margin APR: 3.25%</span>
+          </div>
+          <svg width="100%" height="20" style="margin-bottom: 10px; border-bottom: 1px dashed var(--border);">
+            <path d="M0 10 Q 25 15, 50 10 T 100 5 T 150 10 T 200 5 T 250 15 T 300 10 T 350 5" stroke="var(--accent-kalshi)" fill="transparent" stroke-width="2"/>
+          </svg>
           <div class="market-actions">
             <button class="btn-buy" onclick="openOrderModal('kalshi', 'LONG', 'GOLDFUT', 50)">Long</button>
             <button class="btn-sell" onclick="openOrderModal('kalshi', 'SHORT', 'GOLDFUT', 50)">Short</button>
@@ -964,10 +1282,15 @@
           <div class="gemini-drawer"></div>
         </div>
 
-        <div class="market-card" data-roi="0" data-expiry="0">
+        <div class="market-card" data-roi="0" data-expiry="0" data-sport="macro">
           <div class="market-title">SILVERFUT Continuous</div>
-          <div class="market-meta"><span>Live Basis: +0.01%</span><span>Margin APR: 3.25%</span></div>
-          <svg width="100%" height="20" style="margin-bottom: 10px; border-bottom: 1px dashed var(--border);"><path d="M0 10 Q 25 15, 50 10 T 100 5 T 150 10 T 200 5 T 250 15 T 300 10 T 350 5" stroke="var(--accent-kalshi)" fill="transparent" stroke-width="2"/></svg>
+          <div class="market-meta">
+            <span>Live Basis: +0.01%</span>
+            <span>Margin APR: 3.25%</span>
+          </div>
+          <svg width="100%" height="20" style="margin-bottom: 10px; border-bottom: 1px dashed var(--border);">
+            <path d="M0 10 Q 25 15, 50 10 T 100 5 T 150 10 T 200 5 T 250 15 T 300 10 T 350 5" stroke="var(--accent-kalshi)" fill="transparent" stroke-width="2"/>
+          </svg>
           <div class="market-actions">
             <button class="btn-buy" onclick="openOrderModal('kalshi', 'LONG', 'SILVERFUT', 50)">Long</button>
             <button class="btn-sell" onclick="openOrderModal('kalshi', 'SHORT', 'SILVERFUT', 50)">Short</button>
@@ -976,10 +1299,15 @@
           <div class="gemini-drawer"></div>
         </div>
 
-        <div class="market-card" data-roi="0" data-expiry="0">
+        <div class="market-card" data-roi="0" data-expiry="0" data-sport="macro">
           <div class="market-title">WTICRUDE Continuous</div>
-          <div class="market-meta"><span>Live Basis: +0.01%</span><span>Margin APR: 3.25%</span></div>
-          <svg width="100%" height="20" style="margin-bottom: 10px; border-bottom: 1px dashed var(--border);"><path d="M0 10 Q 25 15, 50 10 T 100 5 T 150 10 T 200 5 T 250 15 T 300 10 T 350 5" stroke="var(--accent-kalshi)" fill="transparent" stroke-width="2"/></svg>
+          <div class="market-meta">
+            <span>Live Basis: +0.01%</span>
+            <span>Margin APR: 3.25%</span>
+          </div>
+          <svg width="100%" height="20" style="margin-bottom: 10px; border-bottom: 1px dashed var(--border);">
+            <path d="M0 10 Q 25 15, 50 10 T 100 5 T 150 10 T 200 5 T 250 15 T 300 10 T 350 5" stroke="var(--accent-kalshi)" fill="transparent" stroke-width="2"/>
+          </svg>
           <div class="market-actions">
             <button class="btn-buy" onclick="openOrderModal('kalshi', 'LONG', 'WTICRUDE', 50)">Long</button>
             <button class="btn-sell" onclick="openOrderModal('kalshi', 'SHORT', 'WTICRUDE', 50)">Short</button>
@@ -988,10 +1316,15 @@
           <div class="gemini-drawer"></div>
         </div>
 
-        <div class="market-card" data-roi="0" data-expiry="0">
+        <div class="market-card" data-roi="0" data-expiry="0" data-sport="macro">
           <div class="market-title">RBOB Continuous</div>
-          <div class="market-meta"><span>Live Basis: +0.01%</span><span>Margin APR: 3.25%</span></div>
-          <svg width="100%" height="20" style="margin-bottom: 10px; border-bottom: 1px dashed var(--border);"><path d="M0 10 Q 25 15, 50 10 T 100 5 T 150 10 T 200 5 T 250 15 T 300 10 T 350 5" stroke="var(--accent-kalshi)" fill="transparent" stroke-width="2"/></svg>
+          <div class="market-meta">
+            <span>Live Basis: +0.01%</span>
+            <span>Margin APR: 3.25%</span>
+          </div>
+          <svg width="100%" height="20" style="margin-bottom: 10px; border-bottom: 1px dashed var(--border);">
+            <path d="M0 10 Q 25 15, 50 10 T 100 5 T 150 10 T 200 5 T 250 15 T 300 10 T 350 5" stroke="var(--accent-kalshi)" fill="transparent" stroke-width="2"/>
+          </svg>
           <div class="market-actions">
             <button class="btn-buy" onclick="openOrderModal('kalshi', 'LONG', 'RBOB', 50)">Long</button>
             <button class="btn-sell" onclick="openOrderModal('kalshi', 'SHORT', 'RBOB', 50)">Short</button>
@@ -1000,10 +1333,15 @@
           <div class="gemini-drawer"></div>
         </div>
 
-        <div class="market-card" data-roi="0" data-expiry="0">
+        <div class="market-card" data-roi="0" data-expiry="0" data-sport="macro">
           <div class="market-title">NATGAS Continuous</div>
-          <div class="market-meta"><span>Live Basis: +0.01%</span><span>Margin APR: 3.25%</span></div>
-          <svg width="100%" height="20" style="margin-bottom: 10px; border-bottom: 1px dashed var(--border);"><path d="M0 10 Q 25 15, 50 10 T 100 5 T 150 10 T 200 5 T 250 15 T 300 10 T 350 5" stroke="var(--accent-kalshi)" fill="transparent" stroke-width="2"/></svg>
+          <div class="market-meta">
+            <span>Live Basis: +0.01%</span>
+            <span>Margin APR: 3.25%</span>
+          </div>
+          <svg width="100%" height="20" style="margin-bottom: 10px; border-bottom: 1px dashed var(--border);">
+            <path d="M0 10 Q 25 15, 50 10 T 100 5 T 150 10 T 200 5 T 250 15 T 300 10 T 350 5" stroke="var(--accent-kalshi)" fill="transparent" stroke-width="2"/>
+          </svg>
           <div class="market-actions">
             <button class="btn-buy" onclick="openOrderModal('kalshi', 'LONG', 'NATGAS', 50)">Long</button>
             <button class="btn-sell" onclick="openOrderModal('kalshi', 'SHORT', 'NATGAS', 50)">Short</button>
@@ -1019,9 +1357,14 @@
   <!-- VIEW: FLEET SLIPS -->
   <div id="view-sports" class="tab-view">
     <div class="card">
-      <div class="card-header"><span>Sportsbook Fleet Slips</span><span>DraftKings & FanDuel</span></div>
+      <div class="card-header">
+        <span>Sportsbook Fleet Slips</span>
+        <span>DraftKings & FanDuel</span>
+      </div>
       <div id="sports-slips-container">
-        <p style="font-size: 11px; color: var(--muted); text-align: center; padding: 16px 0;">No active slips detected in edge queue.</p>
+        <p style="font-size: 11px; color: var(--muted); text-align: center; padding: 16px 0;">
+          No active slips detected in edge queue.
+        </p>
       </div>
     </div>
   </div>
@@ -1029,17 +1372,33 @@
   <!-- VIEW: VAULT -->
   <div id="view-vault" class="tab-view">
     <div class="card">
-      <div class="card-header"><span>Portfolio & Balance State</span><span style="color: var(--accent-kalshi);">Trader Mode Active</span></div>
+      <div class="card-header">
+        <span>Portfolio & Balance State</span>
+        <span style="color: var(--accent-kalshi);">Trader Mode Active</span>
+      </div>
       <div class="telemetry-grid">
-        <div class="telemetry-box"><div class="label">Polymarket.us (Cash)</div><div class="value" id="disp-poly-funds">$0.00</div></div>
-        <div class="telemetry-box"><div class="label">Kalshi (Cash)</div><div class="value" id="disp-kalshi-funds">$0.00</div></div>
-        <div class="telemetry-box"><div class="label">Deployable Capital</div><div class="value" id="disp-deployable-funds" style="color: var(--accent);">$0.00</div></div>
-        <div class="telemetry-box"><div class="label">Shielded Reserve</div><div class="value" id="disp-shielded-funds" style="color: #ffb703;">$5.00</div></div>
+        <div class="telemetry-box">
+          <div class="label">Polymarket.us (Cash)</div>
+          <div class="value" id="disp-poly-funds">$0.00</div>
+        </div>
+        <div class="telemetry-box">
+          <div class="label">Kalshi (Cash)</div>
+          <div class="value" id="disp-kalshi-funds">$0.00</div>
+        </div>
+        <div class="telemetry-box">
+          <div class="label">Deployable Capital</div>
+          <div class="value" id="disp-deployable-funds" style="color: var(--accent);">$0.00</div>
+        </div>
+        <div class="telemetry-box">
+          <div class="label">Shielded Reserve</div>
+          <div class="value" id="disp-shielded-funds" style="color: #ffb703;">$5.00</div>
+        </div>
       </div>
     </div>
 
     <div class="card">
       <div class="card-header">BYOK Sovereign Security Vault</div>
+      
       <label class="vault-label">Kalshi Key ID</label>
       <input type="password" id="vault-kalshi-key" class="vault-input" placeholder="e.g. 7f8a1234-...">
       
@@ -1052,7 +1411,9 @@
       <label class="vault-label">UI Zoom Scale (%)</label>
       <input type="range" id="ui-zoom-slider" min="80" max="140" value="100" style="width: 100%; margin-bottom: 12px;" oninput="updateUiZoom(this.value)">
       
-      <button class="btn" style="width: 100%; justify-content: center; background: var(--accent); color: #000; padding: 10px;" onclick="saveVaultKeys()">💾 Save Credentials & Sync</button>
+      <button class="btn" style="width: 100%; justify-content: center; background: var(--accent); color: #000; padding: 10px;" onclick="saveVaultKeys()">
+        💾 Save Credentials & Sync
+      </button>
     </div>
   </div>
 
@@ -1060,41 +1421,67 @@
        3. BOTTOM NAVIGATION BAR
        ======================================================================= -->
   <nav class="bottom-bar">
-    <button class="nav-item active" onclick="switchDesk('hub', null)"><span>🎯</span>Hub</button>
-    <button class="nav-item" onclick="switchDesk('poly', null)"><span>🟣</span>Poly</button>
-    <button class="nav-item" onclick="switchDesk('kalshi', null)"><span>🟢</span>Kalshi</button>
-    <button class="nav-item" onclick="switchDesk('sports', null)"><span>🏈</span>Fleet</button>
-    <button class="nav-item" onclick="switchDesk('vault', null)"><span>💼</span>Vault</button>
+    <button class="nav-item active" onclick="switchDesk('hub', null)">
+      <span>🎯</span>
+      <span>Hub</span>
+    </button>
+    <button class="nav-item" onclick="switchDesk('poly', null)">
+      <span>🟣</span>
+      <span>Poly</span>
+    </button>
+    <button class="nav-item" onclick="switchDesk('kalshi', null)">
+      <span>🟢</span>
+      <span>Kalshi</span>
+    </button>
+    <button class="nav-item" onclick="switchDesk('sports', null)">
+      <span>🏈</span>
+      <span>Fleet</span>
+    </button>
+    <button class="nav-item" onclick="switchDesk('vault', null)">
+      <span>💼</span>
+      <span>Vault</span>
+    </button>
   </nav>
 
   <!-- =======================================================================
-       4. INTERACTIVE EXECUTION MODAL
+       4. INTERACTIVE EXECUTION MODAL (FIXED FOR MOBILE LAYOUT)
        ======================================================================= -->
   <div id="execution-modal" class="modal-overlay" style="display: none;">
     <div class="modal-content">
       <h3 id="exec-market-title">Market Title</h3>
       <div class="exec-details">
+        
         <div class="exec-row">
           <span>Action:</span>
-          <span id="exec-side" style="color: var(--accent); text-transform: uppercase;">BUY</span>
+          <span id="exec-side" style="color: var(--accent); text-transform: uppercase; font-weight: 900;">BUY</span>
         </div>
+        
         <div class="exec-row">
           <span>Contracts:</span>
           <input type="number" id="exec-contracts" class="exec-input" value="1" min="1" oninput="updateOrderTotal()">
         </div>
+        
         <div class="exec-row">
           <span>Limit Price (¢):</span>
           <input type="number" id="exec-price" class="exec-input" step="1" oninput="updateOrderTotal()">
         </div>
+        
         <div class="exec-row" style="margin-top: 10px; border-top: 1px dashed var(--border); padding-top: 10px;">
           <span>Estimated Total:</span>
-          <span id="exec-total" style="color: #fff; font-size: 14px;">$0.00</span>
+          <span id="exec-total" style="color: #fff; font-size: 16px; font-weight: 900;">$0.00</span>
         </div>
+        
       </div>
+      
       <div class="modal-actions">
-        <button class="btn btn-buy" style="background: var(--accent-kalshi); color: #000; border: none;" onclick="submitOrder()">CONFIRM ORDER</button>
-        <button class="btn" style="background: var(--surface);" onclick="closeModal()">Cancel</button>
+        <button class="btn btn-buy" style="background: var(--accent-kalshi); color: #000; border: none;" onclick="submitOrder()">
+          CONFIRM ORDER
+        </button>
+        <button class="btn" style="background: var(--surface);" onclick="closeModal()">
+          Cancel
+        </button>
       </div>
+      
     </div>
   </div>
 
@@ -1108,11 +1495,16 @@
     function switchMainTab(tabId) {
       document.querySelectorAll('.tab-view').forEach(t => t.classList.remove('active'));
       const target = document.getElementById(`view-${tabId}`);
-      if (target) target.classList.add('active');
+      if (target) {
+        target.classList.add('active');
+      }
       
       const sorter = document.getElementById('global-sorter');
-      if (tabId === 'vault' || tabId === 'sports') sorter.style.display = 'none';
-      else sorter.style.display = 'flex';
+      if (tabId === 'vault' || tabId === 'sports') {
+        sorter.style.display = 'none';
+      } else {
+        sorter.style.display = 'flex';
+      }
     }
 
     function switchDesk(deskId, el) {
@@ -1127,22 +1519,28 @@
             topBtns[map[deskId]].classList.add('active');
         }
       }
+      
       switchMainTab(deskId);
       
       const bottomNavMap = { hub: 0, poly: 1, kalshi: 2, sports: 3, vault: 4 };
       document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
       const navItems = document.querySelectorAll('.nav-item');
-      if (navItems[bottomNavMap[deskId]]) navItems[bottomNavMap[deskId]].classList.add('active');
+      if (navItems[bottomNavMap[deskId]]) {
+        navItems[bottomNavMap[deskId]].classList.add('active');
+      }
     }
 
     function switchSortOrder(order, btn) {
       document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
-      if (btn) btn.classList.add('active');
+      if (btn) {
+        btn.classList.add('active');
+      }
 
       const activeTab = document.querySelector('.tab-view.active');
       if (!activeTab) return;
 
       const containers = activeTab.querySelectorAll('#hub-sports-container, #hub-esports-container, #poly-live-feed, #kalshi-15m-feed, #kalshi-perps-feed, #kalshi-commodities-feed');
+      
       containers.forEach(container => {
         const cards = Array.from(container.querySelectorAll('.market-card'));
         if (cards.length <= 1) return;
@@ -1161,6 +1559,21 @@
 
         container.innerHTML = '';
         cards.forEach(c => container.appendChild(c));
+      });
+    }
+
+    function filterBySport(sport, btn) {
+      document.querySelectorAll('.pill-btn').forEach(b => b.classList.remove('active'));
+      if(btn) {
+        btn.classList.add('active');
+      }
+
+      document.querySelectorAll('.market-card').forEach(card => {
+        if (sport === 'all') {
+          card.style.display = 'block';
+        } else {
+          card.style.display = card.dataset.sport === sport ? 'block' : 'none';
+        }
       });
     }
 
@@ -1191,7 +1604,10 @@
         try {
           const res = await fetch(`${WORKER_BASE}/api/agent/gemini`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'X-Gemini-Key': geminiKey },
+            headers: { 
+              'Content-Type': 'application/json', 
+              'X-Gemini-Key': geminiKey 
+            },
             body: JSON.stringify({ 
               ticker: "DESK_PICK", 
               title: marketText, 
@@ -1207,7 +1623,10 @@
           if (data.error) {
             drawer.innerHTML = `<span style="color: var(--danger);">⚠️ Relay Error: ${data.error}</span>`;
           } else {
-            drawer.innerHTML = `<strong style="color: var(--accent-kalshi);">RECOMMENDATION: VALIDATED EDGE</strong><br>${data.analysis.replace(/\n/g, '<br>')}`;
+            drawer.innerHTML = `
+              <strong style="color: var(--accent-kalshi);">RECOMMENDATION: VALIDATED EDGE</strong><br>
+              ${data.analysis.replace(/\n/g, '<br>')}
+            `;
           }
         } catch (err) {
           drawer.innerHTML = `<span style="color: var(--danger);">Inference failed: Ensure valid API key in Vault.</span>`;
@@ -1228,19 +1647,25 @@
         const rSec = (remaining % 60).toString().padStart(2, '0');
         
         const timerEl = document.getElementById('global-15m-timer');
-        if (timerEl) timerEl.textContent = `● ${rMin}:${rSec}`;
+        if (timerEl) {
+          timerEl.textContent = `● ${rMin}:${rSec}`;
+        }
         
         const pct = ((900 - remaining) / 900) * 100;
-        document.querySelectorAll('.progress-fill').forEach(bar => bar.style.width = `${pct}%`);
+        document.querySelectorAll('.progress-fill').forEach(bar => {
+          bar.style.width = `${pct}%`;
+        });
       }, 1000);
     }
 
     function openOrderModal(desk, side, market, price) {
       CURRENT_ORDER = { desk, side, market, price };
+      
       document.getElementById('exec-market-title').textContent = market;
       document.getElementById('exec-side').textContent = side;
       document.getElementById('exec-price').value = price;
       document.getElementById('exec-contracts').value = 1;
+      
       updateOrderTotal();
       document.getElementById('execution-modal').style.display = 'flex';
     }
@@ -1303,22 +1728,30 @@
 
       if (kKey) {
         try {
-          const res = await fetch(`${WORKER_BASE}/api/kalshi/trade/portfolio/balance`, { headers: { "KALSHI-ACCESS-KEY": kKey } });
+          const res = await fetch(`${WORKER_BASE}/api/kalshi/trade/portfolio/balance`, { 
+            headers: { "KALSHI-ACCESS-KEY": kKey } 
+          });
           if (res.ok) {
             const data = await res.json();
             kalshiCash = (data.balance || 0) / 100;
           }
-        } catch (e) {}
+        } catch (e) {
+          console.warn("Kalshi balance fetch failed", e);
+        }
       }
 
       if (pKey) {
         try {
-          const res = await fetch(`${WORKER_BASE}/api/poly/balance`, { headers: { "X-PM-Access-Key": pKey } });
+          const res = await fetch(`${WORKER_BASE}/api/poly/balance`, { 
+            headers: { "X-PM-Access-Key": pKey } 
+          });
           if (res.ok) {
             const data = await res.json();
             polyCash = parseFloat(data.balance || 0);
           }
-        } catch (e) {}
+        } catch (e) {
+          console.warn("Polymarket balance fetch failed", e);
+        }
       }
 
       const totalLiquid = kalshiCash + polyCash;
