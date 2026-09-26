@@ -447,11 +447,16 @@ input[type=range]{ flex:1; accent-color:var(--cyan); }
 
     <div class="section-card">
       <h3>Worker Endpoint</h3>
+      <p class="hint" id="workerEndpointStatus" style="margin:0 0 10px;">—</p>
       <div class="field">
-        <label>Cosmic Terminal Worker URL (your Cloudflare Worker deployment)</label>
+        <label>Cosmic Terminal Worker URL — leave blank to use the shared default</label>
         <input type="text" id="workerUrlInput" placeholder="https://cosmic-terminal.yoursubdomain.workers.dev">
+        <p class="hint">Only set this if you've deployed your own Worker (see the "Deploy to Cloudflare" button in the repo README) and want your market/fleet traffic to run through your own account instead of the shared one.</p>
       </div>
-      <button class="btn primary" id="saveWorkerBtn" style="max-width:220px;">Save Endpoint</button>
+      <div class="cbtnrow">
+        <button class="btn primary" id="saveWorkerBtn">Save Endpoint</button>
+        <button class="btn ghost" id="resetWorkerBtn">Use Shared Default</button>
+      </div>
     </div>
 
     <div class="section-card">
@@ -599,6 +604,29 @@ input[type=range]{ flex:1; accent-color:var(--cyan); }
    ========================================================================== */
 
 /* ---------------------------- persistent state --------------------------- */
+
+/**
+ * SHARED DEFAULT ENDPOINT
+ * ------------------------
+ * Deploy worker.js once to your own Cloudflare account (`wrangler deploy`,
+ * or the "Deploy to Cloudflare" button in the repo README), then paste the
+ * resulting *.workers.dev URL below. Every visitor to this page then gets
+ * a working terminal (public Kalshi/Polymarket data, Fleet sentinel) with
+ * zero setup — they only ever need the Vault for their own BYOK trading
+ * keys, never for a Worker URL.
+ *
+ * This is safe under the zero-trust model: the Worker never persists
+ * anyone's credentials regardless of whose Cloudflare account runs it —
+ * BYOK headers are forwarded per-request and discarded. The only cost of
+ * sharing one Worker across visitors is that everyone's *read* traffic
+ * shares your account's free-tier quota (100k requests/day). If this app
+ * gets real traffic, consider Cloudflare's $5/mo Workers paid plan.
+ *
+ * Leave this empty to ship with no default — visitors will then be
+ * required to paste their own Worker URL in Vault, same as before.
+ */
+const DEFAULT_WORKER_URL = ""; // e.g. "https://cosmic-terminal.yoursubdomain.workers.dev"
+
 const LS = {
   get(key, fallback){ try{ const v = localStorage.getItem("cpt:"+key); return v===null? fallback : JSON.parse(v); }catch(e){ return fallback; } },
   set(key, val){ try{ localStorage.setItem("cpt:"+key, JSON.stringify(val)); }catch(e){} },
@@ -616,7 +644,7 @@ function ensureUserId(){
 
 const state = {
   userId: ensureUserId(),
-  workerUrl: LS.get("workerUrl", ""),
+  workerUrl: LS.get("workerUrl", ""), // raw override only; "" means "use shared default"
   vault: LS.get("vault", {}),
   shieldedReserve: LS.get("shieldedReserve", 5),
   uiZoom: LS.get("uiZoom", 100),
@@ -646,10 +674,20 @@ function toast(msg){
   clearTimeout(toast._t); toast._t = setTimeout(()=>t.classList.remove("show"), 2600);
 }
 function escapeHtml(s){ return String(s).replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+/** Safely embed an arbitrary JS object as an inline onclick(...) argument.
+ *  Double-JSON-encodes then entity-escapes every quote, so the payload can
+ *  never prematurely close the double-quoted HTML attribute it sits inside
+ *  — regardless of quotes, backslashes, or unicode in the underlying data.
+ *  Pair with JSON.parse(arg) on the receiving end (see openExecModal /
+ *  askCopilotAbout below). */
+function attrPayload(obj){ return JSON.stringify(JSON.stringify(obj)).replace(/"/g,"&quot;"); }
+
+function effectiveWorkerUrl(){ return (state.workerUrl && state.workerUrl.trim()) || DEFAULT_WORKER_URL; }
 
 async function api(path, opts={}){
-  if(!state.workerUrl){ throw new Error("Set your Worker URL in the Vault desk first."); }
-  const url = state.workerUrl.replace(/\/$/,"") + path;
+  const base = effectiveWorkerUrl();
+  if(!base){ throw new Error("No Worker configured — set your own in the Vault, or ask the app owner to ship a shared default."); }
+  const url = base.replace(/\/$/,"") + path;
   const resp = await fetch(url, opts);
   const text = await resp.text();
   let data; try{ data = JSON.parse(text); }catch(e){ data = { ok:false, error:"Non-JSON response: " + text.slice(0,120) }; }
@@ -923,9 +961,9 @@ function renderPolyCardHtml(ev, glyphOverride){
     + '<div class="cmeta"><span>Vol 24h <b class="mono">'+fmtUsd(vol)+'</b></span><span>Ends <b>'+endsIn+'</b></span></div>'
     + '<div class="crow"><span class="dim" style="font-size:11.5px;">Yes '+impliedProb(yesPrice)+' · No '+impliedProb(noPrice)+'</span></div>'
     + '<div class="cbtnrow">'
-    +   '<button class="btn yes" onclick="openExecModal(\'poly\', '+JSON.stringify(JSON.stringify({title:ev.title, side:"YES", price:Math.round(yesPrice*100), conditionId:m.conditionId||null})).replace(/"/g,"&quot;")+')">YES '+Math.round(yesPrice*100)+'¢</button>'
-    +   '<button class="btn no" onclick="openExecModal(\'poly\', '+JSON.stringify(JSON.stringify({title:ev.title, side:"NO", price:Math.round(noPrice*100), conditionId:m.conditionId||null})).replace(/"/g,"&quot;")+')">NO '+Math.round(noPrice*100)+'¢</button>'
-    +   '<button class="btn ghost" style="flex:0 0 40px;" title="Ask Copilot" onclick="askCopilotAbout({venue:\'Polymarket\', title:'+JSON.stringify(ev.title||"")+', yes:'+yesPrice+', no:'+noPrice+', volume24h:'+vol+'})">🧠</button>'
+    +   '<button class="btn yes" onclick="openExecModal(\'poly\', '+attrPayload({title:ev.title, side:"YES", price:Math.round(yesPrice*100), conditionId:m.conditionId||null})+')">YES '+Math.round(yesPrice*100)+'¢</button>'
+    +   '<button class="btn no" onclick="openExecModal(\'poly\', '+attrPayload({title:ev.title, side:"NO", price:Math.round(noPrice*100), conditionId:m.conditionId||null})+')">NO '+Math.round(noPrice*100)+'¢</button>'
+    +   '<button class="btn ghost" style="flex:0 0 40px;" title="Ask Copilot" onclick="askCopilotAbout('+attrPayload({venue:"Polymarket", title:ev.title||"", yes:yesPrice, no:noPrice, volume24h:vol})+')">🧠</button>'
     + '</div>'
     + '</div>';
 }
@@ -991,9 +1029,9 @@ function renderKalshi15CardHtml(k){
     + '<div class="progress"><i data-progress style="width:0%"></i></div>'
     + '<div class="cmeta"><span>Yes bid/ask <b class="mono">'+yesBid+'¢ / '+yesAsk+'¢</b></span><span>Vol <b class="mono">'+(d.volume ?? "—")+'</b></span></div>'
     + '<div class="cbtnrow">'
-    +   '<button class="btn yes" onclick="openExecModal(\'kalshi\', '+JSON.stringify(JSON.stringify({ticker:d.ticker||k.series, title:title, side:"YES", price: (d.yes_ask||50)})).replace(/"/g,"&quot;")+')">YES '+yesAsk+'¢</button>'
-    +   '<button class="btn no" onclick="openExecModal(\'kalshi\', '+JSON.stringify(JSON.stringify({ticker:d.ticker||k.series, title:title, side:"NO", price: (d.no_ask||50)})).replace(/"/g,"&quot;")+')">NO '+(d.no_ask ?? "—")+'¢</button>'
-    +   '<button class="btn ghost" style="flex:0 0 40px;" onclick="askCopilotAbout({venue:\'Kalshi 15-Min\', title:'+JSON.stringify(title)+', yesBid:'+JSON.stringify(yesBid)+', yesAsk:'+JSON.stringify(yesAsk)+', volume:'+JSON.stringify(d.volume ?? 0)+'})">🧠</button>'
+    +   '<button class="btn yes" onclick="openExecModal(\'kalshi\', '+attrPayload({ticker:d.ticker||k.series, title:title, side:"YES", price: (d.yes_ask||50)})+')">YES '+yesAsk+'¢</button>'
+    +   '<button class="btn no" onclick="openExecModal(\'kalshi\', '+attrPayload({ticker:d.ticker||k.series, title:title, side:"NO", price: (d.no_ask||50)})+')">NO '+(d.no_ask ?? "—")+'¢</button>'
+    +   '<button class="btn ghost" style="flex:0 0 40px;" onclick="askCopilotAbout('+attrPayload({venue:"Kalshi 15-Min", title:title, yesBid:yesBid, yesAsk:yesAsk, volume:d.volume ?? 0})+')">🧠</button>'
     + '</div>'
     + '</div>';
 }
@@ -1029,9 +1067,9 @@ function renderCryptoCardHtml(c){
     + '<div class="crow"><span class="cbig mono">'+price+'</span><span class="mono '+chgClass+'">'+fmtPct(chg)+'</span></div>'
     + '<div class="cmeta"><span>Basis <b class="mono">'+basisBp+'bp</b></span><span>Margin APR <b class="mono">'+MARGIN_APR+'%</b></span></div>'
     + '<div class="cbtnrow">'
-    +   '<button class="btn long" onclick="openExecModal(\'perp\', '+JSON.stringify(JSON.stringify({sym:c.sym, title:c.name+" Perp", side:"LONG", price:d.price||0})).replace(/"/g,"&quot;")+')">Long</button>'
-    +   '<button class="btn short" onclick="openExecModal(\'perp\', '+JSON.stringify(JSON.stringify({sym:c.sym, title:c.name+" Perp", side:"SHORT", price:d.price||0})).replace(/"/g,"&quot;")+')">Short</button>'
-    +   '<button class="btn ghost" style="flex:0 0 40px;" onclick="askCopilotAbout({venue:\'Perp\', sym:\''+c.sym+'\', price:'+JSON.stringify(d.price||0)+', chg24h:'+JSON.stringify(chg||0)+', marginApr:'+MARGIN_APR+'})">🧠</button>'
+    +   '<button class="btn long" onclick="openExecModal(\'perp\', '+attrPayload({sym:c.sym, title:c.name+" Perp", side:"LONG", price:d.price||0})+')">Long</button>'
+    +   '<button class="btn short" onclick="openExecModal(\'perp\', '+attrPayload({sym:c.sym, title:c.name+" Perp", side:"SHORT", price:d.price||0})+')">Short</button>'
+    +   '<button class="btn ghost" style="flex:0 0 40px;" onclick="askCopilotAbout('+attrPayload({venue:"Perp", sym:c.sym, price:d.price||0, chg24h:chg||0, marginApr:MARGIN_APR})+')">🧠</button>'
     + '</div>'
     + '</div>';
 }
@@ -1046,8 +1084,8 @@ function renderCommodityCardHtml(c){
     + sparklineSvg(series)
     + '<div class="crow"><span class="cbig mono">$'+last.toFixed(2)+'</span><span class="mono '+(chg>=0?"up":"down")+'">'+fmtPct(chg)+'</span></div>'
     + '<div class="cbtnrow">'
-    +   '<button class="btn long" onclick="openExecModal(\'commodity\', '+JSON.stringify(JSON.stringify({sym:c.sym, title:c.name, side:"LONG", price:last})).replace(/"/g,"&quot;")+')">Long</button>'
-    +   '<button class="btn short" onclick="openExecModal(\'commodity\', '+JSON.stringify(JSON.stringify({sym:c.sym, title:c.name, side:"SHORT", price:last})).replace(/"/g,"&quot;")+')">Short</button>'
+    +   '<button class="btn long" onclick="openExecModal(\'commodity\', '+attrPayload({sym:c.sym, title:c.name, side:"LONG", price:last})+')">Long</button>'
+    +   '<button class="btn short" onclick="openExecModal(\'commodity\', '+attrPayload({sym:c.sym, title:c.name, side:"SHORT", price:last})+')">Short</button>'
     + '</div>'
     + '<p class="hint" style="margin:0;">Illustrative price path pending a live commodities feed — wire a data vendor of your choice into the Worker&#39;s /api once you have one.</p>'
     + '</div>';
@@ -1145,6 +1183,17 @@ function renderVaultFromState(){
   document.getElementById("balShield").textContent = fmtUsd(state.shieldedReserve);
   document.getElementById("shieldedReserveInput").value = state.shieldedReserve;
   document.getElementById("workerUrlInput").value = state.workerUrl;
+  const statusEl = document.getElementById("workerEndpointStatus");
+  if(state.workerUrl){
+    statusEl.textContent = "Using your custom Worker: " + state.workerUrl;
+    statusEl.style.color = "var(--cyan)";
+  } else if(DEFAULT_WORKER_URL){
+    statusEl.textContent = "Using the shared default Worker (no setup needed).";
+    statusEl.style.color = "var(--ink-faint)";
+  } else {
+    statusEl.textContent = "No Worker configured yet — paste a deployed Worker URL below to enable live data.";
+    statusEl.style.color = "var(--amber)";
+  }
   document.getElementById("kalshiKeyId").value = state.vault.kalshiKeyId || "";
   document.getElementById("kalshiPem").value = state.vault.kalshiPem || "";
   document.getElementById("polyKey").value = state.vault.polyKey || "";
@@ -1169,7 +1218,16 @@ document.getElementById("saveShieldBtn").addEventListener("click", ()=>{
 document.getElementById("saveWorkerBtn").addEventListener("click", ()=>{
   state.workerUrl = document.getElementById("workerUrlInput").value.trim();
   LS.set("workerUrl", state.workerUrl);
-  toast("Worker endpoint saved.");
+  toast(state.workerUrl ? "Custom Worker endpoint saved." : "Cleared — now using the shared default.");
+  renderVaultFromState();
+  refreshEverything();
+});
+document.getElementById("resetWorkerBtn").addEventListener("click", ()=>{
+  document.getElementById("workerUrlInput").value = "";
+  state.workerUrl = "";
+  LS.set("workerUrl", "");
+  toast("Switched to the shared default Worker.");
+  renderVaultFromState();
   refreshEverything();
 });
 /* Sensitive fields (PEM, secrets, passphrase, Gemini key) start masked and
@@ -1215,7 +1273,7 @@ document.getElementById("purgeBtn").addEventListener("click", ()=>{
 });
 
 async function loadBalances(){
-  if(!state.workerUrl) return;
+  if(!effectiveWorkerUrl()) return;
   if(state.vault.polyKey && state.vault.polySecret && state.vault.polyPassphrase){
     try{
       const data = await api("/api/poly/balance", { headers:{
@@ -1332,7 +1390,8 @@ document.getElementById("copilotToggle").addEventListener("click", ()=>{
 function pauseCarousels(pause){
   document.querySelectorAll(".carousel").forEach(c=>{ c.style.overflowX = pause ? "hidden" : "auto"; });
 }
-window.askCopilotAbout = async function(context){
+window.askCopilotAbout = async function(contextJson){
+  const context = typeof contextJson === "string" ? JSON.parse(contextJson) : contextJson;
   state.copilotContext = context;
   document.getElementById("copilotPanel").classList.add("open");
   const body = document.getElementById("copilotBody");
